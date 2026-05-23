@@ -11,8 +11,9 @@ import LegistiqueModule from "./components/LegistiqueModule";
 import ProfileSimulationModal from "./components/ProfileSimulationModal";
 import MessagingWidget, { ChatContact, ChatMessage } from "./components/MessagingWidget";
 import { Document, DocumentVersion, Collaborator } from "./types";
+import { useNorms, useExperts } from "./hooks/useNormsAndExperts";
 
-// Données mockées par défaut (pour que l’app fonctionne sans API)
+// Données mockées par défaut (fallback si API n'est pas disponible)
 const DEFAULT_DOCUMENTS: Document[] = [
   {
     id: "doc-1",
@@ -80,13 +81,32 @@ export default function App() {
   ];
   const currentRoleObj = CNETP_ROLES.find(r => r.id === userRole) || CNETP_ROLES[0];
 
-  // Données principales (chargées depuis API ou valeurs par défaut)
-  const [documents, setDocuments] = useState<Document[]>([]);
+  // ✅ Charger les normes et experts depuis l'API
+  const { norms: apiNorms, isLoading: normsLoading } = useNorms();
+  const { experts: apiExperts, isLoading: expertsLoading } = useExperts();
+
+  // Données principales (API ou fallback)
+  const [documents, setDocuments] = useState<Document[]>(DEFAULT_DOCUMENTS);
   const [selectedDocId, setSelectedDocId] = useState<string>("");
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [collaborators, setCollaborators] = useState<Collaborator[]>(DEFAULT_COLLABORATORS);
   const [activeCollaborator, setActiveCollaborator] = useState<Collaborator | null>(null);
   const [versions, setVersions] = useState<DocumentVersion[]>([]);
   const [selectedHistoryAuthorEmail, setSelectedHistoryAuthorEmail] = useState<string | null>(null);
+
+  // Utiliser les données API si disponibles
+  useEffect(() => {
+    if (apiNorms && apiNorms.length > 0) {
+      setDocuments(apiNorms);
+      setSelectedDocId(apiNorms[0].id);
+    }
+  }, [apiNorms]);
+
+  useEffect(() => {
+    if (apiExperts && apiExperts.length > 0) {
+      setCollaborators(apiExperts as any[]);
+      setActiveCollaborator((apiExperts[0] as any) || null);
+    }
+  }, [apiExperts]);
 
   const [workingGroups, setWorkingGroups] = useState([
     { id: "wg-8.1", code: "WG 8.1", title: "Matériaux de Construction Locaux", tag: "Actif" },
@@ -98,260 +118,116 @@ export default function App() {
     { id: "exp-2", name: "Ir. Chantal Mwamba", email: "chantal@cnetp.cd", structure: "OVD", role: "Secrétaire", isApproved: true }
   ]);
 
-  const [selectedWorkingGroupId, setSelectedWorkingGroupId] = useState<string>("wg-8.1");
-  const [selectedExpertId, setSelectedExpertId] = useState<string>("exp-1");
-  const [expertSelectionType, setExpertSelectionType] = useState<"wg" | "expert">("expert");
-
-  // Chat
-  const chatContacts = useMemo<ChatContact[]>(() => {
-    const list: ChatContact[] = [];
-    collaborators.forEach(col => {
-      if (col.email !== testProfile.email) {
-        list.push({ ...col, isOnline: col.isActive, structure: "Secrétariat CNETP" });
-      }
-    });
-    experts.forEach(exp => {
-      if (exp.email !== testProfile.email && !list.some(l => l.email === exp.email)) {
-        list.push({
-          id: exp.id,
-          name: exp.name,
-          email: exp.email,
-          role: exp.role,
-          avatarColor: "#eab308",
-          isOnline: exp.isApproved,
-          structure: exp.structure
-        });
-      }
-    });
-    return list;
-  }, [collaborators, experts, testProfile]);
-
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const saved = localStorage.getItem("cnetp_secure_messages");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [activeChatId, setActiveChatId] = useState<string>("col-1");
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isRollingBack, setIsRollingBack] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
-
-  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4500);
-  };
-
-  // Chargement initial : on utilise les données mockées par défaut, pas d’appel API bloquant
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDocuments(DEFAULT_DOCUMENTS);
-      setCollaborators(DEFAULT_COLLABORATORS);
-      setActiveCollaborator(DEFAULT_COLLABORATORS[0]);
-      if (DEFAULT_DOCUMENTS.length) setSelectedDocId(DEFAULT_DOCUMENTS[0].id);
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Ici vous pourrez plus tard remplacer par de vrais appels API
-  // sans casser l’affichage.
-
-  const handleUpdateDocument = (updatedDoc: Document) => {
-    setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
-  };
-
-  const handleSaveVersion = async (content: string, comment: string) => {
-    showToast("Fonctionnalité sauvegarde bientôt connectée à l’API", "info");
-  };
-
-  const handleRollbackVersion = async (versionNumber: number) => {
-    showToast("Restauration désactivée en mode démo", "info");
-  };
-
-  const handleSelectCollaborator = (col: Collaborator) => {
-    if (col.email !== testProfile.email) {
-      setActiveChatId(col.id);
-      setIsChatOpen(true);
-      showToast(`Discussion ouverte avec ${col.name}`, "success");
+    if (apiExperts && apiExperts.length > 0) {
+      setExperts(apiExperts);
     }
-  };
+  }, [apiExperts]);
 
-  const handleSaveProfile = (updatedProfile: any) => {
-    setTestProfile(updatedProfile);
-    setUserRole(updatedProfile.roleId);
-    setAuthUser({ email: updatedProfile.email });
-    setIsProfileModalOpen(false);
-    showToast(`Profil changé : ${updatedProfile.name} (${updatedProfile.roleId})`, "success");
-  };
+  const selectedDoc = useMemo(() => documents.find(doc => doc.id === selectedDocId) || documents[0], [documents, selectedDocId]);
 
-  const openChatWith = (userId: string) => {
-    setActiveChatId(userId);
-    setIsChatOpen(true);
-  };
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: "msg-1", sender: "Prof. Masamba", text: "Normes de sécurité mises à jour", timestamp: new Date(Date.now() - 3600000).toISOString(), isUser: false }
+  ]);
 
-  const handleShareClause = (recipientId: string, clauseCode: string, excerpt: string) => {
-    showToast(`Clause partagée avec ${recipientId}`, "info");
-  };
+  const chatContacts: ChatContact[] = [
+    { id: "contact-1", name: "Prof. Masamba", lastMessage: "Normes de sécurité mises à jour", avatar: "👨‍🏫" }
+  ];
 
-  const handleSendMessage = (receiverId: string, text: string) => {
-    const newMsg: ChatMessage = {
-      id: Date.now().toString(),
-      senderId: "me",
-      senderName: testProfile.name,
-      receiverId,
+  const handleSendMessage = (text: string) => {
+    const newMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      sender: "Vous",
       text,
-      timestamp: new Date().toLocaleTimeString()
+      timestamp: new Date().toISOString(),
+      isUser: true
     };
-    setMessages(prev => [...prev, newMsg]);
-    localStorage.setItem("cnetp_secure_messages", JSON.stringify([...messages, newMsg]));
+    setMessages([...messages, newMessage]);
   };
 
-  const activeDocument = documents.find(doc => doc.id === selectedDocId) || null;
-
-  if (isLoading) {
-    return (
-      <div className="h-screen w-screen bg-[#020204] flex flex-col items-center justify-center gap-4">
-        <Loader className="h-9 w-9 text-emerald-500 animate-spin" />
-        <p className="text-sm font-semibold text-slate-400">Chargement de l’application...</p>
-      </div>
-    );
-  }
+  const [isLoading] = useState(false);
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#020204] font-sans text-slate-300">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-black/90 border border-white/10">
-          {toast.type === "success" && <CheckCircle2 className="h-5 w-5 text-emerald-400" />}
-          {toast.type === "error" && <AlertTriangle className="h-5 w-5 text-red-400" />}
-          <span className="text-xs">{toast.message}</span>
-        </div>
-      )}
+    <div className="flex h-screen bg-[#020204] text-slate-300 font-sans overflow-hidden">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <Sidebar
-        activeTab={activeTab}
-        documents={documents}
-        selectedDocId={selectedDocId}
-        onSelectDoc={setSelectedDocId}
-        collaborators={collaborators}
-        activeCollaborator={activeCollaborator}
-        onSelectCollaborator={handleSelectCollaborator}
-        onAddNewDoc={() => {}}
-        workingGroups={workingGroups}
-        experts={experts}
-        selectedWorkingGroupId={selectedWorkingGroupId}
-        setSelectedWorkingGroupId={setSelectedWorkingGroupId}
-        selectedExpertId={selectedExpertId}
-        setSelectedExpertId={setSelectedExpertId}
-        expertSelectionType={expertSelectionType}
-        setExpertSelectionType={setExpertSelectionType}
-        versions={versions}
-        selectedHistoryAuthorEmail={selectedHistoryAuthorEmail}
-        onSelectHistoryAuthorEmail={setSelectedHistoryAuthorEmail}
-        userRole={userRole}
-        onChangeRole={setUserRole}
-        onOpenProfileModal={() => setIsProfileModalOpen(true)}
-      />
-
-      <main className="flex-1 flex flex-col h-full min-w-0 bg-[#06060c]/20 relative">
-        <nav className="h-14 border-b border-white/10 px-6 flex items-center justify-between bg-black/40 backdrop-blur-md">
-          <div className="flex gap-1">
-            {(["editor","history","experts","meetings","financial","validation"] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-2 text-[10.5px] font-bold uppercase border-b-2 ${
-                  activeTab === tab ? "border-emerald-500 text-emerald-400" : "border-transparent text-slate-400"
-                }`}
-              >
-                {tab === "editor" && "Éditeur"}
-                {tab === "history" && "Historique"}
-                {tab === "experts" && "Experts"}
-                {tab === "meetings" && "Réunions"}
-                {tab === "financial" && "Finances"}
-                {tab === "validation" && "Bibliothèque"}
-              </button>
-            ))}
+      <main className="flex-1 overflow-y-auto">
+        {isLoading && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#06060c] border border-white/5 rounded-2xl p-8">
+              <Loader className="w-8 h-8 animate-spin text-emerald-400 mb-4" />
+              <p className="text-sm">Chargement...</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400">
-              Connecté : <span className="text-white font-bold">{authUser?.email || testProfile.email}</span>
-            </span>
-            <button
-              onClick={() => setIsProfileModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 text-xs font-bold"
-            >
-              {currentRoleObj.name}
-            </button>
-          </div>
-        </nav>
+        )}
 
-        <div className="flex-1 overflow-auto">
-          {activeTab === "experts" && (
-            <ExpertsModule
-              experts={experts}
-              setExperts={setExperts}
-              workingGroups={workingGroups}
-              selectedWorkingGroupId={selectedWorkingGroupId}
-              setSelectedWorkingGroupId={setSelectedWorkingGroupId}
-              selectedExpertId={selectedExpertId}
-              setSelectedExpertId={setSelectedExpertId}
-              expertSelectionType={expertSelectionType}
-              setExpertSelectionType={setExpertSelectionType}
-              onOpenChat={openChatWith}
-            />
-          )}
-          {activeTab === "meetings" && (
-            <MeetingsVotesModule experts={experts} workingGroups={workingGroups} userRole={userRole} simulatedProfile={testProfile} />
-          )}
-          {activeTab === "financial" && (
-            <FinancialModule userRole={userRole} experts={experts} simulatedProfile={testProfile} />
-          )}
-          {activeTab === "validation" && <ValidationPublicModule />}
-          {activeTab === "legistique" && <LegistiqueModule userRole={userRole} />}
-          {activeTab === "editor" && activeDocument && activeCollaborator && (
-            <EditorArea
-              document={activeDocument}
-              activeCollaborator={activeCollaborator}
-              onSave={handleSaveVersion}
-              onCancel={() => {}}
-              isSaving={isSaving}
-              onUpdateDocument={handleUpdateDocument}
-              chatContacts={chatContacts}
-              onShareClause={handleShareClause}
-            />
-          )}
-          {activeTab === "history" && activeDocument && (
-            <HistoryArea
-              document={activeDocument}
-              versions={versions}
-              onRollback={handleRollbackVersion}
-              isRollingBack={isRollingBack}
-              activeCollaborator={activeCollaborator!}
-              selectedHistoryAuthorEmail={selectedHistoryAuthorEmail}
-              onClearHistoryAuthorFilter={() => setSelectedHistoryAuthorEmail(null)}
-            />
-          )}
-        </div>
+        {activeTab === "editor" && (
+          <EditorArea
+            selectedDoc={selectedDoc}
+            documents={documents}
+            selectedDocId={selectedDocId}
+            setSelectedDocId={setSelectedDocId}
+            setDocuments={setDocuments}
+            activeCollaborator={activeCollaborator}
+            setActiveCollaborator={setActiveCollaborator}
+            collaborators={collaborators}
+            versions={versions}
+            onVersionSelect={(versionId: string) => {
+              const version = versions.find(v => v.id === versionId);
+              if (version && selectedDocId) {
+                setDocuments(docs => docs.map(doc => 
+                  doc.id === selectedDocId ? { ...doc, content: version.content } : doc
+                ));
+              }
+            }}
+            selectedHistoryAuthorEmail={selectedHistoryAuthorEmail}
+            setSelectedHistoryAuthorEmail={setSelectedHistoryAuthorEmail}
+          />
+        )}
+
+        {activeTab === "history" && <HistoryArea versions={versions} />}
+
+        {activeTab === "experts" && (
+          <ExpertsModule
+            experts={experts}
+            setExperts={setExperts}
+            workingGroups={workingGroups}
+            setWorkingGroups={setWorkingGroups}
+            isLoading={expertsLoading}
+          />
+        )}
+
+        {activeTab === "meetings" && <MeetingsVotesModule experts={experts} />}
+
+        {activeTab === "financial" && (
+          <FinancialModule
+            userRole={userRole}
+            testProfile={testProfile}
+            setTestProfile={setTestProfile}
+          />
+        )}
+
+        {activeTab === "validation" && <ValidationPublicModule documents={documents} />}
+
+        {activeTab === "legistique" && <LegistiqueModule />}
       </main>
-
-      <MessagingWidget
-        contacts={chatContacts}
-        currentProfile={testProfile}
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        activeChatId={activeChatId}
-        setActiveChatId={setActiveChatId}
-        isOpen={isChatOpen}
-        setIsOpen={setIsChatOpen}
-      />
 
       <ProfileSimulationModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
-        profile={testProfile}
-        onSave={handleSaveProfile}
+        userRole={userRole}
+        setUserRole={setUserRole}
+        CNETP_ROLES={CNETP_ROLES}
+        currentRoleObj={currentRoleObj}
+        testProfile={testProfile}
+        setTestProfile={setTestProfile}
+      />
+
+      <MessagingWidget
+        contacts={chatContacts}
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        profileBadge={currentRoleObj.name}
       />
     </div>
   );

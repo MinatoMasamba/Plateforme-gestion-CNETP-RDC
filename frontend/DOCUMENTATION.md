@@ -98,7 +98,7 @@ Voici les formats attendus pour alimenter les différents modules et la manière
 
 ### 1. Structure d'un Document (Norme ou Projet)
 
-Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et par l**'EditorArea** (pour charger le contenu).
+Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et par l'**EditorArea** (pour charger le contenu).
 
 ```json
 {
@@ -106,7 +106,11 @@ Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et p
   "title": "Eurocode 8 - Conception pour la résistance aux séismes",
   "code": "CNETP-EC8-1",
   "description": "Règles générales pour la conception parasismique en RDC.",
-  "content": "Article 1.\\nLa présente norme définit...\\n\\nArticle 2.\\nSpécifications liées...",
+  "content": "Article 1.
+La présente norme définit...
+
+Article 2.
+Spécifications liées...",
   "category": "CTM 2 - Ouvrages",
   "updatedAt": "2026-05-19T10:00:00Z",
   "updatedBy": "Dr. Kasongo",
@@ -193,3 +197,19 @@ Exemple d'injection dans l'éditeur :
 />
 ```
 Le changement du `userRole` (parmi 'ADMIN', 'MEMBRE_P', 'LEGISTE', etc.) déclenchera un changement d'interface asynchrone (disponibilité de certains boutons) au sein de la page.
+
+---
+
+### Mises à jour du 23 Mai 2026
+
+#### **1. Refonte de l'API d'authentification (Backend)**
+Les endpoints existants dans `api/v1/auth_views.py` pour `login`, `register`, et `logout` ont été confirmés comme étant conformes aux exigences d'une API REST basée sur les sessions Django. Le `UserDetailSerializer` renvoie correctement le statut `is_expert` de l'utilisateur.
+
+#### **2. Routage RBAC et Connexion API (Frontend)**
+
+*   **AuthContext.tsx:** Les chemins d'API pour `login`, `logout`, `register`, et `checkAuth` ont été mis à jour pour inclure le préfixe `/api/v1/` afin de correspondre aux routes Django REST. L'objet `user` du contexte inclut désormais explicitement la propriété `is_expert`.
+*   **main.tsx:**
+    *   Un nouveau composant `IndexRoute` a été créé pour gérer la logique de redirection à la racine (`/`) en fonction de l'état d'authentification et du rôle (`is_expert`) de l'utilisateur.
+    *   La route `/` utilise maintenant `IndexRoute`.
+    *   La route `/app/*` est désormais sécurisée, redirigeant les utilisateurs non-experts ou non-authentifiés vers `/public/norms/` ou `/auth/login/` respectivement.
+*   **Login.tsx:** La fonction `handleSubmit` a été modifiée pour utiliser le statut `is_expert` de l'utilisateur après une connexion réussie, redirigeant vers `/app/` pour les experts et `/public/norms/` pour les utilisateurs publics.

@@ -23,19 +23,22 @@ interface ExpertsModuleProps {
   experts: any[];
   setExperts: React.Dispatch<React.SetStateAction<any[]>>;
   workingGroups: any[];
-  selectedWorkingGroupId: string;
-  setSelectedWorkingGroupId: (id: string) => void;
-  selectedExpertId: string;
-  setSelectedExpertId: (id: string) => void;
-  expertSelectionType: "wg" | "expert";
-  setExpertSelectionType: (type: "wg" | "expert") => void;
+  setWorkingGroups?: React.Dispatch<React.SetStateAction<any[]>>;
+  selectedWorkingGroupId?: string;
+  setSelectedWorkingGroupId?: (id: string) => void;
+  selectedExpertId?: string;
+  setSelectedExpertId?: (id: string) => void;
+  expertSelectionType?: "wg" | "expert";
+  setExpertSelectionType?: (type: "wg" | "expert") => void;
   onOpenChat?: (expertId: string) => void;
+  isLoading?: boolean;
 }
 
 export default function ExpertsModule({
   experts,
   setExperts,
   workingGroups,
+  setWorkingGroups,
   selectedWorkingGroupId,
   setSelectedWorkingGroupId,
   selectedExpertId,
@@ -43,6 +46,7 @@ export default function ExpertsModule({
   expertSelectionType,
   setExpertSelectionType,
   onOpenChat,
+  isLoading = false,
 }: ExpertsModuleProps) {
 
   // Local state for WG draft tasks / progress

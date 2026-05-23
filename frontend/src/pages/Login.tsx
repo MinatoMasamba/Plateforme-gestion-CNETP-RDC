@@ -8,7 +8,7 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, user } = useAuth(); // Added 'user' here
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,9 +17,26 @@ export default function Login() {
 
     try {
       await login(username, password);
-      navigate('/app');
+      if (user?.is_expert) {
+        navigate('/app');
+      } else {
+        navigate('/public/norms/');
+      }
     } catch (err: any) {
-      setError(err?.message || 'Erreur de connexion');
+      if (err.data) {
+        let errorMessage = 'Erreur de connexion : ';
+        if (typeof err.data === 'object') {
+          errorMessage += Object.entries(err.data)
+            .map(([key, value]) => ` ${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join(';');
+        } else {
+          errorMessage += err.message || JSON.stringify(err.error) || 'Erreur inconnue.';
+        }
+        setError(errorMessage);
+        console.error('Login error details:', err.data);
+      } else {
+        setError(err?.message || 'Erreur de connexion');
+      }
     }
   };
 

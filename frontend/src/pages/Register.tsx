@@ -40,6 +40,18 @@ export default function Register() {
       
       if (res && res.status === 201) {
         navigate('/auth/login/');
+      } else if (res && res.data) {
+        // Display specific validation errors from Django
+        let errorMessage = 'Erreur lors de l\'inscription : ';
+        if (typeof res.data === 'object') {
+          errorMessage += Object.entries(res.data)
+            .map(([key, value]) => ` ${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join(';');
+        } else {
+          errorMessage += res.message || JSON.stringify(res.error) || 'Erreur inconnue.';
+        }
+        setError(errorMessage);
+        console.error('Registration error details:', res.data);
       } else {
         setError(res?.message || JSON.stringify(res?.error) || 'Erreur lors de l\'inscription');
       }

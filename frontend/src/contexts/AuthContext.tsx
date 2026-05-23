@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function checkAuth() {
     setIsLoading(true);
     try {
-      const response = await apiGet('/auth/me/');
+      const response = await apiGet('/api/v1/auth/me/');
       if (response.status === 200 && response.data) {
         setUser(response.data);
         setError(null);
@@ -57,13 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiPost('/auth/login/', { username, password });
+      const response = await apiPost('/api/v1/auth/login/', { username, password });
       
       if (response.status === 200 && response.data?.user) {
         setUser(response.data.user);
         await new Promise(r => setTimeout(r, 100));
       } else {
-        throw new Error(response.message || 'Login failed');
+        // Propagate the actual error response from the backend
+        const errorToThrow = new Error(response.message || 'Login failed');
+        (errorToThrow as any).data = response.data; // Attach backend data to the error
+        throw errorToThrow;
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -77,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     setIsLoading(true);
     try {
-      await apiPost('/auth/logout/', {});
+      await apiPost('/api/v1/auth/logout/', {});
       setUser(null);
       setError(null);
     } catch (err) {
@@ -92,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiPost('/auth/register/', userData);
+      const response = await apiPost('/api/v1/auth/register/', userData);
       if (response.status === 201) {
         return;
       } else {
