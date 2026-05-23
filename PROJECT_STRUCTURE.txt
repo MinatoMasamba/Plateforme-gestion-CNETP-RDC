@@ -1,0 +1,287 @@
+PLATEFORME CNETP - STRUCTURE FINALE (Phase 1 Complétée)
+═══════════════════════════════════════════════════════════════════════════
+
+cnetp_project/
+│
+├─ FICHIERS RACINE
+│  ├─ manage.py                 [CLI Django modifié - PYTHONPATH fix]
+│  ├─ requirements.txt           [Dépendances Python complètes]
+│  ├─ pytest.ini                 [Configuration pytest]
+│  ├─ .env.example               [Variables d'environnement]
+│  ├─ .gitignore                 [Git exclusions]
+│  ├─ Dockerfile                 [Image Docker production]
+│  ├─ docker-compose.yml         [Infrastructure conteneurs]
+│  ├─ README.md                  [Documentation complète (7800+ chars)]
+│  ├─ QUICKSTART.md              [Guide démarrage rapide]
+│  ├─ PROJECT_STRUCTURE.txt      [Ce fichier]
+│  └─ db.sqlite3                 [Base de données de développement]
+│
+├─ config/                       [Configuration Django centrale]
+│  ├─ __init__.py
+│  ├─ settings.py                [Settings complets (PostgreSQL, Redis, Celery)]
+│  ├─ urls.py                    [Routing principal]
+│  ├─ wsgi.py                    [WSGI application]
+│  ├─ asgi.py                    [ASGI application]
+│  └─ celery.py                  [Celery broker config]
+│
+├─ apps/                         [Applications Django métier]
+│  │
+│  ├─ core/                      [Fonctionnalités transversales]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [✅ User custom + AuditLog]
+│  │  ├─ admin.py                [✅ Admin Django]
+│  │  ├─ apps.py                 [CoreConfig]
+│  │  ├─ views.py                [À implémenter]
+│  │  ├─ serializers.py          [À implémenter]
+│  │  ├─ migrations/
+│  │  │  ├─ 0001_initial.py
+│  │  │  └─ __init__.py
+│  │  └─ tests.py                [À implémenter]
+│  │
+│  ├─ experts/                   [Gestion experts & structures]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [✅ Expert, Structure (16 structures)]
+│  │  ├─ admin.py                [À implémenter]
+│  │  ├─ apps.py                 [ExpertsConfig]
+│  │  ├─ views.py                [À implémenter - ViewSets]
+│  │  ├─ serializers.py          [À implémenter]
+│  │  ├─ forms.py                [À implémenter]
+│  │  ├─ urls.py                 [À implémenter]
+│  │  ├─ migrations/
+│  │  │  ├─ 0001_initial.py
+│  │  │  └─ __init__.py
+│  │  └─ tests.py                [À implémenter]
+│  │
+│  ├─ governance/                [CTM, WG, Comités]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [✅ CTM(8) + WG(24) + Affectation + Pilotage]
+│  │  ├─ admin.py                [À implémenter]
+│  │  ├─ apps.py                 [GovernanceConfig]
+│  │  ├─ views.py                [À implémenter - ViewSets]
+│  │  ├─ serializers.py          [À implémenter]
+│  │  ├─ forms.py                [À implémenter]
+│  │  ├─ urls.py                 [À implémenter]
+│  │  ├─ migrations/
+│  │  │  ├─ 0001_initial.py
+│  │  │  └─ __init__.py
+│  │  └─ tests.py                [À implémenter]
+│  │
+│  ├─ norms/                     [Normes & versions]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [✅ Norme + NormeVersion + ChangementVersion]
+│  │  ├─ admin.py                [À implémenter]
+│  │  ├─ apps.py                 [NormsConfig]
+│  │  ├─ views.py                [À implémenter - ViewSets]
+│  │  ├─ serializers.py          [À implémenter]
+│  │  ├─ managers.py             [À implémenter - QuerySets custom]
+│  │  ├─ utils.py                [À implémenter - Diff, exports PDF]
+│  │  ├─ urls.py                 [À implémenter]
+│  │  ├─ migrations/
+│  │  │  ├─ 0001_initial.py
+│  │  │  └─ __init__.py
+│  │  └─ tests.py                [À implémenter]
+│  │
+│  ├─ amendments/                [Amendements & votes]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [À implémenter - Amendement + Vote]
+│  │  ├─ admin.py
+│  │  ├─ apps.py                 [AmendmentsConfig]
+│  │  ├─ views.py
+│  │  ├─ serializers.py
+│  │  ├─ signals.py              [À implémenter - Notifications]
+│  │  ├─ urls.py
+│  │  ├─ migrations/
+│  │  └─ tests.py
+│  │
+│  ├─ meetings/                  [Réunions & procès-verbaux]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [À implémenter - Reunion + Presence + PV]
+│  │  ├─ admin.py
+│  │  ├─ apps.py                 [MeetingsConfig]
+│  │  ├─ views.py
+│  │  ├─ serializers.py
+│  │  ├─ managers.py             [À implémenter - Calculs quorum]
+│  │  ├─ templates/              [À implémenter - Génération PV]
+│  │  ├─ urls.py
+│  │  ├─ migrations/
+│  │  └─ tests.py
+│  │
+│  ├─ payments/                  [Cotisations & jetons]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [À implémenter - Cotisation + Paiement + JetonPresence]
+│  │  ├─ admin.py
+│  │  ├─ apps.py                 [PaymentsConfig]
+│  │  ├─ views.py
+│  │  ├─ serializers.py
+│  │  ├─ services.py             [À implémenter - Calcul jetons, factures]
+│  │  ├─ tasks.py                [À implémenter - Celery tasks]
+│  │  ├─ urls.py
+│  │  ├─ migrations/
+│  │  └─ tests.py
+│  │
+│  ├─ validation/                [Workflow CTC & signatures]
+│  │  ├─ __init__.py
+│  │  ├─ models.py               [À implémenter - EtapeValidation]
+│  │  ├─ admin.py
+│  │  ├─ apps.py                 [ValidationConfig]
+│  │  ├─ views.py
+│  │  ├─ serializers.py
+│  │  ├─ workflows.py            [À implémenter - State machine]
+│  │  ├─ urls.py
+│  │  ├─ migrations/
+│  │  └─ tests.py
+│  │
+│  └─ public/                    [Publication & consultation publique]
+│     ├─ __init__.py
+│     ├─ models.py               [À implémenter - PublicationNorme]
+│     ├─ admin.py
+│     ├─ apps.py                 [PublicConfig]
+│     ├─ views.py                [À implémenter - Vue public sans auth]
+│     ├─ serializers.py
+│     ├─ urls.py
+│     ├─ migrations/
+│     └─ tests.py
+│
+├─ api/                          [API REST Layer]
+│  ├─ __init__.py
+│  │
+│  └─ v1/                        [API v1]
+│     ├─ __init__.py
+│     ├─ pagination.py           [✅ StandardResultsSetPagination]
+│     ├─ permissions.py          [À implémenter - IsExpert, IsCTCCoordinator, etc.]
+│     ├─ filters.py              [À implémenter - Filtrage DRF]
+│     ├─ throttle.py             [À implémenter - Rate limiting]
+│     ├─ serializers/            [À implémenter - Serializers par app]
+│     └─ urls.py                 [À implémenter - Agrégation routes API]
+│
+├─ web/                          [Frontend Web (Django Templates)]
+│  ├─ __init__.py
+│  │
+│  ├─ templates/
+│  │  ├─ base.html               [À implémenter - Base template]
+│  │  │
+│  │  ├─ layout/
+│  │  │  ├─ header.html          [À implémenter]
+│  │  │  └─ sidebar.html         [À implémenter]
+│  │  │
+│  │  ├─ experts/
+│  │  │  ├─ list.html            [À implémenter]
+│  │  │  ├─ detail.html          [À implémenter]
+│  │  │  └─ form_inscription.html [À implémenter]
+│  │  │
+│  │  ├─ norms/
+│  │  │  ├─ list.html            [À implémenter]
+│  │  │  ├─ detail.html          [À implémenter]
+│  │  │  ├─ edit_collaborative.html [À implémenter]
+│  │  │  └─ historique.html      [À implémenter]
+│  │  │
+│  │  ├─ meetings/
+│  │  │  ├─ list.html            [À implémenter]
+│  │  │  ├─ vote.html            [À implémenter]
+│  │  │  └─ pv_preview.html      [À implémenter]
+│  │  │
+│  │  ├─ payments/
+│  │  │  ├─ cotisations.html     [À implémenter]
+│  │  │  └─ jetons.html          [À implémenter]
+│  │  │
+│  │  ├─ governance/
+│  │  │  ├─ ctm_list.html        [À implémenter]
+│  │  │  └─ organigramme.html    [À implémenter]
+│  │  │
+│  │  └─ public/
+│  │     ├─ normes_publiques.html [À implémenter]
+│  │     └─ detail_public.html   [À implémenter]
+│  │
+│  ├─ static/
+│  │  ├─ css/
+│  │  │  ├─ bootstrap.min.css
+│  │  │  ├─ custom.css           [À implémenter]
+│  │  │  └─ tables.css           [À implémenter]
+│  │  │
+│  │  ├─ js/
+│  │  │  ├─ jquery.min.js
+│  │  │  ├─ bootstrap.min.js
+│  │  │  ├─ vote_module.js       [À implémenter - Vote temps réel]
+│  │  │  ├─ diff_viewer.js       [À implémenter - Diff normes]
+│  │  │  └─ collaborative.js     [À implémenter - Édition collaborative]
+│  │  │
+│  │  ├─ img/
+│  │  └─ uploads/
+│  │
+│  ├─ views.py                   [À implémenter - Vues web]
+│  └─ urls.py                    [À implémenter - Routes web]
+│
+├─ tests/                        [Tests unitaires & intégration]
+│  ├─ __init__.py
+│  ├─ conftest.py                [✅ Pytest fixtures & factories]
+│  ├─ test_models.py             [✅ Tests modèles de base]
+│  │
+│  ├─ factories/
+│  │  ├─ __init__.py
+│  │  ├─ expert_factory.py       [À implémenter]
+│  │  ├─ norms_factory.py        [À implémenter]
+│  │  └─ ...
+│  │
+│  ├─ test_experts/              [À implémenter]
+│  ├─ test_governance/           [À implémenter]
+│  ├─ test_norms/                [À implémenter]
+│  ├─ test_amendments/           [À implémenter]
+│  ├─ test_meetings/             [À implémenter]
+│  ├─ test_payments/             [À implémenter]
+│  ├─ test_api/                  [À implémenter]
+│  └─ test_web/                  [À implémenter]
+│
+├─ docs/                         [Documentation]
+│  ├─ API.md                     [À implémenter - Endpoints API]
+│  ├─ ARCHITECTURE.md            [À implémenter - Architecture détaillée]
+│  ├─ MODELS.md                  [À implémenter - Schéma données]
+│  ├─ INSTALLATION.md            [À implémenter - Installation avancée]
+│  └─ USER_GUIDE.md              [À implémenter - Guide utilisateur]
+│
+├─ scripts/                      [Scripts utilitaires]
+│  ├─ load_experts.py            [À implémenter - Import experts]
+│  ├─ init_ctm_wg.py             [À implémenter - Initialisation CTM/WG]
+│  └─ seed_db.py                 [À implémenter - Données test]
+│
+├─ logs/                         [Logs application]
+│  └─ django.log                 [Auto-généré]
+│
+├─ mon_env/                      [Virtual environment (ne pas commiter)]
+│  └─ lib/python3.12/site-packages/
+│
+├─ staticfiles/                  [Assets collectés (production)]
+│
+└─ media/                        [Uploads utilisateurs]
+
+═══════════════════════════════════════════════════════════════════════════
+
+RÉSUMÉ COMPLÉTUDE
+
+✅ Terminé (Phase 1)
+├─ Architecture Django modulaire (9 apps)
+├─ Modèles de données (11 modèles)
+├─ Migrations complètes
+├─ Configuration DevOps (Docker)
+├─ Framework de test (pytest)
+└─ Documentation
+
+⏳ À faire (Phases 2-5)
+├─ DRF Serializers & ViewSets
+├─ Templates web & Bootstrap
+├─ Systèmes avancés (votes, paiements, validation)
+├─ Tests d'intégration
+└─ Déploiement production
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTES IMPORTANTES
+
+1. Les fichiers marqués ✅ sont prêts à utiliser
+2. Les fichiers marqués "À implémenter" sont des stubs vides
+3. Les migrations sont créées et testées avec SQLite
+4. PostgreSQL peut être utilisé en remplaçant 2 lignes dans settings.py
+5. Redis/Celery sont configurés mais en mode fallback (dev)
+
+═══════════════════════════════════════════════════════════════════════════
+
+Last Updated : 19 mai 2026 - 04:10 UTC+2

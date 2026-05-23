@@ -1,0 +1,57 @@
+# Manque à implémenter côté serveur Django pour le Frontend React
+
+Ce document détaille les lacunes identifiées dans l'implémentation du backend Django, nécessaires pour supporter pleinement les fonctionnalités du frontend React et le paradigme "Server-Driven UI".
+
+## 1. Module Normes (`apps/norms`, `api/v1/norms_views.py`)
+
+*   **Endpoint `/api/v1/norms/{id}/versions/` (GET):** Nécessaire pour récupérer l'historique des versions d'une norme, supportant le composant `HistoryArea`. Le modèle `NormeVersion` existe, mais l'endpoint spécifique manque.
+*   **Action `lock/` (POST /api/v1/norms/{id}/lock/):** Implémenter une `@action` dans `NormeViewSet` pour permettre aux utilisateurs de prendre le contrôle exclusif de l'édition d'une norme, comme décrit dans `api_normes.md`.
+*   **Action `submit_to_legistique/` (POST /api/v1/norms/{id}/submit_to_legistique/):** Implémenter une `@action` dans `NormeViewSet` pour faire avancer une norme vers le processus de révision légale.
+*   **Gestion des pièces jointes:** Aucune API claire n'est définie pour l'upload, la liste et le téléchargement des documents annexes mentionnés dans `EditorArea`.
+
+## 2. Module Amendements & Votes (`apps/amendments`, `api/v1/amendments_views.py`)
+
+*   **Filtrage des amendements par norme (`GET /api/v1/amendments/?norme_id={id}`):** Le `AmendementViewSet` doit être configuré pour filtrer les amendements par l'`id` de la norme.
+*   **Logique de `ui_state` dans `AmendementSerializer`:** Implémenter `can_vote` et `can_resolve` dans le `ui_state` du sérialiseur pour contrôler l'interface utilisateur de vote et de résolution des amendements.
+*   **Endpoint `POST /api/v1/votes/` (ou `POST /api/v1/amendments/{id}/cast_vote/`):** La méthode `create` du `VoteViewSet` doit inclure la validation pour empêcher les votes multiples et déclencher la logique de quorum/majorité.
+
+## 3. Module Experts (`apps/experts`, `api/v1/experts_views.py`)
+
+*   **Action `activate/` (POST /api/v1/experts/{id}/activate/):** Implémenter une `@action` dans `ExpertViewSet` pour activer le compte d'un expert.
+*   **Endpoint `GET /api/v1/structures/ddl_options/`:** Créer un endpoint dédié (via un `ViewSet` ou une `@action`) pour fournir une liste optimisée (`id`, `name`) des structures pour les menus déroulants du frontend.
+
+## 4. Module Réunions (`apps/meetings`, `api/v1/meetings_views.py`)
+
+*   **Filtrage des réunions par statut (`GET /api/v1/meetings/?status={status}`):** Le `ReunionViewSet` doit supporter les filtres de statut (`UPCOMING`, `PAST`) dans `get_queryset()`.
+*   **Action `checkin/` (POST /api/v1/meetings/{id}/checkin/):** Implémenter une `@action` dans `ReunionViewSet` pour enregistrer la présence d'un expert et déclencher la création des `JetonPresence`.
+*   **Action `generate_pv/` (POST /api/v1/meetings/{id}/generate_pv/):** Implémenter une `@action` dans `ReunionViewSet` pour générer le Procès-Verbal et retourner son URL de téléchargement.
+
+## 5. Module Finances (`apps/payments`, `api/v1/payments_views.py`)
+
+*   **Agrégation des cotisations (`GET /api/v1/finances/cotisations/`):** Le `CotisationViewSet` doit utiliser `annotate()` dans `get_queryset()` pour fournir les totaux (dus, payés, reste à payer) et le `ui_state.can_send_reminder`.
+*   **Action `send_reminder/` (POST /api/v1/finances/cotisations/{id}/send_reminder/):** Implémenter une `@action` pour envoyer des rappels de cotisations.
+*   **Endpoint `GET /api/v1/finances/jetons/my_jetons/`:** Le `JetonPresenceViewSet` nécessite une `@action` dédiée pour lister les jetons de présence de l'utilisateur connecté.
+*   **Action `download_receipt/` (GET /api/v1/finances/jetons/{id}/download_receipt/):** Implémenter une `@action` pour générer et retourner le reçu PDF des jetons de présence.
+
+## 6. Module Gouvernance (`apps/governance`, `api/v1/governance_views.py`)
+
+*   **Endpoint `GET /api/v1/governance/my_comitees/`:** Le `CTMViewSet` (ou `ExpertViewSet`) doit avoir une `@action` pour renvoyer les comités auxquels l'expert connecté est affecté.
+*   **Validation d'affectation (`POST /api/v1/governance/affectations/`):** Le `AffectationSerializer` doit inclure une méthode `validate()` pour garantir qu'un seul `PRESIDENT_WG` est assigné par groupe de travail.
+
+## 7. Module Public (`apps/public`)
+
+*   **Endpoints pour les normes publiques (`GET /api/v1/public/norms/`, `GET /api/v1/public/norms/{id}/download_pdf/`):** Créer un `ViewSet` ou des endpoints spécifiques avec des permissions `AllowAny` pour exposer les normes publiées et permettre leur téléchargement.
+*   **Endpoint pour les amendements publics (`POST /api/v1/public/amendments/`):** Un endpoint pour soumettre des amendements lors de l'enquête publique.
+
+## 8. Messagerie Interne (Real-time Messaging)
+
+*   **Intégration WebSocket/API de Chat:** La fonctionnalité de chat en temps réel décrite dans le frontend n'a pas d'endpoints API correspondants clairs dans la documentation backend fournie. Une solution basée sur Django Channels (pour WebSockets) ou des endpoints REST pour le polling/long-polling serait nécessaire.
+    *   `POST /api/v1/messages/` (pour envoyer un message)
+    *   `GET /api/v1/messages/?conversation_id={id}` (pour récupérer l'historique d'une conversation)
+
+## 9. Considérations Générales
+
+*   **`ui_state` dans les sérialiseurs:** Tous les `serializers` pertinents doivent être étendus pour inclure le champ `ui_state` avec la logique métier appropriée (permissions, statuts, actions possibles) afin de permettre le "Server-Driven UI".
+*   **Pagination standardisée:** S'assurer que tous les `ViewSets` utilisent `StandardResultsSetPagination` et que le frontend s'y adapte.
+*   **Permissions au niveau de l'objet:** Implémenter des permissions robustes au niveau de l'objet dans les `ViewSets` ou surcharger `get_queryset` pour filtrer les données selon les droits de l'utilisateur.
+*   **Configuration du routage hybride:** Confirmer la configuration de `config/urls.py` et `web/views.py` pour servir correctement le frontend React compilé.

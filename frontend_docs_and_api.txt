@@ -1,0 +1,913 @@
+# CNETP - Documentation de la Plateforme
+
+## Vue d'ensemble
+
+Cette plateforme est un système d'information complet pour le **Comité National d'Élaboration des Textes Publics (CNETP)**. Elle permet de gérer l'intégralité du cycle de vie des normes, de leur élaboration à leur publication publique, en passant par la gestion des experts, l'organisation des réunions, les systèmes de vote formels, et le suivi financier (cotisations, jetons de présence).
+
+## Architecture et Navigation globale
+
+L'application principale (`src/App.tsx`) est structurée autour de plusieurs éléments :
+1. **La barre de navigation supérieure** qui donne accès aux différents modules (onglets).
+2. **Une barre latérale (Sidebar)** pour la sélection des documents ou projets de norme en cours de rédaction.
+3. **Un espace de travail dynamique (Main Area)** dont le contenu, les fonctionnalités et les permissions changent en fonction de l'onglet actif et du rôle de l'utilisateur simulé.
+4. **Un module de messagerie flottant**, accessible partout.
+
+### Simulateur de profil / Rôle
+Un sélecteur situé en haut à droite (bouton "Simuler un autre profil") permet de basculer entre différents profils d'utilisateurs (Membre permanent, Président CTM, Rapporteur, Légiste, Gestionnaire comptable, etc.). Les droits, l'affichage et les boutons d'action dans les différents modules changent dynamiquement selon le rôle sélectionné, conformément au manuel d'organisation du CNETP.
+
+---
+
+## Les Modules (Onglets de navigation)
+
+### 1. Édition & Rédaction (Éditeur Collaboratif)
+**Fichier source:** `src/components/EditorArea.tsx`
+- **Objectif:** Permettre la rédaction, l'amendement, et la co-création des projets de normes au sein d'un Groupe de Travail (WG) ou CTM.
+- **Fonctionnalités:**
+  - Éditeur de texte enrichi avec suivi de la présence des autres collaborateurs.
+  - Espace de commentaires pour justifier les amendements ou poser des questions.
+  - **Assistant IA Réglementaire:** Un outil d'IA capable d'analyser le texte, de le comparer avec des références (ex: normes ISO, Eurocodes), d'expliquer les recommandations et de générer une proposition de révision applicable en un clic. L'utilisateur peut étendre la vue IA pour modifier la proposition avant de l'appliquer.
+  - **Pièces jointes & Documents annexes:** Interface pour le téléversement et la consultation de littérature grise (PDF, recherches techniques).
+  - Intégration cloud (liens vers Google Drive et réunions Google Meet liés au document).
+
+### 2. Historique (Traçabilité)
+**Fichier source:** `src/components/HistoryArea.tsx`
+- **Objectif:** Assurer une traçabilité totale (audit trail) de toutes les modifications apportées à un document.
+- **Fonctionnalités:**
+  - Ligne du temps (chronologie) montrant toutes les versions sauvegardées du projet de norme.
+  - Visualisation différentielle (Diff) mettant en surbrillance les textes ajoutés (vert) et supprimés (rouge).
+  - Indication de l'auteur de chaque changement et de la date.
+
+### 3. Annuaire & Experts
+**Fichier source:** `src/components/ExpertsModule.tsx`
+- **Objectif:** Gérer la base de données des membres de l'organisation et faciliter le réseautage.
+- **Fonctionnalités:**
+  - Liste interactive des experts, filtrable par CTM (Comité Technique Miroir), WG (Working Group) et Structure de provenance (ONIC, Universités, Entreprises, etc.).
+  - Fiches détaillées contenant les coordonnées et les rôles de chacun.
+  - Outils administratifs : les membres avec des rôles adéquats (ex: Coordonnateur CTC, Secrétaire permanent) peuvent modifier les affectations (transférer un expert d'un WG à un autre).
+
+### 4. Réunions & Votes
+**Fichier source:** `src/components/MeetingsVotesModule.tsx`
+- **Objectif:** Structurer le travail collégial, documenter les rassemblements et enregistrer les décisions formelles.
+- **Fonctionnalités:**
+  - **Calendrier & Convocation:** Les secrétaires/rapporteurs peuvent organiser des réunions, planifier des ordres du jour, confirmer le quorum (présences) et générer/archiver des Procès-Verbaux (PV).
+  - **Plateforme de Scrutin:** 
+    - Paramétrage et ouverture de votes par le Rapporteur CTM (ex: vote pour l'adoption d'un texte avant envoi).
+    - Vote numérique sécurisé pour les membres du comité (Pour, Contre, Abstention).
+    - Affichage en temps réel ou final des résultats, et vérification des seuils de majorité qualifiée.
+
+### 5. Cotisations & Indemnités (Module Financier)
+**Fichier source:** `src/components/FinancialModule.tsx`
+- **Objectif:** Gérer la trésorerie liée aux cotisations des structures membres et à la rémunération (jetons) des experts.
+- **Fonctionnalités:**
+  - **Cotisations institutionnelles:** Tableau de suivi des montants dus et des paiements versés par les structures (entreprises, organismes).
+  - **Jetons de présence des experts:** Système d'accumulation automatique d'indemnités (jetons) basé sur le registre des présences aux réunions. Téléchargement des reçus individuels pour les experts.
+  - Interface d'administration financière réservée au profil **Gestionnaire Comptable (FONER)** pour saisir les paiements.
+
+### 6. Bureau Légistique
+**Fichier source:** `src/components/LegistiqueModule.tsx`
+- **Objectif:** Réaliser le toilettage législatif et réglementaire (mise en forme juridique) d'une norme une fois qu'elle est techniquement validée par les ingénieurs.
+- **Fonctionnalités:**
+  - Files d'attente des projets de normes en attente de conformité juridique, envoyées par les CTM.
+  - **Éditeur restreint:** espace de rédaction pour les experts légistes permettant de formater les articles, alinéas et références croisées sans altérer le fond scientifique.
+  - Boutons de flux de travail (ex: "S'assigner", "Valider pour Enquête Publique").
+  - Accessible uniquement par les membres du module de pilotage (Coord CTC) ou les "Experts Légistes".
+
+### 7. Bibliothèque Publique
+**Fichier source:** `src/components/ValidationPublicModule.tsx`
+- **Objectif:** Le point de chute final d'une norme, exposant les textes au grand public ou organisant la phase d'enquête.
+- **Fonctionnalités:**
+  - Liste des normes officiellement publiées et homologuées (téléchargeables au format PDF).
+  - Portail pour **l'Enquête Publique**, permettant au public ou aux industriels tiers de lire un projet et de formuler des amendements avant l'homologation finale.
+  - Indicateur visuel du "Cycle de Vie" de la norme (depuis sa conception au sein d'un WG jusqu'à la "Sanction Ministérielle" finale et sa parution).
+
+### 8. Messagerie Interne (Widget)
+**Fichier source:** `src/components/MessagingWidget.tsx`
+- **Objectif:** Permettre une communication asynchrone rapide sans quitter la plateforme.
+- **Fonctionnalités:**
+  - Bouton flottant disponible sur toutes les pages.
+  - Liste des contacts (experts connectés, membres du même comité).
+  - Interface de chat en temps réel pour coordonner les travaux de normalisation.
+
+---
+
+## Structures de Données et Formats (JSON / TypeScript)
+
+La plateforme manipule différentes entités pour son fonctionnement. Dans le contexte de l'application (basée sur React et TypeScript), ces données sont représentées sous forme d'objets (JSON ou dictionnaires). 
+
+Voici les formats attendus pour alimenter les différents modules et la manière de les utiliser.
+
+### 1. Structure d'un Document (Norme ou Projet)
+
+Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et par l**'EditorArea** (pour charger le contenu).
+
+```json
+{
+  "id": "doc-1",
+  "title": "Eurocode 8 - Conception pour la résistance aux séismes",
+  "code": "CNETP-EC8-1",
+  "description": "Règles générales pour la conception parasismique en RDC.",
+  "content": "Article 1.\\nLa présente norme définit...\\n\\nArticle 2.\\nSpécifications liées...",
+  "category": "CTM 2 - Ouvrages",
+  "updatedAt": "2026-05-19T10:00:00Z",
+  "updatedBy": "Dr. Kasongo",
+  "updatedByEmail": "expert@cnetp.cd",
+  "driveFolderUrl": "https://drive.google.com/...",
+  "meetMeetingUrl": "https://meet.google.com/...",
+  "references": [
+    {
+      "id": "ref-1",
+      "name": "Rapport Synthèse SBR",
+      "type": "PDF",
+      "size": "2.1 MB"
+    }
+  ]
+}
+```
+**Comment l'utiliser :** Lorsque vous basculez vers l'onglet `editor`, le document actif est transmis en prop `document={activeDocument}` au composant `EditorArea`. Les champs `content` dictent le texte affiché dans la zone de rédaction, et `references` peuple la section "Documents Annexes".
+
+### 2. Structure d'une Version de Document (Historique)
+
+Appelée par le composant `HistoryArea`, cette structure permet de tracer l'évolution d'une norme au fil des révisions.
+
+```json
+{
+  "id": "v-2",
+  "documentId": "doc-1",
+  "versionNumber": 2,
+  "content": "Contenu mis à jour de l'Article 1...",
+  "author": "Dr. Mbuyi",
+  "email": "mbuyi@cnetp.cd",
+  "timestamp": "2026-05-20T08:30:00Z",
+  "comment": "Ajout des spécifications de contrainte thermique",
+  "isRollback": false
+}
+```
+**Comment l'utiliser :** Utilisée principalement dans `HistoryArea`, elle permet de concevoir le *Diff* (comparaison de texte). L'interface compare à la volée le champ `content` de la version *n* et de la version *n-1* pour faire ressortir les mots ajoutés (vert) et supprimés (rouge).
+
+### 3. Structure d'un Collaborateur ou Expert
+
+Utilisée pour l'annuaire (`ExpertsModule`), la gestion des présences et la messagerie (`MessagingWidget`).
+
+```json
+{
+  "id": "exp-144",
+  "name": "Prof. Tshimanga",
+  "role": "Membre Permanent",
+  "email": "tshimanga@unikin.ac.cd",
+  "avatarColor": "bg-indigo-500",
+  "isActive": true,
+  "structure": "Université de Kinshasa",
+  "province": "Kinshasa"
+}
+```
+**Comment l'utiliser :** Sous forme de tableau (array d'objets), cela propulse le tableau de l'annuaire. Dans le contexte de l'éditeur collaboratif, la propriété `avatarColor` et `name` permettent d'afficher une pastille (avatar) indiquant que la personne édite le document.
+
+### 4. Structure de Messagerie (Message Chat)
+
+Utilisée par `MessagingWidget` pour échanger en temps réel.
+
+```json
+{
+  "id": "msg-1",
+  "senderId": "exp-12",
+  "senderName": "Alice",
+  "receiverId": "exp-144",
+  "text": "L'article 2.4 de la norme nécessite une clarification technique.",
+  "timestamp": "2026-05-20T10:45:00Z",
+  "isClauseShare": true,
+  "clauseCode": "2.4.1",
+  "clauseExcerpt": "La température minimale tolérée est de..."
+}
+```
+**Comment l'utiliser :** Le *Store* (ou l'état React) accumule ces objets. Si `isClauseShare` est activé, le widget applique un formatage spécial avec l'extrait du code de la clause mis en surbrillance, ce qui permet à deux experts de discuter précisément d'une ligne d'un texte normatif.
+
+### Gestion d'État et Injection des Données
+Dans `src/App.tsx`, ces structures de données sont typiquement stockées dans des états locaux via `useState` de React, ou proviennent du fichier de définition `src/types.ts`. Elles sont transmises de la racine de l'application vers les sous-modules via les *props*.
+
+Exemple d'injection dans l'éditeur :
+```tsx
+<EditorArea
+  document={activeDocument}
+  activeCollaborator={activeCollaborator}
+  userRole={userRole}
+/>
+```
+Le changement du `userRole` (parmi 'ADMIN', 'MEMBRE_P', 'LEGISTE', etc.) déclenchera un changement d'interface asynchrone (disponibilité de certains boutons) au sein de la page.
+# Manuel Détaillé : Navigation, Édition Collaborative et Messagerie (Plateforme CNETP)
+
+Ce document fournit une explication exhaustive, dans les moindres détails (UI/UX et fonctionnels), des modules vitaux de la plateforme CNETP : la barre de navigation, l'espace d'édition des normes, et le widget de messagerie instantanée.
+
+---
+
+## 1. La Barre de Navigation (Système de Routage et Profils)
+
+La barre de navigation globale (située en haut de l'interface principale dans `App.tsx`) est le centre de contrôle de la plateforme. Elle ne se contente pas de changer de page, elle maintient l'état global et s'adapte au profil de l'utilisateur.
+
+### 1.1. Les Onglets de Navigation (Modules)
+La barre présente une série de boutons représentant les différents modules. Lorsqu'un onglet est cliqué, l'état `activeTab` est mis à jour, ce qui change dynamiquement le composant rendu au centre de l'écran. 
+- **Éditeur (EditorArea) :** L'espace de rédaction actif (sélectionné par défaut).
+- **Historique (HistoryArea) :** La vue "Diff" chronologique des amendements.
+- **Annuaire (ExpertsModule) :** La base de données des 200 experts.
+- **Réunions & Votes (MeetingsVotesModule) :** La gestion des plénières, émargements et scrutins à majorité qualifiée.
+- **Finances (FinancialModule) :** La gestion des cotisations et des jetons de présence.
+- **Bibliothèque Publique (ValidationPublicModule) :** Le portail externe pour les enquêtes publiques et les normes publiées.
+- **Bureau Légistique (LegistiqueModule) :** Un onglet conditionnel affiché uniquement si l'utilisateur a le rôle `LEGISTE`, `COORD_CTC` ou `ADMIN`.
+
+**Feedback Visuel :** L'onglet actif bénéficie d'une mise en surbrillance (ex: bordure inférieure émeraude, fond subtil, icône accentuée) pour permettre à l'utilisateur de toujours savoir où il se trouve.
+
+### 1.2. Le Simulateur de Profil (Role Switcher)
+En haut à droite de la barre se trouve un bouton crucial : le sélecteur de rôle. 
+- **Fonctionnement :** Il permet de basculer instantanément le `userRole` (ex: de "Membre Permanent" à "Président CTM" ou "Rapporteur"). 
+- **Impact :** Ce changement réévalue les permissions sur *toute* la plateforme. Par exemple, un bouton "Soumettre au vote" dans l'éditeur n'apparaîtra que pour le Rapporteur. Cela permet de tester les Workflows (flux de validation) de bout en bout sans avoir à se reconnecter.
+
+---
+
+## 2. Le Module d'Édition des Normes (L'Éditeur Collaboratif)
+
+Géré par le composant `EditorArea.tsx`, cet espace est le cœur du réacteur où les ingénieurs et experts rédigent le contenu technique des normes de la RDC. L'interface se divise en plusieurs zones fonctionnelles riches.
+
+### 2.1. La Vue Centrale : L'Espace de Rédaction
+C'est ici que la norme prend vie.
+- **En-tête du Document :** Affiche le code strict de la norme (ex: `CNETP-EC8-1`), son titre long, le Comité Technique Miroir (CTM) responsable, et son statut de progression (ex: "En cours de rédaction").
+- **Indicateurs de Présence (Co-édition) :** En haut à droite de l'éditeur, de petites pastilles colorées avec les initiales des collaborateurs s'affichent. Cela indique en temps réel qui d'autre consulte ou édite le même projet de norme, évitant ainsi les conflits d'écrasement.
+- **Zone de Texte (Textarea) :** Une zone de saisie optimisée pour les textes normatifs (typographie monospace ou lisible, espacements généreux). Le texte est sauvegardé automatiquement.
+
+### 2.2. Le Panneau Latéral Droit : Les Outils d'Assistance
+Sur la droite de la zone de rédaction se trouve un panneau polyvalent articulé autour de plusieurs sous-onglets :
+
+#### A. L'Assistant IA Réglementaire
+La fonctionnalité la plus innovante de l'éditeur. L'IA est entraînée/promptée avec les référentiels internationaux (ISO, Eurocodes).
+- **Analyse du Texte :** L'utilisateur peut demander à l'IA d'analyser le paragraphe en cours.
+- **Recommandations :** L'IA génère un rapport expliquant si la clause respecte l'état de l'art. Elle fournit une explication textuelle (le "Pourquoi").
+- **Proposition d'Amendement :** L'IA génère un bloc de code/texte de remplacement. Un bouton vert "Appliquer la révision" permet de remplacer le texte original par la proposition de l'IA en un seul clic.
+
+#### B. Les Commentaires et Amendements
+La norme ne s'écrit pas seule ; elle requiert un consensus.
+- **Fil de Discussion :** Les experts peuvent ajouter des commentaires liés au document global ou à un article spécifique.
+- **Justification Technique :** Chaque commentaire enregistre l'identité de l'auteur, l'horodatage, et le contenu. C'est ici que les ingénieurs défendent leurs "amendements" avant qu'ils ne soient fusionnés par le président du WG (Working Group).
+
+#### C. Les Documents Annexes (Littérature grise)
+Pour rédiger une norme, les experts s'appuient sur des recherches externes.
+- **Liste des Pièces Jointes :** Affiche les PDF, études de sols, rapports SBR, etc.
+- Chaque document annexe affiche son nom, son extension, sa taille et un bouton de téléchargement.
+
+#### D. Intégrations Cloud (Workspace)
+- **Dossier Drive :** Un bouton permet d'ouvrir directement le Google Drive associé (où les brouillons bruts ou fichiers lourds sont stockés).
+- **Salle Meet :** Un bouton génère ou rejoint une salle Google Meet synchrone dédiée au CTM pour débattre de vive voix d'un point de blocage.
+
+---
+
+## 3. La Messagerie Instantanée (Messaging Widget)
+
+Pour éviter que les experts ne quittent la plateforme pour utiliser WhatsApp ou Slack, un widget de messagerie asynchrone / temps réel, géré par `MessagingWidget.tsx`, est superposé sur toutes les pages.
+
+### 3.1. Bouton Flottant (FAB) et Interface
+- Situé en bas à droite de l'écran, le bouton affiche une icône de bulle de discussion avec éventuellement un badge rouge (notifications de messages non lus).
+- En cliquant dessus, le widget se déploie. Il se comporte comme une fenêtre modale flottante persistante. L'utilisateur peut naviguer sur le reste de la plateforme (modifier une norme, voter) tout en gardant le chat ouvert.
+
+### 3.2. Liste des Contacts et Annuaire
+- Le panneau principal de la messagerie affiche la liste des collègues (experts de la plateforme).
+- **Indicateurs d'État :** Des points verts signalent les utilisateurs actuellement en ligne (connectés à la plateforme).
+- La liste est souvent triée pour afficher en premier les membres du même *CTM* ou du même *WG*, facilitant les interactions contextuelles.
+
+### 3.3. Fil de Chat et Envoi de Messages
+- **Zone de Dialogue :** Affichage classique sous forme de bulles (à droite pour les vôtres, à gauche pour les collègues), incluant le nom, l'horodatage précis, et une indication de lecture.
+- **Barre de saisie :** L'utilisateur peut taper son texte, appuyer sur `Entrée` ou cliquer sur l'icône d'envoi.
+
+### 3.4. Le Partage Contextuel de Clauses (La Fonctionnalité Clé)
+C'est la fonction experte du widget. Dans une discussion technique, il est fastidieux de dire "Regarde l'article 2.4.1 de l'Eurocode 8".
+- **Intégration avec l'Éditeur :** Lorsqu'un expert travaille dans l'éditeur, il peut sélectionner un fragment du texte normatif et l'injecter directement dans le chat (`isClauseShare`).
+- **Affichage Enrichi :** Le message reçu côté messagerie n'est pas qu'un simple texte. Il apparaît sous forme de bloc de citation mis en évidence, incluant le code de la norme, l'article précis, et l'extrait de texte.
+- **Avantage :** Le destinataire comprend immédiatement le contexte de la réflexion technique. Un clic sur ce bloc pourrait le reconduire directement vers la clause concernée dans l'interface de lecture ou d'édition, accélérant ainsi la levée des "blocages techniques" (Bugs normatifs) avant le passage au vote formel.
+import axios from 'axios';
+
+// Utiliser l'URL de base de l'API si elle est définie dans l'environnement, 
+// sinon pointer vers l'hôte local par défaut (à configurer quand le backend Django sera lancé)
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+/**
+ * Client Axios configuré pour communiquer avec le backend Django de la plateforme :
+ * https://github.com/MinatoMasamba/Plateforme-gestion-CNETP-RDC.git
+ */
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  // Pour le support des sessions CSRF de Django :
+  withCredentials: true,
+});
+
+// Intercepteur pour inclure dynamiquement le jeton d'authentification (si utilisé)
+apiClient.interceptors.request.use(
+  (config) => {
+    // Si JWT est utilisé au lieu des sessions par défaut, récupérer le jeton
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+/**
+ * Service API pour centraliser tous les appels vers le backend Django.
+ */
+export const ApiService = {
+  // Exemples d'appels API 
+  
+  auth: {
+    login: (credentials: any) => apiClient.post('/auth/login/', credentials),
+    logout: () => apiClient.post('/auth/logout/'),
+    getProfile: () => apiClient.get('/auth/me/'),
+  },
+
+  documents: {
+    getAll: () => apiClient.get('/documents/'),
+    getById: (id: string) => apiClient.get(`/documents/${id}/`),
+    create: (data: any) => apiClient.post('/documents/', data),
+    update: (id: string, data: any) => apiClient.put(`/documents/${id}/`, data),
+  },
+
+  experts: {
+    getAll: () => apiClient.get('/experts/'),
+    getById: (id: string) => apiClient.get(`/experts/${id}/`),
+  },
+
+  meetings: {
+    getAll: () => apiClient.get('/meetings/'),
+    create: (data: any) => apiClient.post('/meetings/', data),
+  },
+  
+  votes: {
+    castVote: (data: any) => apiClient.post('/votes/cast/', data),
+    getResults: (meetingId: string) => apiClient.get(`/votes/results/${meetingId}/`),
+  }
+};
+
+export default ApiService;
+# Architecture du Serveur Django et Intégration Hybride React
+
+Ce document définit la structure complète du backend Django de la plateforme CNETP, ses modèles, ses vues et la méthodologie précise pour intégrer React en tant que moteur de template. Cette architecture "Hybride" permet de bénéficier de la puissance de traitement de Django tout en conservant la fluidité SPA (Single Page Application) de React.
+
+---
+
+## 1. Le Concept de l'Architecture Hybride (Django + React)
+
+Plutôt que de séparer totalement le frontend (Node/Serveur HTTP) et le backend (Django/Gunicorn), l'approche hybride rassemble tout sous le parapluie de Django. 
+
+**Comment ça marche ?**
+1. **Compilation Vite (React) :** Le code React (TypeScript) est compilé via `npm run build`. Les fichiers minifiés (JS, CSS) sont générés directement dans le dossier `static/dist/` de Django.
+2. **Template Catch-All Django :** Django intercepte toutes les requêtes URL qui ne sont pas des `/api/...` ou `/admin/...` et renvoie un unique template `base.html` (ou `index.html`).
+3. **Session et CSRF unifiés :** React s'exécutant sur le même domaine et port que Django, aucune API clé n'est requise. React hérite automatiquement des *Cookies de Session* (`sessionid`) et lit le *CSRF Token* injecté dans le DOM par Django.
+
+---
+
+## 2. Configuration Exacte pour le Contrôle Total du Frontend
+
+Pour que le frontend React (Widgets, Modals, Éditeur) puisse prendre le relai fluide de Django, il faut adapter certains points du serveur à la lettre :
+
+### A. Le Routage Catch-All (config/urls.py et web/urls.py)
+Django doit diriger les API vers DRF, et le reste vers React.
+
+```python
+# config/urls.py
+from django.urls import path, re_path, include
+from web.views import ReactAppView
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/v1/', include('api.v1.urls')), # Le Frontend communiquera avec ces routes
+    
+    # ⚠️ Catch-All : Toute autre URL est envoyée à React
+    re_path(r'^(?!api/|admin/).*$', ReactAppView.as_view(), name='react_app'),
+]
+```
+
+### B. La Vue d'Injection (web/views.py)
+La vue qui lance React doit injecter les métadonnées de l'utilisateur actif afin que React n'ait pas à faire une requête supplémentaire pour savoir qui est connecté (accélération extrême du rendu).
+
+```python
+# web/views.py
+from django.views.generic import TemplateView
+import json
+
+class ReactAppView(TemplateView):
+    template_name = "base.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Injecter le profil utilisateur dans window.APP_CONTEXT
+        if self.request.user.is_authenticated:
+            context['user_data'] = json.dumps({
+                "id": self.request.user.id,
+                "email": self.request.user.email,
+                "is_expert": self.request.user.is_expert,
+                # Tous attributs vitaux
+            })
+        else:
+            context['user_data'] = "null"
+        return context
+```
+
+### C. Adaptation du Client Sécurisé React (src/utils/api.ts)
+Le frontend est obligé de renvoyer le jeton CSRF de Django pour sécuriser chaque action (`POST`, `PUT`, `DELETE`).
+
+```typescript
+// src/utils/api.ts
+import axios from 'axios';
+
+// 1. Récupération du jeton depuis les cookies de Django
+function getCookie(name: string) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+        }
+    }
+  }
+  return cookieValue;
+}
+
+const apiClient = axios.create({
+  baseURL: '/api/v1/', // Relatif car hybride (même domaine)
+  withCredentials: true, // Très important : transporte le cookie sessionid
+});
+
+// 2. Intercepteur : On attache toujours le CSRF token
+apiClient.interceptors.request.use((config) => {
+    const csrfToken = getCookie('csrftoken');
+    if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+    }
+    return config;
+});
+
+export default apiClient;
+```
+
+---
+
+## 3. Structure Détaillée de la Couche Métier (Modèles & Vues Django)
+
+Pour que chaque page de React reçoive l'information nécessaire, voici le découpage détaillé base de données et endpoints (`ViewSets`).
+
+### 3.1. App `core` (Sécurité & Utilisateurs)
+**Modèles :**
+- `User` : Héritage custom de `AbstractUser`. Ajoute les booléens `is_expert`, `is_ctc_staff`, `is_minister`.
+- `AuditLog` : Enregistre qui a modifié quoi.
+
+**ViewSets (api/v1/auth_views.py) :**
+- `AuthViewSet` : Méthodes `/auth/login/`, `/auth/logout/`, `/auth/me/`. Fournit l'accès total à l'interface en vérifiant le couple email/password.
+
+### 3.2. App `experts` (Réseau et Structures)
+**Modèles :**
+- `Expert` : Lié 1-1 à User. Contient validation `status` (PENDING/ACTIVE), `specialties`.
+- `Structure` : Les "Girons" (16 instances - Administration, Ordre professionnel...).
+
+**ViewSets (api/v1/experts_views.py) :**
+- `ExpertViewSet` : Alimente le composant React `ExpertsModule`. Liste, permissions et activation de rôles.
+
+### 3.3. App `governance` (Hiérarchie CNETP)
+**Modèles :**
+- `CTM` : Les 8 Comités miroirs principaux.
+- `WG` : Les 24 Groupes de travail rattachés aux CTM.
+- `Affectation` : Table de jointure (Expert <-> CTM/WG + Rôle comme Président).
+- `ComitePilotage` : Les membres exécutifs.
+
+**ViewSets (api/v1/governance_views.py) :**
+- `CTMViewSet`, `WGViewSet` : Utilisé dans React pour populer les menus déroulants et hiérarchies de classement documentaire.
+
+### 3.4. App `norms` (Rédaction et Édition)
+**Modèles :**
+- `Norme` : Les métadonnées du document.
+- `NormeVersion` : Sauvegarde absolue des états complets et validés.
+- `ChangementVersion` : "Tracking" (Différences).
+
+**ViewSets (api/v1/norms_views.py) :**
+- `NormeViewSet` : Alimente `EditorArea`. Contient des `@action` spécifiques pour verrouiller un document (`lock_document`) lors de la rédaction simultanée afin d'éviter les écrasements asynchrones.
+
+### 3.5. App `meetings` (Réunions, Présence)
+**Modèles :**
+- `Reunion` : Les rendez-vous planifiés.
+- `Presence` : Pour les émargements.
+- `ProcessusVerbaux` : Le PV généré et signé.
+
+**ViewSets (api/v1/meetings_views.py) :**
+- `ReunionViewSet` : Alimente `MeetingsVotesModule`. Fournit l'état en temps réel pour valider les quorums de l'interface en React.
+
+### 3.6. App `amendments` (Système de Vote)
+**Modèles :**
+- `Amendement` : Une proposition de révision d'article.
+- `Vote` : (POUR, CONTRE, ABSTENTION) lié à un ammendement/norme.
+
+**ViewSets :**
+- `AmendementViewSet` : Récupéré par `EditorArea` de React pour les vues collaboratives et fil de commentaires.
+
+### 3.7. App `payments` (Finances)
+**Modèles :**
+- `Cotisation` : Pour les institutions du giron.
+- `Paiement` : Les justificatifs.
+- `JetonPresence` : Calculé automatiquement si l'Expert était _Present_ à une Réunion.
+
+**ViewSets :**
+- `JetonPresenceViewSet` : Alimente `FinancialModule` dans la vue de type "Expert" ou "Comptable Foner".
+
+### 3.8. App `public`
+Les points d'arrêt REST ne requièrent aucune authentification (`AllowAny`). Alimentent le composant React `ValidationPublicModule` pour les industriels non connectés.
+
+---
+
+## 4. Adaptations Critiques pour React 
+
+Afin de servir l'application correctement avec des composants réactifs, le backend subit des contraintes strictes :
+
+1. **La Pagination Standardisée :** Chaque `ViewSet` utilise une pagination Django `StandardResultsSetPagination`. Le composant React doit s'y adapter en lisant `response.data.results` (Tableaux de données) et `response.data.count` (Total pour paginer).
+2. **Permissions au Niveau Objet (Object-Level Permissions) :** Le backend ne doit pas se contenter de filtrer les requêtes HTTP, il filtre les "QuerySets". Ex: Dans `NormeViewSet.get_queryset()`, on retourne uniquement les normes du `request.user.ctm_affectation`. Ainsi, le frontend *ne reçoit que* ce que l'utilisateur a le droit de voir, évitant tout faille d'affichage.
+3. **Transmission Mobile et Hybride:** La mise en place de l'app `mobileapp` (Phase 4) avec DRF SimpleJWT ne change pas le workflow web. Le Web utilise `SessionAuthentication` avec Cookes, le Mobile utilise `JWTAuthentication` dans le `Authorization: Bearer`. Le serveur supporte les deux conjointement de manière transparente.
+
+### Résumé de l'Approche Hybride
+1. Vite compile React `dist/` vers `static/dist/`.
+2. Lancer : `python manage.py collectstatic`.
+3. Lancer : `python manage.py runserver`.
+4. Accédez à la page React à partir de votre routeur Django ! Aucun gestionnaire Node/Express n'est nécessaire.
+# ARCHITECTURE GLOBALE API CNETP (HYBRIDE DJANGO-REACT)
+
+## 1. PARADIGME : SERVER-DRIVEN UI
+Dans notre architecture hybride, **le frontend React est un client passif**. Il ne code en dur **aucune règle métier** (qui a le droit de cliquer sur quoi, quel statut suit un autre). Django est le maître absolu et Dicte l'interface utilisateur.
+
+### Mécanique d'interaction
+Pour tout `ViewSet` Django, le `Serializer` associé inclut systématiquement un nœud de métadonnées `ui_state` ou `ui_permissions`. Le Frontend React lit cet objet et affiche, grise ou masque les widgets en conséquence.
+
+**Exemple de surcharge du Serializer de base dans Django :**
+```python
+class ServerDrivenSerializer(serializers.ModelSerializer):
+    ui_state = serializers.SerializerMethodField()
+
+    def get_ui_state(self, obj):
+        user = self.context['request'].user
+        return {
+            "is_editable": obj.is_editable_by(user),
+            "is_deletable": obj.is_deletable_by(user),
+            "allowed_state_transitions": obj.get_allowed_transitions(user), # Pour populer les menus déroulants
+            "badges": obj.get_frontend_badges() # Ex: ["Urgent", "En attente CTC"]
+        }
+```
+
+---
+
+## 2. DÉTAIL ORGANIQUE PAR MODULE
+
+### MODULE 1 : EXPERTS & STRUCTURES (apps/experts)
+**Modèle central concerné :** `Expert`, `Structure`
+**Vue cible :** `ExpertViewSet`, `StructureViewSet`
+
+* **GET /api/v1/experts/**
+  * **Rôle :** Alimenter la DataGrid du frontend React (Annuaire).
+  * **Permissions :** `IsAuthenticated`.
+  * **Méthodes internes :** `get_queryset()` filtre pour ne renvoyer que les experts approuvés, sauf si l'utilisateur est `IsCTCCoordinator`.
+  * **Dépendance UI :** Le bouton "Changer d'affectation" sur la ligne d'un expert est fourni dynamiquement si `ui_state.can_reassign == true`.
+
+* **POST /api/v1/experts/{id}/activate/**
+  * **Permissions :** Uniquement `IsCTCCoordinator`.
+  * **Action Vue :** Décorateur `@action(detail=True, methods=['post'])`. Change le statut et déclenche l'envoi d'email.
+
+### MODULE 2 : NORMES (apps/norms)
+**Modèle central concerné :** `Norme`, `NormeVersion`
+**Vue cible :** `NormeViewSet`
+
+* **GET /api/v1/norms/**
+  * **Rôle :** Liste les projets de normes pour la Sidebar React.
+  * **Permissions :** Rôle `Expert` lié au CTM de la norme.
+  * **Méthodes internes :** `get_queryset()` filtre selon `request.user.expert.ctm_affectations`.
+  * **UI Control :** La réponse inclut `ui_state.can_publish` (vrai seulement pour le Rapporteur CTM).
+
+* **PUT /api/v1/norms/{id}/**
+  * **Rôle :** Sauvegarde automatique depuis l'éditeur de texte React.
+  * **Méthodes internes :** Surcharge de `perform_update()`. Vérifie qu'aucun autre expert n'est en mode édition exclusive.
+
+### MODULE 3 : AMENDEMENTS & VOTES (apps/amendments)
+**Modèle central concerné :** `Amendement`, `Vote`
+**Vue cibles :** `AmendementViewSet`, `VoteViewSet`
+
+* **GET /api/v1/norms/{id}/amendments/**
+  * **Rôle :** Affiche le panneau latéral droit des commentaires/amendements dans l'Éditeur.
+  * **UI Control :** Retourne un `dropdown_actions` avec ["Approuver", "Rejeter"] si l'utilisateur est Président du WG. Tableau vide `[]` pour un membre simple.
+
+* **POST /api/v1/amendments/{id}/cast_vote/**
+  * **Schema :** `{"choice": "POUR" | "CONTRE"}`
+  * **Action Vue :** Valide via `has_permission` que le Scrutin est statut "OUVERT". Clôture automatiquement le scrutin si 100% des membres ont voté via signal.
+
+### MODULE 4 : RÉUNIONS & PRÉSENCES (apps/meetings)
+**Modèle central concerné :** `Reunion`, `Presence`
+**Vue cible :** `ReunionViewSet`
+
+* **GET /api/v1/meetings/pending_signatures/**
+  * **Rôle :** Alimente le widget "Tâches à faire" du tableau de bord.
+  * **UI Control :** Affiche des formulaires de signatures de PV (Procès Verbal) seulement pour les Rapporteurs.
+
+* **POST /api/v1/meetings/{id}/checkin/**
+  * **Rôle :** Émargement numérique.
+  * **Validation :** Le `perform_create()` sur le serializer va créer automatiquement le crédit de Jetons de présence associé.
+
+### MODULE 5 : FINANCES (apps/payments)
+**Modèle central concerné :** `Cotisation`, `JetonPresence`
+**Vue cible :** `FinanceViewSet`
+
+* **GET /api/v1/finances/my_jetons/**
+  * **Rôle :** Alimenter l'historique financier de l'Expert dans le frontend. Affiche un JSON brut, formaté par les composants Tailwind côté React.
+
+---
+Ce fichier maître garantit que les composants métier respectent l'isolation logique, en laissant le backend dicter non pas le HTML, mais le "JSON of Capabilities". Des fichiers `.md` détaillés ont été générés pour chaque entité séparée.
+# ARCHITECTURE API : MODULE NORMES (apps/norms)
+
+## 📌 Rôle Hybride 
+Ce module contrôle le composant React `EditorArea`. Les décisions de verrouillage concurrent (qui a le droit d'éditer le texte à un instant T) se font via le backend.
+
+---
+
+## 1. `NormeViewSet`
+
+**Classe :** `apps.norms.views.NormeViewSet`
+**Héritage :** `viewsets.ModelViewSet`
+
+### `GET /api/v1/norms/`
+* **Description :** Récupération de la liste des normes pour la Sidebar React.
+* **Méthode à surcharger :** `get_queryset(self)`
+  * *Règle :* `return Norme.objects.filter(ctm__in=self.request.user.expert.ctm_set.all())`
+* **Réponse attendue de DRF :**
+```json
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 1,
+      "title": "Eurocode 8",
+      "status": "DRAFT",
+      "ui_state": {
+        "can_open_editor": true,
+        "is_locked_by_other": false,
+        "lock_owner": null
+      }
+    }
+  ]
+}
+```
+
+### `POST /api/v1/norms/{id}/lock/`
+* **Description :** Prend le contrôle exclusif de la norme avant de commencer à taper dans React.
+* **Méthode:** `@action(detail=True, methods=['post']) def lock(self, request, pk=None)`
+* **Vérification :** S'assure que le champ `locked_by` est en base de données.
+* **Impact Frontend :** Les autres utilisateurs qui ont la page ouverte recevront un événement WebSocket ou via polling, et React "disabled" l'attribut du `<textarea>`.
+
+### `POST /api/v1/norms/{id}/submit_to_legistique/`
+* **Description :** Transmet le texte au bureau de révision légale.
+* **Permissions :** `IsRapporteurCTM`
+* **Action interne :** Modifie le statut, horodate, ajoute un `AuditLog`, notifie le coordonnateur CTC.
+* **Impact Frontend :** La norme disparaît de la vue d'édition des experts, et apparaît dans la DataGrid du rôle `LEGISTE`.
+# ARCHITECTURE API : MODULE RÉUNIONS & PV (apps/meetings)
+
+## 📌 Rôle Hybride
+Le module pilote le composant React `MeetingsVotesModule`. Il ne peut affiché l'ordre du jour ou le bouton "Émarger" que si le serveur lui dit que la réunion est dans le créneau horaire valide.
+
+---
+
+## 1. `ReunionViewSet`
+
+**Classe :** `apps.meetings.views.ReunionViewSet`
+**Héritage :** `viewsets.ModelViewSet`
+
+### `GET /api/v1/meetings/`
+* **Description :** Calendrier des réunions associées aux comités de l'utilisateur.
+* **Méthode à implémenter :** `get_queryset()` + `Filters`
+  * Prise en charge des paramètres querystring `?status=UPCOMING` ou `?status=PAST`.
+* **DRF Serializer Response :**
+```json
+{
+  "id": 42,
+  "date": "2026-05-25T10:00:00Z",
+  "title": "Adoption amendements finaux",
+  "ctm_id": 1,
+  "ui_state": {
+    "can_checkin": false,  // (Car la date est > à now())
+    "can_generate_pv": false,
+    "can_manage_agenda": true // (Si le request.user est le Rapporteur)
+  }
+}
+```
+
+### `POST /api/v1/meetings/{id}/checkin/`
+* **Description :** Enregistrement de la présence d'un expert.
+* **Permission :** L'utilisateur cible doit faire partie du CTM invité.
+* **Logique Django (`perform_create` ou `@action`) :**
+  1. Chercher ou créer l'objet `Presence` lié à `request.user.expert`.
+  2. Mettre le statut à `PRESENT`.
+  3. **Trigger de Signal métier :** Créer instantanément une entrée dans `JetonPresence` (module Finances).
+
+### `POST /api/v1/meetings/{id}/generate_pv/`
+* **Description :** Demande au serveur de générer le document (Markdown ou PDF) des minutes de la réunion.
+* **Permission :** Uniquement `Rapporteur` ou `Secretaire`.
+* **Réponse JSON :** 
+  Fournit une URL directe du fichier pré-signé généré sur S3/MinIO ou dans le dossier Média local, transmise à React pour lancer le download natif HTML5.
+# ARCHITECTURE API : MODULE AMENDEMENTS & VOTES (apps/amendments)
+
+## 📌 Rôle Hybride
+Contrôle le sous-panneau de discussion de `EditorArea` et l'interface de scrutin. Le backend interdit la modification d'un vote une fois soumis (même si React trafique la requête HTML).
+
+---
+
+## 1. `AmendementViewSet`
+
+**Classe :** `apps.amendments.views.AmendementViewSet`
+
+### `GET /api/v1/amendments/?norme_id={id}`
+* **Rôle :** Liste itérative des propositions de textes.
+* **UI Controls inclus :**
+  * `ui_state.can_vote`: `true` si le statut d'enquête est ouvert ET que l'utilisateur n'a pas encore de record dans la table `Vote` associé.
+  * `ui_state.can_resolve`: `true` si le user est modérateur (Rapporteur).
+* **Code à intégrer (Serializer Django) :**
+```python
+def get_ui_state(self, obj):
+    user = self.context['request'].user
+    has_voted = Vote.objects.filter(amendement=obj, expert=user.expert).exists()
+    return {
+        "can_vote": not has_voted and obj.status == 'OUVERT',
+        "can_resolve": user.expert.is_rapporteur_for(obj.norme.ctm)
+    }
+```
+
+## 2. `VoteViewSet`
+
+### `POST /api/v1/votes/`
+* **Rôle :** Soumission stricte sécurisée d'un bulletin de vote.
+* **Méthode :** `create(self, request)`
+* **Schéma de soumission :**
+```json
+{
+  "amendement_id": 12,
+  "choice": "POUR",
+  "comment": "Conforme aux recommandations."
+}
+```
+* **Contraintes Backend :** 
+  1. Si un `Vote` existe déjà pour ce couple (Expert, Amendement), l'API répond avec HTTP 403 Forbidden. (React l'intercepte via son hook `djangoFetch` et affiche un Toast d'erreur).
+  2. Le serveur recompte à la volée le total des votes. Si le Quorum/Majorité est atteint, il déclenche une Tâche Celery ou Modifie l'état de l'amendement à "VALIDÉ".
+
+### `GET /api/v1/votes/results/?amendement_id={id}`
+* Rôle : Renvoie les datas formatées pour `Recharts` (la librairie de graphiques dans React). 
+* Format de réponse structuré en pourcentages (Pie chart ready).
+# ARCHITECTURE API : MODULE FINANCES (apps/payments)
+
+## 📌 Rôle Hybride
+Connecté avec les comptables FONER. Contrôle conditionnel ultra-strict garantissant que personne ne peut manipuler les Jetons de présence en dehors des algorithmes de présence ou des virements manuels comptables.
+
+---
+
+## 1. `CotisationViewSet`
+
+**Classe :** `apps.payments.views.CotisationViewSet`
+
+### `GET /api/v1/finances/cotisations/`
+* **Rôle :** Vue globale pour le `FinancialModule` React (Côté Administrateur).
+* **Permissions :** Rôle `COMPTABLE_FONER` ou `COORD_CTC`.
+* **Réponse JSON Enrichie (Agrégation) :**
+  Implémenter un `get_queryset()` avec `annotate()` pour renvoyer directement au frontend la somme des dettes sans que React ait à faire des mathématiques complexes.
+```json
+{
+  "results": [
+    {
+      "structure_name": "Office des Routes",
+      "du_total": 5000.00,
+      "paye_total": 2000.00,
+      "reste_a_payer": 3000.00,
+      "statut_alerte": "DANGER"
+    }
+  ],
+  "ui_state": {
+    "can_send_reminder": true
+  }
+}
+```
+
+### `POST /api/v1/finances/cotisations/{id}/send_reminder/`
+* **Rôle :** Émet une tâche en File d'attente (Celery) pour générer l'email formel de relance au point focal de l'entreprise.
+
+---
+
+## 2. `JetonPresenceViewSet`
+
+### `GET /api/v1/finances/jetons/my_jetons/`
+* **Rôle :** Liste le portefeuille d'un expert.
+* **Méthode :** `@action` dédiée pour filtrer stricto sensu sur `request.user.expert`.
+* **UI Controls :**
+```json
+{
+  "total_acquis": 1500,
+  "historique": [
+    {
+       "reunion": "CTM 1 - Session Ordinaire",
+       "date": "2026-05-18",
+       "montant": 150,
+       "est_paye_en_banque": false
+    }
+  ],
+  "ui_state": {
+    "can_download_receipt": true
+  }
+}
+```
+
+### `GET /api/v1/finances/jetons/{id}/download_receipt/`
+* **Rôle :** Indique au serveur Django de générer un PDF de reçu via un utilitaire comme Rapportlab ou WeasyPrint. Retourne le lien pré-signé ou le `binary stream`.
+# ARCHITECTURE API : EXPERTS ET STRUCTURES (apps/experts)
+
+## 📌 Rôle Hybride
+Le module qui gère la gouvernance "humaine". Les vues sont très restrictives quant à la modification, car seuls certains membres de l'administration ont le droit de requalifier (`Patch`) l'intégrité d'un expert.
+
+---
+
+## 1. `ExpertViewSet`
+
+**Classe :** `apps.experts.views.ExpertViewSet`
+
+### `GET /api/v1/experts/` (Annuaire)
+* **Description :** Recherche et liste des experts.
+* **Mécanismes DRF requis :** Intégration de `SearchFilter` (sur noms) et `DjangoFilterBackend` (pour menus déroulants de filtrage React sur le composant Annuaire).
+* **Réponse avec Méta-données UI (`ui_state`) :**
+```json
+{
+  "results": [
+    {
+      "id": 144,
+      "full_name": "Dr. Kasongo",
+      "specialty": "Géotechnique",
+      "structure": "Université de Kinshasa",
+      "ui_state": {
+        "can_edit_profile": false,
+        "can_change_affectation": true, 
+        "can_deactivate_account": true 
+      }
+    }
+  ]
+}
+```
+*Ici, les 2 derniers champs sont `true` car l'API détecte que l'appelant est Secrétaire Permanent.*
+
+### `PATCH /api/v1/experts/{id}/`
+* **Description :** Modifier le statut de l'expert ou changer son groupe.
+* **Permissions :** Override de `check_object_permissions(self, request, obj)`.
+  * La modification n'est permise que si le `request.user` appartient au board d'administration, sinon lève une `PermissionDenied` exception.
+* **Comportement Réaliste Frontend :** Si la requête échoue à cause du backend (ex: tentative de Bypass React), le client React global affiche "Accès refusé par le serveur."
+
+### `GET /api/v1/structures/ddl_options/`
+* **Description :** Fournit les options pour les Dropdowns React (ex: Modals d'inscription ou d'affectation).
+* **Optimisation :** L'API doit renvoyer uniquement `id` et `name`. Il ne faut pas renvoyer le JSON complet d'une entité pour une liste de choix UI.
+```json
+[
+  {"value": 1, "label": "Ordre des Ingénieurs Civils"},
+  {"value": 2, "label": "Université de Kinshasa"}
+]
+```
+# ARCHITECTURE API : GOUVERNANCE (apps/governance)
+
+## 📌 Rôle Hybride
+Définit le plan structurel (Arborescence CTM > WG > Affectation). L'interface React dépend de ces tables pour savoir comment router l'utilisateur et quel document l'utilisateur a le droit d'ouvrir sur l'écran d'accueil.
+
+---
+
+## 1. `CTMViewSet` et `WGViewSet`
+
+**Vue:** `apps.governance.views.CTMViewSet`
+
+### `GET /api/v1/governance/my_comitees/`
+* **Rôle :** Méthode hautement optimisée pour dire à l'application React "Dans quels comités l'expert connecté a-t-il le droit d'agir ?"
+* **Opération Django :**
+```python
+@action(detail=False, methods=['get'])
+def my_comitees(self, request):
+    expert = request.user.expert
+    # Récupérer les CTM via la table de jointure Affectation
+    affectations = Affectation.objects.filter(expert=expert)
+    # Serialize...
+```
+* **Résultat exploité par React :** Cette liste est mise dans le Store Global (Context / Redux) par la couche `useAuth.ts` au boot. Cela permet de bloquer au niveau du frontend les routes inaccessibles comme mécanisme de confort (complétant la sécurité du serveur).
+
+## 2. Validation Sécurisée Côté Backend (Les Postes Limités)
+
+### `POST /api/v1/governance/affectations/`
+* **Rôle :** Quand le Secrétaire depuis l'écran "ExpertsModule" choisit d'affecter un ingénieur en tant que `PRESIDENT_WG`.
+* **Règle Serveur Strictes :**
+  Un poste comme Président est unique. Si l'Interface React (désynchronisée) essaie d'envoyer l'affectation, le backend DOIT surcharger le `Serializer.validate()` :
+```python
+def validate(self, data):
+    if data['role_type'] == 'PRESIDENT_WG':
+        if Affectation.objects.filter(wg=data['wg'], role_type='PRESIDENT_WG').exists():
+            raise serializers.ValidationError("Ce groupe de travail possède déjà un Président.")
+    return data
+```
+Le backend bloque, et renvoie `400 Bad Request`. React intercepte l'erreur dans `djangoFetch` et affiche l'alerte à l'utilisateur.

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>CNETP - Plateforme de Gestion des Normes</title>
+    
+    <!-- Tailwind CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dist/css/main.css' %}">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+</head>
+<body>
+    <!-- React Root -->
+    <div id="root"></div>
+
+    <!-- Application Bundle -->
+    <script type="module" src="{% static 'dist/js/main.js' %}"></script>
+
+    <!-- Global CSRF Token (accessible à React) -->
+    <script>
+        window.DJANGO_CSRF_TOKEN = "{{ csrf_token }}";
+        window.API_BASE_URL = "{{ api_base_url|default:'/api/v1/' }}";
+        window.CURRENT_USER = {{ current_user_json|safe|default:'null' }};
+    </script>
+</body>
+</html>
