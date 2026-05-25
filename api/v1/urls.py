@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from .auth_views import AuthViewSet, UserListViewSet
 from .experts_views import ExpertViewSet, StructureViewSet
+from .api_bridge_views import DocumentsAPIView, CollaboratorsAPIView
+from .expert_registration_views import ExpertPublicRegistrationViewSet
 from .governance_views import CTMViewSet, WGViewSet, AffectationViewSet, RoleCTMViewSet, ComitePilotageViewSet
 from .hierarchy_views import (
     ExecutiveLevelViewSet, SteeringCommitteeViewSet, TechnicalCellViewSet,
@@ -30,6 +32,7 @@ router.register(r'users', UserListViewSet, basename='users')
 # Experts routes
 router.register(r'structures', StructureViewSet, basename='structures')
 router.register(r'experts', ExpertViewSet, basename='experts')
+router.register(r'expert-registration', ExpertPublicRegistrationViewSet, basename='expert-registration')
 
 # Governance routes
 router.register(r'ctm', CTMViewSet, basename='ctm')
@@ -69,7 +72,8 @@ router.register(r'jetons', JetonPresenceViewSet, basename='jetons')
 router.register(r'legistic-reviews', LegisticReviewViewSet, basename='legistic-reviews')
 
 # Documents routes
-router.register(r'documents', DocumentFileViewSet, basename='documents')
+router.register(r'documents', DocumentsAPIView, basename='documents')
+router.register(r'collaborators', CollaboratorsAPIView, basename='collaborators')
 
 # Public amendments routes
 router.register(r'public-amendments', PublicAmendementViewSet, basename='public-amendments')

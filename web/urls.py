@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import ReactAppView, api_documents, api_collaborators, api_experts, api_working_groups, api_meetings, api_votes, api_financial, api_validation, api_legistique, api_versions, api_app_data
+from .views import ReactAppView, ExpertRegistrationView, api_documents, api_collaborators, api_experts, api_working_groups, api_meetings, api_votes, api_financial, api_validation, api_legistique, api_versions, api_app_data
 
 app_name = 'web'
 
@@ -16,6 +16,10 @@ urlpatterns = [
     path('api/legistique/', api_legistique, name='api-legistique'),
     path('api/versions/', api_versions, name='api-versions'),
     path('api/app-data/', api_app_data, name='api-app-data'),
+    
+    # ========== Template Pages ==========
+    path('inscription-expert/', ExpertRegistrationView.as_view(), name='expert-registration'),
+    path('inscription-expert', ExpertRegistrationView.as_view(), name='expert-registration-no-slash'),
     
     # ========== React SPA Routes ==========
     path('', ReactAppView.as_view(), name='index'),

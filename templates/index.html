@@ -1,0 +1,186 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CNETP - Plateforme Collaborative de Gestion des Normes">
+    <title>CNETP - Plateforme Collaborative</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#06060c',
+                            200: '#020204',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slideIn {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#020204] text-slate-300 h-screen w-screen overflow-hidden flex transition-colors duration-200">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-72 border-r border-white/10 flex flex-col bg-[#020204] z-20 shrink-0">
+        <!-- Logo & Title -->
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                <i data-lucide="shield" class="text-blue-500"></i>
+                CNETP
+            </h1>
+            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Plateforme Collaborative</p>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav id="sidebar-nav" class="flex-1 overflow-y-auto px-4 space-y-1 scrollbar-none">
+            <div class="py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Documents</div>
+            <!-- Contenu injecté par JS -->
+        </nav>
+        
+        <!-- Footer -->
+        <div class="p-4 border-t border-white/10 text-[10px] text-slate-600">
+            <p>© 2026 CNETP RDC</p>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full min-w-0 relative bg-[#06060c]/20">
+        <!-- Background gradient -->
+        <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
+
+        <!-- TOP NAVIGATION BAR -->
+        <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 border-b border-white/10 bg-black/40 backdrop-blur-md overflow-x-auto whitespace-nowrap scrollbar-none">
+            <!-- Tabs/Modules -->
+            <div id="nav-tabs" class="flex items-center gap-1">
+                <!-- Tabs injectés par JS -->
+            </div>
+            
+            <!-- Right Controls -->
+            <div class="flex items-center gap-3 shrink-0">
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 text-xs font-bold transition-colors">
+                    ☀️ Thème Clair
+                </button>
+                
+                <!-- Profile -->
+                <button id="profile-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 text-blue-400 text-xs font-bold hover:bg-blue-500/10 transition-colors">
+                    <i data-lucide="users" class="h-3.5 w-3.5"></i>
+                    <span id="user-name">{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Chargement...{% endif %}</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- MAIN VIEWPORT -->
+        <div id="viewport" class="flex-1 min-h-0 flex flex-col z-10 relative">
+            <!-- Contenu dynamique injecté par JS -->
+            <div class="flex-1 flex items-center justify-center">
+                <i data-lucide="loader" class="h-8 w-8 text-blue-500 animate-spin"></i>
+            </div>
+        </div>
+    </main>
+
+    <!-- Messaging Widget Container -->
+    <div id="messaging-container"></div>
+
+    <!-- Initial State Injection (Django) -->
+    <script>
+        window.__DJANGO_CONTEXT__ = {
+            csrfToken: "{{ csrf_token }}",
+            apiBase: "/api/",
+            user: {% if user.is_authenticated %}{
+                id: {{ user.id }},
+                username: "{{ user.username }}",
+                email: "{{ user.email }}",
+                fullName: "{{ user.get_full_name|default:user.username }}"
+            }{% else %}null{% endif %},
+            isDarkMode: true
+        };
+    </script>
+
+    <!-- SCRIPTS -->
+    <!-- API Communication -->
+    <script src="{% static 'js/api.js' %}"></script>
+    
+    <!-- UI Components -->
+    <script src="{% static 'js/components/messaging.js' %}"></script>
+    <script src="{% static 'js/components/history.js' %}"></script>
+    <script src="{% static 'js/components/experts.js' %}"></script>
+    <script src="{% static 'js/components/meetings.js' %}"></script>
+    <script src="{% static 'js/components/financial.js' %}"></script>
+    <script src="{% static 'js/components/validation.js' %}"></script>
+    <script src="{% static 'js/components/legistique.js' %}"></script>
+    
+    <!-- Main Application -->
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

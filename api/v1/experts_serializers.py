@@ -215,27 +215,31 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
     
     Endpoint: POST /api/v1/experts/public-register/
     
-    C'est un endpoint COMPLÈTEMENT SÉPARÉ et plus simple que /api/v1/auth/register/
+    Les experts choisissent leurs CTM et uploadent leur CV
     """
     
     # Champs utilisateur
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, min_length=8)
     password_confirm = serializers.CharField(write_only=True, required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
-    phone = serializers.CharField(required=False, allow_blank=True)
+    first_name = serializers.CharField(required=True, max_length=150)
+    last_name = serializers.CharField(required=True, max_length=150)
+    phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
     
     # Champs expert
     structure_id = serializers.IntegerField(required=True)
-    expertise_domains = serializers.ListField(
+    
+    # CTM (Sous-Commissions Techniques) - REQUIS
+    ctm_ids = serializers.ListField(
         child=serializers.IntegerField(),
-        required=False,
-        allow_empty=True,
-        help_text="IDs des CTM (Comités Techniques Miroirs) auxquels l'expert appartient"
+        required=True,
+        allow_empty=False,
+        help_text="IDs des CTM (Comités Techniques Miroirs) sélectionnés par l'expert"
     )
-    specialties = serializers.CharField(required=False, allow_blank=True)
-    organization = serializers.CharField(required=False, allow_blank=True)
+    
+    # Infos additionnelles
+    specialties = serializers.CharField(required=False, allow_blank=True, max_length=500)
+    cv = serializers.FileField(required=False, allow_null=True)
     
     def validate_email(self, value):
         """Vérifier que l'email n'existe pas déjà"""
@@ -243,8 +247,23 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError("Cet email est déjà utilisé.")
         return value
     
+    def validate_cv(self, value):
+        """Vérifier que le fichier CV est un PDF ou document valide"""
+        if value:
+            # Vérifier la taille (max 5MB)
+            if value.size > 5242880:  # 5MB
+                raise serializers.ValidationError("Le fichier CV ne doit pas dépasser 5MB.")
+            
+            # Vérifier l'extension
+            allowed_extensions = ['pdf', 'doc', 'docx', 'txt']
+            if not any(value.name.lower().endswith(ext) for ext in allowed_extensions):
+                raise serializers.ValidationError(f"Format non autorisé. Acceptés: {', '.join(allowed_extensions)}")
+        
+        return value
+    
     def validate(self, data):
-        """Vérifier que les mots de passe correspondent"""
+        """Validations globales"""
+        # Vérifier que les mots de passe correspondent
         if data.get('password') != data.get('password_confirm'):
             raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas."})
         
@@ -254,24 +273,38 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
         except Structure.DoesNotExist:
             raise serializers.ValidationError({"structure_id": "Cette structure n'existe pas."})
         
+        # Vérifier que tous les CTM existent
+        from apps.governance.models import CTM
+        ctm_ids = data.get('ctm_ids', [])
+        if not ctm_ids:
+            raise serializers.ValidationError({"ctm_ids": "Vous devez sélectionner au moins un CTM."})
+        
+        for ctm_id in ctm_ids:
+            if not CTM.objects.filter(id=ctm_id).exists():
+                raise serializers.ValidationError({"ctm_ids": f"CTM avec l'ID {ctm_id} n'existe pas."})
+        
         return data
     
     def create(self, validated_data):
         """Créer l'utilisateur et l'expert via l'inscription publique"""
+        from apps.governance.models import CTM
+        
+        # Extraire les données
         password = validated_data.pop('password')
         validated_data.pop('password_confirm')
         structure_id = validated_data.pop('structure_id')
-        expertise_domains = validated_data.pop('expertise_domains', [])
+        ctm_ids = validated_data.pop('ctm_ids', [])
         
         # Données optionnelles
         specialties = validated_data.pop('specialties', '')
-        organization = validated_data.pop('organization', '')
+        cv = validated_data.pop('cv', None)
         phone = validated_data.pop('phone', '')
         
         # Créer l'utilisateur
+        email = validated_data['email']
         user = User.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data['email'].split('@')[0],  # Utiliser la partie avant @ comme username
+            email=email,
+            username=email.split('@')[0],  # Utiliser la partie avant @ comme username
             password=password,
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
@@ -285,20 +318,14 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
         expert = Expert.objects.create(
             user=user,
             structure=structure,
-            status='PENDING_VALIDATION',  # En attente de validation
+            status='PENDING',  # En attente de validation
             specialties=specialties,
-            additional_info={'organization': organization} if organization else {}
+            cv=cv,  # Upload du CV
         )
         
-        # Associer aux domaines d'expertise (CTM) si fournis
-        if expertise_domains:
-            from apps.governance.models import CTM
-            for ctm_id in expertise_domains:
-                try:
-                    ctm = CTM.objects.get(id=ctm_id)
-                    # On pourrait créer une relation ici si le modèle le permet
-                    # Pour l'instant, on stocke juste l'info dans additional_info
-                except CTM.DoesNotExist:
-                    pass
+        # Associer les CTM sélectionnés
+        for ctm_id in ctm_ids:
+            ctm = CTM.objects.get(id=ctm_id)
+            expert.ctm_choices.add(ctm)
         
         return expert

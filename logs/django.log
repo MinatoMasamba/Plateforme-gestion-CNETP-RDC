@@ -196,3 +196,249 @@ INFO 2026-05-25 10:44:42,019 autoreload 11744 129865425928320 /home/minato/proje
 INFO 2026-05-25 10:44:51,326 autoreload 11795 135574558023808 Watching for file changes with StatReloader
 INFO 2026-05-25 10:53:09,221 autoreload 11795 135574558023808 /home/minato/project/apps/experts/models.py changed, reloading.
 INFO 2026-05-25 10:53:10,884 autoreload 12330 130904796151936 Watching for file changes with StatReloader
+INFO 2026-05-25 11:01:48,522 autoreload 12330 130904796151936 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-05-25 11:01:50,683 autoreload 12708 124704515489920 Watching for file changes with StatReloader
+INFO 2026-05-25 11:03:02,077 autoreload 12708 124704515489920 /home/minato/project/apps/experts/models.py changed, reloading.
+INFO 2026-05-25 11:03:06,376 autoreload 12981 136593167663232 Watching for file changes with StatReloader
+INFO 2026-05-25 11:12:46,001 autoreload 12981 136593167663232 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-25 11:12:48,112 autoreload 13979 135780510040192 Watching for file changes with StatReloader
+INFO 2026-05-25 11:12:50,909 autoreload 13979 135780510040192 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-25 11:12:53,851 autoreload 13988 134775025647744 Watching for file changes with StatReloader
+INFO 2026-05-25 11:19:03,388 autoreload 14398 140624091136128 Watching for file changes with StatReloader
+ERROR 2026-05-25 11:19:27,950 log 13988 134774911923904 Internal Server Error: /api/v1/expert-registration/structures/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/expert_registration_views.py", line 100, in structures
+    structures = Structure.objects.filter(is_active=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1842, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'is_active' into field. Choices are: acronym, address, category, contact_person, cotisations, created_at, created_by, created_by_id, description, email, experts, id, name, phone, updated_at, updated_by, updated_by_id, website
+ERROR 2026-05-25 11:20:04,901 log 13988 134774911923904 Internal Server Error: /api/v1/expert-registration/structures/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/expert_registration_views.py", line 100, in structures
+    structures = Structure.objects.filter(is_active=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1842, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'is_active' into field. Choices are: acronym, address, category, contact_person, cotisations, created_at, created_by, created_by_id, description, email, experts, id, name, phone, updated_at, updated_by, updated_by_id, website
+INFO 2026-05-25 11:25:25,838 autoreload 13988 134775025647744 /home/minato/project/api/v1/expert_registration_views.py changed, reloading.
+INFO 2026-05-25 11:25:29,597 autoreload 15943 126906428301440 Watching for file changes with StatReloader
+INFO 2026-05-25 11:27:36,487 autoreload 15943 126906428301440 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-25 11:27:38,202 autoreload 16298 133460496195712 Watching for file changes with StatReloader
+INFO 2026-05-25 11:27:41,995 autoreload 16298 133460496195712 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-25 11:27:44,670 autoreload 16302 138320769826944 Watching for file changes with StatReloader
+INFO 2026-05-25 11:31:59,081 autoreload 16302 138320769826944 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-25 11:32:01,424 autoreload 16691 127345659019392 Watching for file changes with StatReloader
+INFO 2026-05-25 11:32:04,472 autoreload 16691 127345659019392 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-25 11:32:07,608 autoreload 16741 133745038622848 Watching for file changes with StatReloader
+INFO 2026-05-25 11:41:40,667 autoreload 17555 139349088813184 Watching for file changes with StatReloader
+INFO 2026-05-25 11:45:05,635 autoreload 18209 125363644244096 Watching for file changes with StatReloader
+INFO 2026-05-25 11:48:37,193 autoreload 18513 126033254457472 Watching for file changes with StatReloader
+WARNING 2026-05-25 11:49:58,594 log 18513 126033140381376 Forbidden: /api/v1/documents/
+INFO 2026-05-25 11:50:09,088 autoreload 18513 126033254457472 /home/minato/project/api/v1/api_bridge_views.py changed, reloading.
+INFO 2026-05-25 11:50:12,193 autoreload 18846 125791996985472 Watching for file changes with StatReloader
+INFO 2026-05-25 11:50:19,552 autoreload 18846 125791996985472 /home/minato/project/api/v1/api_bridge_views.py changed, reloading.
+INFO 2026-05-25 11:50:30,478 autoreload 18954 138797321326720 Watching for file changes with StatReloader
+ERROR 2026-05-25 11:50:55,161 log 18954 138797207516864 Internal Server Error: /api/v1/collaborators/
+INFO 2026-05-25 11:53:30,392 autoreload 19238 133697719050368 Watching for file changes with StatReloader
+ERROR 2026-05-25 11:53:32,814 log 19238 133697605990080 Internal Server Error: /api/v1/collaborators/
+INFO 2026-05-25 11:53:53,906 autoreload 19264 131886611308672 Watching for file changes with StatReloader
+INFO 2026-05-25 11:56:35,684 autoreload 19488 139626101391488 Watching for file changes with StatReloader
+ERROR 2026-05-25 11:56:41,060 log 19488 139625987307200 Internal Server Error: /api/v1/collaborators/
+INFO 2026-05-25 12:00:21,958 autoreload 19750 125604446748800 Watching for file changes with StatReloader
+INFO 2026-05-25 12:01:32,562 autoreload 19923 129808159510656 Watching for file changes with StatReloader
+ERROR 2026-05-25 12:02:43,637 log 19923 129808045438656 Internal Server Error: /api/v1/documents/
+INFO 2026-05-25 12:02:52,243 autoreload 19923 129808159510656 /home/minato/project/api/v1/api_bridge_views.py changed, reloading.
+INFO 2026-05-25 12:02:54,279 autoreload 20237 125797420187776 Watching for file changes with StatReloader
+ERROR 2026-05-25 12:09:10,987 log 20237 125797239092928 Internal Server Error: /api/v1/collaborators/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/response.py", line 74, in rendered_content
+    ret = renderer.render(self.data, accepted_media_type, context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/renderers.py", line 750, in render
+    context = self.get_context(data, accepted_media_type, renderer_context)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/renderers.py", line 728, in get_context
+    'filter_form': self.get_filter_form(data, view, request),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/renderers.py", line 660, in get_filter_form
+    html = backend().to_html(request, queryset, view)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/filters.py", line 325, in to_html
+    context = self.get_template_context(request, queryset, view)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/filters.py", line 317, in get_template_context
+    for key, label in self.get_valid_fields(queryset, view, context):
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/filters.py", line 271, in get_valid_fields
+    return self.get_default_valid_fields(queryset, view, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/filters.py", line 232, in get_default_valid_fields
+    serializer_class = view.get_serializer_class()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/api_bridge_views.py", line 56, in get_serializer_class
+    from .experts_serializers import ExpertSerializer
+ImportError: cannot import name 'ExpertSerializer' from 'api.v1.experts_serializers' (/home/minato/project/api/v1/experts_serializers.py)
+INFO 2026-05-25 12:10:39,858 autoreload 20912 135998326128768 Watching for file changes with StatReloader
+INFO 2026-05-25 13:21:39,858 autoreload 25043 130859281752192 Watching for file changes with StatReloader
+INFO 2026-05-25 13:22:36,526 autoreload 25043 130859281752192 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 13:22:44,328 autoreload 25123 137352769060992 Watching for file changes with StatReloader
+INFO 2026-05-25 13:55:57,167 autoreload 25123 137352769060992 /home/minato/project/api/v1/api_bridge_views.py changed, reloading.
+INFO 2026-05-25 13:56:17,722 autoreload 27989 131336481685632 Watching for file changes with StatReloader
+INFO 2026-05-25 13:57:47,261 autoreload 28125 124574912778368 Watching for file changes with StatReloader
+INFO 2026-05-25 14:00:16,938 autoreload 28257 132832715522176 Watching for file changes with StatReloader
+INFO 2026-05-25 14:00:42,569 autoreload 28298 139227146633344 Watching for file changes with StatReloader
+INFO 2026-05-25 14:19:24,239 autoreload 28989 136935126319232 Watching for file changes with StatReloader
+ERROR 2026-05-25 14:19:29,070 log 28989 136935013086912 Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 84, in get
+    return render(request,)
+           ^^^^^^^^^^^^^^^^
+TypeError: render() missing 1 required positional argument: 'template_name'
+ERROR 2026-05-25 14:19:30,310 log 28989 136935013086912 Internal Server Error: /favicon.ico
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 84, in get
+    return render(request,)
+           ^^^^^^^^^^^^^^^^
+TypeError: render() missing 1 required positional argument: 'template_name'
+INFO 2026-05-25 14:23:15,218 autoreload 28989 136935126319232 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:23:22,077 autoreload 29182 138208036196480 Watching for file changes with StatReloader
+INFO 2026-05-25 14:37:22,156 autoreload 30072 130636143464576 Watching for file changes with StatReloader
+INFO 2026-05-25 14:38:35,875 autoreload 30149 131363236331648 Watching for file changes with StatReloader
+INFO 2026-05-25 14:47:44,884 autoreload 29182 138208036196480 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:48:00,741 autoreload 30969 123796587937920 Watching for file changes with StatReloader
+INFO 2026-05-25 14:51:26,137 autoreload 30969 123796587937920 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:51:32,574 autoreload 31271 139363728867456 Watching for file changes with StatReloader
+INFO 2026-05-25 14:54:25,870 autoreload 31271 139363728867456 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:54:32,892 autoreload 31605 134990277296256 Watching for file changes with StatReloader
+INFO 2026-05-25 14:54:42,631 autoreload 31605 134990277296256 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:54:49,711 autoreload 31642 128359976157312 Watching for file changes with StatReloader
+INFO 2026-05-25 14:55:00,923 autoreload 31642 128359976157312 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:55:05,346 autoreload 31684 133076910358656 Watching for file changes with StatReloader
+INFO 2026-05-25 14:55:44,352 autoreload 31684 133076910358656 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:56:07,119 autoreload 31857 135719241654400 Watching for file changes with StatReloader
+INFO 2026-05-25 14:56:40,115 autoreload 31857 135719241654400 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 14:56:51,377 autoreload 31926 125691901132928 Watching for file changes with StatReloader
+INFO 2026-05-25 14:58:46,414 autoreload 31926 125691901132928 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-25 14:59:29,325 autoreload 32311 137771332608128 Watching for file changes with StatReloader

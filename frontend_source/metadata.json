@@ -1,0 +1,6 @@
+{
+  "name": "Espace Normes Collaboratif",
+  "description": "Plateforme d'édition collaborative de documents et de normes avec gestion de versions, comparaison de textes colorée (diff rouge/vert) et historique restaurable.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
