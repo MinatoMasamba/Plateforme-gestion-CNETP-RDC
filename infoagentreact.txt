@@ -1,0 +1,42 @@
+l'architecture a été conçue pour s'harmoniser parfaitement avec votre serveur Django hybride.
+Voici comment les sections et composants de l'application React communiquent directement avec vos différentes APIs REST Django.
+1. 🏗️ Le fonctionnement hybride (Django ⇄ React)
+Dans ce modèle d'intégration :
+La Coque (Template Django) : Le serveur Django intercepte la route d'entrée (par exemple /, /app, /public-norms) et sert l'unique gabarit base.html contenant l'identifiant <div id="root"> et le bundle JavaScript de React.
+Le Routage Frontend : Une fois chargé, react-router-dom analyse l'URL actuelle et affiche le bon composant (la bonne section) instantanément sans recharger la page.
+La Consommation d'API (REST/JSON) : Tous les composants s'appuient sur le client API configuré dans /src/utils/api/client.ts pour échanger des données. Chaque action (authentification, lecture, enregistrement, vote) effectue un appel asynchrone (AJAX) en envoyant/recevant du JSON.
+2. 🔐 L'Intégration Sécurisée des APIs Clés
+Tous les appels transitent via le client Axios qui prend nativement en charge la sécurité requise par votre serveur Django :
+Session Django d'Origine (withCredentials: true) : Le cookie sessionid est automatiquement attaché par le navigateur à chaque requête API vers Django.
+Sécurité Anti-CSRF : Les requêtes d'écriture (POST, PUT, DELETE) lisent automatiquement le cookie de sécurité csrftoken de l'environnement Django et l'injectent sous le header X-CSRFToken requis par les middlewares du backend.
+3. 🛣️ Les Flux de vos APIs par composant
+Voici comment vos composants React sont configurés pour consommer vos APIs Django spécifiques :
+🔹 Page de Connexion (Login.tsx)
+Endpoint ciblé : POST /api/v1/auth/login/
+Interaction : Envoie { username, password }. Si Django renvoie un statut 200 OK (avec la session établie et le rôle de l'utilisateur), React met à jour le contexte global d'authentification (AuthContext) et redirige dynamiquement :
+Les Experts validés vers l'espace de travail /app.
+Le Public visiteur vers le portail public des normes /public-norms.
+🔹 Page d'Inscription Visiteur (Register.tsx)
+Endpoint ciblé : POST /api/v1/auth/register/ (ou /api/v1/auth/register_public/ pour les mobiles)
+Interaction : Permet à un utilisateur simple de s'inscrire en fournissant des identifiants basiques. Une fois créé, il est connecté et dirigé vers la bibliothèque publique.
+🔹 Page d'Activation et d'Invitation d'Expert (ExpertInvitePage.tsx)
+Endpoint ciblé : POST /experts/inscription/
+Workflow : L'expert ne s'inscrit pas de façon anonyme. Il reçoit un jeton cryptographique généré par l'administration du CNETP par courriel. Le lien le dirige vers /expert-invite?token=MON_TOKEN.
+Interaction : Le composant valide le profil (giron d'origine, CTM/WG d'affectation réglementaire, décret de nomination, etc.) puis déclenche l'activation en créant l'utilisateur sur le serveur.
+🔹 Portail des Normes Publiques (PublicNormsPage.tsx)
+Endpoints ciblés :
+GET /api/v1/public/published_norms/ (Lit la liste des normes publiées).
+POST /api/v1/public/amendments/ (Envoie l'avis citoyen rédigé lors de l'enquête publique).
+GET /api/v1/public/norms/{id}/download_pdf/ (Lien d'export et tamponnage en filigrane par le serveur).
+🔹 Espace de Travail Collaboratif (/app)
+Les micro-sections dans l'application se comportent comme des composants autonomes appelant vos APIs REST :
+Éditeur (EditorArea.tsx) : GET /api/v1/norms/{id}/ (Lecture), PUT /api/v1/norms/{id}/ (Sauvegarde et verrou), POST /api/v1/norms/{id}/lock/ (Prise de contrôle exclusive).
+Annuaire (ExpertsModule.tsx) : GET /api/v1/experts/ (Liste des 200 experts triés par girons CTM/WG) et PATCH /api/v1/experts/{id}/ (Changements d'affectations par la CTC).
+Réunions & PV (MeetingsVotesModule.tsx) : POST /api/v1/meetings/{id}/checkin/ (Émargement de présence pour l'indemnisation) et POST /api/v1/votes/ (Vote de validation d'un article).
+Finances (FinancialModule.tsx) : GET /api/v1/finances/cotisations/ (Suivi de la solvabilité des girons) et GET /api/v1/finances/jetons/my_jetons/ (Portefeuille de jetons de présence de l'expert).
+🏁 Résumé des apports actuels
+PublicNormsPage créée : Un espace public raffiné permettant au citoyen de consulter les détails de chaque clause de l'Eurocode RDC ou des blocs BTC de terre comprimée, de télécharger l'acte d'homologation légal, et d'apporter son opinion à l'enquête publique.
+ExpertInvitePage créée : Une simulation parfaite de réception de lien d'accréditation nominatif facilitant la complétion de profil sécurisé par mot de passe et nom d'utilisateur unique CNETP.
+Routage global mis à jour (App.tsx) : Toutes les nouvelles pages sont maintenant officiellement enregistrées sous react-router-dom et testées avec succès lors de la compilation.
+Intégration Django direct : Toutes les fonctions sont prêtes à interagir avec les endpoints réels de votre serveur de production Django au travers du middleware de session et de jetons de confiance CSRF.
+

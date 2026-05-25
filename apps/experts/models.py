@@ -53,6 +53,14 @@ class Expert(BaseModel):
     )
     cv = models.FileField(upload_to='experts/cv/', blank=True, null=True)
     
+    # Sélection des CTM (Sous-Commissions Techniques)
+    ctm_choices = models.ManyToManyField(
+        'governance.CTM',
+        related_name='member_experts',
+        blank=True,
+        help_text="Sous-commissions sélectionnées par l'expert"
+    )
+    
     # Statuts
     STATUS_CHOICES = [
         ('PENDING', 'En attente'),

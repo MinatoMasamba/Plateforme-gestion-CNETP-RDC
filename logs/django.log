@@ -175,3 +175,24 @@ WARNING 2026-05-23 21:37:13,422 log 19635 131631098619584 Bad Request: /api/v1/a
 WARNING 2026-05-23 21:42:53,884 log 19635 131631098619584 Forbidden: /api/v1/auth/me/
 WARNING 2026-05-23 21:43:02,602 log 19635 131631098619584 Bad Request: /api/v1/auth/login/
 INFO 2026-05-23 21:49:44,679 autoreload 22058 124241178034304 Watching for file changes with StatReloader
+INFO 2026-05-23 23:26:48,432 autoreload 22571 126579985854592 Watching for file changes with StatReloader
+WARNING 2026-05-23 23:26:56,106 log 22571 126579799750336 Forbidden: /api/v1/auth/me/
+WARNING 2026-05-23 23:27:08,868 log 22571 126579799750336 Forbidden: /api/v1/auth/me/
+INFO 2026-05-23 23:42:28,896 autoreload 22571 126579985854592 /home/minato/project/api/v1/auth_views.py changed, reloading.
+INFO 2026-05-23 23:42:31,063 autoreload 23367 134412503912576 Watching for file changes with StatReloader
+WARNING 2026-05-24 00:00:22,313 log 23367 134412390889152 Forbidden: /api/v1/auth/me/
+INFO 2026-05-24 00:07:27,772 autoreload 23367 134412503912576 /home/minato/project/api/v1/auth_serializers.py changed, reloading.
+INFO 2026-05-24 00:07:28,966 autoreload 25393 138986258497664 Watching for file changes with StatReloader
+INFO 2026-05-24 10:18:10,061 autoreload 28194 135887818584192 Watching for file changes with StatReloader
+WARNING 2026-05-24 10:18:18,775 log 28194 135887705863872 Forbidden: /api/v1/auth/me/
+WARNING 2026-05-24 10:19:29,851 log 28194 135887705863872 Bad Request: /api/v1/auth/register/
+INFO 2026-05-24 15:01:02,090 autoreload 4699 140662033080448 Watching for file changes with StatReloader
+WARNING 2026-05-24 16:14:03,034 log 4699 140661853517504 Forbidden (CSRF cookie not set.): /api/v1/test/
+INFO 2026-05-24 17:00:48,414 autoreload 12085 123759830573184 Watching for file changes with StatReloader
+INFO 2026-05-25 09:24:46,653 autoreload 7382 135322656505984 Watching for file changes with StatReloader
+INFO 2026-05-25 10:44:31,204 autoreload 7382 135322656505984 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-05-25 10:44:33,059 autoreload 11744 129865425928320 Watching for file changes with StatReloader
+INFO 2026-05-25 10:44:42,019 autoreload 11744 129865425928320 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-05-25 10:44:51,326 autoreload 11795 135574558023808 Watching for file changes with StatReloader
+INFO 2026-05-25 10:53:09,221 autoreload 11795 135574558023808 /home/minato/project/apps/experts/models.py changed, reloading.
+INFO 2026-05-25 10:53:10,884 autoreload 12330 130904796151936 Watching for file changes with StatReloader

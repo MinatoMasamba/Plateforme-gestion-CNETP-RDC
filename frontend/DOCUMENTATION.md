@@ -1,8 +1,72 @@
 # CNETP - Documentation de la Plateforme
 
-## Vue d'ensemble
+---
 
-Cette plateforme est un système d'information complet pour le **Comité National d'Élaboration des Textes Publics (CNETP)**. Elle permet de gérer l'intégralité du cycle de vie des normes, de leur élaboration à leur publication publique, en passant par la gestion des experts, l'organisation des réunions, les systèmes de vote formels, et le suivi financier (cotisations, jetons de présence).
+## 🏛️ CADRE JURIDIQUE ET ORGANISATIONNEL GÉNÉRAL (MANUEL CNETP 200 POSTES)
+
+La Commission Nationale pour l'Élaboration des Normes de Construction des Infrastructures et des Travaux Publics (CNETP) est une autorité d’organisation régie par décret et arrêtés ministériels. Ce système d'information numérise et automatise l'intégralité de sa structure organique et fonctionnelle.
+
+### 1. Fondement Juridique et Haute Tutelle (Chapitres I & II)
+* **Haute Tutelle :** Échue au Ministre ayant les Infrastructures et Travaux Publics (ITP) dans ses attributions.
+* **Direction Opérationnelle de Haut Niveau :** Assurée conjointement par le **Secrétaire Général aux ITP (SG-ITP)** et le **Directeur de Cabinet du Ministre**.
+* **Mandat de Célérité (Article 13) :** Exige une transposition directe et une adaptation rapide des corpus internationaux (ISO/ARSO/Eurocodes) aux contraintes environnementales et climatiques de la RDC.
+* **Enveloppe Structurelle :** Fixée par décret à **exactement 200 Experts**, interdisant la création de postes flottants ou de structures sans affectation productive directe.
+
+### 2. Clé de Répartition des 200 Experts (Manuel d'Organisation - Chapitre II)
+L'effectif nominal est divisé de manière étanche entre le Sommet Organique et la Force de Production :
+
+#### A. Le Sommet Organique (44 Experts)
+* **Comité de Pilotage Stratégique (24 membres) :** Assure la supervision politique, interministérielle, financière et la validation finale des orientations techniques.
+  * *Président :* 1 Haut Cadre désigné par le Cabinet des ITP.
+  * *Vice-Président :* 1 Représentant senior délégué par l'Ordre National des Ingénieurs Civils (ONIC).
+  * *Secrétaire :* 1 Professeur Ordinaire issu des Institutions Académiques (UNIKIN/ISTA/INBTP).
+  * *Rapporteur Général :* 1 Cadre supérieur issu du Secrétariat Général aux ITP.
+  * *Collège des Conseillers (20 membres) :* Représentants techniques des Ministères, Cabinets, SGs, directions des Offices (OR, OVD, ACGT, BTC, FONER), de l'OCC, de la FEC et de l'ONA.
+* **Cellule Technique de Coordination - CTC / Hub Documentaire Numérique (20 membres) :** Bureau opérationnel chargé de coordonner les flux documentaires, de gérer le toilettage légistique, d'administrer le portail d'Enquête Publique en ligne et d'assurer les relations extérieures.
+  * *Coordonnateur Technique Principal :* Le Directeur du Service de Réglementation et Normes (Statutaire - SG-ITP).
+  * *Coordonnateur Adjoint :* 1 Ingénieur expert en management de projets (Cabinet).
+  * *Pôle d'Ingénierie Documentaire & Traduction (7 experts) :* Assure la veille normative ISO/ARSO, légistique et l'expertise scientifique.
+  * *Pôle Logistique & Relations Extérieures (4 experts) :* Comptabilité, gestion des enquêtes, liaisons industrielles et communication.
+  * *Bureau d'Appui Technique et Numérique (7 experts) :* Cartographie, opérateurs de saisie, secrétariat exécutif et administration système IT.
+
+#### B. La Force de Production Technique (156 Experts)
+* Répartis rigoureusement au sein de **8 Comités Techniques Miroirs (CTM)** :
+  * Chaque CTM est composé de **19 à 20 experts permanents (Membres P)**.
+  * Chaque CTM est piloté par un Bureau composé d'un **Président (Scientifique académique)**, d'un **Rapporteur (représentant des Ordres Professionnels ONIC/ONA)** et d'un **Secrétaire (issu de la Direction des Normes / SG-ITP)**.
+  * Chaque CTM se subdivise en **3 Groupes de Travail (Working Groups - WG)** autonomes formés de 4 à 5 spécialistes pour la rédaction technique fine.
+
+---
+
+### 3. Matrice de Ventilation par Giron (Structure d'Origine)
+Les 200 places de titulaires sont allouées règlementairement à 16 organismes et entités constitutives :
+1. **Secrétariat Général aux ITP (SG-ITP) :** 15 experts.
+2. **Cabinet du Ministre des ITP :** 12 experts.
+3. **Secrétariat Général à la Reconstruction :** 12 experts.
+4. **Office des Routes (OR) :** 12 experts.
+5. **Office des Voiries et Drainage (OVD) :** 12 experts.
+6. **Agence Congolaise des Grands Travaux (ACGT) :** 12 experts.
+7. **Bureau Technique de Contrôle (BTC) :** 12 experts.
+8. **Fonds National d'Entretien Routier (FONER) :** 12 experts.
+9. **Cellule Infrastructure (CI) :** 8 experts.
+10. **Bureau d'Études d'Aménagement Urbain (BEAU) :** 8 experts.
+11. **Autres Ministères (Urbanisme, Aménagement, Environnement) :** 12 experts.
+12. **Experts Juridiques Spécialisés (Légistique) :** 8 experts.
+13. **Institutions Académiques et Recherche (ISTA, UNIKIN, INBTP) :** 12 experts.
+14. **Ordres Professionnels et Régulateurs (ONIC, ONA) :** 30 experts.
+15. **Société Civile et Organismes Techniques (OCC, etc.) :** 15 experts.
+16. **Fédération des Entreprises du Congo (FEC) :** 8 experts.
+
+---
+
+### 4. Circuit de Contrôle en "Boucle Fermée" (Chapitre VI)
+Pour qu'un document acquière force exécutoire, le système d'information encadre la transition rigoureuse des statuts de la norme :
+1. **Conception Spécialisée :** Le Groupe de Travail (WG) rédige l'avant-projet sur base d'un modèle de transposition internationale adapté aux facteurs géotechniques, thermiques et sismiques de la RDC.
+2. **Validation Sectorielle :** Examen technique et vote formel à la majorité qualifiée par le CTM (20 membres permanents).
+3. **Toilettage et Enquête (Article 12) :** La CTC valide la mise en forme légistique et déploie le projet sur le portail d'Enquête Publique Numérique. Le public et les ingénieurs des provinces soumettent leurs commentaires/amendements en ligne. Le WG d'origine amende le document pour intégrer les retours valides.
+4. **Adoption Souveraine :** Les 200 experts se réunissent en Assemblée Plénière pour adopter le texte final par consensus.
+5. **Sanction Légale :** Le Ministre signe l'Arrêté d'Homologation pour publication au Journal Officiel.
+
+---
 
 ## Architecture et Navigation globale
 
@@ -98,7 +162,7 @@ Voici les formats attendus pour alimenter les différents modules et la manière
 
 ### 1. Structure d'un Document (Norme ou Projet)
 
-Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et par l'**EditorArea** (pour charger le contenu).
+Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et par l**'EditorArea** (pour charger le contenu).
 
 ```json
 {
@@ -106,11 +170,7 @@ Ce format est utilisé par la **Sidebar** (pour lister les normes en cours) et p
   "title": "Eurocode 8 - Conception pour la résistance aux séismes",
   "code": "CNETP-EC8-1",
   "description": "Règles générales pour la conception parasismique en RDC.",
-  "content": "Article 1.
-La présente norme définit...
-
-Article 2.
-Spécifications liées...",
+  "content": "Article 1.\\nLa présente norme définit...\\n\\nArticle 2.\\nSpécifications liées...",
   "category": "CTM 2 - Ouvrages",
   "updatedAt": "2026-05-19T10:00:00Z",
   "updatedBy": "Dr. Kasongo",
@@ -200,16 +260,32 @@ Le changement du `userRole` (parmi 'ADMIN', 'MEMBRE_P', 'LEGISTE', etc.) déclen
 
 ---
 
-### Mises à jour du 23 Mai 2026
+## 🤝 RÈGLES DE CO-GOUVERNANCE ET VISIBILITÉ INTER-WG (MEMBRES DU MÊME CTM)
 
-#### **1. Refonte de l'API d'authentification (Backend)**
-Les endpoints existants dans `api/v1/auth_views.py` pour `login`, `register`, et `logout` ont été confirmés comme étant conformes aux exigences d'une API REST basée sur les sessions Django. Le `UserDetailSerializer` renvoie correctement le statut `is_expert` de l'utilisateur.
+Conformément à la charte et au manuel d'organisation de la CNETP, les experts d'un même Comité Technique Miroir (CTM) bénéficient d'un droit de regard absolu sur l'ensemble des ateliers constitutifs de leur CTM, sans pour autant pouvoir interférer directement avec le travail rédactionnel de leurs confrères.
 
-#### **2. Routage RBAC et Connexion API (Frontend)**
+### 1. Modèle d'habilitation par niveau de CTM/WG (Zonage de Sécurité)
+Le système d'information de l'application gère de façon étanche trois niveaux d'accréditations au sein de l'onglet **Experts & Groupes** :
 
-*   **AuthContext.tsx:** Les chemins d'API pour `login`, `logout`, `register`, et `checkAuth` ont été mis à jour pour inclure le préfixe `/api/v1/` afin de correspondre aux routes Django REST. L'objet `user` du contexte inclut désormais explicitement la propriété `is_expert`.
-*   **main.tsx:**
-    *   Un nouveau composant `IndexRoute` a été créé pour gérer la logique de redirection à la racine (`/`) en fonction de l'état d'authentification et du rôle (`is_expert`) de l'utilisateur.
-    *   La route `/` utilise maintenant `IndexRoute`.
-    *   La route `/app/*` est désormais sécurisée, redirigeant les utilisateurs non-experts ou non-authentifiés vers `/public/norms/` ou `/auth/login/` respectivement.
-*   **Login.tsx:** La fonction `handleSubmit` a été modifiée pour utiliser le statut `is_expert` de l'utilisateur après une connexion réussie, redirigeant vers `/app/` pour les experts et `/public/norms/` pour les utilisateurs publics.
+1. **Auteur/Rédacteur Actif (Même Groupe - `Mon WG`) :**
+   * *Critère :* L'expert est rattaché nominalement au WG sélectionné (ex: Prof. Masamba au `WG 8.1`).
+   * *Habilitations :* Droits complets d'écriture et d'administration. Il peut créer des tâches et modifier/cliquer sur l'état d'avancement des livrables de son propre groupe d'étude (Bascule dynamique *Completed / In Progress / Planned*).
+   
+2. **Auditeur Privilégié (Autre Groupe du Même Comité - `Même CTM`) :**
+   * *Critère :* L'expert appartient au même CTM global mais à un autre WG complémentaire (ex: Prof. Masamba du `WG 8.1` consulte les travaux du `WG 8.2` ou `WG 8.3` qui font tous partie du `CTM 8`).
+   * *Habilitations :* Visibilité temps réel totale sur la feuille de route du groupe complémentaire. Néanmoins, l'action de modification des tâches lui est bloquée (**Lecture Seule**). S'il tente d'interagir, l'application affiche un badge bleuté explicatif ainsi qu'un bandeau de rappel de co-gouvernance : *"En tant que membre permanent du même comité, vous pouvez suivre l'atelier en lecture seule"*.
+   
+3. **Observateur Externe (Autre Comité technique - `Hors CTM`) :**
+   * *Critère :* L'expert appartient à un comité de discipline différente (ex: Prof. Masamba de l'univers des matériaux `CTM 8` consulte les sols du `CTM 1` ou structures routières du `CTM 5`).
+   * *Habilitations :* Accès de consultation restreint pour information inter-disciplinaire, avec interdiction stricte de toucher à la feuille de route opérationnelle. Les badges de l'interface signalent l'état sous cadenas *"Observateur (Hors CTM)"*.
+
+### 2. Séquence de Résolution Algorithmique (Frontend)
+Lorsqu'un expert se connecte sur le système (ou qu'un profil de test est simulé), l'algorithme suivant résout dynamiquement ses privilèges sur la ressource active :
+
+* Extraction du numéro de CTM de l'expert : `getCmtNumber(expert.ctm)`.
+* Extraction du numéro de CTM associé au groupe ciblé : `getWgCmtNumber(wg.code)`.
+* Déduction de l'affectation directe : `isMyWg = expert.wg.includes(wg.code)`.
+* Déduction de l'appartenance au comité parent : `isSameCmt = (expert_ctm_num === wg_ctm_num)`.
+* Forçage de droit d'administration si rôle global = `ADMIN` ou `COORD_CTC`.
+
+Cette ségrégation garantit un parfait compromis entre la transparence scientifique (les experts partagent leurs acquis au sein d’un même CTM) et l'étanchéité opérationnelle requise par l'arrêté organique de la CNETP.

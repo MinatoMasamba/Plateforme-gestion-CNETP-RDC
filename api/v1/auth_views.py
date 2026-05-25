@@ -64,6 +64,7 @@ class AuthViewSet(viewsets.ViewSet):
     def login(self, request):
         """
         Endpoint de connexion : POST /api/v1/auth/login/
+        c'est ici qu'on verifer si c'est une user lamda ou un is_expert
         
         Body :
         {
@@ -79,6 +80,7 @@ class AuthViewSet(viewsets.ViewSet):
         }
         """
         serializer = UserLoginSerializer(data=request.data)
+        """ Verifier si user est un is_expert pour les redirectioner sur /App"""
         if serializer.is_valid():
             user = serializer.validated_data['user']
             login(request, user)
@@ -169,6 +171,8 @@ class AuthViewSet(viewsets.ViewSet):
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class UserListViewSet(viewsets.ReadOnlyModelViewSet):

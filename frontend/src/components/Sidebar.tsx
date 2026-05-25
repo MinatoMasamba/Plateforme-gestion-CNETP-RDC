@@ -43,6 +43,7 @@ interface SidebarProps {
   userRole?: string;
   onChangeRole?: (role: string) => void;
   onOpenProfileModal?: () => void;
+  testProfile?: any;
 }
 
 export default function Sidebar({
@@ -73,7 +74,8 @@ export default function Sidebar({
   // Simulated Roles
   userRole = "ADMIN",
   onChangeRole = () => {},
-  onOpenProfileModal = () => {}
+  onOpenProfileModal = () => {},
+  testProfile
 }: SidebarProps) {
   // Local state for searching within groups / experts in sidebar
   const [expertSearchQuery, setExpertSearchQuery] = useState("");
@@ -368,41 +370,128 @@ export default function Sidebar({
                     Aucun groupe trouvé.
                   </p>
                 ) : (
-                  workingGroups.filter(wg => 
-                    wg.code.toLowerCase().includes(expertSearchQuery.toLowerCase()) ||
-                    wg.title.toLowerCase().includes(expertSearchQuery.toLowerCase())
-                  ).map((wg) => {
-                    const isSelected = expertSelectionType === "wg" && wg.id === selectedWorkingGroupId;
-                    return (
-                      <button
-                        key={wg.id}
-                        type="button"
-                        onClick={() => {
-                          setExpertSelectionType("wg");
-                          setSelectedWorkingGroupId(wg.id);
-                        }}
-                        className={`w-full p-3 rounded-lg border transition-all duration-200 text-left block cursor-pointer ${
-                          isSelected
-                            ? "bg-emerald-500/10 border-emerald-500/35 text-emerald-400 shadow-[0_4px_12px_rgba(16,185,129,0.05)]"
-                            : "bg-white/[0.02] hover:bg-white/[0.05] border-white/5 hover:border-white/10 text-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1.5">
-                          <span className={`font-mono text-[9.5px] font-bold px-1.5 rounded ${
-                            isSelected 
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" 
-                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          }`}>
-                            {wg.code}
-                          </span>
-                          <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-1.5 py-0.5 rounded-full uppercase tracking-tight">
-                            {wg.tag}
-                          </span>
-                        </div>
-                        <p className={`text-xs font-semibold mt-1.5 line-clamp-1 ${isSelected ? "text-white" : "text-slate-200"}`}>{wg.title}</p>
-                      </button>
-                    );
-                  })
+                  (() => {
+                    const getCmtNumber = (ctmStr: string) => {
+                      if (!ctmStr) return null;
+                      const match = ctmStr.match(/CTM\s*(\d+)/i);
+                      return match ? match[1] : null;
+                    };
+
+                    const getWgCmtNumber = (wgCodeStr: string) => {
+                      if (!wgCodeStr) return null;
+                      const match = wgCodeStr.match(/(?:WG|wg)\s*(\d+)\.?/i);
+                      return match ? match[1] : null;
+                    };
+
+                    const currentExpert = testProfile 
+                      ? experts.find(e => e.email.toLowerCase() === testProfile.email.toLowerCase()) 
+                      : experts.find(e => e.id === "exp-1");
+
+                    return workingGroups.filter(wg => 
+                      wg.code.toLowerCase().includes(expertSearchQuery.toLowerCase()) ||
+                      wg.title.toLowerCase().includes(expertSearchQuery.toLowerCase())
+                    ).map((wg) => {
+                      const isSelected = expertSelectionType === "wg" && wg.id === selectedWorkingGroupId;
+                      
+                      const currentExpertCmtNum = currentExpert ? getCmtNumber(currentExpert.ctm) : null;
+                      const wgCmtNum = getWgCmtNumber(wg.code);
+
+                      const isSameCmt = currentExpertCmtNum && wgCmtNum ? currentExpertCmtNum === wgCmtNum : false;
+                      const isMyWg = currentExpert?.wg && wg.code ? currentExpert.wg.toLowerCase().includes(wg.code.toLowerCase()) : false;
+
+                      return (
+                        <button
+                          key={wg.id}
+                          type="button"
+                          onClick={() => {
+                            setExpertSelectionType("wg");
+                            setSelectedWorkingGroupId(wg.id);
+                          }}
+                          className={`w-full p-3 rounded-lg border transition-all duration-200 text-left block cursor-pointer ${
+                            isSelected
+                              ? "bg-emerald-500/10 border-emerald-500/35 text-emerald-400 shadow-[0_4px_12px_rgba(16,185,129,0.05)]"
+                              : "bg-white/[0.02] hover:bg-white/[0.05] border-white/5 hover:border-white/10 text-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`font-mono text-[9.5px] font-bold px-1.5 rounded ${
+                                isSelected 
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" 
+                                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              }`}>
+                                {wg.code}
+                              </span>
+                              
+                              {/* Relations badges */}
+                              {isMyWg ? (
+                                <span className="text-[8.5px] px-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded font-extrabold uppercase scale-90 origin-left">
+                                  Mon WG
+                                </span>
+                              ) : isSameCmt ? (
+                                <span className="text-[8.5px] px-1 bg-blue-500/15 text-blue-400 border border-blue-500/20 rounded font-extrabold uppercase scale-90 origin-left" title="Même Comité technique (Lecture Seule)">
+                                  Même CTM
+                                </span>
+                              ) : (
+                                <span className="text-[8.5px] px-1 bg-white/5 text-slate-500 border border-white/5 rounded font-bold uppercase scale-90 origin-left" title="Autre Comité (Accès restreint)">
+                                  Hors CTM
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-1.5 py-0.5 rounded-full uppercase tracking-tight">
+                              {wg.tag}
+                            </span>
+                          </div>
+                          <p className={`text-xs font-semibold mt-1.5 line-clamp-1 ${isSelected ? "text-white" : "text-slate-200"}`}>{wg.title}</p>
+                          
+                          {/* Parallel Norms Indicators */}
+                          {(() => {
+                            const getParallelNormsForWg = (wgCode: string) => {
+                              switch (wgCode) {
+                                case "WG 8.1":
+                                  return ["Pr-RDC 801 (BTC)", "Pr-RDC 802 (Eco-Briques)", "Pr-RDC 803 (Recyclage)"];
+                                case "WG 8.2":
+                                  return ["Pr-RDC 812 (Ultrasons)", "Pr-RDC 813 (Mécanique)"];
+                                case "WG 8.3":
+                                  return ["Pr-RDC 821 (Label Vert)"];
+                                case "WG 1.1":
+                                  return ["Pr-RDC 101 (Argiles)", "Pr-RDC 102 (CBR Route)"];
+                                case "WG 1.2":
+                                  return ["Pr-RDC 112 (Anti-Érosion)"];
+                                case "WG 2.3":
+                                  return ["Pr-RDC 231 (Sismique)"];
+                                case "WG 5.1":
+                                  return ["Pr-RDC 501 (Enrobés Latérite)"];
+                                case "WG 6.2":
+                                  return ["Pr-RDC 611 (Assainissement)"];
+                                default:
+                                  return [];
+                              }
+                            };
+                            const norms = getParallelNormsForWg(wg.code);
+                            if (norms.length === 0) return null;
+                            return (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {norms.map((norm, idx) => (
+                                  <span 
+                                    key={idx} 
+                                    title={norm}
+                                    className={`text-[8.5px] px-1 rounded font-mono font-bold tracking-tight border ${
+                                      isSelected
+                                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                                        : "bg-white/5 text-slate-400 border-white/5"
+                                    }`}
+                                  >
+                                    {norm.split(" ")[0]}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </button>
+                      );
+                    });
+                  })()
                 )}
               </div>
             </div>
