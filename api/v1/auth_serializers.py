@@ -80,7 +80,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     
     def get_is_expert(self, obj):
         """Vérifier si l'utilisateur est un expert"""
-        return hasattr(obj, 'expert_profile') and obj.is_expert
+        return obj.is_expert
     
     def get_is_ctc_staff(self, obj):
         """Vérifier si l'utilisateur est du staff CTC"""

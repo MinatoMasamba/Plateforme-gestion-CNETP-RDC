@@ -1,146 +1,87 @@
 /**
- * Django API Client
- * Wrapper fetch avec CSRF + session automatique
+ * API Client Utility
+ * Configures axios with CSRF token interceptor
+ * All POST, PUT, PATCH, DELETE requests automatically include CSRF token
  */
 
-import { getCsrfToken, setCsrfHeader } from './django-csrf'
-
-interface DjangoFetchOptions extends RequestInit {
-  csrfToken?: string
-}
-
-interface ApiResponse<T = any> {
-  data?: T
-  status: number
-  error?: string
-  message?: string
-}
+import axios from 'axios';
+import { getCSRFToken, getApiBase, methodNeedsCSRF } from '../csrf';
 
 /**
- * Wrapper fetch pour Django avec CSRF protection
+ * Create axios instance with CSRF interceptor
  */
-export async function djangoFetch<T = any>(
-  url: string,
-  options: DjangoFetchOptions = {}
-): Promise<ApiResponse<T>> {
-  const method = (options.method || 'GET').toUpperCase()
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  } as Record<string, string>
+const apiClient = axios.create({
+  baseURL: getApiBase(),
+  withCredentials: true, // Include cookies (Django session)
+});
 
-  // Ajouter CSRF token pour POST/PUT/DELETE/PATCH
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    setCsrfHeader(headers)
+/**
+ * Request interceptor: Add CSRF token to unsafe methods
+ */
+apiClient.interceptors.request.use(
+  (config) => {
+    // Only add CSRF token for non-GET requests
+    if (methodNeedsCSRF(config.method || 'GET')) {
+      config.headers['X-CSRFToken'] = getCSRFToken();
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      method,
-      headers,
-      // Les credentials inclus les cookies (sessionid)
-      credentials: 'same-origin',
-    })
-
-    const contentType = response.headers.get('content-type')
-    let data: any = null
-
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      data = await response.text()
+/**
+ * Response interceptor: Handle common errors
+ */
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 403 CSRF token errors
+    if (error.response?.status === 403 && error.response?.statusText?.includes('CSRF')) {
+      console.error('CSRF token validation failed. Please refresh the page.');
+      window.location.reload();
     }
 
-    // Gestion des erreurs d'authentification
-    if (response.status === 401) {
-      console.warn('Session expirée - redirection vers login')
-      // Rediriger vers la page de login
-      window.location.href = '/auth/login/'
+    // Handle 401 unauthorized
+    if (error.response?.status === 401) {
+      console.error('Unauthorized. Please log in again.');
+      window.location.href = '/auth/login/';
     }
 
-    return {
-      data,
-      status: response.status,
-      error: response.ok ? undefined : data?.error || data?.detail,
-      message: data?.message || data?.detail,
-    }
-  } catch (error) {
-    console.error('API Error:', error)
-    return {
-      status: 0,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    return Promise.reject(error);
   }
-}
+);
 
 /**
- * GET request
+ * GET request helper
  */
-export function apiGet<T = any>(
-  url: string,
-  options?: Omit<DjangoFetchOptions, 'method'>
-): Promise<ApiResponse<T>> {
-  return djangoFetch<T>(url, {
-    ...options,
-    method: 'GET',
-  })
-}
+export const apiGet = (url: string, config = {}) =>
+  apiClient.get(url, config);
 
 /**
- * POST request
+ * POST request helper
  */
-export function apiPost<T = any>(
-  url: string,
-  data?: any,
-  options?: Omit<DjangoFetchOptions, 'method' | 'body'>
-): Promise<ApiResponse<T>> {
-  return djangoFetch<T>(url, {
-    ...options,
-    method: 'POST',
-    body: data ? JSON.stringify(data) : undefined,
-  })
-}
+export const apiPost = (url: string, data: any = {}, config = {}) =>
+  apiClient.post(url, data, config);
 
 /**
- * PUT request
+ * PUT request helper
  */
-export function apiPut<T = any>(
-  url: string,
-  data?: any,
-  options?: Omit<DjangoFetchOptions, 'method' | 'body'>
-): Promise<ApiResponse<T>> {
-  return djangoFetch<T>(url, {
-    ...options,
-    method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined,
-  })
-}
+export const apiPut = (url: string, data: any = {}, config = {}) =>
+  apiClient.put(url, data, config);
 
 /**
- * PATCH request
+ * PATCH request helper
  */
-export function apiPatch<T = any>(
-  url: string,
-  data?: any,
-  options?: Omit<DjangoFetchOptions, 'method' | 'body'>
-): Promise<ApiResponse<T>> {
-  return djangoFetch<T>(url, {
-    ...options,
-    method: 'PATCH',
-    body: data ? JSON.stringify(data) : undefined,
-  })
-}
+export const apiPatch = (url: string, data: any = {}, config = {}) =>
+  apiClient.patch(url, data, config);
 
 /**
- * DELETE request
+ * DELETE request helper
  */
-export function apiDelete<T = any>(
-  url: string,
-  options?: Omit<DjangoFetchOptions, 'method'>
-): Promise<ApiResponse<T>> {
-  return djangoFetch<T>(url, {
-    ...options,
-    method: 'DELETE',
-  })
-}
+export const apiDelete = (url: string, config = {}) =>
+  apiClient.delete(url, config);
+
+export default apiClient;

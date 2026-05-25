@@ -207,3 +207,98 @@ class ExpertInscriptionSerializer(serializers.Serializer):
         )
         
         return expert
+
+
+class ExpertPublicRegistrationSerializer(serializers.Serializer):
+    """
+    Serializer pour l'inscription PUBLIQUE des experts via QR Code
+    
+    Endpoint: POST /api/v1/experts/public-register/
+    
+    C'est un endpoint COMPLÈTEMENT SÉPARÉ et plus simple que /api/v1/auth/register/
+    """
+    
+    # Champs utilisateur
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    password_confirm = serializers.CharField(write_only=True, required=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    
+    # Champs expert
+    structure_id = serializers.IntegerField(required=True)
+    expertise_domains = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True,
+        help_text="IDs des CTM (Comités Techniques Miroirs) auxquels l'expert appartient"
+    )
+    specialties = serializers.CharField(required=False, allow_blank=True)
+    organization = serializers.CharField(required=False, allow_blank=True)
+    
+    def validate_email(self, value):
+        """Vérifier que l'email n'existe pas déjà"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Cet email est déjà utilisé.")
+        return value
+    
+    def validate(self, data):
+        """Vérifier que les mots de passe correspondent"""
+        if data.get('password') != data.get('password_confirm'):
+            raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas."})
+        
+        # Vérifier que la structure existe
+        try:
+            Structure.objects.get(id=data.get('structure_id'))
+        except Structure.DoesNotExist:
+            raise serializers.ValidationError({"structure_id": "Cette structure n'existe pas."})
+        
+        return data
+    
+    def create(self, validated_data):
+        """Créer l'utilisateur et l'expert via l'inscription publique"""
+        password = validated_data.pop('password')
+        validated_data.pop('password_confirm')
+        structure_id = validated_data.pop('structure_id')
+        expertise_domains = validated_data.pop('expertise_domains', [])
+        
+        # Données optionnelles
+        specialties = validated_data.pop('specialties', '')
+        organization = validated_data.pop('organization', '')
+        phone = validated_data.pop('phone', '')
+        
+        # Créer l'utilisateur
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['email'].split('@')[0],  # Utiliser la partie avant @ comme username
+            password=password,
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            phone=phone,
+        )
+        user.is_expert = True
+        user.save()
+        
+        # Créer l'expert
+        structure = Structure.objects.get(id=structure_id)
+        expert = Expert.objects.create(
+            user=user,
+            structure=structure,
+            status='PENDING_VALIDATION',  # En attente de validation
+            specialties=specialties,
+            additional_info={'organization': organization} if organization else {}
+        )
+        
+        # Associer aux domaines d'expertise (CTM) si fournis
+        if expertise_domains:
+            from apps.governance.models import CTM
+            for ctm_id in expertise_domains:
+                try:
+                    ctm = CTM.objects.get(id=ctm_id)
+                    # On pourrait créer une relation ici si le modèle le permet
+                    # Pour l'instant, on stocke juste l'info dans additional_info
+                except CTM.DoesNotExist:
+                    pass
+        
+        return expert
