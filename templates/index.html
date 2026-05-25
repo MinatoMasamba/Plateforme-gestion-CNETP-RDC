@@ -1,186 +1,102 @@
-{% load static %}<!DOCTYPE html>
-<html lang="fr" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CNETP - Plateforme Collaborative de Gestion des Normes">
-    <title>CNETP - Plateforme Collaborative</title>
-    
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            100: '#06060c',
-                            200: '#020204',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        
-        .scrollbar-none::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .scrollbar-none {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .animate-slideIn {
-            animation: slideIn 0.3s ease-out forwards;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-    </style>
-</head>
-<body class="bg-[#020204] text-slate-300 h-screen w-screen overflow-hidden flex transition-colors duration-200">
+{% extends 'base.html' %}
+{% load static %}
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-72 border-r border-white/10 flex flex-col bg-[#020204] z-20 shrink-0">
-        <!-- Logo & Title -->
-        <div class="p-6">
-            <h1 class="text-xl font-bold text-white flex items-center gap-2">
-                <i data-lucide="shield" class="text-blue-500"></i>
-                CNETP
-            </h1>
-            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Plateforme Collaborative</p>
-        </div>
-        
-        <!-- Navigation Menu -->
-        <nav id="sidebar-nav" class="flex-1 overflow-y-auto px-4 space-y-1 scrollbar-none">
-            <div class="py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Documents</div>
-            <!-- Contenu injecté par JS -->
-        </nav>
-        
-        <!-- Footer -->
-        <div class="p-4 border-t border-white/10 text-[10px] text-slate-600">
-            <p>© 2026 CNETP RDC</p>
-        </div>
-    </aside>
+{% block title %}Accueil - CNETP{% endblock %}
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-full min-w-0 relative bg-[#06060c]/20">
-        <!-- Background gradient -->
-        <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
-
-        <!-- TOP NAVIGATION BAR -->
-        <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 border-b border-white/10 bg-black/40 backdrop-blur-md overflow-x-auto whitespace-nowrap scrollbar-none">
-            <!-- Tabs/Modules -->
-            <div id="nav-tabs" class="flex items-center gap-1">
-                <!-- Tabs injectés par JS -->
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <!-- Navigation -->
+    <nav class="bg-black/50 backdrop-blur-lg border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold">📋</span>
+                </div>
+                <span class="text-white font-bold text-xl">CNETP</span>
             </div>
             
-            <!-- Right Controls -->
-            <div class="flex items-center gap-3 shrink-0">
-                <!-- Theme Toggle -->
-                <button id="theme-toggle" class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 text-xs font-bold transition-colors">
-                    ☀️ Thème Clair
-                </button>
-                
-                <!-- Profile -->
-                <button id="profile-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 text-blue-400 text-xs font-bold hover:bg-blue-500/10 transition-colors">
-                    <i data-lucide="users" class="h-3.5 w-3.5"></i>
-                    <span id="user-name">{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Chargement...{% endif %}</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- MAIN VIEWPORT -->
-        <div id="viewport" class="flex-1 min-h-0 flex flex-col z-10 relative">
-            <!-- Contenu dynamique injecté par JS -->
-            <div class="flex-1 flex items-center justify-center">
-                <i data-lucide="loader" class="h-8 w-8 text-blue-500 animate-spin"></i>
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <span class="text-slate-300 text-sm">
+                        Bienvenue, <span class="font-semibold">{{ user.get_full_name|default:user.username }}</span>
+                    </span>
+                    <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-semibold transition-colors">
+                        Déconnexion
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-sm font-semibold transition-colors">
+                        Connexion
+                    </a>
+                {% endif %}
             </div>
         </div>
-    </main>
+    </nav>
 
-    <!-- Messaging Widget Container -->
-    <div id="messaging-container"></div>
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-bold text-white mb-4 leading-tight">
+                Plateforme de Gestion <br>
+                <span class="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">des Normes Techniques</span>
+            </h1>
+            <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                La CNETP - Comité National d'Experts Techniques de la République Démocratique du Congo
+            </p>
+            
+            {% if user.is_authenticated %}
+                <div class="flex gap-4 justify-center">
+                    <a href="/api/v1/schema/swagger/" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                        API Documentation
+                    </a>
+                    <a href="{% url 'expert-registration' %}" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors">
+                        Panel Expert
+                    </a>
+                </div>
+            {% else %}
+                <div class="flex gap-4 justify-center">
+                    <a href="{% url 'expert-registration' %}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                        S'inscrire en tant qu'Expert
+                    </a>
+                    <a href="{% url 'login' %}" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors">
+                        Se Connecter
+                    </a>
+                </div>
+            {% endif %}
+        </div>
 
-    <!-- Initial State Injection (Django) -->
-    <script>
-        window.__DJANGO_CONTEXT__ = {
-            csrfToken: "{{ csrf_token }}",
-            apiBase: "/api/",
-            user: {% if user.is_authenticated %}{
-                id: {{ user.id }},
-                username: "{{ user.username }}",
-                email: "{{ user.email }}",
-                fullName: "{{ user.get_full_name|default:user.username }}"
-            }{% else %}null{% endif %},
-            isDarkMode: true
-        };
-    </script>
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mt-20">
+            <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-colors">
+                <div class="text-3xl mb-3">📊</div>
+                <h3 class="text-white font-bold text-lg mb-2">Gestion des Normes</h3>
+                <p class="text-slate-400 text-sm">
+                    Créez, modifiez et supervisez les normes techniques avec un système collaboratif.
+                </p>
+            </div>
+            
+            <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-colors">
+                <div class="text-3xl mb-3">👥</div>
+                <h3 class="text-white font-bold text-lg mb-2">Experts Qualifiés</h3>
+                <p class="text-slate-400 text-sm">
+                    Réseau d'experts techniques organisés par domaines spécialisés.
+                </p>
+            </div>
+            
+            <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-colors">
+                <div class="text-3xl mb-3">📋</div>
+                <h3 class="text-white font-bold text-lg mb-2">Validation Rigoureuse</h3>
+                <p class="text-slate-400 text-sm">
+                    Processus de vote et validation transparents et traçables.
+                </p>
+            </div>
+        </div>
+    </section>
 
-    <!-- SCRIPTS -->
-    <!-- API Communication -->
-    <script src="{% static 'js/api.js' %}"></script>
-    
-    <!-- UI Components -->
-    <script src="{% static 'js/components/messaging.js' %}"></script>
-    <script src="{% static 'js/components/history.js' %}"></script>
-    <script src="{% static 'js/components/experts.js' %}"></script>
-    <script src="{% static 'js/components/meetings.js' %}"></script>
-    <script src="{% static 'js/components/financial.js' %}"></script>
-    <script src="{% static 'js/components/validation.js' %}"></script>
-    <script src="{% static 'js/components/legistique.js' %}"></script>
-    
-    <!-- Main Application -->
-    <script src="{% static 'js/app.js' %}"></script>
-</body>
-</html>
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-black/50 backdrop-blur-lg mt-20">
+        <div class="max-w-7xl mx-auto px-6 py-8 text-center text-slate-400 text-sm">
+            <p>© 2026 CNETP - Plateforme de Gestion des Normes | République Démocratique du Congo</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

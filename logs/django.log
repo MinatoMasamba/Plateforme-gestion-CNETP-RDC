@@ -442,3 +442,11 @@ INFO 2026-05-25 14:56:40,115 autoreload 31857 135719241654400 /home/minato/proje
 INFO 2026-05-25 14:56:51,377 autoreload 31926 125691901132928 Watching for file changes with StatReloader
 INFO 2026-05-25 14:58:46,414 autoreload 31926 125691901132928 /home/minato/project/config/settings.py changed, reloading.
 INFO 2026-05-25 14:59:29,325 autoreload 32311 137771332608128 Watching for file changes with StatReloader
+INFO 2026-05-25 15:07:01,780 autoreload 33025 137071430729856 Watching for file changes with StatReloader
+INFO 2026-05-25 15:48:38,050 autoreload 33025 137071430729856 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-25 15:48:40,221 autoreload 36983 124266058236032 Watching for file changes with StatReloader
+INFO 2026-05-25 16:19:31,093 autoreload 36983 124266058236032 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:19:34,837 autoreload 42609 127213058236544 Watching for file changes with StatReloader
+INFO 2026-05-25 16:20:32,713 autoreload 42609 127213058236544 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-25 16:20:36,829 autoreload 42913 132239349457024 Watching for file changes with StatReloader
+WARNING 2026-05-25 16:20:44,218 log 42913 132239140574912 Not Found: /favicon.ico
