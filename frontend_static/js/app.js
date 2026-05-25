@@ -134,12 +134,18 @@ function renderViewport(error = null) {
             break;
         case 'history':
             if (state.selectedDocId) {
+                console.log("Selected Doc ID:", state.selectedDocId);
+                console.log("Documents in state:", state.documents);
+                const doc = state.documents.find(d => d.id === state.selectedDocId);
+                console.log("Found document for rendering:", doc);
                 HistoryArea.render(container, state.selectedDocId);
             } else {
-                container.innerHTML = '<div class="p-8 text-slate-500">Sélectionnez un document pour voir l\'historique.</div>';
+                console.log("No document selected. Documents state:", state.documents);
+                container.innerHTML = '<div class="p-8 text-slate-500">Sélectionnez un document pour voir l'historique.</div>';
             }
             break;
-        case 'experts':
+            case 'experts':
+
             ExpertsModule.render(container);
             break;
         case 'meetings':
@@ -237,6 +243,9 @@ async function loadInitialData() {
         state.collaborators = collabs || [];
         state.activeCollaborator = state.collaborators[0] || state.userProfile;
 
+        console.log("Loaded Documents:", state.documents);
+        console.log("Selected Doc ID initially:", state.selectedDocId);
+
         // Données de démonstration si API ne retourne rien
         if (state.documents.length === 0) {
             state.documents = [
@@ -249,7 +258,11 @@ async function loadInitialData() {
                     versionNumber: 1
                 }
             ];
+            console.log("Using mock documents as API returned empty:", state.documents);
         }
+
+        state.selectedDocId = state.documents[0]?.id || null;
+        console.log("Final selectedDocId after loading:", state.selectedDocId);
 
         // Données des experts et groupes de travail
         state.workingGroups = [
@@ -285,4 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Rendre le widget de messagerie
     Messaging.render(document.body);
+});
+Messaging.render(document.body);
 });
