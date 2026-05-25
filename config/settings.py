@@ -100,7 +100,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / 'web' / 'static' / 'dist',  # React build output
+    BASE_DIR / 'web' / 'static' / 'dist', BASE_DIR / 'frontend_static' # React build output
 ]
 
 MEDIA_URL = '/media/'
@@ -138,7 +138,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:8000', cast=Csv())
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://localhost:8000', cast=Csv())
 
 # Cache Configuration (Redis)
 CACHES = {

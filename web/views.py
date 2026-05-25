@@ -4,14 +4,24 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views import View
 from django.utils.decorators import method_decorator
+from django.shortcuts import render
 import json
 import os
 from django.conf import settings
 
 # Import models for default data
 from apps.norms.models import Norme
-from apps.experts.models import Expert
+from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, WG # Assurez-vous d'avoir importé CTM et WG
+
+
+class ReactAppView(View):
+    """
+    Serves the React SPA application.
+    Injects initial state and serves React's index.html.
+    """
+    def get(self, request):
+        return render(request,'index.html')
 
 def get_initial_state(request):
     """Gathers data to be injected into the React app's initial state."""
@@ -50,14 +60,14 @@ def render_react(request):
     """
     Main function to serve React's index.html with Django context.
     """
-    index_path = os.path.join(settings.BASE_DIR, 'web', 'static', 'dist', 'index.html')
+    index_path = os.path.join(settings.BASE_DIR, 'frontend_static', 'index.html')
     
     try:
         with open(index_path, 'r', encoding='utf-8') as f:
             html = f.read()
     except FileNotFoundError:
         return HttpResponse(
-            "<h1>React app not built</h1><p>Please run <code>cd frontend && npm run build</code></p>", 
+            "<h1>React app not found</h1><p>Make sure the frontend build is in the frontend_static directory.</p>", 
             status=404
         )
     
@@ -74,13 +84,25 @@ def render_react(request):
     
     return HttpResponse(html, content_type='text/html; charset=utf-8')
 
-class ReactAppView(View):
+
+class ExpertRegistrationView(View):
     """
-    View class that serves the React SPA based on the requested URL.
-    Each major React route (/, /auth/login, /app, etc.) will map to this view.
+    Vue pour afficher la page d'inscription des experts
+    Template: templates/expert_registration.html
+    URL: /inscription-expert/
     """
-    def get(self, request, *args, **kwargs):
-        return render_react(request)
+    
+    template_name = 'expert_registration.html'
+    
+    def get(self, request):
+        # Charger les organisations pour le dropdown
+        organizations = Structure.objects.all()
+        
+        context = {
+            'organizations': organizations,
+        }
+        
+        return render(request, self.template_name, context)
 
 
 # ============================================================================

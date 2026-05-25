@@ -13,7 +13,7 @@ from apps.core.models import User
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, WG
 from .auth_serializers import UserDetailSerializer
-from .serializers import ExpertPublicRegistrationSerializer
+from .experts_serializers import ExpertPublicRegistrationSerializer
 
 
 class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
@@ -43,21 +43,23 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
             "first_name": "Jean",
             "last_name": "Dupont",
             "structure_id": 1,
-            "expertise_domains": [1, 2, 3],
+            "ctm_ids": [1, 2, 3],
             "phone": "+243812345678",
-            "organization": "Cabinet Conseil"
+            "specialties": "Géotechnique, Fondations",
+            "cv": <file>
         }
         
         Response (201):
         {
-            "message": "Expert inscrit avec succès",
+            "message": "Expert inscrit avec succès. Un email de confirmation sera envoyé.",
             "expert": {
                 "id": 1,
                 "email": "expert@example.com",
                 "first_name": "Jean",
                 "last_name": "Dupont",
-                "status": "pending_validation",
-                "inscription_date": "2024-05-25T11:15:00Z"
+                "status": "pending",
+                "inscription_date": "2024-05-25T11:15:00Z",
+                "ctm_ids": [1, 2, 3]
             }
         }
         """
@@ -67,8 +69,8 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
             # Créer l'expert
             expert = serializer.save()
             
-            # Log de l'inscription
-            self.request.environ['REMOTE_ADDR']
+            # Récupérer les CTM pour la réponse
+            ctm_ids = [ctm.id for ctm in expert.ctm_choices.all()]
             
             return Response(
                 {
@@ -79,7 +81,8 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
                         'first_name': expert.user.first_name,
                         'last_name': expert.user.last_name,
                         'status': expert.status,
-                        'inscription_date': expert.inscription_date.isoformat()
+                        'inscription_date': expert.inscription_date.isoformat(),
+                        'ctm_ids': ctm_ids
                     }
                 },
                 status=status.HTTP_201_CREATED
@@ -94,7 +97,7 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
         
         GET /api/v1/experts/public-register/structures/
         """
-        structures = Structure.objects.filter(is_active=True)
+        structures = Structure.objects.all()
         from .experts_serializers import StructureSerializer
         serializer = StructureSerializer(structures, many=True)
         return Response(serializer.data)
