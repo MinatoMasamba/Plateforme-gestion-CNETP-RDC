@@ -450,3 +450,1440 @@ INFO 2026-05-25 16:19:34,837 autoreload 42609 127213058236544 Watching for file 
 INFO 2026-05-25 16:20:32,713 autoreload 42609 127213058236544 /home/minato/project/web/urls.py changed, reloading.
 INFO 2026-05-25 16:20:36,829 autoreload 42913 132239349457024 Watching for file changes with StatReloader
 WARNING 2026-05-25 16:20:44,218 log 42913 132239140574912 Not Found: /favicon.ico
+ERROR 2026-05-25 16:26:00,992 log 42913 132239123789504 Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 20, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 333, in render
+    return nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'expert-registration' not found. 'expert-registration' is not a valid view function or pattern name.
+ERROR 2026-05-25 16:35:28,166 log 42913 132239123789504 Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 20, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/engine.py", line 186, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 556, in parse
+    raise self.error(token, e)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 554, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 676, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 776, in __init__
+    raise TemplateSyntaxError(
+django.template.exceptions.TemplateSyntaxError: Template: /home/minato/project/templates/index.html, Could not parse the remainder: ': true' from 'once: true'
+INFO 2026-05-25 16:38:49,170 autoreload 42913 132239349457024 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-25 16:38:56,287 autoreload 44814 126252159746176 Watching for file changes with StatReloader
+WARNING 2026-05-25 16:42:12,075 log 44814 126251972949696 Not Found: /auth/login/
+INFO 2026-05-25 16:56:55,769 autoreload 44814 126252159746176 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:57:02,126 autoreload 46011 133282777415808 Watching for file changes with StatReloader
+INFO 2026-05-25 16:57:54,779 autoreload 46011 133282777415808 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:57:58,744 autoreload 46106 138660331495552 Watching for file changes with StatReloader
+INFO 2026-05-25 16:58:05,519 autoreload 46106 138660331495552 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:58:09,497 autoreload 46137 135163404062848 Watching for file changes with StatReloader
+INFO 2026-05-25 16:58:13,417 autoreload 46137 135163404062848 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:58:17,443 autoreload 46166 127693289234560 Watching for file changes with StatReloader
+INFO 2026-05-25 16:58:20,056 autoreload 46166 127693289234560 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:58:23,066 autoreload 46195 132748036612224 Watching for file changes with StatReloader
+INFO 2026-05-25 16:58:30,814 autoreload 46195 132748036612224 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 16:58:34,389 autoreload 46228 137481780412544 Watching for file changes with StatReloader
+ERROR 2026-05-25 17:07:32,638 log 46228 137481667212992 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 33, in get
+    ctm = CTM.objects.all()
+          ^^^
+NameError: name 'CTM' is not defined
+INFO 2026-05-25 17:07:51,205 autoreload 46228 137481780412544 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 17:07:59,181 autoreload 47196 129753857474688 Watching for file changes with StatReloader
+INFO 2026-05-25 17:14:41,152 autoreload 47196 129753857474688 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-25 17:14:45,102 autoreload 48005 133243529175168 Watching for file changes with StatReloader
+INFO 2026-05-26 15:32:42,824 autoreload 13399 140001992601728 Watching for file changes with StatReloader
+WARNING 2026-05-26 15:33:35,874 log 13399 140001878734528 Not Found: /favicon.ico
+INFO 2026-05-26 15:42:13,666 autoreload 13399 140001992601728 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 15:42:19,521 autoreload 14954 136535100354688 Watching for file changes with StatReloader
+INFO 2026-05-26 15:45:09,495 autoreload 14954 136535100354688 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 15:45:13,010 autoreload 15111 138657309290624 Watching for file changes with StatReloader
+INFO 2026-05-26 15:56:56,396 autoreload 15111 138657309290624 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-05-26 15:56:59,519 autoreload 15515 132961262596224 Watching for file changes with StatReloader
+INFO 2026-05-26 16:06:09,817 autoreload 15515 132961262596224 /home/minato/project/config/urls.py changed, reloading.
+INFO 2026-05-26 16:06:12,627 autoreload 15947 127547744178304 Watching for file changes with StatReloader
+INFO 2026-05-26 16:06:33,813 autoreload 15947 127547744178304 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-05-26 16:06:36,045 autoreload 16010 136631054069888 Watching for file changes with StatReloader
+INFO 2026-05-26 16:07:02,182 autoreload 16010 136631054069888 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-05-26 16:07:04,092 autoreload 16065 124644150366336 Watching for file changes with StatReloader
+INFO 2026-05-26 16:07:41,531 autoreload 16065 124644150366336 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:07:43,482 autoreload 16129 138949648535680 Watching for file changes with StatReloader
+INFO 2026-05-26 16:08:14,983 autoreload 16129 138949648535680 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:08:16,946 autoreload 16189 139394361782400 Watching for file changes with StatReloader
+INFO 2026-05-26 16:12:39,102 autoreload 16189 139394361782400 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-05-26 16:12:43,916 autoreload 16544 140232562536576 Watching for file changes with StatReloader
+INFO 2026-05-26 16:12:56,564 autoreload 16544 140232562536576 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:13:01,435 autoreload 16600 134603471974528 Watching for file changes with StatReloader
+INFO 2026-05-26 16:13:09,370 autoreload 16600 134603471974528 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:13:16,534 autoreload 16656 137488246763648 Watching for file changes with StatReloader
+INFO 2026-05-26 16:13:40,111 autoreload 16656 137488246763648 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:13:45,080 autoreload 16730 125753820311680 Watching for file changes with StatReloader
+INFO 2026-05-26 16:13:48,623 autoreload 16730 125753820311680 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:13:53,768 autoreload 16784 133449292361856 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:02,438 autoreload 16784 133449292361856 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:05,640 autoreload 16841 124381210177664 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:10,052 autoreload 16841 124381210177664 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:12,490 autoreload 16872 135973450674304 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:18,097 autoreload 16872 135973450674304 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:20,788 autoreload 16908 132802155606144 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:25,063 autoreload 16908 132802155606144 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:31,542 autoreload 16940 130822434025600 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:37,460 autoreload 16940 130822434025600 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:43,387 autoreload 16996 132073464754304 Watching for file changes with StatReloader
+INFO 2026-05-26 16:14:47,968 autoreload 16996 132073464754304 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:14:50,331 autoreload 17027 134814380707968 Watching for file changes with StatReloader
+INFO 2026-05-26 16:15:02,436 autoreload 17027 134814380707968 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:15:08,465 autoreload 17109 133964211712128 Watching for file changes with StatReloader
+INFO 2026-05-26 16:15:19,890 autoreload 17109 133964211712128 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:15:25,419 autoreload 17210 132333227126912 Watching for file changes with StatReloader
+INFO 2026-05-26 16:15:29,252 autoreload 17210 132333227126912 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:15:31,954 autoreload 17266 138952557809792 Watching for file changes with StatReloader
+INFO 2026-05-26 16:15:54,031 autoreload 17266 138952557809792 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:16:01,310 autoreload 17363 138170826346624 Watching for file changes with StatReloader
+INFO 2026-05-26 16:18:12,931 autoreload 17363 138170826346624 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-05-26 16:18:23,343 autoreload 17452 136328534937728 Watching for file changes with StatReloader
+ERROR 2026-05-26 16:19:01,419 log 17452 136328421308096 Internal Server Error: /se-connecter-user/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 112, in get
+    return render(request, self.template_name, {'form': form})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'public_register' not found. 'public_register' is not a valid view function or pattern name.
+ERROR 2026-05-26 16:19:45,879 log 17452 136328421308096 Internal Server Error: /se-connecter-user/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 112, in get
+    return render(request, self.template_name, {'form': form})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'user-registration' not found. 'user-registration' is not a valid view function or pattern name.
+INFO 2026-05-26 16:20:20,707 autoreload 17452 136328534937728 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:20:24,202 autoreload 17801 129129646440576 Watching for file changes with StatReloader
+INFO 2026-05-26 16:20:26,956 autoreload 17801 129129646440576 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:20:29,057 autoreload 17830 131171950588032 Watching for file changes with StatReloader
+INFO 2026-05-26 16:21:11,906 autoreload 17830 131171950588032 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 16:21:14,160 autoreload 17887 126912046125184 Watching for file changes with StatReloader
+ERROR 2026-05-26 16:21:51,438 log 17887 126911932004032 Internal Server Error: /se-connecter-user/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 112, in get
+    return render(request, self.template_name, {'form': form})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'user_registration' not found. 'user_registration' is not a valid view function or pattern name.
+ERROR 2026-05-26 16:23:24,263 log 17887 126911932004032 Internal Server Error: /inscription-simple/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 68, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'user_login' not found. 'user_login' is not a valid view function or pattern name.
+INFO 2026-05-26 16:52:39,936 autoreload 17887 126912046125184 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:52:43,025 autoreload 19143 124041752424576 Watching for file changes with StatReloader
+WARNING 2026-05-26 16:55:47,717 log 19143 124041638704832 Not Found: /app
+WARNING 2026-05-26 16:55:57,195 log 19143 124041638704832 Not Found: /app/
+INFO 2026-05-26 16:57:05,563 autoreload 19143 124041752424576 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:57:11,003 autoreload 19413 123749088940160 Watching for file changes with StatReloader
+INFO 2026-05-26 16:58:06,851 autoreload 19413 123749088940160 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 16:58:13,926 autoreload 19515 126933102817408 Watching for file changes with StatReloader
+INFO 2026-05-26 17:08:08,210 autoreload 19515 126933102817408 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:08:12,440 autoreload 20330 125667210088576 Watching for file changes with StatReloader
+INFO 2026-05-26 17:08:17,466 autoreload 20330 125667210088576 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:08:21,506 autoreload 20387 132259649568896 Watching for file changes with StatReloader
+INFO 2026-05-26 17:08:45,996 autoreload 20387 132259649568896 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:08:49,125 autoreload 20419 139314073944192 Watching for file changes with StatReloader
+INFO 2026-05-26 17:08:55,075 autoreload 20419 139314073944192 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:08:57,963 autoreload 20480 126632757260416 Watching for file changes with StatReloader
+INFO 2026-05-26 17:09:03,363 autoreload 20480 126632757260416 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:09:06,901 autoreload 20512 125527254200448 Watching for file changes with StatReloader
+INFO 2026-05-26 17:09:12,023 autoreload 20512 125527254200448 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:09:16,546 autoreload 20547 139058344915072 Watching for file changes with StatReloader
+INFO 2026-05-26 17:09:21,911 autoreload 20547 139058344915072 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:09:26,681 autoreload 20606 125131656937600 Watching for file changes with StatReloader
+INFO 2026-05-26 17:10:00,368 autoreload 20606 125131656937600 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:10:03,639 autoreload 20664 137632843395200 Watching for file changes with StatReloader
+INFO 2026-05-26 17:10:13,914 autoreload 20664 137632843395200 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:10:20,432 autoreload 20740 126095896342656 Watching for file changes with StatReloader
+INFO 2026-05-26 17:10:40,990 autoreload 20740 126095896342656 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:10:44,496 autoreload 20816 138299463856256 Watching for file changes with StatReloader
+INFO 2026-05-26 17:10:47,598 autoreload 20816 138299463856256 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:10:52,951 autoreload 20844 139309569917056 Watching for file changes with StatReloader
+INFO 2026-05-26 17:10:57,908 autoreload 20844 139309569917056 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:10:59,831 autoreload 20904 140234441879680 Watching for file changes with StatReloader
+INFO 2026-05-26 17:11:04,605 autoreload 20904 140234441879680 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:11:06,041 autoreload 20935 138367540215936 Watching for file changes with StatReloader
+INFO 2026-05-26 17:11:10,170 autoreload 20935 138367540215936 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:11:14,062 autoreload 20950 131844119482496 Watching for file changes with StatReloader
+INFO 2026-05-26 17:11:18,539 autoreload 20950 131844119482496 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:11:21,528 autoreload 21007 127452137877632 Watching for file changes with StatReloader
+INFO 2026-05-26 17:11:26,385 autoreload 21007 127452137877632 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:11:30,888 autoreload 21036 128446120444032 Watching for file changes with StatReloader
+INFO 2026-05-26 17:11:35,437 autoreload 21036 128446120444032 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:11:36,926 autoreload 21068 128243656421504 Watching for file changes with StatReloader
+INFO 2026-05-26 17:12:29,337 autoreload 21068 128243656421504 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:12:36,158 autoreload 21142 137044196290688 Watching for file changes with StatReloader
+INFO 2026-05-26 17:12:41,380 autoreload 21142 137044196290688 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:12:45,825 autoreload 21198 125400979468416 Watching for file changes with StatReloader
+INFO 2026-05-26 17:12:50,353 autoreload 21198 125400979468416 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:12:54,539 autoreload 21232 133951751934080 Watching for file changes with StatReloader
+INFO 2026-05-26 17:23:11,496 autoreload 21232 133951751934080 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:23:17,492 autoreload 21804 140464741937280 Watching for file changes with StatReloader
+WARNING 2026-05-26 17:23:19,429 log 21804 140464556603072 Not Found: /app/
+INFO 2026-05-26 17:23:31,570 autoreload 21804 140464741937280 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 17:23:36,530 autoreload 21889 139532971655296 Watching for file changes with StatReloader
+INFO 2026-05-26 17:23:49,435 autoreload 21889 139532971655296 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 17:23:51,425 autoreload 21947 127563778445440 Watching for file changes with StatReloader
+WARNING 2026-05-26 17:23:58,217 log 21947 127563664979648 Not Found: /accounts/login/
+INFO 2026-05-26 17:25:42,422 autoreload 21947 127563778445440 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-26 17:25:47,382 autoreload 22150 132199766651008 Watching for file changes with StatReloader
+INFO 2026-05-26 17:25:50,256 autoreload 22150 132199766651008 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-26 17:25:52,983 autoreload 22185 137630195888256 Watching for file changes with StatReloader
+WARNING 2026-05-26 17:26:09,706 log 22185 137630012405440 Not Found: /accounts/login/
+INFO 2026-05-26 17:27:10,069 autoreload 22185 137630195888256 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:27:12,288 autoreload 22308 130740846186624 Watching for file changes with StatReloader
+INFO 2026-05-26 17:27:15,027 autoreload 22308 130740846186624 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:27:18,603 autoreload 22336 125340025606272 Watching for file changes with StatReloader
+INFO 2026-05-26 17:27:24,599 autoreload 22336 125340025606272 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:27:27,742 autoreload 22372 134070014099584 Watching for file changes with StatReloader
+INFO 2026-05-26 17:27:31,723 autoreload 22372 134070014099584 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:27:34,211 autoreload 22428 133136940167296 Watching for file changes with StatReloader
+INFO 2026-05-26 17:27:37,193 autoreload 22428 133136940167296 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:27:39,706 autoreload 22434 137121211895936 Watching for file changes with StatReloader
+ERROR 2026-05-26 17:28:01,309 log 22434 137121098626752 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'login' not found. 'login' is not a valid view function or pattern name.
+ERROR 2026-05-26 17:28:01,912 log 22434 137121098626752 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'login' not found. 'login' is not a valid view function or pattern name.
+INFO 2026-05-26 17:29:03,785 autoreload 22434 137121211895936 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 17:29:06,506 autoreload 22626 133892449988736 Watching for file changes with StatReloader
+INFO 2026-05-26 17:29:11,036 autoreload 22626 133892449988736 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 17:29:12,916 autoreload 22680 138232885883008 Watching for file changes with StatReloader
+ERROR 2026-05-26 17:29:31,682 log 22680 138232771638976 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/urls/resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'expert_login' not found. 'expert_login' is not a valid view function or pattern name.
+ERROR 2026-05-26 17:40:38,003 log 22680 138232771638976 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 17:40:38,780 log 22680 138232771638976 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 17:41:13,198 log 22680 138232771638976 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 43, in get
+    structures = Structure.objects.filter(expert=data_expert)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1842, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'expert' into field. Choices are: acronym, address, category, contact_person, cotisations, created_at, created_by, created_by_id, description, email, experts, id, name, phone, updated_at, updated_by, updated_by_id, website
+INFO 2026-05-26 17:42:36,844 autoreload 22680 138232885883008 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:42:41,730 autoreload 23636 140078814851200 Watching for file changes with StatReloader
+ERROR 2026-05-26 17:42:51,781 log 23636 140078701606592 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 17:43:00,366 log 23636 140078701606592 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 17:43:26,369 log 23636 140078701606592 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = CTM.objects.filter(structure__in=structures)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1842, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'structure' into field. Choices are: affectations, arso_reference, created_at, created_by, created_by_id, description, id, iso_reference, member_experts, name, normes, number, rapporteur, rapporteur_id, scientific_president, scientific_president_id, secretary, secretary_id, updated_at, updated_by, updated_by_id, working_groups
+ERROR 2026-05-26 17:43:27,197 log 23636 140078701606592 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = CTM.objects.filter(structure__in=structures)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1842, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'structure' into field. Choices are: affectations, arso_reference, created_at, created_by, created_by_id, description, id, iso_reference, member_experts, name, normes, number, rapporteur, rapporteur_id, scientific_president, scientific_president_id, secretary, secretary_id, updated_at, updated_by, updated_by_id, working_groups
+INFO 2026-05-26 17:44:28,158 autoreload 23636 140078814851200 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 17:44:32,909 autoreload 23789 132497273254016 Watching for file changes with StatReloader
+ERROR 2026-05-26 17:44:37,317 log 23789 132497160533696 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+INFO 2026-05-26 18:10:08,364 autoreload 23789 132497273254016 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 18:10:11,260 autoreload 25988 135384362438784 Watching for file changes with StatReloader
+INFO 2026-05-26 18:10:37,474 autoreload 25988 135384362438784 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 18:10:41,410 autoreload 26060 139495807676544 Watching for file changes with StatReloader
+INFO 2026-05-26 18:10:49,723 autoreload 26060 139495807676544 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-05-26 18:10:54,009 autoreload 26120 123932988420224 Watching for file changes with StatReloader
+ERROR 2026-05-26 18:12:43,973 log 26120 123932874110656 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 18:13:07,899 log 26120 123932874110656 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/editor_area.html
+ERROR 2026-05-26 18:13:11,899 log 26120 123932874110656 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/editor_area.html
+ERROR 2026-05-26 18:13:13,616 log 26120 123932874110656 Internal Server Error: /api/components/history/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/history_area.html
+ERROR 2026-05-26 18:13:15,008 log 26120 123932874110656 Internal Server Error: /api/components/experts/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/experts_module.html
+ERROR 2026-05-26 18:13:15,866 log 26120 123932874110656 Internal Server Error: /api/components/meetings/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/meetings_module.html
+ERROR 2026-05-26 18:13:16,802 log 26120 123932874110656 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/financial_module.html
+ERROR 2026-05-26 18:13:18,756 log 26120 123932874110656 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: components/editor_area.html
+INFO 2026-05-26 18:13:53,430 autoreload 26120 123932988420224 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 18:14:03,874 autoreload 26422 128706278256768 Watching for file changes with StatReloader
+ERROR 2026-05-26 18:14:09,126 log 26422 128706165077696 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:components/editor_area.html
+ERROR 2026-05-26 18:14:10,912 log 26422 128706165077696 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+ERROR 2026-05-26 18:14:30,934 log 26422 128706165077696 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:components/editor_area.html
+ERROR 2026-05-26 18:14:34,226 log 26422 128706165077696 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:components/editor_area.html
+INFO 2026-05-26 18:14:57,877 autoreload 26422 128706278256768 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 18:15:04,874 autoreload 26578 132189905731712 Watching for file changes with StatReloader
+INFO 2026-05-26 18:15:10,057 autoreload 26578 132189905731712 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 18:15:13,740 autoreload 26631 132874502230144 Watching for file changes with StatReloader
+ERROR 2026-05-26 18:15:27,303 log 26631 132874388895424 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:app/components/editor_area.html
+ERROR 2026-05-26 18:15:29,864 log 26631 132874388895424 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:app/components/editor_area.html
+ERROR 2026-05-26 18:15:40,855 log 26631 132874388895424 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: web:app/components/editor_area.html
+INFO 2026-05-26 21:22:09,168 autoreload 26631 132874502230144 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 21:22:14,517 autoreload 27107 139125283762304 Watching for file changes with StatReloader
+ERROR 2026-05-26 21:23:53,941 log 27107 139125169583808 Internal Server Error: /api/components/editor/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 224, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/components/editor_area.html
+INFO 2026-05-26 21:26:26,531 autoreload 27107 139125283762304 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 21:26:30,989 autoreload 27299 125190079725696 Watching for file changes with StatReloader
+ERROR 2026-05-26 21:26:42,861 log 27299 125189965739712 Internal Server Error: /inscription-expert/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 130, in get
+    return render(request, self.template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: expert_registration.html
+INFO 2026-05-26 21:28:41,731 autoreload 27299 125190079725696 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 21:28:48,596 autoreload 27389 139827658682496 Watching for file changes with StatReloader
+INFO 2026-05-26 21:29:48,311 autoreload 27389 139827658682496 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 21:29:58,474 autoreload 27529 125530566967424 Watching for file changes with StatReloader
+INFO 2026-05-26 21:30:06,629 autoreload 27529 125530566967424 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-26 21:30:13,037 autoreload 27565 132597139173504 Watching for file changes with StatReloader
+ERROR 2026-05-26 21:53:04,022 log 27565 132597025863360 Internal Server Error: /api/components/meetings/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 225, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/meetings_module.html
+ERROR 2026-05-26 21:53:09,084 log 27565 132597025863360 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 225, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+WARNING 2026-05-26 21:53:12,537 log 27565 132597025863360 Not Found: /api/components/validation/
+ERROR 2026-05-26 22:04:24,217 log 27565 132597025863360 Internal Server Error: /api/components/meetings/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 225, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/meetings_module.html
+ERROR 2026-05-26 22:04:27,296 log 27565 132597025863360 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 225, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+WARNING 2026-05-26 22:04:29,171 log 27565 132597025863360 Not Found: /api/components/validation/
+ERROR 2026-05-26 22:04:38,224 log 27565 132597025863360 Internal Server Error: /api/components/meetings/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 225, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/meetings_module.html

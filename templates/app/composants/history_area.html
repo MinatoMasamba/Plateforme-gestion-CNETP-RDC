@@ -1,0 +1,230 @@
+<div class="flex-1 overflow-y-auto p-6 bg-transparent flex flex-col lg:flex-row gap-6 w-full h-full text-slate-900 dark:text-slate-200">
+    
+    <div class="w-full lg:w-96 flex flex-col gap-4 shrink-0 border rounded-xl p-5 shadow-lg bg-blue-50/50 border-blue-200 dark:bg-black/45 dark:border-white/10">
+        
+        <div class="flex items-center gap-2 pb-3 border-b border-blue-200 dark:border-white/10">
+            <i data-lucide="history" class="h-5 w-5 text-blue-600 dark:text-blue-400"></i>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">Historique des Modifications</h2>
+        </div>
+
+        <div id="history-filter-banner" class="hidden rounded-lg p-3 flex flex-col gap-1 text-left relative overflow-hidden backdrop-blur-sm border bg-blue-100/50 border-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20">
+            <div class="absolute top-0 right-0 p-1">
+                <button onclick="clearAuthorFilter()" class="text-[10px] px-2 py-0.5 rounded font-bold uppercase transition-all text-blue-700 hover:text-blue-900 bg-blue-200 hover:bg-blue-300 dark:text-blue-400/70 dark:hover:text-white dark:bg-blue-500/10 dark:hover:bg-blue-500/20" title="Afficher l'historique de tous les collaborateurs">
+                    Tous
+                </button>
+            </div>
+            <span class="text-[9px] font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400">Filtre actif : Collaborateur</span>
+            <p id="filter-author-name" class="text-xs font-bold truncate max-w-[180px] text-slate-800 dark:text-white">Nom</p>
+            <p id="filter-count" class="text-[10px] text-slate-500 dark:text-slate-400">0 modification(s)</p>
+        </div>
+
+        <div id="history-timeline" class="overflow-y-auto max-h-[600px] pr-1 space-y-4 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-white/5">
+            </div>
+    </div>
+
+    <div class="flex-1 border rounded-xl p-5 shadow-lg flex flex-col gap-4 bg-white/80 border-slate-200 dark:bg-black/45 dark:border-white/10">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
+            <div class="flex items-center gap-2">
+                <i data-lucide="arrow-right-left" class="h-4.5 w-4.5 text-slate-500 dark:text-slate-400"></i>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Analyse des différences</h3>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs z-20">
+                <div class="flex items-center gap-1.5">
+                    <label for="select-v1" class="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-500">Source :</label>
+                    <select id="select-v1" onchange="updateDiffView()" class="font-mono text-xs px-2 py-1.5 rounded-lg border cursor-pointer border-slate-300 bg-white text-slate-800 dark:border-white/10 dark:bg-black/50 dark:text-slate-300"></select>
+                </div>
+
+                <span class="font-mono text-slate-400 dark:text-slate-600">➜</span>
+
+                <div class="flex items-center gap-1.5">
+                    <label for="select-v2" class="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-500">Cible :</label>
+                    <select id="select-v2" onchange="updateDiffView()" class="font-mono text-xs px-2 py-1.5 rounded-lg border cursor-pointer border-slate-300 bg-white text-slate-800 dark:border-white/10 dark:bg-black/50 dark:text-slate-300"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3.5 border rounded-lg flex items-start gap-2.5 bg-blue-50/50 border-blue-200 dark:bg-white/[0.02] dark:border-white/5">
+            <i data-lucide="help-circle" class="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400"></i>
+            <div class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">
+                <span class="font-bold text-slate-800 dark:text-slate-300">Légende :</span> Le texte inchangé reste en gris neutre. Les mots ou paragraphes supprimés apparaissent en 
+                <span class="font-bold px-1.5 py-0.5 rounded border text-red-700 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20">rouge barré</span>. 
+                Les ajouts de rédaction apparaissent en <span class="font-bold px-1.5 py-0.5 rounded border text-blue-700 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">bleu</span>.
+            </div>
+        </div>
+
+        <div id="diff-viewer" class="flex-1 border rounded-xl p-6 max-h-[580px] overflow-y-auto space-y-5 border-slate-200 bg-white dark:border-white/10 dark:bg-black/30">
+            </div>
+    </div>
+</div>
+
+<script>
+    let documentVersions = [
+        { id: 'v3', versionNumber: 3, timestamp: '2026-05-26T14:30:00', comment: 'Mise en conformité de la note 2 selon CTM 8', author: 'Prof. Masamba', email: 'masamba@cnetp.cd', isRollback: false },
+        { id: 'v2', versionNumber: 2, timestamp: '2026-05-25T09:15:00', comment: 'Correction orthographique et ajout section 4.1', author: 'Ir. Chantal Mwamba', email: 'chantal@cnetp.cd', isRollback: false },
+        { id: 'v1', versionNumber: 1, timestamp: '2026-05-20T10:00:00', comment: 'Version initiale rédigée', author: 'Prof. Masamba', email: 'masamba@cnetp.cd', isRollback: false }
+    ];
+
+    let v1Num = 2;
+    let v2Num = 3;
+    let selectedAuthorEmail = null;
+
+    function initHistoryModule() {
+        populateDropdowns();
+        renderTimeline();
+        updateDiffView();
+    }
+
+    function renderTimeline() {
+        const timeline = document.getElementById('history-timeline');
+        
+        let filteredVersions = documentVersions;
+        if (selectedAuthorEmail) {
+            filteredVersions = documentVersions.filter(v => v.email === selectedAuthorEmail);
+            document.getElementById('history-filter-banner').classList.remove('hidden');
+            document.getElementById('filter-author-name').textContent = filteredVersions[0]?.author || selectedAuthorEmail;
+            document.getElementById('filter-count').textContent = `${filteredVersions.length} modification(s)`;
+        } else {
+            document.getElementById('history-filter-banner').classList.add('hidden');
+        }
+
+        if (filteredVersions.length === 0) {
+            timeline.innerHTML = `
+                <div class="text-center py-10 text-slate-500 text-xs font-medium space-y-1">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto mb-2 text-slate-600"></i>
+                    <p>Aucun historique d'édition enregistré.</p>
+                </div>`;
+            lucide.createIcons();
+            return;
+        }
+
+        timeline.innerHTML = filteredVersions.map(ver => {
+            const isV1 = ver.versionNumber === v1Num;
+            const isV2 = ver.versionNumber === v2Num;
+            
+            let dotClasses = "bg-white border-slate-300 group-hover:border-blue-400 dark:bg-slate-950 dark:border-white/20 dark:group-hover:border-white/40";
+            if (isV1) dotClasses = "bg-white border-blue-600 scale-110 shadow-[0_0_8px_rgba(37,99,235,0.4)] dark:bg-[#020204] dark:border-blue-500 dark:shadow-[0_0_8px_rgba(59,130,246,0.5)]";
+            else if (isV2) dotClasses = "bg-blue-600 border-blue-600 scale-110 shadow-[0_0_8px_rgba(37,99,235,0.6)] dark:bg-blue-500 dark:border-blue-500 dark:shadow-[0_0_8px_rgba(59,130,246,0.7)]";
+
+            const dateStr = new Date(ver.timestamp).toLocaleDateString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+            return `
+            <div class="relative pl-8 group">
+                <div class="absolute left-1.5 top-1.5 h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${dotClasses}">
+                    <span class="h-1 w-1 rounded-full bg-white"></span>
+                </div>
+                <div class="bg-black/5 border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg p-3.5 space-y-2.5 hover:bg-black/10 dark:hover:bg-white/5 transition-all">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono text-[9.5px] font-bold bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-200 px-1.5 py-0.5 rounded shadow-xs">
+                                v${ver.versionNumber}
+                            </span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${dateStr}</span>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                        "${ver.comment}"
+                    </p>
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-600 dark:text-slate-500 font-semibold">
+                        <i data-lucide="user" class="h-3 w-3"></i>
+                        <span class="truncate max-w-[120px]" title="${ver.email}">${ver.author}</span>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5 text-[10.5px] font-bold">
+                        <button onclick="quickCompare(${ver.versionNumber})" class="hover:underline bg-transparent border-none cursor-pointer text-blue-600 dark:text-blue-400">Comparer</button>
+                        <button onclick="rollbackVersion(${ver.versionNumber})" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 cursor-pointer">
+                            <i data-lucide="rotate-ccw" class="h-2.5 w-2.5"></i> Restaurer
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        lucide.createIcons();
+    }
+
+    function populateDropdowns() {
+        const select1 = document.getElementById('select-v1');
+        const select2 = document.getElementById('select-v2');
+        const optionsHtml = documentVersions.map(v => `<option value="${v.versionNumber}">v${v.versionNumber} (${v.author.split(' ')[0]})</option>`).join('');
+        select1.innerHTML = optionsHtml;
+        select2.innerHTML = optionsHtml;
+        select1.value = v1Num;
+        select2.value = v2Num;
+    }
+
+    function updateDiffView() {
+        v1Num = parseInt(document.getElementById('select-v1').value);
+        v2Num = parseInt(document.getElementById('select-v2').value);
+        renderTimeline();
+
+        const viewer = document.getElementById('diff-viewer');
+
+        if (v1Num === v2Num) {
+            viewer.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center py-20 text-slate-500 font-bold text-xs text-center space-y-2">
+                    <div class="h-10 w-10 border rounded-full flex items-center justify-center mx-auto bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400">
+                        v${v1Num}
+                    </div>
+                    <p class="text-slate-700 dark:text-slate-300">Vous comparez la version v${v1Num} avec elle-même.</p>
+                </div>`;
+            return;
+        }
+
+        // LE RENDU CORRIGÉ DU DIFF
+        viewer.innerHTML = `
+            <p class="text-xs leading-relaxed font-sans font-medium whitespace-pre-wrap text-slate-700 dark:text-slate-300">
+                1. Objectif du document. Cette norme régit la qualité des matériaux locaux.
+            </p>
+
+            <div class="border-l-4 p-4 rounded-r-lg max-w-[95%] shadow-inner bg-red-50/50 border-red-500 text-slate-600 dark:bg-red-950/20 dark:border-red-500 dark:text-slate-400">
+                <span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-red-700 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30">
+                    - Retrait entier
+                </span>
+                <div class="line-through decoration-red-400 dark:decoration-red-900/60 opacity-80 text-xs leading-relaxed whitespace-pre-wrap">
+                    L'utilisation de la brique de terre cuite n'est pas recommandée sans ajout de ciment Portland.
+                </div>
+            </div>
+
+            <div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-blue-50/50 border-blue-500 text-slate-800 dark:bg-blue-950/20 dark:border-blue-500 dark:text-slate-300">
+                <span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-blue-700 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/20 dark:border-blue-500/30">
+                    + Ajout entier
+                </span>
+                <div class="text-xs leading-relaxed whitespace-pre-wrap">
+                    Sous la recommandation du CTM 8, l'usage des briques géo-polymères (BTC) stabilisées est privilégié pour les ouvrages R+1.
+                </div>
+            </div>
+
+            <div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-amber-50/40 border-amber-400 dark:bg-[#181824]/40 dark:border-amber-500/70">
+                <span class="inline-block mb-2 text-[9.5px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    Modification dans le paragraphe (Comparaison inline) :
+                </span>
+                <p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-300">
+                    Le contrôle qualité doit s'effectuer <span class="font-medium rounded px-1 line-through bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">chaque mois</span> <span class="font-medium rounded px-1 bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">tous les 15 jours</span> selon la nouvelle directive.
+                </p>
+            </div>
+        `;
+    }
+
+    function quickCompare(targetVersion) {
+        v1Num = targetVersion;
+        if(documentVersions.length > 0) {
+            v2Num = documentVersions[0].versionNumber === targetVersion ? documentVersions[1].versionNumber : documentVersions[0].versionNumber;
+        }
+        document.getElementById('select-v1').value = v1Num;
+        document.getElementById('select-v2').value = v2Num;
+        updateDiffView();
+    }
+
+    function rollbackVersion(versionNum) {
+        if(confirm(`Êtes-vous sûr de vouloir restaurer la version v${versionNum} ?`)) {
+            if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`);
+        }
+    }
+
+    function clearAuthorFilter() {
+        selectedAuthorEmail = null;
+        renderTimeline();
+    }
+
+    setTimeout(initHistoryModule, 100);
+</script>

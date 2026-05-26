@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Inscription Expert - CNETP</title>
+  <!-- Tailwind CSS + Font Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { 'sans': ['Inter', 'system-ui', 'Segoe UI', 'sans-serif'] },
+          animation: { 'fade-up': 'fadeUp 0.5s ease-out' },
+          keyframes: { fadeUp: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: #06060c;
+      scroll-behavior: smooth;
+    }
+    /* Effet verre */
+    .glass-card {
+      background: rgba(10, 10, 20, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .input-dark {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.2s;
+      color: white;
+    }
+    .input-dark:focus {
+      border-color: #14b8a6;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(20,184,166,0.2);
+      background: rgba(0,0,0,0.6);
+    }
+    .input-dark::placeholder {
+      color: #4a5568;
+    }
+    .btn-teal {
+      background: #14b8a6;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-teal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(20,184,166,0.5);
+    }
+    .file-zone {
+      border: 2px dashed rgba(20,184,166,0.4);
+      transition: all 0.2s;
+    }
+    .file-zone:hover, .file-zone.drag-over {
+      border-color: #14b8a6;
+      background: rgba(20,184,166,0.05);
+    }
+    .error-text {
+      color: #f87171;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    .error-text.show {
+      display: block;
+    }
+    .success-banner {
+      background: rgba(20,184,166,0.2);
+      border-left: 4px solid #14b8a6;
+      display: none;
+    }
+    .success-banner.show {
+      display: flex;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative">
+  <!-- Fond décoratif -->
+  <div class="fixed inset-0 bg-gradient-to-br from-teal-900/20 via-black to-slate-900/30 pointer-events-none"></div>
+  <div class="fixed inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 50%, rgba(20,184,166,0.1) 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+  <!-- Carte principale -->
+  <div class="relative z-10 w-full max-w-2xl glass-card rounded-2xl p-6 md:p-8 animate-[fadeUp_0.6s_ease-out]">
+    <!-- En-tête -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-bold uppercase tracking-wider mb-4">
+        <i class="fas fa-user-plus text-xs"></i> Accès Experts
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Rejoindre la <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">CNETP</span></h1>
+      <p class="text-slate-400 text-sm">Inscrivez-vous pour participer aux comités techniques nationaux</p>
+    </div>
+
+    <!-- Message succès -->
+    <div id="successMessage" class="success-banner items-center gap-3 p-4 rounded-xl mb-6 text-teal-200">
+      <i class="fas fa-check-circle text-teal-400 text-lg"></i>
+      <span class="text-sm flex-1"></span>
+    </div>
+
+    <!-- Formulaire -->
+    <form id="registrationForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <!-- Grille 2 colonnes pour prénom/nom -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Prénom <span class="text-teal-400">*</span></label>
+          <input type="text" name="first_name" id="firstName" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+          <div class="error-text" data-field="first_name"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Nom <span class="text-teal-400">*</span></label>
+          <input type="text" name="last_name" id="lastName" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+          <div class="error-text" data-field="last_name"></div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Email professionnel <span class="text-teal-400">*</span></label>
+        <input type="email" name="email" id="email" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+        <div class="error-text" data-field="email"></div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Téléphone</label>
+        <input type="tel" name="phone" id="phone" class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+        <div class="error-text" data-field="phone"></div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Organisation / Institution <span class="text-teal-400">*</span></label>
+        <select name="organization" id="organization" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm appearance-none">
+          <option value="" disabled selected>-- Sélectionnez --</option>
+          {% for org in organizations %}
+            <option value="{{ org.id }}">{{ org.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="error-text" data-field="organization"></div>
+      </div>
+
+      <!-- Upload CV -->
+      <div class="mt-6">
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Curriculum Vitae (CV)</label>
+        <div class="file-zone rounded-xl p-6 text-center cursor-pointer transition" id="fileUploadZone">
+          <input type="file" name="cv_file" id="cvFile" class="hidden" accept=".pdf,.doc,.docx,.txt">
+          <i class="fas fa-cloud-upload-alt text-3xl text-teal-400 mb-2 block"></i>
+          <p class="text-slate-400 text-sm">Glissez votre CV ou cliquez pour parcourir</p>
+          <p class="text-slate-500 text-xs mt-1">PDF, DOC, DOCX, TXT (max 5 Mo)</p>
+          <div id="fileName" class="text-teal-400 text-sm font-medium mt-2"></div>
+        </div>
+        <div class="error-text" data-field="cv_file"></div>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Mot de passe <span class="text-teal-400">*</span></label>
+          <input type="password" name="password" id="password" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+          <div class="info-text text-slate-500 text-xs mt-1">Min 8 caractères, 1 majuscule & 1 chiffre</div>
+          <div class="error-text" data-field="password"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1">Confirmation <span class="text-teal-400">*</span></label>
+          <input type="password" name="password_confirm" id="passwordConfirm" required class="input-dark w-full rounded-lg px-4 py-2.5 text-sm">
+          <div class="error-text" data-field="password_confirm"></div>
+        </div>
+      </div>
+
+      <!-- Bouton submit -->
+      <button type="submit" id="submitBtn" class="btn-teal w-full mt-8 py-3 rounded-lg font-bold uppercase tracking-wider text-sm text-black flex items-center justify-center gap-2 transition-all">
+        <i class="fas fa-paper-plane"></i> S'inscrire
+      </button>
+    </form>
+
+    <p class="text-center text-slate-500 text-xs mt-6">
+      Déjà membre ? <a href="/auth/login/" class="text-teal-400 hover:underline">Se connecter</a>
+    </p>
+  </div>
+
+  <script>
+    (function() {
+      const form = document.getElementById('registrationForm');
+      const fileZone = document.getElementById('fileUploadZone');
+      const cvInput = document.getElementById('cvFile');
+      const fileNameSpan = document.getElementById('fileName');
+      const submitBtn = document.getElementById('submitBtn');
+      const successDiv = document.getElementById('successMessage');
+
+      // Gestion du drag & drop CV
+      fileZone.addEventListener('click', () => cvInput.click());
+      fileZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileZone.classList.add('drag-over');
+      });
+      fileZone.addEventListener('dragleave', () => {
+        fileZone.classList.remove('drag-over');
+      });
+      fileZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+          cvInput.files = e.dataTransfer.files;
+          updateFileName();
+        }
+      });
+      cvInput.addEventListener('change', updateFileName);
+
+      function updateFileName() {
+        if (cvInput.files.length) {
+          const file = cvInput.files[0];
+          fileNameSpan.textContent = file.name;
+          validateFileSize(file);
+        } else {
+          fileNameSpan.textContent = '';
+        }
+      }
+
+      function validateFileSize(file) {
+        const maxSize = 5 * 1024 * 1024;
+        const errorDiv = document.querySelector('[data-field="cv_file"]');
+        if (file.size > maxSize) {
+          errorDiv.textContent = 'Le fichier ne doit pas dépasser 5 Mo';
+          errorDiv.classList.add('show');
+          cvInput.value = '';
+          fileNameSpan.textContent = '';
+        } else {
+          errorDiv.textContent = '';
+          errorDiv.classList.remove('show');
+        }
+      }
+
+      // Effacement des erreurs lors de la frappe
+      document.querySelectorAll('input, select').forEach(field => {
+        field.addEventListener('input', () => {
+          const errorDiv = document.querySelector(`[data-field="${field.name}"]`);
+          if (errorDiv) errorDiv.classList.remove('show');
+        });
+      });
+
+      // Soumission AJAX
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Réinitialiser erreurs
+        document.querySelectorAll('.error-text').forEach(el => el.classList.remove('show'));
+        successDiv.classList.remove('show');
+
+        // Désactiver bouton
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Inscription...';
+
+        const formData = new FormData(form);
+        try {
+          const response = await fetch('/api/v1/expert-registration/public_register/', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+          });
+          const data = await response.json();
+          if (response.ok) {
+            // Succès
+            successDiv.querySelector('span').textContent = 'Inscription réussie ! Redirection vers la connexion...';
+            successDiv.classList.add('show');
+            setTimeout(() => { window.location.href = '/auth/login/'; }, 2000);
+          } else {
+            // Afficher erreurs
+            for (const [field, msgs] of Object.entries(data)) {
+              const errorDiv = document.querySelector(`[data-field="${field}"]`);
+              if (errorDiv) {
+                errorDiv.textContent = Array.isArray(msgs) ? msgs[0] : msgs;
+                errorDiv.classList.add('show');
+              }
+            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+          }
+        } catch (err) {
+          console.error(err);
+          const globalError = document.querySelector('[data-field="email"]');
+          if (globalError) {
+            globalError.textContent = 'Erreur serveur. Veuillez réessayer.';
+            globalError.classList.add('show');
+          }
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
