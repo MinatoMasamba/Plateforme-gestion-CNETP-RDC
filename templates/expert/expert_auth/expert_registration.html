@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inscription Expert - CNETP{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .registration-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 700px;
+        width: 100%;
+        padding: 40px;
+    }
+    
+    .registration-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .registration-header h1 {
+        color: #333;
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    
+    .registration-header p {
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-group ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 10px;
+    }
+    
+    .form-group li {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .form-group li:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+    }
+    
+    .form-group li input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+        margin-top: 2px;
+        cursor: pointer;
+    }
+    
+    .form-group li label {
+        margin: 0;
+        font-weight: 400;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .errorlist li {
+        color: #e74c3c;
+        font-size: 13px;
+        margin-top: 5px;
+        padding: 8px;
+        background: #fadbd8;
+        border-radius: 3px;
+    }
+    
+    .required {
+        color: #e74c3c;
+    }
+    
+    .info-text {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .messages {
+        margin-bottom: 20px;
+    }
+    
+    .alert {
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .alert-success {
+        background: #d5f4e6;
+        color: #27ae60;
+        border: 1px solid #27ae60;
+    }
+    
+    .alert-error {
+        background: #fadbd8;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    @media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .registration-container {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registration-container">
+    <div class="registration-header">
+        <h1>📋 Inscription Expert</h1>
+        <p>Rejoignez les Sous-Commissions Techniques de la CNETP</p>
+    </div>
+    
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        
+        <!-- Informations Personnelles -->
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">
+                {{ form.first_name.label }} <span class="required">*</span>
+            </label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.first_name.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.last_name.id_for_label }}">
+                {{ form.last_name.label }} <span class="required">*</span>
+            </label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.last_name.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">
+                {{ form.email.label }} <span class="required">*</span>
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">
+                    {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Mots de passe -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">
+                    {{ form.password.label }} <span class="required">*</span>
+                </label>
+                {{ form.password }}
+                <p class="info-text">Min 8 caractères</p>
+                {% if form.password.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password_confirm.id_for_label }}">
+                    {{ form.password_confirm.label }} <span class="required">*</span>
+                </label>
+                {{ form.password_confirm }}
+                {% if form.password_confirm.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password_confirm.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Organisation et Compétences -->
+        <div class="form-group">
+            <label for="{{ form.structure.id_for_label }}">
+                {{ form.structure.label }} <span class="required">*</span>
+            </label>
+            {{ form.structure }}
+            {% if form.structure.errors %}
+                <ul class="errorlist">
+                    {% for error in form.structure.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.specialties.id_for_label }}">
+                {{ form.specialties.label }}
+            </label>
+            {{ form.specialties }}
+            <p class="info-text">Ex: Géotechnique, Structures en béton, ...</p>
+            {% if form.specialties.errors %}
+                <ul class="errorlist">
+                    {% for error in form.specialties.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- CV Upload -->
+        <div class="form-group">
+            <label for="{{ form.cv.id_for_label }}">
+                {{ form.cv.label }}
+            </label>
+            {{ form.cv }}
+            <p class="info-text">Format: PDF, DOC, DOCX, TXT (Max 5 MB)</p>
+            {% if form.cv.errors %}
+                <ul class="errorlist">
+                    {% for error in form.cv.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- CTM Selection -->
+        <div class="form-group">
+            <label>{{ form.ctm_choices.label }} <span class="required">*</span></label>
+            <p class="info-text">Sélectionnez au minimum une Sous-Commission Technique</p>
+            {{ form.ctm_choices }}
+            {% if form.ctm_choices.errors %}
+                <ul class="errorlist">
+                    {% for error in form.ctm_choices.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Submit -->
+        <button type="submit" class="submit-btn">
+            S'inscrire
+        </button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+        Vous avez déjà un compte? 
+        <a href="{% url 'web:expert_login' %}" style="color: #667eea; text-decoration: none; font-weight: 600;">
+            Connectez-vous
+        </a>
+    </p>
+</div>
+{% endblock %}
+Note 2: La comprÃ©hension du contexte interne est facilitÃ©e par la surveillance des valeurs, de la culture d'entreprise et des indicateurs de performance.
