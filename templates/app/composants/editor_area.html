@@ -1,271 +1,883 @@
-<div class="flex-1 overflow-y-auto p-6 bg-transparent flex flex-col gap-6 w-full h-full text-slate-900 dark:text-slate-200">
+<div id="editor-content" class="hidden flex-1 overflow-y-auto p-6 bg-transparent flex flex-col gap-6 text-slate-900 dark:text-slate-200">
     
-    <div class="border-b border-slate-200 dark:border-white/10 pb-5">
+    <div class="border-b pb-5 border-slate-200 dark:border-white/10">
         <div class="flex items-start justify-between gap-4 flex-col md:flex-row">
             <div>
                 <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <span id="doc-code" class="font-mono text-xs px-2.5 py-0.5 rounded font-bold border text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">
+                    <span id="ed-doc-code" class="font-mono text-xs px-2.5 py-0.5 rounded font-bold border text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">
                         Pr-RDC 9001
                     </span>
-                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">• Dernière modification le <span id="doc-date">Aujourd'hui à 14h30</span></span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">• Dernière modification le <span id="ed-doc-date">Aujourd'hui à 10:48</span></span>
                 </div>
-                <h2 id="doc-title" class="text-xl font-bold font-sans tracking-tight text-slate-900 dark:text-white">
+                <h2 id="ed-doc-title" class="text-xl font-bold font-sans tracking-tight text-slate-900 dark:text-white">
                     Systèmes de management de la qualité - Exigences RDC
                 </h2>
-                <p id="doc-desc" class="text-slate-600 dark:text-slate-400 text-xs mt-1.5 max-w-3xl leading-relaxed">
+                <p id="ed-doc-desc" class="text-slate-600 dark:text-slate-400 text-xs mt-1.5 max-w-3xl leading-relaxed">
                     Norme définissant les critères pour un système de management de la qualité adapté au contexte industriel congolais.
                 </p>
             </div>
+
             <div class="flex items-center gap-3 shrink-0 flex-wrap">
-                <button class="border rounded-xl p-3 text-left transition-all duration-250 cursor-pointer shadow-xs group max-w-[210px] bg-blue-50 border-blue-300 hover:bg-blue-100/80 text-blue-800 dark:bg-blue-500/5 dark:border-blue-500/25 dark:hover:bg-blue-500/15 dark:text-blue-400">
-                    <span class="text-[9px] block font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-500">Sous-Commission (CTM)</span>
-                    <span class="text-[11px] font-extrabold block mt-0.5 truncate text-slate-900 dark:text-slate-100">CTM 8 – Sciences des Matériaux</span>
-                    <span class="text-[9px] block mt-1 underline decoration-dotted font-bold uppercase tracking-wider text-blue-600 dark:text-slate-400">Voir Groupes (WGs) &rarr;</span>
+                <button
+                    id="editor-ctm-button"
+                    type="button"
+                    onclick="document.getElementById('ctm-groups-modal').classList.remove('hidden')"
+                    class="border rounded-xl p-3 text-left transition-all duration-250 cursor-pointer shadow-xs group max-w-[210px] bg-blue-50 border-blue-300 hover:bg-blue-100/80 text-blue-800 dark:bg-blue-500/5 dark:border-blue-500/25 dark:hover:bg-blue-500/15 dark:text-blue-400"
+                    title="Cliquer pour afficher tous les groupes de travail de cette commission"
+                >
+                    <span class="text-[9px] block font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-500 dark:group-hover:text-blue-400">
+                        Sous-Commission (CTM)
+                    </span>
+                    <span id="ed-doc-ctm" class="text-[11px] font-extrabold block mt-0.5 truncate text-slate-900 dark:text-slate-100">
+                        CTM 8 – Sciences des Matériaux
+                    </span>
+                    <span class="text-[9px] block mt-1 underline decoration-dotted font-bold uppercase tracking-wider text-blue-600 dark:text-slate-450 dark:group-hover:text-slate-300">
+                        Voir Groupes (WGs) &rarr;
+                    </span>
                 </button>
+
+                <div class="border rounded-xl p-3 text-right hidden sm:block bg-slate-50 border-slate-200 text-slate-800 dark:bg-white/[0.02] dark:border-white/10 dark:text-slate-200">
+                    <span class="text-[9.5px] text-slate-500 block font-bold uppercase tracking-wider">Éditeur Actif</span>
+                        <span id="ed-active-collab-name" class="text-xs font-bold block mt-0.5 text-slate-900 dark:text-slate-200">
+                            Expert Rédacteur
+                        </span>
+                    <span id="ed-active-collab-role" class="text-[9.5px] text-slate-500 block">Expert Rédacteur</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start relative" id="editor-main-grid">
         
-        <div class="lg:col-span-2 space-y-4">
+        <div id="editor-left-col" class="lg:col-span-2 space-y-4 transition-all duration-300">
             
             <div class="border rounded-xl overflow-hidden transition-all shadow-md focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/50 border-slate-200 bg-white dark:border-white/10 dark:bg-black/40 dark:shadow-[0_0_20px_rgba(0,0,0,0.3)]">
-                <div class="border-b px-4 py-2.5 flex items-center justify-between text-xs bg-slate-50 border-slate-200 dark:bg-black/30 dark:border-white/10">
-                    <span class="font-bold text-[10.5px] uppercase tracking-wider text-slate-700 dark:text-slate-400">FORMAT : TEXTE BRUT / CLAUSES ISO</span>
-                    <span id="char-count" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">0 caractères • 0 mots</span>
+                <div class="border-b px-4 py-2.5 flex items-center justify-between text-xs bg-slate-50 border-slate-200 text-slate-500 dark:bg-black/30 dark:border-white/10">
+                    <span class="font-bold text-[10.5px] uppercase tracking-wider text-slate-700 dark:text-slate-400">
+                        FORMAT : TEXTE BRUT / CLAUSES ISO
+                    </span>
+                    <span id="ed-char-count" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">
+                        0 caractères • 0 mots
+                    </span>
                 </div>
-                <textarea id="editor-textarea" placeholder="Écrivez le standard ici..." class="w-full h-96 p-5 text-sm focus:outline-hidden leading-relaxed resize-none font-sans bg-transparent text-slate-900 placeholder-slate-400 dark:text-slate-200 dark:placeholder-slate-500"></textarea>
+
+                <textarea
+                    id="ed-main-textarea"
+                    oninput="handleTextChange(this)"
+                    onfocus="closeRightNavAndVote()"
+                    onselect="handleTextSelect(this)"
+                    onmouseup="handleTextSelect(this)"
+                    placeholder="Écrivez le standard ici..."
+                    class="w-full h-96 p-5 text-sm focus:outline-hidden leading-relaxed resize-none font-sans bg-transparent text-slate-900 placeholder-slate-400 dark:text-slate-200 dark:placeholder-slate-500"
+                ></textarea>
             </div>
 
-            <div class="border rounded-xl p-5 space-y-4 shadow-sm transition-all bg-slate-50 border-slate-200 text-slate-800 dark:bg-white/[0.02] dark:border-white/10 dark:text-white">
+            <div id="ed-vote-panel" class="border rounded-xl p-5 space-y-4 shadow-sm transition-all animate-fadeIn bg-slate-50 border-slate-200 text-slate-800 dark:bg-white/[0.02] dark:border-white/10 dark:text-white">
                 <div class="flex items-start justify-between">
                     <div class="flex items-center gap-2">
                         <div class="p-2 rounded-lg shrink-0 bg-blue-50 text-blue-800 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/10">
                             <i data-lucide="vote" class="h-4.5 w-4.5 animate-pulse"></i>
                         </div>
                         <div>
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Scrutin & Évaluation</h3>
-                            <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Co-gouvernance scientifique (Consensus min: 75%)</p>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                                Scrutin & Évaluation Thématique
+                            </h3>
+                            <p class="text-[10px] text-slate-500 mt-0.5 font-medium">
+                                Co-gouvernance scientifique (Consensus minimum requis : 75%)
+                            </p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[9px] uppercase font-bold tracking-wider text-slate-500 block">Taux de Validation</span>
-                        <span id="consensus-rate" class="text-sm font-black font-mono block text-blue-500">85%</span>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <span class="text-[9px] uppercase font-bold tracking-wider text-slate-500 block">Taux de Validation</span>
+                            <span id="ed-consensus-rate" class="text-sm font-black font-mono block text-blue-500">0%</span>
+                        </div>
+                        <button type="button" onclick="toggleVotePanel(false)" class="p-1.5 rounded-lg transition-colors hover:bg-slate-200 text-slate-500 dark:hover:bg-white/10 dark:text-slate-400" title="Fermer le panneau de scrutin">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
                     </div>
                 </div>
 
                 <div class="space-y-2 pt-1">
                     <div class="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500">
-                        <span class="text-blue-500" id="count-pour">POUR (12)</span>
-                        <span class="text-rose-500" id="count-contre">CONTRE (2)</span>
-                        <span class="text-slate-400" id="count-abs">ABS (0)</span>
+                        <span id="ed-vote-count-pour" class="text-blue-500">POUR (0)</span>
+                        <span id="ed-vote-count-contre" class="text-rose-500">CONTRE (0)</span>
+                        <span id="ed-vote-count-abs" class="text-slate-400">ABS (0)</span>
                     </div>
-                    <div class="h-2 rounded-full overflow-hidden flex bg-slate-300/10 border border-slate-300/5">
-                        <div style="width: 85%" class="bg-blue-500 h-full transition-all duration-300"></div>
-                        <div style="width: 15%" class="bg-rose-500 h-full transition-all duration-300"></div>
+                    <div id="ed-vote-bar" class="h-2 rounded-full overflow-hidden flex bg-slate-300/10 border border-slate-300/5">
+                        </div>
+                    
+                    <div class="flex items-center justify-between pt-0.5">
+                        <span id="ed-vote-total-label" class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                            <i data-lucide="users" class="h-3.5 w-3.5 text-slate-400"></i> 0 expert a émargé l'avis
+                        </span>
+                        <span id="ed-vote-status-badge" class="text-[10px] font-extrabold text-amber-500 flex items-center gap-1 uppercase tracking-tight animate-pulse">
+                            <i data-lucide="info" class="h-3.5 w-3.5"></i> Avis Partiel
+                        </span>
                     </div>
                 </div>
 
-                <div class="p-4 rounded-xl border bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 space-y-3">
-                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">Exprimer votre voix d'expert</h4>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="castVote('pour')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all border bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-500/5 dark:text-blue-400 dark:border-blue-500/10 dark:hover:bg-blue-500/15">
+                <div class="p-4 rounded-xl border space-y-3 bg-white border-slate-200 dark:bg-black/30 dark:border-white/5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">Exprimer votre voix d'expert permanent</h4>
+                            <p class="text-[10px] text-slate-500">Votre identité d'élection : <strong id="ed-vote-my-name">Prof. Masamba Édouard</strong></p>
+                        </div>
+                        <span id="ed-my-vote-badge" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
+                            Non voté
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-0.5">
+                        <button type="button" id="btn-vote-pour" onclick="castVote('pour')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-500/5 dark:text-blue-400 dark:border-blue-500/10 dark:hover:bg-blue-500/15">
                             <i data-lucide="thumbs-up" class="h-3.5 w-3.5"></i> POUR
                         </button>
-                        <button onclick="castVote('contre')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all border bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100 dark:bg-rose-500/5 dark:text-rose-400 dark:border-rose-500/10 dark:hover:bg-rose-500/15">
+                        <button type="button" id="btn-vote-contre" onclick="castVote('contre')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100 dark:bg-rose-500/5 dark:text-rose-400 dark:border-rose-500/10 dark:hover:bg-rose-500/15">
                             <i data-lucide="thumbs-down" class="h-3.5 w-3.5"></i> CONTRE
                         </button>
-                        <button onclick="castVote('abstention')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-white/5 dark:hover:bg-white/10">
+                        <button type="button" id="btn-vote-abs" onclick="castVote('abstention')" class="py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-white/5 dark:hover:bg-white/10">
                             <i data-lucide="minus" class="h-3.5 w-3.5"></i> ABS.
                         </button>
                     </div>
                 </div>
+
+                <div class="space-y-1.5 pt-1.5">
+                    <span class="text-[9.5px] uppercase font-bold tracking-wider text-slate-500 block">Registre interactif d'émargement :</span>
+                    <div id="ed-voters-list" class="rounded-xl border divide-y overflow-hidden max-h-36 overflow-y-auto bg-[#ffffff]/60 border-slate-200 divide-slate-200 dark:bg-black/25 dark:border-white/5 dark:divide-white/5">
+                        </div>
+                </div>
+            </div>
+
+            <div id="ed-vote-floating-btn" class="hidden fixed right-6 top-[calc(33.33%+70px)] z-50 animate-fadeIn">
+                <button onclick="toggleVotePanel(true)" class="p-3.5 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 group bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-black dark:hover:bg-indigo-400" title="Ouvrir le panneau de Scrutin">
+                    <i data-lucide="vote" class="h-6 w-6 group-hover:animate-pulse"></i>
+                </button>
             </div>
 
             <div class="border rounded-xl p-5 space-y-3.5 bg-slate-50 border-slate-200 text-slate-800 dark:bg-white/[0.02] dark:border-white/10 dark:text-white">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-400">
-                    Journal des versions <span class="text-blue-400">*</span>
-                </label>
-                <input id="commit-msg" type="text" placeholder="Ex: Mise en conformité de la note 2..." class="w-full text-xs px-3 py-2.5 rounded-lg border focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/40 dark:border-white/10 dark:text-white dark:placeholder-slate-700" />
-                <div class="flex justify-between pt-1">
-                    <button class="px-3.5 py-1.5 text-xs rounded-lg font-bold transition-all flex items-center gap-1.5 hover:bg-slate-200/50 text-slate-600 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-400">
+                        Journal des versions / Commentaire <span class="text-blue-400">*</span>
+                    </label>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Pour conserver un historique exploitable, détaillez brièvement votre modification.</p>
+                </div>
+                <input
+                    id="ed-edit-comment"
+                    type="text"
+                    oninput="validateSaveBtn()"
+                    placeholder="Ex: Mise en conformité de la note 2..."
+                    class="w-full text-xs px-3 py-2.5 rounded-lg border focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/40 dark:border-white/10 dark:text-white dark:placeholder-slate-700"
+                />
+
+                <div class="flex items-center justify-between pt-1">
+                    <button onclick="resetEditor()" class="px-3.5 py-1.5 text-xs rounded-lg font-bold transition-all flex items-center gap-1.5 hover:bg-slate-200/50 text-slate-600 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5">
                         <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i> Réinitialiser
                     </button>
-                    <button id="save-btn" onclick="saveDocument()" class="px-4.5 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400">
-                        <i data-lucide="save" class="h-3.5 w-3.5"></i> Sauvegarder la version
+                    <button id="ed-save-btn" onclick="saveEditorVersion()" disabled class="px-4.5 py-2.5 text-xs font-bold rounded-lg disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400">
+                        <i data-lucide="save" id="ed-save-icon" class="h-3.5 w-3.5"></i>
+                        <span id="ed-save-text">Sauvegarder la version</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="space-y-4">
+        <nav id="editor-right-col" class="space-y-4 animate-fadeIn">
+            
             <div class="border rounded-xl p-5 space-y-4 shadow-sm transition-all bg-blue-50/50 border-blue-200 text-slate-800 dark:border-indigo-500/20 dark:bg-indigo-950/20">
-                <div class="flex items-start gap-3">
-                    <div class="p-2 rounded-lg shrink-0 bg-blue-100 text-blue-800 dark:bg-indigo-500/10 dark:text-indigo-400">
-                        <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 rounded-lg shrink-0 bg-blue-100 text-blue-800 dark:bg-indigo-500/10 dark:text-indigo-400">
+                            <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold tracking-wider uppercase text-blue-950 dark:text-slate-300">Conseil Réglementaire IA</h3>
+                            <p class="text-[11px] mt-1.5 leading-relaxed text-slate-600 dark:text-slate-400">
+                                L'IA intégrée évalue la rédaction par rapport aux exigences de certification ISO.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-xs font-bold tracking-wider uppercase text-blue-950 dark:text-slate-300">Conseil IA</h3>
-                        <p class="text-[11px] mt-1.5 leading-relaxed text-slate-600 dark:text-slate-400">Évaluation par rapport aux exigences de certification et orthographe.</p>
-                    </div>
-                </div>
-                <button onclick="runAiAnalysis()" class="w-full text-xs font-bold py-2.5 rounded-lg transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer border bg-blue-600 hover:bg-blue-700 text-white border-blue-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:border-indigo-500/30">
-                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i> Analyser & Optimiser
-                </button>
-                
-                <div id="ai-result" class="hidden border border-blue-500/20 bg-blue-950/15 rounded-xl p-4 space-y-3 mt-4">
-                    <span class="text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-bold border border-blue-500/20">Proposition de l'IA</span>
-                    <p id="ai-explanation" class="text-xs text-slate-300 font-medium leading-relaxed bg-black/30 border border-blue-500/20 rounded-lg p-3"></p>
-                    <button onclick="applyAiSuggestion()" class="w-full text-xs font-bold py-2 bg-blue-500 text-black hover:bg-blue-400 rounded-lg flex items-center justify-center gap-1.5 mt-2">
-                        <i data-lucide="check" class="h-3.5 w-3.5"></i> Appliquer
+                    <button type="button" onclick="closeRightNav()" class="p-1.5 rounded-lg transition-colors hover:bg-blue-200/50 text-blue-700 dark:hover:bg-indigo-500/20 dark:text-indigo-400" title="Fermer le panneau IA">
+                        <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
+                </div>
+
+                <button id="ed-ai-btn" onclick="runAiAdvice()" class="w-full text-xs font-bold py-2.5 rounded-lg transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer border bg-blue-600 hover:bg-blue-700 text-white border-blue-700 dark:bg-indigo-650 dark:hover:bg-indigo-600 dark:border-indigo-500/30">
+                    <i data-lucide="sparkles" id="ed-ai-icon" class="h-3.5 w-3.5"></i>
+                    <span id="ed-ai-text">Analyser & optimiser le texte</span>
+                </button>
+
+                <div id="ed-ai-error" class="hidden p-3 bg-red-100 border border-red-200 text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 text-xs rounded-lg flex gap-2">
+                    <i data-lucide="alert-circle" class="h-4 w-4 shrink-0"></i>
+                    <span id="ed-ai-error-text"></span>
+                </div>
+
+                <div id="ed-ai-result-panel" class="hidden border border-blue-200 bg-blue-100/50 dark:border-blue-500/20 dark:bg-blue-950/15 rounded-xl transition-all duration-300 animate-fadeIn p-4.5 space-y-4 shadow-sm">
+                    <div class="flex justify-between items-center cursor-pointer" onclick="toggleAiDetails()">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold border bg-blue-200 text-blue-800 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">Proposition de l'IA</span>
+                        </div>
+                        <button class="px-2 py-1 flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider hover:bg-blue-200 text-blue-700 dark:hover:bg-blue-500/20 dark:text-blue-500 transition-colors">
+                            <span id="ed-ai-toggle-text">Fermer</span> <i id="ed-ai-toggle-icon" data-lucide="chevron-up" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="ed-ai-details" class="space-y-4 animate-fadeIn block">
+                        <p id="ed-ai-explanation" class="text-xs font-medium leading-relaxed mt-2.5 p-3 rounded-lg bg-white/60 border border-blue-200 text-slate-700 dark:bg-black/30 dark:border-blue-500/20 dark:text-slate-300"></p>
+                        
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase block text-slate-600 dark:text-slate-500">Texte de substitution proposé (modifiable) :</span>
+                            <textarea id="ed-ai-textarea" class="w-full text-xs p-4 rounded-lg leading-relaxed font-mono resize-y min-h-[160px] focus:outline-hidden focus:border-blue-500 bg-white border border-slate-300 text-slate-800 dark:bg-black/45 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50"></textarea>
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="applyAiAdvice()" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i> Appliquer
+                            </button>
+                            <button onclick="dismissAiAdvice()" class="px-3 text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i> Ignorer
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="border rounded-xl p-5 space-y-4 shadow-sm border-blue-200 bg-blue-50/50 dark:border-blue-500/20 dark:bg-blue-950/10">
+            <div class="border rounded-xl p-5 space-y-4 shadow-sm animate-fadeIn border-blue-200 bg-blue-50/50 dark:border-blue-500/20 dark:bg-blue-950/10">
                 <div class="flex items-start gap-3">
                     <div class="p-2 rounded-lg shrink-0 bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
                         <i data-lucide="share-2" class="h-4.5 w-4.5"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold tracking-wider uppercase text-slate-800 dark:text-slate-300">Partager & Débattre</h3>
-                        <p class="text-[11px] mt-1.5 leading-relaxed text-slate-600 dark:text-slate-400">Discutez d'un extrait dans le chat sécurisé.</p>
+                        <p class="text-[11px] mt-1.5 leading-relaxed text-slate-600 dark:text-slate-400">Surlignez du texte à gauche pour préremplir l'extrait à envoyer vers le chat !</p>
                     </div>
                 </div>
-                <div class="space-y-3.5">
-                    <textarea id="share-excerpt" placeholder="Extrait sélectionné..." class="w-full h-20 p-2.5 text-xs rounded-lg border resize-none bg-white border-slate-300 text-slate-800 dark:bg-[#020204]/80 dark:border-white/10 dark:text-slate-200"></textarea>
-                    <select id="share-recipient" class="w-full text-xs px-2.5 py-2.5 rounded-lg border font-semibold bg-white border-slate-300 text-slate-800 dark:bg-black/55 dark:border-white/10 dark:text-slate-200">
-                        <option value="exp-1">Ir. Chantal Mwamba</option>
-                        <option value="exp-2">Arch. Sylvain Lukusa</option>
-                    </select>
-                    <button onclick="shareClause()" class="w-full text-xs font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black">
-                        <i data-lucide="message-square" class="h-3.5 w-3.5"></i> Partager via Chat
+
+                <form onsubmit="handleShareClause(event)" class="space-y-3.5">
+                    <div class="space-y-1">
+                        <label class="text-[9.5px] uppercase font-bold block text-slate-600 dark:text-slate-500">Extrait de clause sélectionné :</label>
+                        <textarea id="ed-share-excerpt" placeholder="Sélectionnez du texte dans l'éditeur ci-contre..." class="w-full h-24 p-2.5 text-xs rounded-lg focus:outline-hidden resize-none font-sans leading-normal transition-colors bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 dark:bg-[#020204]/80 dark:border-white/10 dark:text-slate-200 dark:placeholder-slate-600 dark:focus:border-blue-500/30"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9.5px] uppercase font-bold block text-slate-600 dark:text-slate-500">Expert destinataire :</label>
+                        <select id="ed-share-recipient" onchange="document.getElementById('ed-share-btn').disabled = !this.value" class="w-full text-xs px-2.5 py-2.5 rounded-lg border font-semibold transition-colors bg-white border-slate-300 text-slate-800 dark:bg-black/55 dark:border-white/10 dark:text-slate-200">
+                            </select>
+                    </div>
+                    
+                    <div id="ed-share-feedback" class="hidden text-[10.5px] p-2.5 rounded-lg font-semibold border-l-2 shadow-inner text-blue-700 bg-blue-100/50 border-y border-r border-y-blue-200 border-r-blue-200 border-l-blue-600 dark:text-blue-400 dark:bg-blue-500/10 dark:border-y-blue-500/20 dark:border-r-blue-500/20 dark:border-l-blue-500"></div>
+
+                    <button type="submit" id="ed-share-btn" disabled class="w-full text-xs font-bold py-2.5 rounded-lg transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black">
+                        <i data-lucide="message-square" class="h-3.5 w-3.5"></i> Partager à l'expert & Ouvrir le Chat
                     </button>
-                </div>
+                </form>
             </div>
+        </nav>
+
+        <div id="ed-nav-floating-btn" class="hidden fixed right-6 top-[calc(33.33%+10px)] z-50 animate-fadeIn">
+            <button onclick="openRightNav()" class="p-3.5 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 group bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400" title="Ouvrir le panneau IA & Chat">
+                <i data-lucide="sparkles" class="h-6 w-6 group-hover:animate-pulse"></i>
+            </button>
         </div>
     </div>
 
-    <div class="border-t pt-6 mt-4 border-slate-200 dark:border-white/10">
-        <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-slate-900 dark:text-white mb-4">
-            <i data-lucide="folder-open" class="h-4 w-4 text-blue-600 dark:text-blue-400"></i> Ressources Connexes & Cloud
-        </h3>
-        
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div class="rounded-xl p-5 space-y-5 border bg-slate-50 border-slate-200 dark:bg-white/[0.02] dark:border-white/10">
-                <h4 class="text-xs font-bold uppercase text-slate-800 dark:text-slate-300">Liaisons Google Drive & Meet</h4>
+    <div class="border-t pt-6 mt-4 space-y-6 border-slate-200 dark:border-white/10">
+        <div class="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-white/5">
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-slate-900 dark:text-white">
+                    <i data-lucide="folder-open" class="h-4 w-4 text-blue-600 dark:text-blue-400"></i>
+                    Ressources Connexes & Espace Collaboratif Cloud
+                </h3>
+                <p class="text-xs mt-1 text-slate-600 dark:text-slate-500">
+                    Gérez les rapports techniques, l'archivage classifié sur Google Drive, et planifiez les réunions de standardisation via Google Meet.
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="ed-doc-id-badge" class="text-[10px] font-mono px-2.5 py-1 rounded border uppercase hidden sm:inline-block text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400/80 dark:bg-blue-500/5 dark:border-blue-500/20">
+                    ID: doc-1 • Pr-RDC 9001
+                </span>
+                <button onclick="toggleRessources()" id="ed-toggle-ressources-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white">
+                    <i id="ed-ressources-icon" data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                    <span id="ed-ressources-text">Dérouler / Afficher</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="ed-ressources-panel" class="hidden grid grid-cols-1 xl:grid-cols-2 gap-6 items-start animate-fadeIn">
+            <div class="rounded-xl p-5 space-y-5 border transition-colors bg-slate-50 border-slate-200 shadow-sm dark:bg-white/[0.02] dark:border-white/10">
+                <div class="flex items-center gap-2">
+                    <span class="p-1 px-2 text-[10px] uppercase font-mono font-bold rounded-md border bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
+                        Liaisons Cloud RDC
+                    </span>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-slate-300">Portail Co-gouvernance</h4>
+                </div>
+                <p class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">Associez un dossier Google Drive et planifiez des réunions Google Meet.</p>
+
                 <div class="space-y-4">
-                    <input type="url" id="drive-url" placeholder="Lien Drive" class="w-full text-xs px-3 py-2 rounded-lg border bg-white border-slate-300 dark:bg-black/40 dark:border-white/10 dark:text-white" />
-                    <input type="url" id="meet-url" placeholder="Lien Meet" class="w-full text-xs px-3 py-2 rounded-lg border bg-white border-slate-300 dark:bg-black/40 dark:border-white/10 dark:text-white" />
-                    <button onclick="saveCloudLinks()" class="px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5">
-                        <i data-lucide="save" class="h-3.5 w-3.5"></i> Enregistrer
-                    </button>
+                    <div class="space-y-2">
+                        <label class="text-[11.5px] font-bold flex items-center gap-1.5 uppercase text-slate-700 dark:text-slate-400">
+                            <i data-lucide="folder" class="h-4 w-4 text-amber-500 fill-amber-500/10"></i> Google Drive
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="url" id="ed-drive-url" placeholder="https://drive.google.com/..." class="flex-1 text-xs px-3 py-2 rounded-lg border focus:outline-hidden transition-colors bg-white border-slate-300 text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-200 dark:focus:border-blue-500/50" />
+                            <a href="#" id="ed-drive-link" target="_blank" class="hidden px-3 py-2 rounded-lg items-center justify-center transition-all border bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 dark:hover:bg-blue-500/20"><i data-lucide="external-link" class="h-4 w-4"></i></a>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11.5px] font-bold flex items-center gap-1.5 uppercase text-slate-700 dark:text-slate-400">
+                            <i data-lucide="video" class="h-4 w-4 text-blue-500"></i> Google Meet
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="url" id="ed-meet-url" placeholder="https://meet.google.com/..." class="flex-1 text-xs px-3 py-2 rounded-lg border focus:outline-hidden transition-colors bg-white border-slate-300 text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-200 dark:focus:border-blue-500/50" />
+                            <a href="#" id="ed-meet-link" target="_blank" class="hidden px-3 py-2 rounded-lg items-center justify-center transition-all border bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 dark:hover:bg-blue-500/20"><i data-lucide="external-link" class="h-4 w-4"></i></a>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-2">
+                        <span id="ed-cloud-feedback" class="hidden text-[11px] items-center gap-1.5 font-medium animate-fadeIn text-blue-700 dark:text-blue-400"><i data-lucide="check-circle" class="h-3.5 w-3.5"></i> Enregistré</span>
+                        <button onclick="saveCloudIntegrations()" id="ed-cloud-save-btn" class="px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-650 dark:hover:bg-indigo-600 border border-indigo-500/30">
+                            <i data-lucide="save" id="ed-cloud-save-icon" class="h-3.5 w-3.5"></i> Enregistrer les liens
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="rounded-xl p-5 space-y-4 border bg-slate-50 border-slate-200 dark:bg-white/[0.02] dark:border-white/10">
-                <h4 class="text-xs font-bold uppercase text-slate-800 dark:text-slate-300">Indexation de pièces jointes</h4>
-                <div class="space-y-2">
-                    <input type="text" id="file-name" placeholder="Nom du fichier..." class="w-full text-xs px-3 py-2 rounded-lg border bg-white border-slate-300 dark:bg-black/40 dark:border-white/10 dark:text-white" />
-                    <button onclick="uploadFile()" class="px-4 py-2 text-xs font-bold rounded-lg bg-blue-500 hover:bg-blue-400 text-black flex items-center gap-1.5 mt-2">
-                        <i data-lucide="paperclip" class="h-3.5 w-3.5"></i> Lier le fichier
-                    </button>
+            <div class="space-y-4">
+                <div class="rounded-xl p-5 space-y-4 border transition-colors bg-slate-50 border-slate-200 shadow-sm dark:bg-white/[0.02] dark:border-white/10">
+                    <span class="p-1 px-2 text-[10px] uppercase font-mono font-bold rounded-md border bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">Pièces jointes (<span id="ed-ref-count">0</span>)</span>
+                    <div id="ed-references-list" class="space-y-3 max-h-56 overflow-y-auto pr-1">
+                        </div>
                 </div>
+
+                <form onsubmit="addReference(event)" class="border rounded-xl p-5 space-y-4 bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/10">
+                    <h4 class="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 text-slate-800 dark:text-slate-300"><i data-lucide="plus" class="h-3.5 w-3.5 text-blue-500 dark:text-blue-400"></i> Indexation de pièce jointe</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-slate-600 dark:text-slate-500">Titre</label>
+                            <input type="text" id="ed-ref-name" required placeholder="Ex: Rapport.pdf" class="w-full text-xs px-3 py-2 rounded-lg border focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:border-white/10 dark:bg-black/40 dark:text-slate-200 dark:placeholder-slate-700" oninput="document.getElementById('ed-ref-submit').disabled = !this.value" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-slate-600 dark:text-slate-500">Nature</label>
+                            <select id="ed-ref-type" class="w-full text-xs px-3 py-2 rounded-lg border focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:border-white/10 dark:bg-black/45 dark:text-slate-200">
+                                <option>Rapport Technique</option><option>Étude / Papier Scientifique</option><option>Réglementation Nationale</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-slate-600 dark:text-slate-500">Description</label>
+                            <input type="text" id="ed-ref-desc" placeholder="Commentaires..." class="w-full text-xs px-3 py-2 rounded-lg border focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:border-white/10 dark:bg-black/40 dark:text-slate-200 dark:placeholder-slate-700" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-slate-600 dark:text-slate-500">Taille</label>
+                            <select id="ed-ref-size" class="w-full text-xs px-3 py-2 rounded-lg border focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:border-white/10 dark:bg-black/45 dark:text-slate-200"><option>1.2 MB</option><option>2.4 MB</option><option>5.8 MB</option></select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <span id="ed-ref-feedback" class="text-[10px] font-medium flex items-center gap-1 text-slate-500"><i data-lucide="info" class="h-3 w-3"></i> Contrôle à la source</span>
+                        <button type="submit" id="ed-ref-submit" disabled class="px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black">
+                            <i data-lucide="paperclip" id="ed-ref-submit-icon" class="h-3.5 w-3.5"></i> Lier la pièce
+                        </button>
+                    </div>
+                </form>
             </div>
+        </div>
+
+        <div id="ed-ressources-closed-panel" class="p-5 border border-dashed rounded-2xl text-center bg-slate-50/50 border-slate-300 dark:bg-white/[0.01] dark:border-white/5">
+            <p class="text-xs text-slate-600 dark:text-slate-500">L'espace cloud et les pièces jointes sont masqués.</p>
+            <button onclick="toggleRessources()" class="mt-2 text-xs font-bold transition-colors px-3 py-1.5 rounded-lg border cursor-pointer text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-white dark:bg-blue-500/5 dark:border-blue-500/10">Afficher/Dérouler le gestionnaire cloud</button>
+        </div>
+    </div>
+
+    <div id="ctm-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm" onclick="this.classList.add('hidden')">
+        <div class="w-full max-w-xl p-6 rounded-xl border bg-white border-slate-200 dark:bg-[#040409] dark:border-white/10" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 dark:border-white/10">
+                <h3 class="font-bold text-lg dark:text-white">Groupes de la Sous-Commission</h3>
+                <button onclick="document.getElementById('ctm-groups-modal').classList.add('hidden')" class="dark:text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <p class="text-sm dark:text-slate-400">Liste des WGs appartenant à cette CTM (Affichage dynamique géré par un autre composant).</p>
         </div>
     </div>
 </div>
 
+<div id="editor-placeholder" class="flex-1 flex flex-col items-center justify-center text-slate-500 h-full">
+    <div class="p-6 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center space-y-4 max-w-md mx-auto">
+        <div class="h-16 w-16 bg-blue-50 dark:bg-blue-500/10 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mx-auto">
+            <i data-lucide="file-text" class="h-8 w-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 dark:text-white">Aucun document sélectionné</h3>
+        <p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">Veuillez sélectionner un document dans la barre latérale pour commencer l'édition ou la révision.</p>
+    </div>
+</div>
+
 <script>
-    // Variables d'état JS (remplacent React useState)
-    let editorText = "Contenu initial chargé depuis la BDD...";
-    let aiSuggestedText = "La norme ISO 9001 adaptée aux réalités...";
-    
-    // Initialisation
-    const textarea = document.getElementById('editor-textarea');
-    const charCount = document.getElementById('char-count');
-    const shareExcerpt = document.getElementById('share-excerpt');
+    // ==========================================
+    // ETAT SIMULÉ DU COMPOSANT (Remplace React useState)
+    // ==========================================
+    const editorState = {
+        document: null,
+        activeCollab: null,
+        experts: [],
+        votes: {},
+        references: [],
+        
+        isNavOpen: true,
+        isVoteOpen: true,
+        isRessourcesExpanded: false,
+        aiExpanded: false,
+        
+        text: "",
+        comment: "",
+        selectedExcerpt: ""
+    };
 
-    // Mise à jour du textarea
-    textarea.value = editorText;
-    updateCounts();
+    // ==========================================
+    // INITIALISATION & RENDU
+    // ==========================================
+    async function loadShareContacts() {
+        try {
+            const response = await fetch('/api/v1/messaging/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les contacts pour le partage');
+            const contactsData = await response.json();
+            
+            editorState.experts = contactsData.map(expert => ({
+                id: expert.user.id,
+                name: expert.user.full_name,
+                structure: expert.structure.acronym,
+            }));
 
-    textarea.addEventListener('input', (e) => {
-        editorText = e.target.value;
-        updateCounts();
-    });
-
-    // Capture de la sélection pour le partage
-    textarea.addEventListener('select', (e) => {
-        const selected = e.target.value.substring(e.target.selectionStart, e.target.selectionEnd);
-        if(selected) shareExcerpt.value = selected;
-    });
-
-    function updateCounts() {
-        const length = editorText.length;
-        const words = editorText.split(/\s+/).filter(Boolean).length;
-        charCount.textContent = `${length} caractères • ${words} mots`;
+        } catch (error) {
+            console.error(error);
+            // Laisser la liste vide en cas d'erreur
+        }
     }
 
-    // Fonction Sauvegarder
-    async function saveDocument() {
-        const commitMsg = document.getElementById('commit-msg').value;
-        if(!commitMsg) {
-            window.showAppToast("Veuillez entrer un commentaire de version.", "error");
-            return;
+    async function initEditor() {
+        if (editorState.document) {
+            editorState.text = editorState.document.content;
+            document.getElementById('ed-main-textarea').value = editorState.text;
         }
-        const btn = document.getElementById('save-btn');
-        btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Sauvegarde...`;
+
+        await loadShareContacts();
+        
+        // Populate Chat Select
+        const chatSelect = document.getElementById('ed-share-recipient');
+        if (chatSelect) {
+            chatSelect.innerHTML = `<option value="" disabled selected>-- Sélectionner l'expert --</option>` + 
+                editorState.experts.map(e => `<option value="${e.id}">${e.name} (${e.structure})</option>`).join('');
+        }
+
+        updateCounts();
+        renderVotes();
+        renderReferences();
+        lucide.createIcons();
+    }
+
+    // ==========================================
+    // TEXTAREA & TEXT HANDLERS
+    // ==========================================
+    function handleTextChange(el) {
+        editorState.text = el.value;
+        updateCounts();
+        validateSaveBtn();
+    }
+
+    function handleTextSelect(el) {
+        const sel = el.value.substring(el.selectionStart, el.selectionEnd);
+        if(sel) {
+            editorState.selectedExcerpt = sel;
+            document.getElementById('ed-share-excerpt').value = sel;
+        }
+    }
+
+    function updateCounts() {
+        const len = editorState.text ? editorState.text.length : 0;
+        const words = editorState.text ? editorState.text.split(/\s+/).filter(Boolean).length : 0;
+        const charCountEl = document.getElementById('ed-char-count');
+        if (charCountEl) charCountEl.textContent = `${len} caractères • ${words} mots`;
+    }
+
+    function validateSaveBtn() {
+        const isModified = editorState.document && editorState.text !== editorState.document.content;
+        const commentEl = document.getElementById('ed-edit-comment');
+        const comment = commentEl ? commentEl.value.trim() : "";
+        const saveBtn = document.getElementById('ed-save-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        
+        if (saveBtn) saveBtn.disabled = !(isModified || comment.length > 0);
+        if (cancelBtn) cancelBtn.disabled = !(isModified || comment.length > 0);
+    }
+
+    function resetEditor() {
+        if (!editorState.document) return;
+        editorState.text = editorState.document.content;
+        document.getElementById('ed-main-textarea').value = editorState.text;
+        document.getElementById('ed-edit-comment').value = "";
+        updateCounts();
+        validateSaveBtn();
+        if(window.showAppToast) window.showAppToast("L'édition en cours a été réinitialisée.", "info");
+    }
+
+    function saveEditorVersion() {
+        const btn = document.getElementById('ed-save-btn');
+        const icon = document.getElementById('ed-save-icon');
+        if (icon) {
+            icon.setAttribute('data-lucide', 'loader-2');
+            icon.classList.add('animate-spin');
+        }
+        if (btn) btn.disabled = true;
         lucide.createIcons();
 
-        // Simulation AJAX
         setTimeout(() => {
-            btn.innerHTML = `<i data-lucide="save" class="h-3.5 w-3.5"></i> Sauvegarder la version`;
+            if (editorState.document) editorState.document.content = editorState.text;
+            const commentEl = document.getElementById('ed-edit-comment');
+            if (commentEl) commentEl.value = "";
+            
+            if (icon) {
+                icon.setAttribute('data-lucide', 'save');
+                icon.classList.remove('animate-spin');
+            }
+            validateSaveBtn();
             lucide.createIcons();
-            document.getElementById('commit-msg').value = '';
-            window.showAppToast("Nouvelle version enregistrée avec succès !");
+            
+            if(window.showAppToast) window.showAppToast("Nouvelle version sauvegardée avec succès !");
+        }, 1200);
+    }
+
+    // ==========================================
+    // PANELS TOGGLES (Nav, Vote, Ressources)
+    // ==========================================
+    function closeRightNavAndVote() {
+        if(editorState.isNavOpen) setIsNavOpen(false);
+        if(editorState.isVoteOpen) toggleVotePanel(false);
+    }
+
+    function setIsNavOpen(isOpen) {
+        editorState.isNavOpen = isOpen;
+        const grid = document.getElementById('editor-main-grid');
+        const leftCol = document.getElementById('editor-left-col');
+        const rightCol = document.getElementById('editor-right-col');
+        const floatBtn = document.getElementById('ed-nav-floating-btn');
+
+        if(isOpen) {
+            grid.classList.replace('lg:grid-cols-1', 'lg:grid-cols-3');
+            leftCol.classList.replace('lg:col-span-1', 'lg:col-span-2');
+            rightCol.classList.remove('hidden');
+            floatBtn.classList.add('hidden');
+        } else {
+            grid.classList.replace('lg:grid-cols-3', 'lg:grid-cols-1');
+            leftCol.classList.replace('lg:col-span-2', 'lg:col-span-1');
+            rightCol.classList.add('hidden');
+            floatBtn.classList.remove('hidden');
+        }
+    }
+
+    function openRightNav() { setIsNavOpen(true); }
+    function closeRightNav() { setIsNavOpen(false); }
+
+    function toggleVotePanel(isOpen) {
+        editorState.isVoteOpen = isOpen;
+        if(isOpen) {
+            document.getElementById('ed-vote-panel').classList.remove('hidden');
+            document.getElementById('ed-vote-floating-btn').classList.add('hidden');
+        } else {
+            document.getElementById('ed-vote-panel').classList.add('hidden');
+            document.getElementById('ed-vote-floating-btn').classList.remove('hidden');
+        }
+    }
+
+    function toggleRessources() {
+        editorState.isRessourcesExpanded = !editorState.isRessourcesExpanded;
+        const panel = document.getElementById('ed-ressources-panel');
+        const closedPanel = document.getElementById('ed-ressources-closed-panel');
+        const btn = document.getElementById('ed-toggle-ressources-btn');
+        const icon = document.getElementById('ed-ressources-icon');
+        const txt = document.getElementById('ed-ressources-text');
+        
+        if (editorState.isRessourcesExpanded) {
+            panel.classList.remove('hidden');
+            closedPanel.classList.add('hidden');
+            icon.setAttribute('data-lucide', 'chevron-up');
+            txt.textContent = "Masquer";
+            
+            // Appliquer les classes Tailwind JS pour le bouton selon le thème
+            if(document.documentElement.classList.contains('dark')) {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-[0_4px_12px_rgba(16,185,129,0.15)]";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border bg-blue-50 text-blue-700 border-blue-300 shadow-[0_4px_12px_rgba(37,99,235,0.15)]";
+            }
+        } else {
+            panel.classList.add('hidden');
+            closedPanel.classList.remove('hidden');
+            icon.setAttribute('data-lucide', 'chevron-down');
+            txt.textContent = "Dérouler / Afficher";
+            
+            if(document.documentElement.classList.contains('dark')) {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:text-white";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900";
+            }
+        }
+        lucide.createIcons();
+    }
+
+    // ==========================================
+    // VOTE (SCRUTIN)
+    // ==========================================
+    function renderVotes() {
+        const total = Object.keys(editorState.votes).length;
+        const pour = Object.values(editorState.votes).filter(v => v === "pour").length;
+        const contre = Object.values(editorState.votes).filter(v => v === "contre").length;
+        const abs = Object.values(editorState.votes).filter(v => v === "abstention").length;
+        const rate = total > 0 ? Math.round((pour / total) * 100) : 0;
+
+        document.getElementById('ed-vote-count-pour').textContent = `POUR (${pour})`;
+        document.getElementById('ed-vote-count-contre').textContent = `CONTRE (${contre})`;
+        document.getElementById('ed-vote-count-abs').textContent = `ABS (${abs})`;
+        
+        const rateEl = document.getElementById('ed-consensus-rate');
+        rateEl.textContent = `${rate}%`;
+        rateEl.className = `text-sm font-black font-mono block ${rate >= 75 ? 'text-blue-500' : 'text-amber-500'}`;
+
+        document.getElementById('ed-vote-bar').innerHTML = total === 0 
+            ? `<div class="w-full h-full bg-slate-400/20"></div>`
+            : `<div style="width: ${(pour/total)*100}%" class="bg-blue-500 h-full transition-all"></div>
+               <div style="width: ${(contre/total)*100}%" class="bg-rose-500 h-full transition-all"></div>
+               <div style="width: ${(abs/total)*100}%" class="bg-slate-400 h-full transition-all"></div>`;
+
+        document.getElementById('ed-vote-total-label').innerHTML = `<i data-lucide="users" class="h-3.5 w-3.5 text-slate-400"></i> ${total} ${total > 1 ? "experts ont émargé" : "expert a émargé"} l'avis`;
+        
+        const badge = document.getElementById('ed-vote-status-badge');
+        if(rate >= 75) {
+            badge.className = "text-[10.5px] font-black text-blue-500 flex items-center gap-1 uppercase tracking-tight";
+            badge.innerHTML = `<i data-lucide="check-circle" class="h-3.5 w-3.5"></i> Consensus Atteint`;
+        } else {
+            badge.className = "text-[10px] font-extrabold text-amber-500 flex items-center gap-1 uppercase tracking-tight animate-pulse";
+            badge.innerHTML = `<i data-lucide="info" class="h-3.5 w-3.5"></i> Avis Partiel`;
+        }
+
+        // Render My Vote buttons
+        const myVote = editorState.votes["exp-1"];
+        const myBadge = document.getElementById('ed-my-vote-badge');
+        if(myVote) {
+            myBadge.className = `text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${
+                myVote === 'pour' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : myVote === 'contre' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/10'
+            }`;
+            myBadge.textContent = `VOTÉ : ${myVote}`;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+        document.getElementById('btn-vote-pour').className = `py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer ${myVote === 'pour' ? (isDark ? 'bg-blue-500 border-blue-400 text-black shadow-[0_0_12px_rgba(16,185,129,0.3)]' : 'bg-blue-600 border-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.3)]') : (isDark ? 'bg-blue-500/5 text-blue-400 border-blue-500/10' : 'bg-blue-50 text-blue-800 border-blue-200')}`;
+        document.getElementById('btn-vote-contre').className = `py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer ${myVote === 'contre' ? (isDark ? 'bg-rose-500 border-rose-400 text-white shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'bg-rose-500 border-rose-400 text-white shadow-[0_0_12px_rgba(239,68,68,0.3)]') : (isDark ? 'bg-rose-500/5 text-rose-400 border-rose-500/10' : 'bg-rose-50 text-rose-800 border-rose-200')}`;
+        document.getElementById('btn-vote-abs').className = `py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer ${myVote === 'abstention' ? 'bg-slate-500 border-slate-400 text-white' : (isDark ? 'bg-white/5 text-slate-300 border-white/5' : 'bg-slate-100 text-slate-700 border-slate-200')}`;
+
+        // Render List
+        document.getElementById('ed-voters-list').innerHTML = editorState.experts.map(exp => {
+            const v = editorState.votes[exp.id];
+            let badgeHtml = `<span class="text-slate-500 font-medium italic">En attente</span>`;
+            if(v==='pour') badgeHtml = `<span class="text-blue-500 font-bold bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded">POUR</span>`;
+            else if(v==='contre') badgeHtml = `<span class="text-rose-500 font-bold bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">CONTRE</span>`;
+            else if(v==='abstention') badgeHtml = `<span class="text-slate-500 dark:text-slate-400 font-bold bg-slate-200 dark:bg-slate-500/10 border border-slate-300 dark:border-slate-500/15 px-1.5 py-0.5 rounded">ABS.</span>`;
+
+            return `
+            <div class="p-2 flex items-center justify-between text-[11px] hover:bg-black/5 dark:hover:bg-blue-500/[0.03]">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="h-5 w-5 rounded-full flex items-center justify-center font-bold text-[9px] shrink-0 ${exp.id==='exp-1' ? 'bg-blue-500 text-white dark:text-black' : 'bg-slate-200 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400'}">${exp.name.substring(0,2).toUpperCase()}</div>
+                    <div class="min-w-0">
+                        <p class="font-semibold truncate max-w-[170px] text-slate-800 dark:text-slate-200">${exp.name} ${exp.id==='exp-1' ? '<span class="text-[10px] text-slate-500 font-normal">(Vous)</span>' : ''}</p>
+                        <p class="text-[9px] text-slate-500 truncate text-left">${exp.structure || exp.role}</p>
+                    </div>
+                </div>
+                <div class="shrink-0 font-mono text-[9.5px]">${badgeHtml}</div>
+            </div>`;
+        }).join('');
+
+        lucide.createIcons();
+    }
+
+    function castVote(choice) {
+        editorState.votes["exp-1"] = choice;
+        renderVotes();
+        if(window.showAppToast) window.showAppToast(`Vote (${choice.toUpperCase()}) enregistré !`);
+    }
+
+    // ==========================================
+    // IA & PARTAGE
+    // ==========================================
+    function runAiAdvice() {
+        const btn = document.getElementById('ed-ai-btn');
+        const icon = document.getElementById('ed-ai-icon');
+        icon.setAttribute('data-lucide', 'loader-2');
+        icon.classList.add('animate-spin');
+        document.getElementById('ed-ai-text').textContent = "Analyse en cours...";
+        btn.disabled = true;
+        lucide.createIcons();
+
+        setTimeout(() => {
+            document.getElementById('ed-ai-result-panel').classList.remove('hidden');
+            document.getElementById('ed-ai-explanation').textContent = "L'IA a identifié que cette formulation ne correspond pas tout à fait au canevas officiel ISO du CTM 8. Voici une révision plus stricte.";
+            document.getElementById('ed-ai-textarea').value = "Révision proposée : \n" + editorState.text;
+            
+            icon.setAttribute('data-lucide', 'sparkles');
+            icon.classList.remove('animate-spin');
+            document.getElementById('ed-ai-text').textContent = "Analyser & optimiser le texte";
+            btn.disabled = false;
+            editorState.aiExpanded = true;
+            toggleAiDetails(true);
+            lucide.createIcons();
         }, 1500);
     }
 
-    // Fonction Vote
-    function castVote(type) {
-        window.showAppToast(`Vote '${type.toUpperCase()}' enregistré pour le CTM.`);
+    function toggleAiDetails(forceOpen = false) {
+        if(forceOpen) editorState.aiExpanded = true;
+        else editorState.aiExpanded = !editorState.aiExpanded;
+        
+        const details = document.getElementById('ed-ai-details');
+        const icon = document.getElementById('ed-ai-toggle-icon');
+        const txt = document.getElementById('ed-ai-toggle-text');
+        
+        if(editorState.aiExpanded) {
+            details.classList.remove('hidden');
+            icon.setAttribute('data-lucide', 'chevron-up');
+            txt.textContent = "Fermer";
+        } else {
+            details.classList.add('hidden');
+            icon.setAttribute('data-lucide', 'chevron-down');
+            txt.textContent = "Ouvrir";
+        }
+        lucide.createIcons();
     }
 
-    // Fonction IA
-    function runAiAnalysis() {
-        window.showAppToast("Analyse par l'Assistant IA en cours...", "info");
-        setTimeout(() => {
-            document.getElementById('ai-result').classList.remove('hidden');
-            document.getElementById('ai-explanation').textContent = "L'IA recommande de préciser les articles de loi locaux sur la métrologie dans le paragraphe 2.";
-        }, 2000);
-    }
-
-    function applyAiSuggestion() {
-        textarea.value = aiSuggestedText;
-        editorText = aiSuggestedText;
+    function applyAiAdvice() {
+        const aiText = document.getElementById('ed-ai-textarea').value;
+        editorState.text = aiText;
+        document.getElementById('ed-main-textarea').value = aiText;
+        document.getElementById('ed-edit-comment').value = "Réduction et corrections réglementaires appliquées par l'Assistant IA";
+        dismissAiAdvice();
         updateCounts();
-        document.getElementById('ai-result').classList.add('hidden');
-        document.getElementById('commit-msg').value = "Correction IA appliquée";
-        window.showAppToast("Suggestion appliquée au texte.");
+        validateSaveBtn();
+        if(window.showAppToast) window.showAppToast("Suggestion appliquée avec succès !");
     }
 
-    // Fonction Partage
-    function shareClause() {
-        const recipient = document.getElementById('share-recipient').options[document.getElementById('share-recipient').selectedIndex].text;
-        window.showAppToast(`Clause envoyée cryptée à ${recipient} !`);
+    function dismissAiAdvice() {
+        document.getElementById('ed-ai-result-panel').classList.add('hidden');
     }
 
-    // Cloud / Upload
-    function saveCloudLinks() {
-        window.showAppToast("Liens de gouvernance Cloud enregistrés.");
+    function handleShareClause(e) {
+        e.preventDefault();
+        const recipientId = document.getElementById('ed-share-recipient').value;
+        const excerpt = document.getElementById('ed-share-excerpt').value;
+        const code = editorState.document.code;
+        
+        if(!recipientId) return;
+
+        if (typeof window.shareClauseToChat === 'function') {
+            window.shareClauseToChat(recipientId, code, excerpt || "Projet en cours de modification");
+            
+            const feedback = document.getElementById('ed-share-feedback');
+            feedback.innerHTML = `<i data-lucide="check-circle" class="h-3.5 w-3.5 inline mr-1"></i> Clause transmise cryptée ! Messagerie ouverte.`;
+            feedback.classList.remove('hidden');
+            lucide.createIcons();
+            
+            setTimeout(() => { feedback.classList.add('hidden'); }, 4000);
+        }
     }
 
-    function uploadFile() {
-        const file = document.getElementById('file-name').value;
-        if(!file) return window.showAppToast("Veuillez nommer le fichier.", "error");
-        window.showAppToast(`Fichier ${file} indexé avec succès !`);
-        document.getElementById('file-name').value = '';
+    // ==========================================
+    // CLOUD & REFERENCES
+    // ==========================================
+    function saveCloudIntegrations() {
+        const btn = document.getElementById('ed-cloud-save-btn');
+        const icon = document.getElementById('ed-cloud-save-icon');
+        icon.setAttribute('data-lucide', 'loader-2');
+        icon.classList.add('animate-spin');
+        btn.disabled = true;
+        lucide.createIcons();
+
+        setTimeout(() => {
+            icon.setAttribute('data-lucide', 'save');
+            icon.classList.remove('animate-spin');
+            btn.disabled = false;
+            
+            const fb = document.getElementById('ed-cloud-feedback');
+            fb.classList.remove('hidden');
+            
+            const driveV = document.getElementById('ed-drive-url').value;
+            const meetV = document.getElementById('ed-meet-url').value;
+            
+            if(driveV) { document.getElementById('ed-drive-link').href = driveV; document.getElementById('ed-drive-link').classList.remove('hidden'); document.getElementById('ed-drive-link').classList.add('flex'); }
+            if(meetV) { document.getElementById('ed-meet-link').href = meetV; document.getElementById('ed-meet-link').classList.remove('hidden'); document.getElementById('ed-meet-link').classList.add('flex'); }
+            
+            lucide.createIcons();
+            setTimeout(() => fb.classList.add('hidden'), 3000);
+        }, 1000);
     }
+
+    function addReference(e) {
+        e.preventDefault();
+        const btn = document.getElementById('ed-ref-submit');
+        const icon = document.getElementById('ed-ref-submit-icon');
+        icon.setAttribute('data-lucide', 'loader-2');
+        icon.classList.add('animate-spin');
+        btn.disabled = true;
+        lucide.createIcons();
+
+        setTimeout(() => {
+            const name = document.getElementById('ed-ref-name').value;
+            editorState.references.push({
+                id: `ref-${Date.now()}`,
+                name: name,
+                type: document.getElementById('ed-ref-type').value,
+                description: document.getElementById('ed-ref-desc').value,
+                size: document.getElementById('ed-ref-size').value
+            });
+            
+            document.getElementById('ed-ref-name').value = "";
+            document.getElementById('ed-ref-desc').value = "";
+            
+            icon.setAttribute('data-lucide', 'paperclip');
+            icon.classList.remove('animate-spin');
+            btn.disabled = false;
+            
+            const fb = document.getElementById('ed-ref-feedback');
+            fb.innerHTML = `<i data-lucide="check-circle" class="h-3 w-3 text-blue-500 inline"></i> <span class="text-blue-500">Fichier rattaché</span>`;
+            
+            renderReferences();
+            lucide.createIcons();
+            setTimeout(() => fb.innerHTML = `<i data-lucide="info" class="h-3 w-3 inline"></i> Contrôle à la source`, 3000);
+            if(window.showAppToast) window.showAppToast("Pièce jointe ajoutée");
+        }, 1000);
+    }
+
+    function renderReferences() {
+        document.getElementById('ed-ref-count').textContent = editorState.references.length;
+        const list = document.getElementById('ed-references-list');
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        if (editorState.references.length === 0) {
+            list.innerHTML = `
+                <div class="p-6 border border-dashed rounded-xl text-center ${isDark ? "border-white/10 text-slate-500" : "border-slate-300 text-slate-500"}">
+                    <i data-lucide="paperclip" class="h-5 w-5 mx-auto mb-1.5 text-slate-400"></i>
+                    <p class="text-xs">Aucun document connexe n'est associé.</p>
+                </div>`;
+        } else {
+            list.innerHTML = editorState.references.map(r => `
+                <div class="p-3 border rounded-xl flex items-start justify-between gap-4 transition-colors ${isDark ? 'bg-black/40 border-white/5 hover:border-white/10' : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'}">
+                    <div class="flex gap-2.5">
+                        <div class="p-2 rounded bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400 shrink-0"><i data-lucide="file-text" class="h-4 w-4"></i></div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold leading-tight ${isDark ? 'text-slate-200' : 'text-slate-800'}">${r.name}</span>
+                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded uppercase ${isDark ? 'bg-white/10 text-slate-350' : 'bg-slate-100 text-slate-600 border'}">${r.type}</span>
+                            </div>
+                            ${r.description ? `<p class="text-[10.5px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}">${r.description}</p>` : ''}
+                            <span class="text-[9.5px] block mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}">Taille : ${r.size}</span>
+                        </div>
+                    </div>
+                    <a href="#" onclick="alert('Téléchargement...'); event.preventDefault();" class="text-[10px] text-blue-600 hover:text-blue-800 dark:text-indigo-400 dark:hover:text-white hover:underline shrink-0 font-bold pt-1">Télécharger</a>
+                </div>
+            `).join('');
+        }
+        lucide.createIcons();
+    }
+
+    // Auto-init for component loaded via AJAX
+    setTimeout(initEditor, 100);
+
 </script>

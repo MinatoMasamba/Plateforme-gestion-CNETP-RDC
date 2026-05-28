@@ -209,6 +209,8 @@ def component_api_view(request, module_id):
         'meetings': 'app/composants/meetings_module.html',
         'financial': 'app/composants/financial_module.html',
         'sidebar': 'app/composants/sidebar.html',
+        'messaging': 'app/composants/messaging_widget.html',
+        'groupe_expert': 'app/composants/groupes_experts.html'
     }
     
     template_name = templates_map.get(module_id)

@@ -1,0 +1,246 @@
+<div id="create-norm-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm transition-opacity duration-300">
+    <div class="w-full max-w-2xl rounded-xl border p-6 flex flex-col max-h-[90vh] overflow-y-auto bg-white border-slate-200 text-slate-900 shadow-xl dark:bg-[#040409] dark:border-white/10 dark:text-white" onclick="event.stopPropagation()">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
+            <div>
+                <h2 class="text-base font-bold tracking-tight flex items-center gap-2">
+                    <i data-lucide="sparkles" class="h-5 w-5 text-amber-500"></i>
+                    Initialisation d'une Nouvelle Norme
+                </h2>
+                <p class="text-xs text-slate-500 font-medium">Saisissez les paramètres de co-gouvernance ISO pour la RDC</p>
+            </div>
+            <button onclick="closeCreateNormModal()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+        </div>
+
+        <div id="cnm-loading-step" class="hidden py-16 flex-col items-center justify-center gap-4 text-center">
+            <i data-lucide="loader-2" class="h-10 w-10 text-blue-500 animate-spin mx-auto mb-2"></i>
+            <p id="cnm-loading-text" class="text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400 animate-pulse">Lecture du document en cours...</p>
+            <span id="cnm-filename-display" class="hidden text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-2">Source : file.txt</span>
+        </div>
+
+        <div id="cnm-choice-step" class="py-6 space-y-6">
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                Afin de préserver la sécurité de formulation et la cohérence de l'image de marque État, sélectionnez la méthode de création de votre avant-projet :
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="selectManualChoice()" class="p-6 rounded-xl border text-left flex flex-col gap-3 transition-all duration-200 group cursor-pointer bg-slate-50 border-slate-200 hover:border-blue-400 shadow-sm dark:bg-[#0b0c15] dark:border-white/5 dark:hover:border-blue-500/40 dark:text-slate-300">
+                    <div class="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+                        <i data-lucide="keyboard" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">Rédiger un canevas vierge</h3>
+                        <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 mt-1">Ouvrir un nouveau formulaire d'édition vierge pour structurer pas à pas vos clauses réglementaires RDC.</p>
+                    </div>
+                </button>
+
+                <div 
+                    onclick="document.getElementById('cnm-file-upload').click()"
+                    ondragover="event.preventDefault();"
+                    ondrop="handleFileDrop(event)"
+                    class="p-6 rounded-xl border text-left flex flex-col gap-3 transition-all duration-200 group cursor-pointer bg-slate-50 border-slate-200 hover:border-blue-400 shadow-sm dark:bg-[#0b0c15] dark:border-white/5 dark:hover:border-blue-500/40 dark:text-slate-300"
+                >
+                    <input type="file" id="cnm-file-upload" onchange="handleFileUpload(event)" accept=".txt,.doc,.docx,.pdf,.md" class="hidden">
+                    <div class="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+                        <i data-lucide="upload" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">Importer & extraire</h3>
+                        <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 mt-1">Glissez-déposez ou sélectionnez un fichier pour y extraire automatiquement les clauses.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-lg bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-500 text-[11px] leading-normal flex items-start gap-2.5">
+                <span class="text-sm">⚠️</span>
+                <p class="font-semibold">Rappel de la Charte d'État : Tout ajout de norme doit faire l'objet d'un examen par le Secrétaire Technique du CNETP pour son homologation au Journal Officiel.</p>
+            </div>
+        </div>
+
+        <form id="cnm-form-step" onsubmit="submitNewNorm(event)" class="hidden py-4 space-y-4">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Titre de la nouvelle norme <span class="text-blue-500">*</span></label>
+                    <input type="text" id="cnm-title" required placeholder="Ex: Norme sur la résistance des argiles..." class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 dark:focus:border-blue-500/60 transition-all bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder-slate-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Code de classification <span class="text-blue-500">*</span></label>
+                    <input type="text" id="cnm-code" required placeholder="Ex: PR-RDC-801-BTC" class="w-full px-3 py-2.5 rounded-lg border font-mono text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 dark:focus:border-blue-500/60 transition-all bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder-slate-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Catégorie d'activité</label>
+                    <select id="cnm-category" onchange="autoSelectCtm(this.value)" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
+                        <option value="Qualité">Qualité (Standardisation ISO/IEC)</option>
+                        <option value="Sécurité">Sécurité (Infrastructures & Civil)</option>
+                        <option value="Éthique">Éthique (Environnement & Gouvernance)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sous-commission (CTM)</label>
+                    <select id="cnm-ctm" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
+                        <option value="CTM 1 – Géotechnique">CTM 1 – Géotechnique</option>
+                        <option value="CTM 3 – Bâtiments">CTM 3 – Bâtiments</option>
+                        <option value="CTM 8 – Sciences des Matériaux" selected>CTM 8 – Sciences des Matériaux</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description / Résumé</label>
+                <input type="text" id="cnm-desc" placeholder="Ex: Spécifications de granulométrie..." class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 dark:focus:border-blue-500/60 transition-all bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder-slate-600">
+            </div>
+
+            <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Contenu Rédactionnel</label>
+                    <span id="cnm-extract-badge" class="hidden text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold border bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">Extrait avec succès</span>
+                </div>
+                <textarea id="cnm-content" rows="10" placeholder="Rédigez l'avant-projet de norme ici..." class="w-full p-3.5 rounded-lg border font-mono text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 dark:focus:border-blue-500/60 transition-all leading-relaxed bg-white border-slate-300 text-slate-900 placeholder-slate-400 dark:bg-black/40 dark:border-white/10 dark:text-white dark:placeholder-slate-600"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
+                <button type="button" onclick="resetToChoiceStep()" class="px-4 py-2 rounded-lg border text-xs cursor-pointer bg-slate-100 border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:bg-transparent dark:border-white/10 dark:text-slate-400 dark:hover:text-white">
+                    &larr; Retour
+                </button>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="closeCreateNormModal()" class="px-4 py-2 rounded-lg text-xs cursor-pointer text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        Annuler
+                    </button>
+                    <button type="submit" id="cnm-submit-btn" class="px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md cursor-pointer bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black">
+                        <i data-lucide="check-circle" class="h-4 w-4"></i> Générer la Norme
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Variables globales Modal
+    const cnmModal = document.getElementById('create-norm-modal');
+    const cnmChoiceStep = document.getElementById('cnm-choice-step');
+    const cnmFormStep = document.getElementById('cnm-form-step');
+    const cnmLoadingStep = document.getElementById('cnm-loading-step');
+    const cnmLoadingText = document.getElementById('cnm-loading-text');
+
+    // Ouverture et Fermeture
+    function openCreateNormModal() {
+        resetToChoiceStep();
+        cnmModal.classList.remove('hidden');
+        document.getElementById('cnm-extract-badge').classList.add('hidden');
+    }
+
+    function closeCreateNormModal() {
+        cnmModal.classList.add('hidden');
+    }
+
+    // Basculer vers l'édition manuelle
+    function selectManualChoice() {
+        // Vider les champs
+        document.getElementById('cnm-title').value = "";
+        document.getElementById('cnm-code').value = "PR-RDC-";
+        document.getElementById('cnm-desc').value = "";
+        document.getElementById('cnm-content').value = "";
+        
+        cnmChoiceStep.classList.add('hidden');
+        cnmFormStep.classList.remove('hidden');
+        document.getElementById('cnm-extract-badge').classList.add('hidden');
+    }
+
+    function resetToChoiceStep() {
+        cnmFormStep.classList.add('hidden');
+        cnmLoadingStep.classList.add('hidden');
+        cnmChoiceStep.classList.remove('hidden');
+    }
+
+    // Gestion du type de Catégorie -> CTM
+    function autoSelectCtm(category) {
+        const ctmSelect = document.getElementById('cnm-ctm');
+        if(category === "Qualité") ctmSelect.value = "CTM 8 – Sciences des Matériaux";
+        else if (category === "Sécurité") ctmSelect.value = "CTM 3 – Bâtiments";
+        else ctmSelect.value = "CTM 1 – Géotechnique";
+    }
+
+    // --- GESTION DE L'IMPORT DE FICHIER ---
+    function handleFileDrop(e) {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if(file) processFile(file);
+    }
+
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if(file) processFile(file);
+    }
+
+    function processFile(file) {
+        cnmChoiceStep.classList.add('hidden');
+        cnmLoadingStep.classList.remove('hidden');
+        document.getElementById('cnm-loading-step').classList.add('flex');
+        
+        document.getElementById('cnm-filename-display').classList.remove('hidden');
+        document.getElementById('cnm-filename-display').textContent = `Source : ${file.name}`;
+        
+        // Simulation d'une extraction IA
+        cnmLoadingText.textContent = "Extraction des clauses réglementaires...";
+        
+        setTimeout(() => {
+            cnmLoadingText.textContent = "Structuration de la nomenclature gouvernementale...";
+            
+            setTimeout(() => {
+                // Auto-remplissage du formulaire
+                const cleanName = file.name.replace(/\.[^/.]+$/, ""); // supprime extension
+                document.getElementById('cnm-title').value = "Projet de Norme RDC-ITP - " + cleanName.replace(/[_-]/g, " ");
+                document.getElementById('cnm-code').value = "PR-RDC-" + cleanName.toUpperCase().replace(/[^A-Z0-9]/g, "-").slice(0, 10);
+                document.getElementById('cnm-content').value = "Clause 1. Objectif du document issu de " + file.name + "\n\nClause 2. Conformité et champ d'application...";
+                
+                // Afficher le formulaire et badge d'extraction
+                document.getElementById('cnm-loading-step').classList.remove('flex');
+                cnmLoadingStep.classList.add('hidden');
+                cnmFormStep.classList.remove('hidden');
+                document.getElementById('cnm-extract-badge').classList.remove('hidden');
+
+            }, 1000);
+        }, 1500);
+    }
+
+    // --- SOUMISSION DU FORMULAIRE ---
+    function submitNewNorm(e) {
+        e.preventDefault();
+        const btn = document.getElementById('cnm-submit-btn');
+        const code = document.getElementById('cnm-code').value;
+        const title = document.getElementById('cnm-title').value;
+        
+        btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Création...`;
+        lucide.createIcons();
+
+        // Simulation de requête POST AJAX
+        setTimeout(() => {
+            btn.innerHTML = `<i data-lucide="check-circle" class="h-4 w-4"></i> Générer la Norme`;
+            lucide.createIcons();
+            
+            closeCreateNormModal();
+            
+            if (window.showAppToast) window.showAppToast(`Norme ${code} créée avec succès !`);
+
+            // Mettre à jour visuellement la sidebar de l'application si nécessaire
+            if(typeof window.fetchSidebarData === 'function') {
+                window.fetchSidebarData(); // recharge la BDD virtuelle de la sidebar
+            } else if (typeof sidebarState !== 'undefined') {
+                // Si la fonction globale fetch existe pas encore, on hack le JSON temporaire
+                sidebarState.documents.unshift({ id: `doc-new-${Date.now()}`, code: code, title: title, category: document.getElementById('cnm-category').value, updatedBy: "Vous" });
+                sidebarState.selectedDocId = `doc-new-${Date.now()}`;
+                if(typeof renderSidebarContent === 'function') renderSidebarContent();
+            }
+
+        }, 1200);
+    }
+</script>

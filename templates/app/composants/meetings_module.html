@@ -1,0 +1,611 @@
+<div class="p-6 space-y-8 overflow-y-auto h-full transition-colors duration-250 bg-white text-slate-800 dark:bg-[#06060c] dark:text-slate-300">
+    
+    <div class="border-b pb-5 border-slate-200 dark:border-white/10">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <i data-lucide="vote" class="h-6 w-6 text-blue-500"></i>
+                <h2 class="text-xl font-extrabold tracking-tight uppercase text-slate-900 dark:text-white">
+                    Réunions techniques & Scrutin électronique
+                </h2>
+            </div>
+            <div class="flex items-center gap-1 border rounded-lg p-1 text-[11px] font-mono bg-slate-100 border-slate-200 text-slate-600 dark:bg-black/40 dark:border-white/10 dark:text-slate-400">
+                <span class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span>Blockchain Nationale CNETP RDC Actived</span>
+            </div>
+        </div>
+        <p class="text-xs leading-relaxed mt-2 text-slate-600 font-medium dark:text-slate-400">
+            Convoquez en direct les Comités Techniques Miroirs (CTM) ou l'Assemblée plénière. Établissez la visioconférence Google Meet intégrée, vérifiez l'atteinte du quorum souverain en République Démocratique du Congo, attribuez les suffrages certifiés des Experts permanents, et validez le Procès-Verbal (PV).
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        <div class="space-y-6">
+            
+            <div class="border rounded-2xl p-5 space-y-4 relative overflow-hidden bg-slate-50 border-slate-200 dark:bg-slate-950/80 dark:border-white/10">
+                
+                <div id="meet-lock-overlay" class="hidden absolute inset-0 backdrop-blur-sm flex-col items-center justify-center p-6 text-center z-20 bg-slate-100/95 dark:bg-[#06060c]/95">
+                    <i data-lucide="lock" class="h-7 w-7 text-slate-500 mb-2 animate-pulse"></i>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-white">Planification verrouillée</h4>
+                    <p class="text-[10px] mt-2 max-w-[220px] leading-relaxed text-slate-500 dark:text-slate-400">
+                        Selon le manuel d'organisation, seul le <strong class="text-blue-500">Secrétaire Permanent (SG-ITP)</strong> ou le <strong class="text-amber-600">Rapporteur</strong> est habilité à initier des convocations officielles.
+                    </p>
+                    <div class="mt-3 text-[8.5px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-600 border border-slate-300 dark:bg-white/5 dark:text-slate-500 dark:border-transparent">
+                        RÔLE REQUIS : COMPTABLE / ADMIN / SEC_PERM
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-slate-800 dark:text-white">
+                    <i data-lucide="calendar" class="h-4.5 w-4.5 text-blue-500"></i> Planifier une session de vote
+                </h3>
+                
+                <form id="form-create-meet" onsubmit="handleCreateMeeting(event)" class="space-y-3.5 text-xs">
+                    <div>
+                        <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Intitulé officiel :</label>
+                        <input type="text" id="meet-new-title" required placeholder="Ex: Concile CTM 8 - Homologation BTC" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 focus:border-blue-500 dark:bg-black/60 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50" />
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Organe :</label>
+                            <select id="meet-new-type" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300">
+                                <option value="WG">Comité WG (Étude)</option>
+                                <option value="CTM">Comité CTM (Décision)</option>
+                                <option value="Comité de Pilotage">Pilotage (24 exp)</option>
+                                <option value="Assemblée plénière">Plénière (200 exp)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Heure :</label>
+                            <input type="time" id="meet-new-time" value="10:00" class="w-full p-2 rounded-lg border focus:outline-hidden font-mono bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Document réglementaire :</label>
+                        <input type="text" id="meet-new-law" required placeholder="Ex: Standard de composition du béton C30" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 focus:border-blue-500 dark:bg-black/60 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50" />
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Ordre du jour :</label>
+                        <textarea id="meet-new-desc" rows="2" placeholder="Entrez brièvement la teneur des résolutions..." class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden resize-none bg-white border-slate-300 text-slate-800 focus:border-blue-500 dark:bg-black/60 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2.5 border rounded-lg bg-white border-slate-200 dark:bg-black/45 dark:border-white/5">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="video" class="h-4 w-4 text-blue-400"></i>
+                            <div>
+                                <span class="block font-bold text-[10px] text-slate-800 dark:text-white">Activer Google Meet</span>
+                                <span class="text-[8.5px] text-slate-500">Générer visioconférence</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" id="meet-new-active" checked class="h-4 w-4 rounded accent-blue-500 cursor-pointer" />
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-blue-500 text-black font-extrabold hover:bg-blue-400 rounded-lg transition-all cursor-pointer shadow-[0_4px_12px_rgba(16,185,129,0.15)] flex items-center justify-center gap-1.5 uppercase tracking-wider">
+                        <i data-lucide="plus" class="h-4 w-4"></i> Convoquer & Ouvrir Scrutin
+                    </button>
+                </form>
+            </div>
+
+            <div class="border rounded-2xl p-5 space-y-3 bg-slate-50 border-slate-200 dark:bg-black/35 dark:border-white/10">
+                <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                    <i data-lucide="clock" class="h-3.5 w-3.5"></i> Séquences Actives & Archivées
+                </h3>
+                <div id="meet-history-list" class="space-y-2">
+                    </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="border rounded-2xl shadow-2xl p-6 space-y-6 relative overflow-hidden bg-white border-slate-200 text-slate-800 dark:bg-[#0b0c14]/90 dark:border-white/10 dark:text-slate-100">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-5 border-slate-200 dark:border-white/10">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9.5px] uppercase tracking-widest bg-blue-500/15 border border-blue-500/30 text-blue-600 px-2 py-0.5 rounded font-bold">
+                                Scrutin national souverain
+                            </span>
+                            <span id="meet-active-live-dot" class="h-2 w-2 rounded-full bg-blue-500 animate-ping"></span>
+                        </div>
+                        <h3 id="meet-active-title" class="text-md font-extrabold mt-1.5 text-slate-900 dark:text-white">Chargement...</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-start sm:items-center gap-1">
+                            <span class="font-bold text-slate-500">Sujet soumis :</span> 
+                            <span id="meet-active-law" class="font-mono text-[11px] truncate text-slate-700 dark:text-slate-200"></span>
+                        </p>
+                    </div>
+
+                    <div class="text-left md:text-right shrink-0 p-3 rounded-xl border space-y-1 bg-slate-50 border-slate-200 dark:bg-black/30 dark:border-white/5">
+                        <span class="text-[9.5px] text-slate-500 font-bold uppercase tracking-wider block">Calcul Quorum</span>
+                        <span id="meet-quorum-text" class="text-xs font-mono font-bold block text-blue-700 dark:text-blue-400">0 / 0 Membres Votants</span>
+                        <span id="meet-quorum-badge" class="text-[9.1px] font-bold px-1.5 py-0.5 rounded inline-block bg-amber-500/15 text-amber-600">⚠️ Séance Consultative</span>
+                    </div>
+                </div>
+
+                <div id="meet-role-missions-card" class="p-4 rounded-xl border flex flex-col gap-3 justify-between text-xs transition-colors duration-200 bg-slate-50 border-slate-200 text-slate-800 dark:border-blue-500/25 dark:bg-blue-500/5 dark:text-blue-400">
+                    </div>
+
+                <div class="grid grid-cols-4 gap-1.5 p-1 rounded-xl border text-xs font-semibold bg-slate-100 border-slate-200 dark:bg-black/45 dark:border-white/5">
+                    <button onclick="setMeetSubTab('meet')" id="tab-btn-meet" class="py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-white text-slate-900 border border-slate-200 font-black shadow-xs dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
+                        <i data-lucide="video" class="h-3.5 w-3.5"></i> <span class="hidden sm:inline">Meet</span>
+                    </button>
+                    <button onclick="setMeetSubTab('attendance')" id="tab-btn-attendance" class="py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <i data-lucide="users" class="h-3.5 w-3.5"></i> <span class="hidden sm:inline">Émargement</span>
+                    </button>
+                    <button onclick="setMeetSubTab('vote')" id="tab-btn-vote" class="py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <i data-lucide="vote" class="h-3.5 w-3.5"></i> <span class="hidden sm:inline">Urne Virtuelle</span>
+                    </button>
+                    <button onclick="setMeetSubTab('pv')" id="tab-btn-pv" class="py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <i data-lucide="file-text" class="h-3.5 w-3.5"></i> <span class="hidden sm:inline">Procès-Verbal</span>
+                    </button>
+                </div>
+
+                <div id="subtab-meet" class="space-y-6 animate-fadeIn block">
+                    <p class="text-xs text-slate-400 leading-relaxed">Conformément au manuel d'orientation légistique (Article 12), les votes s'accomplissent aussi de manière numérique par visioconférence sécurisée.</p>
+                    <div id="meet-live-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        </div>
+                </div>
+
+                <div id="subtab-attendance" class="space-y-6 animate-fadeIn hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-black/5 dark:bg-black/35 p-4 rounded-xl border border-slate-200 dark:border-white/5 text-xs">
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white uppercase text-[11px] flex items-center gap-1"><i data-lucide="check-square" class="h-4 w-4 text-blue-400"></i> Règle de quorum sur émargement</h4>
+                            <p id="meet-quorum-desc" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xl"></p>
+                        </div>
+                        <div class="bg-white dark:bg-[#05060a] p-3 rounded-lg border border-slate-200 dark:border-white/10 shrink-0 font-mono text-center shadow-xs">
+                            <span class="text-[10px] text-slate-500 block">Présence Votante</span>
+                            <span id="meet-quorum-pct" class="text-sm font-extrabold text-slate-900 dark:text-white">0%</span>
+                            <span id="meet-quorum-req" class="text-[8.5px] text-slate-500 block uppercase font-sans font-bold mt-1">Requis : 0%</span>
+                        </div>
+                    </div>
+                    
+                    <div id="meet-attendance-role-banner"></div>
+                    
+                    <div class="space-y-2.5">
+                        <h4 class="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">Feuille d'émargement officielle (Experts)</h4>
+                        <div id="meet-attendance-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                    </div>
+                    
+                    <div id="meet-quorum-verdict" class="p-4 rounded-xl border flex items-start gap-3"></div>
+                </div>
+
+                <div id="subtab-vote" class="space-y-6 animate-fadeIn hidden">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-3 rounded-xl font-mono text-center">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Votants possibles</span>
+                            <span id="stat-votants" class="text-lg font-extrabold text-slate-900 dark:text-white">0</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-3 rounded-xl font-mono text-center">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Suffrages exprimés</span>
+                            <span id="stat-exxprimes" class="text-lg font-extrabold text-slate-900 dark:text-white">0</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-3 rounded-xl font-mono text-center">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Abstentions</span>
+                            <span id="stat-abs" class="text-lg font-extrabold text-slate-900 dark:text-white">0</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-3 rounded-xl font-mono text-center">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Taux d'approbation</span>
+                            <span id="stat-taux" class="text-lg font-extrabold text-slate-900 dark:text-white">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 dark:bg-black/35 border border-slate-200 dark:border-white/5 p-4.5 rounded-xl space-y-4">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                            <span class="uppercase">Régularité des suffrages</span>
+                            <span id="stat-req-pct">Consensus requis : 0%</span>
+                        </div>
+                        <div id="vote-bars-container" class="space-y-3.5 text-xs font-semibold"></div>
+                        <div id="vote-verdict-box" class="p-3 rounded-lg text-[11px] font-mono text-center font-bold"></div>
+                    </div>
+
+                    <div id="vote-expert-block"></div>
+
+                    <div id="vote-close-action"></div>
+                </div>
+
+                <div id="subtab-pv" class="space-y-6 animate-fadeIn hidden">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Conformément aux attributions de co-gouvernance, le Rapporteur (ONIC) pilote l'ordre du jour et certifie la feuille d'émargement. Le PV ci-dessous résume souverainement l'issue des concertations techniques.</p>
+                    <div id="pv-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl p-5">
+        <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-1.5">
+            <i data-lucide="trending-up" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i> État de Validation Législative (Session 2026)
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-semibold">
+            <div class="bg-white dark:bg-black/30 border border-slate-200 dark:border-white/5 p-4 rounded-lg shadow-xs">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Réglementations Adoptées</span>
+                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">17 Standards</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 85%"></div></div>
+            </div>
+            <div class="bg-white dark:bg-black/30 border border-slate-200 dark:border-white/5 p-4 rounded-lg shadow-xs">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Quorum Consensuel Moyen</span>
+                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">91.4 %</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 91.4%"></div></div>
+            </div>
+            <div class="bg-white dark:bg-black/30 border border-slate-200 dark:border-white/5 p-4 rounded-lg shadow-xs">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Enquêtes Publiques</span>
+                <span class="text-xl font-mono font-extrabold text-blue-600 dark:text-blue-400 mt-1 block">4 Dossiers</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-400 h-1 rounded-full" style="width: 40%"></div></div>
+            </div>
+            <div class="bg-white dark:bg-black/30 border border-slate-200 dark:border-white/5 p-4 rounded-lg shadow-xs">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Sceaux Visés</span>
+                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">22 Arrêtés</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 100%"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="pv-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 transition-opacity" onclick="closePvModal()">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/15 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+        <div class="bg-slate-100 dark:bg-[#050609] p-6 border-b border-slate-300 dark:border-white/10 relative text-center flex flex-col items-center">
+            <span class="absolute left-6 top-6 text-slate-500 font-serif text-[9px] uppercase font-bold text-left hidden sm:block leading-snug">
+                Ministère des Infrastructures<br />et Travaux Publics
+            </span>
+            <div class="h-10 w-10 bg-blue-600 dark:bg-blue-500 text-white dark:text-black font-black flex items-center justify-center rounded-xl shadow-[0_0_12px_rgba(37,99,235,0.4)] dark:shadow-[0_0_12px_rgba(16,185,129,0.4)] text-xs">
+                CNETP
+            </div>
+            <h3 class="font-serif font-extrabold text-slate-900 dark:text-white text-md tracking-wider mt-3 uppercase">RÉPUBLIQUE DÉMOCRATIQUE DU CONGO</h3>
+            <p class="text-[9.5px] text-slate-500 dark:text-slate-400 tracking-wider uppercase font-semibold mt-1">CNETP - COMMISSION NATIONALE</p>
+        </div>
+        <div id="pv-modal-content" class="p-8 space-y-6 bg-white dark:bg-[#0a0a0f] font-serif text-slate-800 dark:text-slate-200 text-xs leading-relaxed max-h-[420px] overflow-y-auto">
+            </div>
+        <div class="bg-slate-100 dark:bg-[#050609] p-4.5 border-t border-slate-300 dark:border-white/10 flex justify-between gap-3 text-xs">
+            <button onclick="downloadPv()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black font-extrabold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer"><i data-lucide="download" class="h-4 w-4"></i> Télécharger PDF Signé</button>
+            <button onclick="closePvModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-bold rounded-lg transition-colors cursor-pointer">Fermer l'Aperçu Officiel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // ==========================================
+    // ETAT DE L'APPLICATION (DONNÉES DYNAMIQUES)
+    // ==========================================
+    const appState = {
+        userRole: "{{ user.expert_profile.role|default:'OBSERVATEUR' }}", // Injecté par Django
+        activeMeetingId: null,
+        activeSubTab: "meet",
+        meetings: [],
+        allExperts: [],
+    };
+
+
+    // ==========================================
+    // INITIALISATION & GESTION DES DONNÉES
+    // ==========================================
+
+    async function fetchMeetings() {
+        try {
+            const response = await fetch('/api/v1/reunions/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            const data = await response.json();
+            appState.meetings = data.results;
+            
+            // Si aucune réunion n'est active et qu'il y a des réunions, on sélectionne la première.
+            if (!appState.activeMeetingId && appState.meetings.length > 0) {
+                appState.activeMeetingId = appState.meetings[0].id;
+            }
+
+        } catch (error) {
+            console.error("Impossible de charger les réunions:", error);
+            if(window.showAppToast) window.showAppToast("Impossible de charger les réunions.", "error");
+        }
+    }
+
+    // Fonction pour récupérer les détails complets (participants, votes, etc.)
+    async function fetchMeetingDetails(meetingId) {
+        if (!meetingId) {
+            renderActiveMeeting(); // Render empty state if no meeting is selected
+            return;
+        }
+        
+        // Indiquer le chargement
+        document.getElementById('subtab-attendance').innerHTML = '<p class="text-center text-xs p-8">Chargement des présences...</p>';
+
+        try {
+            const presencesResponse = await fetch(`/api/v1/presences/?reunion_id=${meetingId}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!presencesResponse.ok) throw new Error(`Erreur HTTP: ${presencesResponse.status}`);
+            
+            const presencesData = await presencesResponse.json();
+            
+            const votesResponse = await fetch(`/api/v1/votes/?reunion_id=${meetingId}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!votesResponse.ok) throw new Error(`Erreur HTTP: ${votesResponse.status}`);
+            const votesData = await votesResponse.json();
+
+            // Stocker les détails dans un objet séparé pour la réunion active
+            appState.currentMeetingDetails = {
+                presences: presencesData.results,
+                votes: votesData.results,
+            };
+
+        } catch (error) {
+            console.error(`Impossible de charger les détails pour la réunion ${meetingId}:`, error);
+            appState.currentMeetingDetails = { presences: [], votes: [] };
+        }
+        
+        // Mettre à jour l'affichage avec les nouvelles données
+        renderActiveMeeting();
+    }
+
+    async function initMeetingsModule() {
+        await fetchMeetings();
+        renderMeetingsList();
+        fetchMeetingDetails(appState.activeMeetingId);
+        updateRoleLock();
+    }
+
+    function updateRoleLock() {
+        const lock = document.getElementById('meet-lock-overlay');
+        const rolesAutorises = ["ADMIN", "SEC_PERM", "RAP_CTM"];
+        if (!rolesAutorises.includes(appState.userRole)) lock.classList.replace('hidden', 'flex');
+        else lock.classList.replace('flex', 'hidden');
+    }
+
+    // ==========================================
+    // RENDU
+    // ==========================================
+    function renderMeetingsList() {
+        const container = document.getElementById('meet-history-list');
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        container.innerHTML = appState.meetings.map(m => {
+            const isSelected = m.id === appState.activeMeetingId;
+            let typeColor = isDark ? "bg-white/5 text-slate-400" : "bg-slate-200 text-slate-700";
+            if(m.type === "CTM") typeColor = "bg-blue-500/10 text-blue-600 border border-blue-500/20";
+            else if(m.type === "Assemblée plénière") typeColor = "bg-purple-500/10 text-purple-600 border border-purple-500/20";
+            
+            const btnClass = isSelected 
+                ? (isDark ? "bg-white/[0.07] border-blue-500/50 shadow-xs" : "bg-slate-200/50 border-blue-500 shadow-sm") 
+                : (isDark ? "bg-transparent border-white/5 hover:bg-white/5" : "bg-transparent border-slate-200/60 hover:bg-slate-100");
+
+            return `
+            <button onclick="selectMeeting('${m.id}')" class="w-full text-left p-3.5 rounded-xl border transition-all flex flex-col gap-2 cursor-pointer ${btnClass}">
+                <div class="flex items-center justify-between gap-2 w-full">
+                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-bold ${typeColor}">${m.type}</span>
+                    <span class="text-[9.5px] font-bold px-2 py-0.5 rounded ${m.status==='Terminé' ? 'bg-blue-500/15 text-blue-600' : 'bg-amber-500/15 text-amber-500 border border-amber-500/30 animate-pulse'}">${m.status}</span>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-xs font-bold leading-snug ${isSelected ? (isDark ? 'text-white':'text-slate-900') : (isDark ? 'text-slate-300':'text-slate-700')}">${m.title}</p>
+                    <p class="text-[10px] text-slate-500 font-semibold font-mono mt-1">Heure: ${m.time} • Date: ${m.date}</p>
+                </div>
+            </button>`;
+        }).join('');
+    }
+
+    function selectMeeting(id) {
+        appState.activeMeetingId = id;
+        appState.activeSubTab = "meet";
+        renderMeetingsList();
+        renderActiveMeeting();
+    }
+
+    function setMeetSubTab(tab) {
+        appState.activeSubTab = tab;
+        ['meet','attendance','vote','pv'].forEach(t => {
+            const btn = document.getElementById(`tab-btn-${t}`);
+            const pane = document.getElementById(`subtab-${t}`);
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            if(t === tab) {
+                if(isDark) btn.className = "py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold";
+                else btn.className = "py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-white text-slate-900 border border-slate-200 font-black shadow-xs";
+                pane.classList.remove('hidden'); pane.classList.add('block');
+            } else {
+                if(isDark) btn.className = "py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-400 hover:text-white";
+                else btn.className = "py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900";
+                pane.classList.add('hidden'); pane.classList.remove('block');
+            }
+        });
+    }
+
+    function renderActiveMeeting() {
+        const m = appState.meetings.find(x => x.id === appState.activeMeetingId);
+        if (!m) {
+            // Afficher un état vide ou un message si aucune réunion n'est sélectionnée
+            document.getElementById('meet-active-title').textContent = "Veuillez sélectionner une réunion";
+            document.getElementById('meet-active-law').textContent = "";
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        document.getElementById('meet-active-title').textContent = m.titre;
+        document.getElementById('meet-active-law').textContent = m.description; // Utilisation de 'description'
+        
+        // La logique de quorum et de vote sera implémentée lorsque les détails seront chargés
+        // Pour l'instant, on affiche des valeurs par défaut.
+        const presences = appState.currentMeetingDetails?.presences || [];
+        const totalPCount = presences.length;
+        const presentCount = presences.filter(p => p.status === 'PRESENT').length;
+        const quorumPct = totalPCount > 0 ? Math.round((presentCount / totalPCount) * 100) : 0;
+        const quorumRequiredPct = m.type === "Assemblée plénière" ? 75 : (m.type === 'CTM' ? 66 : 50);
+        const isQReached = quorumPct >= quorumRequiredPct;
+
+        document.getElementById('meet-quorum-text').textContent = `${presentCount} / ${totalPCount} Membres`;
+        // ... (le reste du code de rendu du quorum)
+
+        const canEditAt = ["ADMIN", "RAP_CTM", "SEC_PERM"].includes(appState.userRole) && m.status !== 'Terminé';
+        const attendanceListContainer = document.getElementById('meet-attendance-list');
+        
+        if (presences.length > 0) {
+            attendanceListContainer.innerHTML = presences.map(p => {
+                const isPresent = p.status === 'PRESENT';
+                return `
+                <div class="p-3 rounded-xl border flex items-center justify-between gap-3 ${isPresent ? (isDark?'bg-blue-500/5 border-blue-500/25':'bg-blue-50 border-blue-200') : (isDark?'bg-black/25 border-white/5 opacity-80':'bg-slate-50 border-slate-200 opacity-80')}">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="h-8.5 w-8.5 rounded-lg bg-slate-200 dark:bg-black/40 border border-slate-300 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0 text-slate-700 dark:text-white">${p.expert_name.substring(0,2)}</div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-900 dark:text-white truncate">${p.expert_name}</p>
+                            <p class="text-[9.5px] text-slate-500">${p.expert_structure}</p>
+                        </div>
+                    </div>
+                    <button ${!canEditAt ? 'disabled' : ''} onclick="toggleAttendance('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-md text-[10.5px] font-bold tracking-tight transition-all cursor-pointer ${isPresent ? (isDark?'bg-blue-500 text-black':'bg-blue-600 text-white') : (isDark?'bg-white/5 text-slate-300':'bg-slate-200 text-slate-600')} ${!canEditAt ? 'opacity-50 cursor-not-allowed':''}">
+                        ${isPresent ? '✓ Présent' : '✗ Absent'}
+                    </button>
+                </div>`;
+            }).join('');
+        } else {
+            attendanceListContainer.innerHTML = `<p class="text-xs text-slate-500 text-center col-span-2">Aucun participant n'a encore été invité à cette réunion.</p>`;
+        }
+        
+        // ... le reste des onglets ...
+
+        // === ONGLET VOTE ===
+        const votes = appState.currentMeetingDetails?.votes || [];
+        const presencesForVote = appState.currentMeetingDetails?.presences || [];
+        const votingMembers = presencesForVote.filter(p => p.status === 'PRESENT');
+        const totV = votingMembers.length;
+        
+        let pour = votes.filter(v => v.choix === 'POUR').length;
+        let contre = votes.filter(v => v.choix === 'CONTRE').length;
+        let abs = votes.filter(v => v.choix === 'ABSTENTION').length;
+        const cast = pour + contre + abs;
+        
+        const rate = cast > 0 ? Math.round((pour / cast) * 100) : 0;
+        const approved = rate >= 50; // Simplifié, à affiner
+
+        document.getElementById('stat-votants').textContent = totV;
+        document.getElementById('stat-exxprimes').textContent = cast;
+        document.getElementById('stat-abs').textContent = abs;
+        document.getElementById('stat-taux').textContent = `${rate}%`;
+
+        document.getElementById('vote-bars-container').innerHTML = `
+            <div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden mb-2"><div class="h-full bg-blue-500 transition-all" style="width:${cast > 0 ? (pour/cast)*100 : 0}%"></div></div>
+            <div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-red-500 transition-all" style="width:${cast > 0 ? (contre/cast)*100 : 0}%"></div></div>
+        `;
+        // ... (le reste du rendu de vote peut être adapté de manière similaire)
+
+    }
+
+    // ...
+
+    async function castVote(choice) {
+        const meetingId = appState.activeMeetingId;
+        if (!meetingId) return;
+
+        // Note: L'API attend l'ID de la réunion, pas de la présence. L'expert est déduit du user loggué.
+        const payload = {
+            reunion: meetingId,
+            choix: choice.toUpperCase(),
+        };
+
+        try {
+            const response = await fetch('/api/v1/votes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                 const errorData = await response.json();
+                if (response.status === 400 && errorData.non_field_errors) {
+                     if(window.showAppToast) window.showAppToast(errorData.non_field_errors[0], "warning");
+                } else {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+            } else {
+                const newVote = await response.json();
+                // Recharger les détails pour mettre à jour l'état des votes
+                fetchMeetingDetails(meetingId);
+                if(window.showAppToast) window.showAppToast(`Vote (${choice.toUpperCase()}) enregistré !`, "success");
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'enregistrement du vote:", error);
+            if(window.showAppToast) window.showAppToast("Erreur lors de l'enregistrement du vote.", "error");
+        }
+    }
+    
+    async function closeScrutin() {
+        const m = appState.meetings.find(x => x.id === appState.activeMeetingId);
+        if (!m) return;
+
+        if (!confirm("Êtes-vous sûr de vouloir clore ce scrutin et générer le procès-verbal ?")) {
+            return;
+        }
+
+        try {
+            // 1. Mettre à jour le statut de la réunion à COMPLETED
+            const statusUpdateResponse = await fetch(`/api/v1/reunions/${m.id}/update_status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: 'COMPLETED' })
+            });
+
+            if (!statusUpdateResponse.ok) {
+                const errorData = await statusUpdateResponse.json();
+                throw new Error(`Erreur lors de la mise à jour du statut: ${statusUpdateResponse.status} - ${JSON.stringify(errorData)}`);
+            }
+            if(window.showAppToast) window.showAppToast("Statut de la réunion mis à jour !", "info");
+
+            // 2. Générer le procès-verbal
+            const pvGenerateResponse = await fetch(`/api/v1/reunions/${m.id}/generate_pv/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+            });
+
+            if (!pvGenerateResponse.ok) {
+                const errorData = await pvGenerateResponse.json();
+                throw new Error(`Erreur lors de la génération du PV: ${pvGenerateResponse.status} - ${JSON.stringify(errorData)}`);
+            }
+            if(window.showAppToast) window.showAppToast("Procès-verbal généré avec succès !", "success");
+
+            // 3. Recharger les données et l'interface
+            await fetchMeetings(); // Recharger la liste des réunions
+            selectMeeting(m.id); // Re-sélectionner pour recharger les détails et le PV
+
+        } catch (error) {
+            console.error("Erreur lors de la clôture du scrutin ou génération du PV:", error);
+            if(window.showAppToast) window.showAppToast("Erreur lors de la clôture du scrutin.", "error");
+        }
+    }
+
+    function closePvModal() { document.getElementById('pv-modal').classList.add('hidden'); }
+    function downloadPv() {
+        if(window.showAppToast) window.showAppToast("Téléchargement du PV entamé...", "success");
+        setTimeout(() => alert("Téléchargement réussi : PV_CNETP.pdf"), 800);
+
+
+    // Auto-init for component loaded via AJAX
+    setTimeout(initMeetingsModule, 100);
+
+</script>

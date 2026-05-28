@@ -26,67 +26,163 @@
     
     <style>
         /* ========================================== */
-        /* CUSTOM SCROLLBAR (Moderne & Discrète)      */
+        /* THEME SYSTEM + CUSTOM SCROLLBAR             */
         /* ========================================== */
-        
-        /* Largeur globale de la barre */
+        /* Scrollbar: comfortable size and subtle look */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-
-        /* Fond de la barre (invisible pour l'effet Glassmorphism) */
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        /* Le "pouce" (la partie qu'on glisse) - Mode Clair par défaut */
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.3); /* Un gris bleuté doux */
+            background-color: rgba(148, 163, 184, 0.3);
             border-radius: 20px;
-            /* Astuce pour affiner visuellement le pouce en gardant une zone cliquable large */
             border: 2px solid transparent; 
             background-clip: padding-box;
         }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.5); }
+        html.dark ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); }
+        html.dark ::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(148, 163, 184, 0.5);
-        }
-
-        /* Le "pouce" - Adapté pour le Mode Sombre (Dark) */
-        html.dark ::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.15); /* Blanc semi-transparent */
-        }
-
-        html.dark ::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(255, 255, 255, 0.3); /* Plus visible au survol */
-        }
-        
         /* Firefox (support standard) */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
-        }
-        html.dark * {
-            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-        }
+        * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.3) transparent; }
+        html.dark * { scrollbar-color: rgba(255, 255, 255, 0.15) transparent; }
+
+        /* Font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        
-        /* Cacher la barre de défilement tout en gardant le scroll */
+
+        /* Hide scrollbar helper */
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-        
+
         /* Animations */
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
-        
+
         /* Gestion des zones dynamiques */
         .module-container { display: none; }
         .module-container.active { display: flex; animation: slideIn 0.3s ease-out forwards; }
+
+        /* =========================
+           Color system: Light mode
+           ========================= */
+        :root {
+            /* Light mode palette */
+            --surface: #F3F4F6;         /* page background (soft off-white) */
+            --surface-2: #FFFFFF;       /* component surface */
+            --surface-3: #F8FAFC;       /* subtle panels */
+            --text-primary: #0F172A;    /* strong readable text */
+            --text-muted: #475569;      /* secondary text */
+            --border: #E2E8F0;          /* subtle border */
+            --blue-primary: #1E40AF;    /* darker blue for light mode */
+            --blue-accent: #1B3B8A;     /* deeper accent */
+            --glass: rgba(255,255,255,0.7);
+            --shadow: 0 10px 30px rgba(2,6,23,0.06);
+        }
+
+        /* Dark mode variables (kept for current dark theme behavior) */
+        html.dark {
+            --surface: #020204;
+            --surface-2: #06060c;
+            --surface-3: #0b0b10;
+            --text-primary: #e5eef8;
+            --text-muted: #94a3b8;
+            --border: rgba(255,255,255,0.06);
+            --blue-primary: #2563eb;
+            --blue-accent: #3b82f6;
+            --glass: rgba(2,4,7,0.6);
+            --shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        /* Apply base page colors in light mode */
+        html:not(.dark) body {
+            background-color: var(--surface);
+            color: var(--text-primary);
+        }
+
+        /* Replace commonly used Tailwind utilities in light mode with improved palette */
+        html:not(.dark) .bg-white,
+        html:not(.dark) .bg-white\/95,
+        html:not(.dark) .bg-white\/50 { background-color: var(--surface-2) !important; }
+
+        /* Slightly off-white panels */
+        html:not(.dark) .bg-slate-50,
+        html:not(.dark) .bg-slate-50\/50 { background-color: var(--surface-3) !important; }
+
+        /* Text colors */
+        html:not(.dark) .text-slate-800,
+        html:not(.dark) .text-slate-900 { color: var(--text-primary) !important; }
+        html:not(.dark) .text-slate-500,
+        html:not(.dark) .text-slate-400,
+        html:not(.dark) .text-slate-300 { color: var(--text-muted) !important; }
+
+        /* Make blue tones darker in light mode for legibility */
+        /* Strong primary blues used for actions */
+        html:not(.dark) .bg-blue-600,
+        html:not(.dark) .bg-blue-500 { background-color: var(--blue-primary) !important; }
+
+        /* Subtle blue backgrounds (lighter tones) kept but slightly darker for contrast */
+        html:not(.dark) .bg-blue-100 { background-color: rgba(30,64,175,0.08) !important; }
+        html:not(.dark) .bg-blue-50 { background-color: rgba(30,64,175,0.04) !important; }
+
+        /* Make text and borders use the stronger blue */
+        html:not(.dark) .text-blue-600,
+        html:not(.dark) .text-blue-700,
+        html:not(.dark) [class*="text-blue-"] { color: var(--blue-primary) !important; }
+
+        html:not(.dark) .border-blue-200,
+        html:not(.dark) .border-blue-100 { border-color: var(--border) !important; }
+        html:not(.dark) .border-blue-500,
+        html:not(.dark) [class*="border-blue-"] { border-color: var(--blue-primary) !important; }
+
+        /* Catch-all for any utility that contains blue in the class name (text/bg/border) */
+        html:not(.dark) [class*="text-blue-"] { color: var(--blue-primary) !important; }
+        html:not(.dark) [class*="border-blue-"] { border-color: var(--blue-primary) !important; }
+        /* For background classes we are conservative: keep strong blues for -500/-600, lighter tones mapped to translucent tints above */
+        html:not(.dark) [class*="bg-blue-"] { /* handled above for specific scales */ }
+
+
+        /* Inputs and form elements */
+        html:not(.dark) input,
+        html:not(.dark) textarea,
+        html:not(.dark) select,
+        html:not(.dark) .input,
+        html:not(.dark) .form-input {
+            background-color: var(--surface-2) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
+        }
+        html:not(.dark) input::placeholder,
+        html:not(.dark) textarea::placeholder { color: var(--text-muted) !important; opacity: 1; }
+
+        /* Toast styling */
+        html:not(.dark) #toast { background-color: rgba(255,255,255,0.95); color: var(--text-primary); border-color: var(--border); }
+
+        /* Primary buttons */
+        html:not(.dark) .btn-primary,
+        html:not(.dark) .bg-blue-600,
+        html:not(.dark) button.bg-blue-600 { background-color: var(--blue-primary) !important; color: white !important; }
+        html:not(.dark) .btn-primary:hover,
+        html:not(.dark) button.bg-blue-600:hover { background-color: var(--blue-accent) !important; }
+
+        /* Links and interactive elements */
+        html:not(.dark) a,
+        html:not(.dark) .link { color: var(--blue-primary); }
+        html:not(.dark) .muted { color: var(--text-muted); }
+
+        /* Borders and shadows */
+        html:not(.dark) .border { border-color: var(--border) !important; }
+        html:not(.dark) .shadow { box-shadow: var(--shadow) !important; }
+
+        /* Small helpers */
+        html:not(.dark) .text-muted { color: var(--text-muted) !important; }
+        html:not(.dark) .bg-surface { background-color: var(--surface-2) !important; }
+        html:not(.dark) .bg-surface-1 { background-color: var(--surface) !important; }
+
+        /* Accessibility: stronger focus outline */
+        html:not(.dark) :focus { outline: 2px solid var(--blue-primary); outline-offset: 2px; }
+
     </style>
 </head>
 <body class="bg-[#020204] text-slate-300 h-screen w-screen overflow-hidden flex font-sans transition-colors duration-300">
@@ -176,7 +272,7 @@
         
         <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none z-0"></div>
 
-        <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-white/10 bg-black/40 backdrop-blur-md">
+        <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/40 backdrop-blur-md">
             
             <div class="flex items-center gap-1 flex-row flex-nowrap shrink-0" id="nav-tabs">
                 <button onclick="loadModule('editor')" id="btn-editor" class="tab-btn active h-14 px-3 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 border-b-2 border-blue-500 text-blue-400 bg-blue-500/10">
@@ -205,7 +301,7 @@
             </div>
 
             <div class="shrink-0 flex items-center gap-3 pr-3 relative z-20">
-                <button id="theme-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white">
+                <button id="theme-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/10 text-slate-700 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-white/10 hover:text-white">
                     <span>☀️ Basculer Thème</span>
                 </button>
 
@@ -232,321 +328,368 @@
     <div id="modals-container"></div>
 
 
-    <script>
+<script>
         // =========================================================================
-        // 1. ÉTAT GLOBAL ET DONNÉES SIMULÉES (SIDEBAR)
+        // 1. UTILITAIRES API ET ÉTAT GLOBAL
         // =========================================================================
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function apiFetch(url, options = {}) {
+            const defaults = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            };
+            const response = await fetch(url, { ...defaults, ...options });
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            return response.json();
+        }
+
         const sidebarState = {
             activeTab: 'editor',
             searchQuery: '',
-            selectedDocId: 'doc-1',
-            selectedWgId: 'wg-8.1',
-            selectedExpertId: 'exp-1',
-            expertSelectionType: 'expert',
-            
-            documents: [
-                { id: "doc-1", code: "Pr-RDC 9001", title: "ISO 9001 - Révision RDC", category: "Qualité", updatedBy: "Masamba" },
-                { id: "doc-2", code: "Pr-RDC 27001", title: "Sécurité de l'information", category: "Sécurité", updatedBy: "Lukusa" }
-            ],
-            workingGroups: [
-                { id: "wg-8.1", code: "WG 8.1", title: "Matériaux Locaux (CTM 8)", tag: "Actif" },
-                { id: "wg-1.2", code: "WG 1.2", title: "Stabilité Sols (CTM 1)", tag: "Rédaction" }
-            ],
-            experts: [
-                { id: "exp-1", name: "Prof. Masamba Édouard", role: "Président scientifique", structure: "UNIKIN", email: "masamba@cnetp.cd", isApproved: true },
-                { id: "exp-2", name: "Ir. Chantal Mwamba", role: "Secrétaire", structure: "OVD", email: "chantal@cnetp.cd", isApproved: true }
-            ],
-            collaborators: [
-                { id: "col-1", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", email: "masamba@cnetp.cd", avatarColor: "#3b82f6", isActive: true },
-                { id: "col-2", name: "Marie Laurent", role: "Coordinateur CTC", email: "marie@cnetp.cd", avatarColor: "#ec4899", isActive: false }
-            ],
-            historyEditors: [
-                { email: "masamba@cnetp.cd", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", avatarColor: "#3b82f6", count: 12 },
-                { email: "chantal@cnetp.cd", name: "Ir. Chantal Mwamba", role: "Secrétaire", avatarColor: "#14b8a6", count: 3 }
-            ],
-            meetings: [
-                { id: "m-1", title: "Session CTM 8 - Argiles", date: "20 Mai 2026", status: "Terminé" },
-                { id: "m-2", title: "Concertation ITP", date: "24 Mai 2026", status: "En cours" }
-            ],
-            budgets: [
-                { id: "b-1", title: "Cotisation Annuelle OCC", amount: "78,500 CDF", status: "Payé" },
-                { id: "b-2", title: "Fonds ITP Secrétariat", amount: "125,000 CDF", status: "Validé" }
-            ],
-            validationSteps: [
-                { id: "s-1", title: "1. Enquête Publique 90 J.", desc: "Recueil des avis publics" },
-                { id: "s-2", title: "2. Conformité Formulation", desc: "Relit technique légistique" }
-            ]
+            selectedDocId: null,
+            selectedWgId: null,
+            documents: [],
+            workingGroups: [],
+            experts: [],
+            collaborators: [],
+            historyEditors: [],
+            meetings: [],
+            budgets: [],
+            validationSteps: []
         };
 
+        const chatState = {
+            isOpen: false,
+            isMinimized: false,
+            activeContactId: null,
+            myProfile: { id: 'me', name: "Expert CNETP" },
+            contacts: [],
+            messages: {}
+        };
+
+        // Hydratation de la Sidebar depuis l'API
+        async function fetchSidebarData() {
+            try {
+                const [norms, wgs, experts, meetings] = await Promise.all([
+                    apiFetch('/api/v1/norms/'),
+                    apiFetch('/api/v1/wg/'),
+                    apiFetch('/api/v1/experts/'),
+                    apiFetch('/api/v1/reunions/upcoming/')
+                ]);
+
+                sidebarState.documents = (norms.results || norms).map(n => ({
+                    id: n.id,
+                    code: n.reference_number,
+                    title: n.title,
+                    category: n.status,
+                    updatedBy: n.ctm_name || "Admin"
+                }));
+
+                sidebarState.workingGroups = (wgs.results || wgs).map(w => ({
+                    id: w.id,
+                    code: w.code || `WG ${w.id}`,
+                    title: w.name,
+                    tag: "Actif"
+                }));
+
+                sidebarState.experts = (experts.results || experts).map(e => ({
+                    id: e.id,
+                    name: e.user_name,
+                    role: "Expert",
+                    structure: e.structure_name,
+                    avatarColor: "#3b82f6"
+                }));
+                
+                sidebarState.collaborators = sidebarState.experts;
+
+                sidebarState.meetings = (meetings.results || meetings).map(m => ({
+                    id: m.id,
+                    title: m.titre,
+                    date: new Date(m.date).toLocaleDateString('fr-FR'),
+                    status: m.status
+                }));
+
+                renderSidebarContent();
+                
+                if (!sidebarState.selectedDocId && sidebarState.documents.length > 0) {
+                    sidebarSelect('doc', sidebarState.documents[0].id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch sidebar data:", error);
+            }
+        }
+
+        async function loadDocumentDetails(id) {
+            try {
+                const doc = await apiFetch(`/api/v1/norms/${id}/`);
+                
+                const titleEl = document.getElementById('doc-title');
+                const codeEl = document.getElementById('doc-code');
+                const descEl = document.getElementById('doc-desc');
+                const textarea = document.getElementById('editor-textarea');
+                
+                if (titleEl) titleEl.textContent = doc.title;
+                if (codeEl) codeEl.textContent = doc.reference_number;
+                if (descEl) descEl.textContent = doc.description || "Aucune description.";
+                
+                if (textarea) {
+                    textarea.value = doc.latest_version ? doc.latest_version.content : "Document sans contenu.";
+                    textarea.dispatchEvent(new Event('input'));
+                }
+
+                // Afficher le contenu de l'éditeur et cacher le placeholder
+                const editorContent = document.getElementById('editor-content');
+                const editorPlaceholder = document.getElementById('editor-placeholder');
+                if (editorContent && editorPlaceholder) {
+                    editorContent.classList.remove('hidden');
+                    editorPlaceholder.classList.add('hidden');
+                }
+                
+                if (window.showAppToast) window.showAppToast(`Document ${doc.reference_number} chargé.`);
+            } catch (error) {
+                console.error("Error loading document details:", error);
+            }
+        }
+
+
         // =========================================================================
-        // 2. FONCTIONS DE RENDU DE LA SIDEBAR
+        // 2. RENDU DE LA SIDEBAR
         // =========================================================================
         function renderSidebarContent(tab = null) {
             if (tab) sidebarState.activeTab = tab;
             const topSection = document.getElementById('sidebar-top-section');
             const bottomSection = document.getElementById('sidebar-bottom-section');
-            
             if(!topSection || !bottomSection) return;
 
             let topHtml = '';
-            let bottomHtml = '';
-
             if (sidebarState.activeTab === 'editor') {
                 topHtml = `
                     <div class="flex items-center justify-between mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                            <i data-lucide="file-text" class="h-3.5 w-3.5"></i> Documents
-                        </h2>
-                        <button onclick="handleAddAction('doc')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 cursor-pointer shadow-xs border text-blue-600 hover:bg-blue-100 bg-blue-50 border-blue-200 dark:text-blue-400 dark:hover:text-white dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:border-blue-500/20">
-                            <i data-lucide="plus" class="h-3 w-3 inline"></i> Nouveau
-                        </button>
+                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Documents</h2>
+                        <button class="text-[10px] font-bold px-2 py-1 rounded transition-all border text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20 cursor-pointer"><i data-lucide="plus" class="h-3 w-3 inline"></i> Nouveau</button>
                     </div>
                     <div class="space-y-1">
-                        ${sidebarState.documents.map(doc => {
-                            const isSelected = doc.id === sidebarState.selectedDocId;
-                            const bgClass = isSelected ? "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 shadow-xs font-bold" : "bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400";
-                            const catColor = doc.category === 'Qualité' ? "text-blue-600 bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400" : "text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400";
-                            
-                            return `
-                            <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
-                                <div class="flex items-start justify-between gap-2 w-full">
-                                    <span class="font-semibold text-xs truncate max-w-[150px] ${isSelected ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
-                                    <span class="text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${catColor}">${doc.category}</span>
-                                </div>
-                                <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1">
-                                    <span class="font-mono bg-slate-100 border-slate-200 dark:bg-white/5 dark:border-white/5 px-1.5 rounded font-semibold">${doc.code}</span>
-                                    <span class="truncate max-w-[100px]">Par ${doc.updatedBy}</span>
-                                </div>
+                        ${sidebarState.documents.length ? sidebarState.documents.map(doc => {
+                            const isSel = doc.id === sidebarState.selectedDocId;
+                            const bgClass = isSel ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 font-bold' : 'bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400';
+                            return `<button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
+                                <span class="font-semibold text-xs truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                                <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span>${doc.updatedBy}</span></div>
                             </button>`;
-                        }).join('')}
+                        }).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun document trouvé.</p>'}
                     </div>`;
-            } 
-            else if (sidebarState.activeTab === 'history') {
-                topHtml = `
-                    <div class="px-2 mb-3 relative">
-                        <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
-                        <input type="text" placeholder="Rechercher norme..." oninput="updateSidebarSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-hidden dark:border-white/10 dark:bg-black/55 dark:text-white placeholder-slate-400">
-                    </div>
-                    <div class="space-y-1">
-                        ${sidebarState.documents.filter(d => d.title.toLowerCase().includes(sidebarState.searchQuery.toLowerCase())).map(doc => `
-                            <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400 transition-all">
-                                <span class="font-semibold text-xs">${doc.title}</span>
-                            </button>
-                        `).join('')}
-                    </div>`;
-            } 
-            else if (sidebarState.activeTab === 'experts') {
-                topHtml = `
-                    <div class="px-2 mb-3 relative">
-                        <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
-                        <input type="text" placeholder="Rechercher WG..." oninput="updateSidebarSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-hidden dark:border-white/10 dark:bg-black/55 dark:text-white placeholder-slate-400">
-                    </div>
-                    <div class="space-y-1.5">
-                        ${sidebarState.workingGroups.filter(wg => wg.title.toLowerCase().includes(sidebarState.searchQuery.toLowerCase()) || wg.code.toLowerCase().includes(sidebarState.searchQuery.toLowerCase())).map(wg => `
-                            <button onclick="sidebarSelect('wg', '${wg.id}')" class="w-full text-left p-3 rounded-lg border bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
-                                <div class="flex items-center justify-between gap-1.5">
-                                    <span class="font-mono text-[9.5px] bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 rounded font-bold">${wg.code}</span>
-                                    <span class="text-[9px] font-bold text-slate-500 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-full uppercase">${wg.tag}</span>
-                                </div>
-                                <p class="text-xs font-semibold mt-1.5 text-slate-800 dark:text-slate-200">${wg.title}</p>
-                            </button>
-                        `).join('')}
-                    </div>`;
-            } 
-            else if (sidebarState.activeTab === 'meetings') {
-                topHtml = `
-                    <div class="flex items-center justify-between mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="calendar" class="h-3.5 w-3.5"></i> Réunions</h2>
-                        <button onclick="handleAddAction('meeting')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 border text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20 dark:hover:bg-blue-500/20 cursor-pointer"><i data-lucide="plus" class="h-3 w-3 inline"></i> Planifier</button>
-                    </div>
-                    <div class="space-y-1.5">
-                        ${sidebarState.meetings.map(m => `
-                            <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold">${m.date}</span>
-                                    <span class="text-[8.5px] px-1 rounded font-bold uppercase ${m.status === 'Terminé' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'}">${m.status}</span>
-                                </div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white mt-1.5">${m.title}</p>
-                            </div>
-                        `).join('')}
-                    </div>`;
-            } 
-            else if (sidebarState.activeTab === 'financial') {
-                topHtml = `
-                    <div class="flex items-center justify-between mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="coins" class="h-3.5 w-3.5"></i> Cotisations</h2>
-                        <button onclick="handleAddAction('budget')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 border text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20 dark:hover:bg-blue-500/20 cursor-pointer"><i data-lucide="plus" class="h-3 w-3 inline"></i> Déclarer</button>
-                    </div>
-                    <div class="space-y-1.5">
-                        ${sidebarState.budgets.map(b => `
-                            <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">${b.title}</p>
-                                <div class="flex items-center justify-between mt-1.5 font-mono text-[9px]">
-                                    <span class="font-semibold text-blue-600 dark:text-blue-400">${b.amount}</span>
-                                    <span class="text-slate-500 font-semibold">${b.status}</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>`;
-            }
-            else if (sidebarState.activeTab === 'validation') {
-                topHtml = `
-                    <div class="flex items-center mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="check-square" class="h-3.5 w-3.5"></i> Processus ISO</h2>
-                    </div>
-                    <div class="space-y-1.5">
-                        ${sidebarState.validationSteps.map(s => `
-                        <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                            <p class="text-xs font-bold text-blue-600 dark:text-blue-400">${s.title}</p>
-                            <p class="text-[10px] text-slate-500 leading-normal mt-0.5">${s.desc}</p>
-                        </div>`).join('')}
-                    </div>
-                `;
+            } else if (sidebarState.activeTab === 'history') {
+                topHtml = `<div class="px-2 mb-3 relative"><i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i><input type="text" placeholder="Rechercher norme..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-white border-white/10 focus:outline-hidden"></div>`;
+            } else if (sidebarState.activeTab === 'experts') {
+                topHtml = `<div class="space-y-1.5">${sidebarState.workingGroups.length ? sidebarState.workingGroups.map(wg => `<button class="w-full text-left p-3 rounded-lg border dark:bg-white/[0.02] dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"><span class="font-mono text-[9.5px] bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 rounded font-bold">${wg.code}</span><p class="text-xs font-semibold mt-1.5 text-slate-800 dark:text-slate-200">${wg.title}</p></button>`).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun groupe trouvé.</p>'}</div>`;
+            } else if (sidebarState.activeTab === 'meetings') {
+                topHtml = `<div class="space-y-1.5">${sidebarState.meetings.length ? sidebarState.meetings.map(m => `<div class="p-3 bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg"><span class="text-[10px] font-mono text-slate-500 font-bold">${m.date}</span><p class="text-xs font-bold text-slate-800 dark:text-white mt-1.5">${m.title}</p></div>`).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucune réunion prévue.</p>'}</div>`;
             }
 
-            // RENDU SECTION BASSE
-            let bTitle = sidebarState.activeTab === 'experts' ? 'Experts du CNETP' : 'Collaborateurs';
             let listData = sidebarState.activeTab === 'experts' ? sidebarState.experts : sidebarState.collaborators;
-
-            bottomHtml = `
-                <div class="mb-3 px-2 flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/5">
-                    <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                        <i data-lucide="users" class="h-3.5 w-3.5"></i> ${bTitle}
-                    </h2>
-                </div>
-                <div class="space-y-2">
-                    ${listData.map(c => `
-                        <button class="w-full text-left p-2.5 rounded-lg border border-transparent hover:bg-slate-100 dark:hover:bg-white/10 bg-black/5 dark:bg-black/10 flex items-center gap-3 transition-all cursor-pointer">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 relative" style="background-color: ${c.avatarColor || '#3b82f6'}">
-                                ${c.name.substring(0,2).toUpperCase()}
-                                ${c.isActive ? '<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border-2 border-white dark:border-slate-950 rounded-full"></span>' : ''}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${c.name}</p>
-                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${c.role}</p>
-                            </div>
-                        </button>
-                    `).join('')}
-                </div>`;
+            let bottomHtml = `<div class="mb-3 px-2 flex justify-between pt-4 border-t border-slate-200 dark:border-white/5"><h2 class="text-xs font-semibold text-slate-500 uppercase"><i data-lucide="users" class="h-3.5 w-3.5 inline"></i> Collaborateurs</h2></div><div class="space-y-2">
+                ${listData.length ? listData.map(c => `
+                    <button class="w-full text-left p-2.5 rounded-lg border border-transparent hover:bg-slate-100 dark:hover:bg-white/10 bg-black/5 dark:bg-black/10 flex items-center gap-3 transition-all">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style="background-color: ${c.avatarColor || '#3b82f6'}">${c.name ? c.name.substring(0,2).toUpperCase() : 'EX'}</div>
+                        <div class="flex-1 min-w-0"><p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${c.name}</p><p class="text-[10px] text-slate-500 truncate mt-0.5">${c.role}</p></div>
+                    </button>
+                `).join('') : '<p class="text-[10px] text-center py-2 text-slate-500">Chargement...</p>'}</div>`;
 
             topSection.innerHTML = topHtml;
             bottomSection.innerHTML = bottomHtml;
             lucide.createIcons();
         }
 
-        function updateSidebarSearch(val) {
-            sidebarState.searchQuery = val;
-            renderSidebarContent();
-        }
 
         function sidebarSelect(type, id) {
-            if (type === 'doc') sidebarState.selectedDocId = id;
+            if (type === 'doc') {
+                sidebarState.selectedDocId = id;
+                loadDocumentDetails(id);
+            }
             if (type === 'wg') sidebarState.selectedWgId = id;
             renderSidebarContent();
-            if (window.showAppToast) window.showAppToast("Sélection mise à jour", "success");
-        }
-
-        function handleAddAction(type) {
-            if(type === 'doc' && window.showAppToast) window.showAppToast("Ouverture de l'assistant de création...", "info");
-            if(type === 'meeting') {
-                const val = prompt("Sujet de la nouvelle réunion :");
-                if(val) { sidebarState.meetings.push({id:`m-${Date.now()}`, title: val, date: "Planifié", status: "En attente"}); renderSidebarContent(); }
-            }
-            if(type === 'budget') {
-                const val = prompt("Nom de la ligne budgétaire :");
-                if(val) { sidebarState.budgets.push({id:`b-${Date.now()}`, title: val, amount: "À définir", status: "En attente"}); renderSidebarContent(); }
-            }
         }
 
         // =========================================================================
-        // 3. LOGIQUE DE CHARGEMENT DES MODULES (Onglets via AJAX)
+        // 3. LOGIQUE DU WIDGET MESSAGERIE
+        // =========================================================================
+        function openMessagingWidget() {
+            chatState.isOpen = true; chatState.isMinimized = false;
+            document.getElementById('toggle-messaging-floating').classList.add('hidden');
+            const win = document.getElementById('messaging-window');
+            win.classList.remove('hidden'); win.classList.add('flex');
+            win.classList.replace("w-80", "w-[700px]"); win.classList.replace("h-14", "h-[500px]");
+            document.getElementById('messaging-content').classList.remove('hidden');
+            document.getElementById('minimize-icon').classList.remove('rotate-180');
+            if (!chatState.activeContactId) setActiveContact(chatState.contacts[0].id);
+            else { renderContacts(); renderMessages(); }
+        }
+
+        function closeMessagingWidget() {
+            chatState.isOpen = false;
+            document.getElementById('messaging-window').classList.add('hidden');
+            document.getElementById('messaging-window').classList.remove('flex');
+            document.getElementById('toggle-messaging-floating').classList.remove('hidden');
+        }
+
+        function minimizeMessagingWidget() {
+            chatState.isMinimized = !chatState.isMinimized;
+            const win = document.getElementById('messaging-window');
+            if (chatState.isMinimized) {
+                win.classList.replace("w-[700px]", "w-80"); win.classList.replace("h-[500px]", "h-14");
+                document.getElementById('messaging-content').classList.add('hidden');
+                document.getElementById('minimize-icon').classList.add('rotate-180');
+            } else {
+                win.classList.replace("w-80", "w-[700px]"); win.classList.replace("h-14", "h-[500px]");
+                document.getElementById('messaging-content').classList.remove('hidden');
+                document.getElementById('minimize-icon').classList.remove('rotate-180');
+                scrollToBottom();
+            }
+        }
+
+        function setActiveContact(id) {
+            chatState.activeContactId = id;
+            const contact = chatState.contacts.find(c => c.id === id);
+            document.getElementById('active-contact-name').textContent = contact.name;
+            document.getElementById('active-contact-role').textContent = contact.role;
+            document.getElementById('active-contact-struct').textContent = contact.structure || "";
+            renderContacts(); renderMessages();
+        }
+
+        function renderContacts(query = "") {
+            const filtered = chatState.contacts.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+            document.getElementById('contacts-list').innerHTML = filtered.map(c => {
+                const isSelected = c.id === chatState.activeContactId;
+                const bgClass = isSelected ? "bg-white/5 dark:bg-white/10" : "hover:bg-slate-200 dark:hover:bg-white/[0.02]";
+                return `<button onclick="setActiveContact('${c.id}')" class="w-full p-3 text-left transition-all flex items-center gap-2.5 ${bgClass}">
+                    <div class="h-8.5 w-8.5 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style="background-color: ${c.avatarColor}">${c.name.substring(0,2).toUpperCase()}</div>
+                    <div class="min-w-0 flex-1"><span class="text-[11.5px] font-bold truncate ${isSelected ? 'text-blue-700 dark:text-white' : 'text-slate-800 dark:text-slate-200'}">${c.name}</span><p class="text-[9.5px] mt-0.5 truncate text-slate-500">${c.role}</p></div>
+                </button>`;
+            }).join('');
+        }
+
+        function filterContacts(val) { renderContacts(val); }
+
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            const msgs = chatState.messages[chatState.activeContactId] || [];
+            if (msgs.length === 0) {
+                container.innerHTML = `<p class="text-[10.5px] text-slate-500 italic py-12 text-center">Début de l'historique sécurisé.</p>`; return;
+            }
+            container.innerHTML = msgs.map(m => {
+                const isMe = m.senderId === "me";
+                const wrapperClass = isMe ? "justify-end" : "justify-start";
+                const bubbleClass = isMe ? "bg-blue-600 text-white dark:bg-blue-500/10 dark:border dark:border-blue-500/25 dark:text-slate-100" : "bg-slate-100 border border-slate-200 text-slate-800 dark:bg-white/[0.03] dark:border-white/5 dark:text-slate-200";
+                return `<div class="flex ${wrapperClass} animate-fadeIn"><div class="max-w-[85%] rounded-xl px-3.5 py-2.5 text-xs shadow-sm ${bubbleClass}"><p class="whitespace-pre-wrap">${m.text}</p><div class="mt-1 flex items-center justify-end gap-1.5 text-[8.5px] ${isMe ? 'text-blue-100 dark:text-white/40' : 'text-slate-400 dark:text-white/40'}"><span>${m.timestamp}</span>${isMe ? `<i data-lucide="check-check" class="h-3 w-3"></i>` : ''}</div></div></div>`;
+            }).join('');
+            lucide.createIcons(); scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const c = document.getElementById('messages-container'); c.scrollTop = c.scrollHeight;
+        }
+
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-text');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const timeStr = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+            if(!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
+            
+            chatState.messages[chatState.activeContactId].push({ id: `msg-${Date.now()}`, senderId: "me", senderName: chatState.myProfile.name, text: text, timestamp: timeStr });
+            input.value = ""; document.getElementById('send-msg-btn').disabled = true; renderMessages();
+            
+            setTimeout(() => {
+                chatState.messages[chatState.activeContactId].push({ id: `rep-${Date.now()}`, senderId: chatState.activeContactId, text: "Bien reçu.", timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) });
+                if (chatState.isOpen) renderMessages();
+            }, 1500);
+        }
+
+        // =========================================================================
+        // 4. LOGIQUE DES ONGLETS AJAX ET INITIALISATION
         // =========================================================================
         const loadedModules = new Set();
 
         async function loadModule(moduleId) {
-            // A. Gestion visuelle de l'UI des onglets
             document.querySelectorAll('.module-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-500', 'text-blue-400', 'bg-blue-500/10', 'active');
                 btn.classList.add('border-transparent', 'text-slate-400');
             });
 
-            const activeContainer = document.getElementById(`module-${moduleId}`);
-            const activeBtn = document.getElementById(`btn-${moduleId}`);
-            
-            if(activeContainer) activeContainer.classList.add('active');
-            if(activeBtn) {
-                activeBtn.classList.remove('border-transparent', 'text-slate-400');
-                activeBtn.classList.add('border-blue-500', 'text-blue-400', 'bg-blue-500/10', 'active');
+            const actC = document.getElementById(`module-${moduleId}`);
+            const actB = document.getElementById(`btn-${moduleId}`);
+            if(actC) actC.classList.add('active');
+            if(actB) {
+                actB.classList.remove('border-transparent', 'text-slate-400');
+                actB.classList.add('border-blue-500', 'text-blue-400', 'bg-blue-500/10', 'active');
             }
 
-            // B. Mettre à jour la Sidebar
             sidebarState.activeTab = moduleId;
-            sidebarState.searchQuery = ""; // Reset search
             renderSidebarContent();
 
-            // C. Si le module est déjà chargé
-            if (loadedModules.has(moduleId)) return;
+            if (loadedModules.has(moduleId)) {
+                if (moduleId === 'editor' && sidebarState.selectedDocId) {
+                    loadDocumentDetails(sidebarState.selectedDocId);
+                }
+                return;
+            }
 
-            // D. Logique FETCH
             try {
-                if (activeContainer) {
-                    activeContainer.innerHTML = `
-                        <div class="flex-1 flex flex-col items-center justify-center text-blue-500 h-full">
-                            <i data-lucide="loader-2" class="w-10 h-10 animate-spin mb-4"></i>
-                            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Chargement de l'espace de travail...</p>
-                        </div>
-                    `;
+                if (actC) {
+                    actC.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-blue-500 h-full"><i data-lucide="loader-2" class="w-10 h-10 animate-spin mb-4"></i><p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Chargement...</p></div>`;
                     lucide.createIcons();
                 }
 
-                // REMPLACER ICI PAR VOTRE URL API DJANGO
                 const response = await fetch(`/api/components/${moduleId}/`);
-                if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
+                if (!response.ok) throw new Error("Erreur réseau");
                 
                 const html = await response.text();
+                actC.innerHTML = html;
                 
-                activeContainer.innerHTML = html;
                 lucide.createIcons();
-                executeScripts(activeContainer); 
-                
+                executeScripts(actC); 
                 loadedModules.add(moduleId);
 
-            } catch (error) {
-                console.error("Erreur AJAX:", error);
-                if (activeContainer) {
-                    activeContainer.innerHTML = `
-                        <div class="flex-1 flex flex-col items-center justify-center text-red-500 h-full">
-                            <i data-lucide="alert-triangle" class="w-12 h-12 mb-4"></i>
-                            <p class="font-bold">Erreur de connexion au serveur.</p>
-                            <button onclick="loadModule('${moduleId}')" class="mt-4 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 text-xs font-bold transition-colors cursor-pointer">
-                                Réessayer
-                            </button>
-                        </div>
-                    `;
-                    lucide.createIcons();
+                if (moduleId === 'editor' && sidebarState.selectedDocId) {
+                    loadDocumentDetails(sidebarState.selectedDocId);
                 }
+            } catch (error) {
+                console.error("AJAX Error:", error);
             }
         }
 
-        function executeScripts(element) {
-            const scripts = element.querySelectorAll('script');
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                oldScript.parentNode.replaceChild(newScript, oldScript);
+        function executeScripts(el) {
+            el.querySelectorAll('script').forEach(oldScript => {
+                const newS = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newS.setAttribute(attr.name, attr.value));
+                newS.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newS, oldScript);
             });
         }
 
-        // =========================================================================
-        // 4. UTILITAIRES GLOBAUX (Thème, Toasts)
-        // =========================================================================
         document.getElementById('theme-toggle').addEventListener('click', () => {
-            const htmlTag = document.documentElement;
-            htmlTag.classList.toggle('dark');
-            
-            if(htmlTag.classList.contains('dark')) {
+            document.documentElement.classList.toggle('dark');
+            if(document.documentElement.classList.contains('dark')) {
                 document.body.classList.add('bg-[#020204]', 'text-slate-300');
                 document.body.classList.remove('bg-slate-50', 'text-slate-800');
             } else {
@@ -556,42 +699,29 @@
             renderSidebarContent();
         });
 
-        window.showAppToast = function(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-msg');
-            const toastIcon = document.getElementById('toast-icon');
-            
-            toastMsg.textContent = message;
-            
-            if(type === 'error') {
-                toastIcon.setAttribute('data-lucide', 'alert-triangle');
-                toastIcon.classList.replace('text-blue-400', 'text-red-400');
-            } else if (type === 'info') {
-                toastIcon.setAttribute('data-lucide', 'info');
-                toastIcon.classList.replace('text-red-400', 'text-blue-400');
-            } else {
-                toastIcon.setAttribute('data-lucide', 'check-circle-2');
-                toastIcon.classList.replace('text-red-400', 'text-blue-400');
-            }
-            lucide.createIcons();
-
-            toast.classList.remove('hidden');
-            toast.classList.add('animate-slideIn');
-            
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('animate-slideIn');
-            }, 4000);
-        }
-
-        // INIT AU DÉMARRAGE
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            document.getElementById('user-display-name').textContent = "Expert Connecté";
-            
-            renderSidebarContent();
-            loadModule('editor'); // Charge le premier onglet automatiquement
+            document.getElementById('user-display-name').textContent = "{{ user|default:'Expert Connecté' }}";
+            fetchSidebarData();
+            loadModule('editor'); 
+
+            // Charger le composant de messagerie dans son container
+            (async () => {
+                const messagingContainer = document.getElementById('messaging-widget-container');
+                if (!messagingContainer) return;
+                try {
+                    const res = await fetch('/api/components/messaging/');
+                    if (res.ok) {
+                        messagingContainer.innerHTML = await res.text();
+                        lucide.createIcons();
+                        executeScripts(messagingContainer);
+                    }
+                } catch (err) { console.error(err); }
+            })();
         });
+
     </script>
+    
+
 </body>
 </html>
