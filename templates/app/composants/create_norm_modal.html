@@ -76,7 +76,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Catégorie d'activité</label>
-                    <select id="cnm-category" onchange="autoSelectCtm(this.value)" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
+                    <select id="cnm-category" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
                         <option value="Qualité">Qualité (Standardisation ISO/IEC)</option>
                         <option value="Sécurité">Sécurité (Infrastructures & Civil)</option>
                         <option value="Éthique">Éthique (Environnement & Gouvernance)</option>
@@ -85,12 +85,17 @@
 
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sous-commission (CTM)</label>
-                    <select id="cnm-ctm" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
-                        <option value="CTM 1 – Géotechnique">CTM 1 – Géotechnique</option>
-                        <option value="CTM 3 – Bâtiments">CTM 3 – Bâtiments</option>
-                        <option value="CTM 8 – Sciences des Matériaux" selected>CTM 8 – Sciences des Matériaux</option>
+                    <select id="cnm-ctm" onchange="populateWgs(this.value)" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
+                        <option value="">Chargement...</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Groupe de Travail (WG)</label>
+                <select id="cnm-wg" class="w-full px-3 py-2.5 rounded-lg border font-medium text-xs focus:outline-hidden transition-all bg-white border-slate-300 text-slate-900 dark:bg-black/30 dark:border-white/10 dark:text-white">
+                    <option value="">Sélectionnez d'abord un CTM</option>
+                </select>
             </div>
 
             <div class="space-y-1">
@@ -122,28 +127,87 @@
         </form>
     </div>
 </div>
-
 <script>
     // Variables globales Modal
-    const cnmModal = document.getElementById('create-norm-modal');
-    const cnmChoiceStep = document.getElementById('cnm-choice-step');
-    const cnmFormStep = document.getElementById('cnm-form-step');
-    const cnmLoadingStep = document.getElementById('cnm-loading-step');
-    const cnmLoadingText = document.getElementById('cnm-loading-text');
+    var cnmModal = document.getElementById('create-norm-modal');
+    var cnmChoiceStep = document.getElementById('cnm-choice-step');
+    var cnmFormStep = document.getElementById('cnm-form-step');
+    var cnmLoadingStep = document.getElementById('cnm-loading-step');
+    var cnmLoadingText = document.getElementById('cnm-loading-text');
 
     // Ouverture et Fermeture
-    function openCreateNormModal() {
+    window.openCreateNormModal = function() {
+        // Re-query DOM elements to ensure they exist
+        cnmModal = document.getElementById('create-norm-modal');
+        cnmChoiceStep = document.getElementById('cnm-choice-step');
+        cnmFormStep = document.getElementById('cnm-form-step');
+        cnmLoadingStep = document.getElementById('cnm-loading-step');
+        cnmLoadingText = document.getElementById('cnm-loading-text');
+
+        // Validate modal exists
+        if (!cnmModal) {
+            console.error('Create Norm Modal: DOM element #create-norm-modal not found');
+            return;
+        }
+
         resetToChoiceStep();
         cnmModal.classList.remove('hidden');
-        document.getElementById('cnm-extract-badge').classList.add('hidden');
+        
+        const extractBadge = document.getElementById('cnm-extract-badge');
+        if (extractBadge) extractBadge.classList.add('hidden');
+        
+        // Ensure sidebarState is loaded before populating
+        if (typeof sidebarState !== 'undefined') {
+            populateCtms();
+        } else {
+            console.warn('Create Norm Modal: sidebarState not initialized yet');
+        }
+        
+        console.log('Create Norm Modal opened');
+    };
+
+    window.closeCreateNormModal = function() {
+        if (cnmModal) cnmModal.classList.add('hidden');
+    };
+
+    function populateCtms() {
+        const ctmSelect = document.getElementById('cnm-ctm');
+        if (!ctmSelect) return;
+        
+        if (typeof sidebarState !== 'undefined' && sidebarState.ctms && sidebarState.ctms.length > 0) {
+            ctmSelect.innerHTML = '<option value="">-- Sélectionner CTM --</option>' + 
+                sidebarState.ctms.map(c => `<option value="${c.id}">CTM ${c.number} - ${c.name}</option>`).join('');
+        } else {
+            ctmSelect.innerHTML = '<option value="">Aucun CTM chargé</option>';
+        }
+        populateWgs(""); // Clear WGs
     }
 
-    function closeCreateNormModal() {
-        cnmModal.classList.add('hidden');
+    function populateWgs(ctmId) {
+        const wgSelect = document.getElementById('cnm-wg');
+        if (!wgSelect) return;
+        
+        if (!ctmId) {
+            wgSelect.innerHTML = '<option value="">Sélectionnez d'abord un CTM</option>';
+            wgSelect.disabled = true;
+            return;
+        }
+
+        if (typeof sidebarState !== 'undefined' && sidebarState.workingGroups) {
+            const filteredWgs = sidebarState.workingGroups.filter(wg => wg.ctm == ctmId);
+            if (filteredWgs.length > 0) {
+                wgSelect.innerHTML = '<option value="">-- Sélectionner WG --</option>' + 
+                    filteredWgs.map(wg => `<option value="${wg.id}">${wg.code} - ${wg.title}</option>`).join('');
+                wgSelect.disabled = false;
+            } else {
+                wgSelect.innerHTML = '<option value="">Aucun WG trouvé pour ce CTM</option>';
+                wgSelect.disabled = true;
+            }
+        }
     }
 
     // Basculer vers l'édition manuelle
-    function selectManualChoice() {
+    window.selectManualChoice = function() {
         // Vider les champs
         document.getElementById('cnm-title').value = "";
         document.getElementById('cnm-code').value = "PR-RDC-";
@@ -152,48 +216,46 @@
         
         cnmChoiceStep.classList.add('hidden');
         cnmFormStep.classList.remove('hidden');
-        document.getElementById('cnm-extract-badge').classList.add('hidden');
-    }
+        const extractBadge = document.getElementById('cnm-extract-badge');
+        if (extractBadge) extractBadge.classList.add('hidden');
+    };
 
-    function resetToChoiceStep() {
-        cnmFormStep.classList.add('hidden');
-        cnmLoadingStep.classList.add('hidden');
-        cnmChoiceStep.classList.remove('hidden');
-    }
-
-    // Gestion du type de Catégorie -> CTM
-    function autoSelectCtm(category) {
-        const ctmSelect = document.getElementById('cnm-ctm');
-        if(category === "Qualité") ctmSelect.value = "CTM 8 – Sciences des Matériaux";
-        else if (category === "Sécurité") ctmSelect.value = "CTM 3 – Bâtiments";
-        else ctmSelect.value = "CTM 1 – Géotechnique";
-    }
+    window.resetToChoiceStep = function() {
+        if (cnmFormStep) cnmFormStep.classList.add('hidden');
+        if (cnmLoadingStep) cnmLoadingStep.classList.add('hidden');
+        if (cnmChoiceStep) cnmChoiceStep.classList.remove('hidden');
+    };
 
     // --- GESTION DE L'IMPORT DE FICHIER ---
-    function handleFileDrop(e) {
+    window.handleFileDrop = function(e) {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if(file) processFile(file);
-    }
+    };
 
-    function handleFileUpload(e) {
+    window.handleFileUpload = function(e) {
         const file = e.target.files[0];
         if(file) processFile(file);
-    }
+    };
 
     function processFile(file) {
-        cnmChoiceStep.classList.add('hidden');
-        cnmLoadingStep.classList.remove('hidden');
-        document.getElementById('cnm-loading-step').classList.add('flex');
+        if (cnmChoiceStep) cnmChoiceStep.classList.add('hidden');
+        if (cnmLoadingStep) {
+            cnmLoadingStep.classList.remove('hidden');
+            cnmLoadingStep.classList.add('flex');
+        }
         
-        document.getElementById('cnm-filename-display').classList.remove('hidden');
-        document.getElementById('cnm-filename-display').textContent = `Source : ${file.name}`;
+        const filenameDisplay = document.getElementById('cnm-filename-display');
+        if (filenameDisplay) {
+            filenameDisplay.classList.remove('hidden');
+            filenameDisplay.textContent = `Source : ${file.name}`;
+        }
         
         // Simulation d'une extraction IA
-        cnmLoadingText.textContent = "Extraction des clauses réglementaires...";
+        if (cnmLoadingText) cnmLoadingText.textContent = "Extraction des clauses réglementaires...";
         
         setTimeout(() => {
-            cnmLoadingText.textContent = "Structuration de la nomenclature gouvernementale...";
+            if (cnmLoadingText) cnmLoadingText.textContent = "Structuration de la nomenclature gouvernementale...";
             
             setTimeout(() => {
                 // Auto-remplissage du formulaire
@@ -203,44 +265,86 @@
                 document.getElementById('cnm-content').value = "Clause 1. Objectif du document issu de " + file.name + "\n\nClause 2. Conformité et champ d'application...";
                 
                 // Afficher le formulaire et badge d'extraction
-                document.getElementById('cnm-loading-step').classList.remove('flex');
-                cnmLoadingStep.classList.add('hidden');
-                cnmFormStep.classList.remove('hidden');
-                document.getElementById('cnm-extract-badge').classList.remove('hidden');
+                if (cnmLoadingStep) {
+                    cnmLoadingStep.classList.remove('flex');
+                    cnmLoadingStep.classList.add('hidden');
+                }
+                if (cnmFormStep) cnmFormStep.classList.remove('hidden');
+                const extractBadge = document.getElementById('cnm-extract-badge');
+                if (extractBadge) extractBadge.classList.remove('hidden');
 
             }, 1000);
         }, 1500);
     }
 
     // --- SOUMISSION DU FORMULAIRE ---
-    function submitNewNorm(e) {
+    window.submitNewNorm = async function(e) {
         e.preventDefault();
         const btn = document.getElementById('cnm-submit-btn');
         const code = document.getElementById('cnm-code').value;
         const title = document.getElementById('cnm-title').value;
+        const desc = document.getElementById('cnm-desc').value;
+        const content = document.getElementById('cnm-content').value;
+        const ctm = document.getElementById('cnm-ctm').value;
+        const wg = document.getElementById('cnm-wg').value;
         
-        btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Création...`;
-        lucide.createIcons();
+        if (!ctm || !wg) {
+            if (window.showAppToast) window.showAppToast("Veuillez sélectionner un CTM et un WG.", "warning");
+            return;
+        }
 
-        // Simulation de requête POST AJAX
-        setTimeout(() => {
-            btn.innerHTML = `<i data-lucide="check-circle" class="h-4 w-4"></i> Générer la Norme`;
-            lucide.createIcons();
+        const originalBtnHtml = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Création...`;
+        btn.disabled = true;
+        if(window.safeCreateIcons) window.safeCreateIcons(); else if(window.lucide) lucide.createIcons();
+
+        try {
+            // 1. Créer la norme
+            const normData = {
+                reference_number: code,
+                title: title,
+                description: desc,
+                ctm: parseInt(ctm),
+                wg: parseInt(wg),
+                is_public: true
+            };
+            
+            const newNorm = await apiFetch('/api/v1/norms/', {
+                method: 'POST',
+                body: JSON.stringify(normData)
+            });
+
+            // 2. Créer la première version avec le contenu
+            await apiFetch(`/api/v1/norms/${newNorm.id}/create_version/`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: "Version initiale",
+                    content: content,
+                    summary: "Importation initiale lors de la création."
+                })
+            });
+
+            if (window.showAppToast) window.showAppToast(`Norme ${code} créée avec succès !`);
             
             closeCreateNormModal();
             
-            if (window.showAppToast) window.showAppToast(`Norme ${code} créée avec succès !`);
-
-            // Mettre à jour visuellement la sidebar de l'application si nécessaire
-            if(typeof window.fetchSidebarData === 'function') {
-                window.fetchSidebarData(); // recharge la BDD virtuelle de la sidebar
-            } else if (typeof sidebarState !== 'undefined') {
-                // Si la fonction globale fetch existe pas encore, on hack le JSON temporaire
-                sidebarState.documents.unshift({ id: `doc-new-${Date.now()}`, code: code, title: title, category: document.getElementById('cnm-category').value, updatedBy: "Vous" });
-                sidebarState.selectedDocId = `doc-new-${Date.now()}`;
-                if(typeof renderSidebarContent === 'function') renderSidebarContent();
+            // Recharger la sidebar pour voir la nouvelle norme
+            if (typeof fetchSidebarData === 'function') {
+                await fetchSidebarData();
+            }
+            
+            // Charger la nouvelle norme dans l'éditeur
+            if (typeof loadDocumentDetails === 'function') {
+                loadDocumentDetails(newNorm.id);
             }
 
-        }, 1200);
+        } catch (error) {
+            console.error("Erreur lors de la création de la norme:", error);
+            if (window.showAppToast) window.showAppToast("Erreur lors de la création de la norme.", "error");
+        } finally {
+            btn.innerHTML = originalBtnHtml;
+            btn.disabled = false;
+            if(window.safeCreateIcons) window.safeCreateIcons(); else if(window.lucide) lucide.createIcons();
+        }
     }
 </script>
