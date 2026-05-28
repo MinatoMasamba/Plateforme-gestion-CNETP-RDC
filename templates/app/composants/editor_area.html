@@ -271,6 +271,10 @@
                     </button>
                 </form>
             </div>
+
+            <div id="editor-history-panel">
+                
+            </div>
         </nav>
 
         <div id="ed-nav-floating-btn" class="hidden fixed right-6 top-[calc(33.33%+10px)] z-50 animate-fadeIn">
@@ -407,6 +411,21 @@
 </div>
 
 <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     // ==========================================
     // ETAT SIMULÉ DU COMPOSANT (Remplace React useState)
     // ==========================================
@@ -452,6 +471,10 @@
         if (editorState.document) {
             editorState.text = editorState.document.content;
             document.getElementById('ed-main-textarea').value = editorState.text;
+            // Initialiser le module d'historique avec l'ID du document
+            if (typeof initHistoryModule === 'function') {
+                await initHistoryModule(editorState.document.id);
+            }
         }
 
         await loadShareContacts();
@@ -514,9 +537,22 @@
         if(window.showAppToast) window.showAppToast("L'édition en cours a été réinitialisée.", "info");
     }
 
-    function saveEditorVersion() {
+    async function saveEditorVersion() {
+        if (!editorState.document) {
+            if(window.showAppToast) window.showAppToast("Aucun document sélectionné pour la sauvegarde.", "error");
+            return;
+        }
+
         const btn = document.getElementById('ed-save-btn');
         const icon = document.getElementById('ed-save-icon');
+        const commentEl = document.getElementById('ed-edit-comment');
+        const comment = commentEl ? commentEl.value.trim() : "";
+
+        if (!comment) {
+            if(window.showAppToast) window.showAppToast("Veuillez ajouter un commentaire pour cette version.", "warning");
+            return;
+        }
+
         if (icon) {
             icon.setAttribute('data-lucide', 'loader-2');
             icon.classList.add('animate-spin');
@@ -524,20 +560,52 @@
         if (btn) btn.disabled = true;
         lucide.createIcons();
 
-        setTimeout(() => {
-            if (editorState.document) editorState.document.content = editorState.text;
-            const commentEl = document.getElementById('ed-edit-comment');
-            if (commentEl) commentEl.value = "";
+        const payload = {
+            content: editorState.text,
+            comment: comment,
+        };
+
+        try {
+            const response = await fetch(`/api/v1/norms/${editorState.document.id}/create_version/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Erreur HTTP: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+
+            const newVersion = await response.json();
+            editorState.document.content = editorState.text; // Mettre à jour le contenu de la norme principale
+            if (commentEl) commentEl.value = ""; // Vider le commentaire
             
+            if(window.showAppToast) window.showAppToast("Nouvelle version sauvegardée avec succès !", "success");
+            
+            // Recharger l'historique des versions après la sauvegarde
+            if (typeof loadHistoryData === 'function') {
+                await loadHistoryData();
+                populateDropdowns(); // Re-peupler les dropdowns pour inclure la nouvelle version
+                renderTimeline(); // Re-rendre la timeline
+            }
+
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde de la version:", error);
+            if(window.showAppToast) window.showAppToast("Erreur lors de la sauvegarde de la version.", "error");
+        } finally {
+            // Réinitialiser le bouton et l'icône, qu'il y ait succès ou échec
             if (icon) {
                 icon.setAttribute('data-lucide', 'save');
                 icon.classList.remove('animate-spin');
             }
             validateSaveBtn();
             lucide.createIcons();
-            
-            if(window.showAppToast) window.showAppToast("Nouvelle version sauvegardée avec succès !");
-        }, 1200);
+        }
     }
 
     // ==========================================
@@ -712,7 +780,8 @@
         setTimeout(() => {
             document.getElementById('ed-ai-result-panel').classList.remove('hidden');
             document.getElementById('ed-ai-explanation').textContent = "L'IA a identifié que cette formulation ne correspond pas tout à fait au canevas officiel ISO du CTM 8. Voici une révision plus stricte.";
-            document.getElementById('ed-ai-textarea').value = "Révision proposée : \n" + editorState.text;
+            document.getElementById('ed-ai-textarea').value = "Révision proposée : 
+" + editorState.text;
             
             icon.setAttribute('data-lucide', 'sparkles');
             icon.classList.remove('animate-spin');

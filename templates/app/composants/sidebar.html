@@ -354,7 +354,11 @@
     function handleAddAction(type) {
         let val;
         if(type === 'doc') {
-            if(window.showAppToast) window.showAppToast("Ouverture de l'assistant de création...", "info");
+            if(typeof openCreateNormModal === 'function') {
+                openCreateNormModal();
+            } else {
+                if(window.showAppToast) window.showAppToast("L'assistant de création n'est pas encore chargé.", "warning");
+            }
         }
         if(type === 'meeting') {
             val = prompt("Sujet de la nouvelle séance de concertation :");
