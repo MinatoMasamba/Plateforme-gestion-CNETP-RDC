@@ -60,30 +60,59 @@
 </div>
 
 <script>
-    let documentVersions = [
-        { id: 'v3', versionNumber: 3, timestamp: '2026-05-26T14:30:00', comment: 'Mise en conformité de la note 2 selon CTM 8', author: 'Prof. Masamba', email: 'masamba@cnetp.cd', isRollback: false },
-        { id: 'v2', versionNumber: 2, timestamp: '2026-05-25T09:15:00', comment: 'Correction orthographique et ajout section 4.1', author: 'Ir. Chantal Mwamba', email: 'chantal@cnetp.cd', isRollback: false },
-        { id: 'v1', versionNumber: 1, timestamp: '2026-05-20T10:00:00', comment: 'Version initiale rédigée', author: 'Prof. Masamba', email: 'masamba@cnetp.cd', isRollback: false }
-    ];
+    const historyState = {
+        normeId: null,
+        versions: [],
+        v1Num: null,
+        v2Num: null,
+        selectedAuthorEmail: null,
+    };
 
-    let v1Num = 2;
-    let v2Num = 3;
-    let selectedAuthorEmail = null;
-
-    function initHistoryModule() {
+    async function initHistoryModule(normeId) {
+        historyState.normeId = normeId;
+        await loadHistoryData();
         populateDropdowns();
         renderTimeline();
         updateDiffView();
     }
 
+    async function loadHistoryData() {
+        if (!historyState.normeId) return;
+        try {
+            const response = await fetch(`/api/v1/norms/${historyState.normeId}/versions/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Impossible de charger l\'historique des versions');
+            const data = await response.json();
+            historyState.versions = data.results;
+
+            if (historyState.versions.length > 0) {
+                if (!historyState.v2Num) historyState.v2Num = historyState.versions[0].version_number;
+                if (historyState.versions.length > 1 && !historyState.v1Num) {
+                    historyState.v1Num = historyState.versions[1].version_number;
+                } else if (historyState.versions.length === 1) {
+                    historyState.v1Num = historyState.versions[0].version_number;
+                }
+            } else {
+                historyState.v1Num = null;
+                historyState.v2Num = null;
+            }
+
+        } catch (error) {
+            console.error("Erreur de chargement de l'historique:", error);
+            if(window.showAppToast) window.showAppToast("Erreur de chargement de l'historique des versions.", "error");
+            historyState.versions = [];
+        }
+    }
+
     function renderTimeline() {
         const timeline = document.getElementById('history-timeline');
-        
-        let filteredVersions = documentVersions;
-        if (selectedAuthorEmail) {
-            filteredVersions = documentVersions.filter(v => v.email === selectedAuthorEmail);
+
+        let filteredVersions = historyState.versions;
+        if (historyState.selectedAuthorEmail) {
+            filteredVersions = historyState.versions.filter(v => v.author_email === historyState.selectedAuthorEmail);
             document.getElementById('history-filter-banner').classList.remove('hidden');
-            document.getElementById('filter-author-name').textContent = filteredVersions[0]?.author || selectedAuthorEmail;
+            document.getElementById('filter-author-name').textContent = filteredVersions[0]?.author_name || historyState.selectedAuthorEmail;
             document.getElementById('filter-count').textContent = `${filteredVersions.length} modification(s)`;
         } else {
             document.getElementById('history-filter-banner').classList.add('hidden');
@@ -100,14 +129,14 @@
         }
 
         timeline.innerHTML = filteredVersions.map(ver => {
-            const isV1 = ver.versionNumber === v1Num;
-            const isV2 = ver.versionNumber === v2Num;
-            
+            const isV1 = ver.version_number === historyState.v1Num;
+            const isV2 = ver.version_number === historyState.v2Num;
+
             let dotClasses = "bg-white border-slate-300 group-hover:border-blue-400 dark:bg-slate-950 dark:border-white/20 dark:group-hover:border-white/40";
             if (isV1) dotClasses = "bg-white border-blue-600 scale-110 shadow-[0_0_8px_rgba(37,99,235,0.4)] dark:bg-[#020204] dark:border-blue-500 dark:shadow-[0_0_8px_rgba(59,130,246,0.5)]";
             else if (isV2) dotClasses = "bg-blue-600 border-blue-600 scale-110 shadow-[0_0_8px_rgba(37,99,235,0.6)] dark:bg-blue-500 dark:border-blue-500 dark:shadow-[0_0_8px_rgba(59,130,246,0.7)]";
 
-            const dateStr = new Date(ver.timestamp).toLocaleDateString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+            const dateStr = new Date(ver.created_at).toLocaleDateString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
             return `
             <div class="relative pl-8 group">
@@ -118,7 +147,7 @@
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-1.5">
                             <span class="font-mono text-[9.5px] font-bold bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-200 px-1.5 py-0.5 rounded shadow-xs">
-                                v${ver.versionNumber}
+                                v${ver.version_number}
                             </span>
                         </div>
                         <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${dateStr}</span>
@@ -128,11 +157,11 @@
                     </p>
                     <div class="flex items-center gap-1.5 text-[10px] text-slate-600 dark:text-slate-500 font-semibold">
                         <i data-lucide="user" class="h-3 w-3"></i>
-                        <span class="truncate max-w-[120px]" title="${ver.email}">${ver.author}</span>
+                        <span class="truncate max-w-[120px]" title="${ver.author_email}">${ver.author_name}</span>
                     </div>
                     <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5 text-[10.5px] font-bold">
-                        <button onclick="quickCompare(${ver.versionNumber})" class="hover:underline bg-transparent border-none cursor-pointer text-blue-600 dark:text-blue-400">Comparer</button>
-                        <button onclick="rollbackVersion(${ver.versionNumber})" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 cursor-pointer">
+                        <button onclick="quickCompare(${ver.version_number})" class="hover:underline bg-transparent border-none cursor-pointer text-blue-600 dark:text-blue-400">Comparer</button>
+                        <button onclick="rollbackVersion(${ver.version_number})" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 cursor-pointer">
                             <i data-lucide="rotate-ccw" class="h-2.5 w-2.5"></i> Restaurer
                         </button>
                     </div>
@@ -145,86 +174,87 @@
     function populateDropdowns() {
         const select1 = document.getElementById('select-v1');
         const select2 = document.getElementById('select-v2');
-        const optionsHtml = documentVersions.map(v => `<option value="${v.versionNumber}">v${v.versionNumber} (${v.author.split(' ')[0]})</option>`).join('');
+        const optionsHtml = historyState.versions.map(v => `<option value="${v.version_number}">v${v.version_number} (${v.author_name.split(' ')[0]})</option>`).join('');
         select1.innerHTML = optionsHtml;
         select2.innerHTML = optionsHtml;
-        select1.value = v1Num;
-        select2.value = v2Num;
+        select1.value = historyState.v1Num;
+        select2.value = historyState.v2Num;
     }
 
-    function updateDiffView() {
-        v1Num = parseInt(document.getElementById('select-v1').value);
-        v2Num = parseInt(document.getElementById('select-v2').value);
+    async function updateDiffView() {
+        historyState.v1Num = parseInt(document.getElementById('select-v1').value);
+        historyState.v2Num = parseInt(document.getElementById('select-v2').value);
         renderTimeline();
 
         const viewer = document.getElementById('diff-viewer');
 
-        if (v1Num === v2Num) {
+        if (historyState.v1Num === historyState.v2Num) {
             viewer.innerHTML = `
                 <div class="flex-1 flex flex-col items-center justify-center py-20 text-slate-500 font-bold text-xs text-center space-y-2">
                     <div class="h-10 w-10 border rounded-full flex items-center justify-center mx-auto bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400">
-                        v${v1Num}
+                        v${historyState.v1Num}
                     </div>
-                    <p class="text-slate-700 dark:text-slate-300">Vous comparez la version v${v1Num} avec elle-même.</p>
+                    <p class="text-slate-700 dark:text-slate-300">Vous comparez la version v${historyState.v1Num} avec elle-même.</p>
                 </div>`;
             return;
         }
 
-        // LE RENDU CORRIGÉ DU DIFF
-        viewer.innerHTML = `
-            <p class="text-xs leading-relaxed font-sans font-medium whitespace-pre-wrap text-slate-700 dark:text-slate-300">
-                1. Objectif du document. Cette norme régit la qualité des matériaux locaux.
-            </p>
+        try {
+            const response = await fetch(`/api/v1/norms/${historyState.normeId}/diff/?v1=${historyState.v1Num}&v2=${historyState.v2Num}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Impossible de charger les différences de version');
+            const diffData = await response.json();
 
-            <div class="border-l-4 p-4 rounded-r-lg max-w-[95%] shadow-inner bg-red-50/50 border-red-500 text-slate-600 dark:bg-red-950/20 dark:border-red-500 dark:text-slate-400">
-                <span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-red-700 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30">
-                    - Retrait entier
-                </span>
-                <div class="line-through decoration-red-400 dark:decoration-red-900/60 opacity-80 text-xs leading-relaxed whitespace-pre-wrap">
-                    L'utilisation de la brique de terre cuite n'est pas recommandée sans ajout de ciment Portland.
-                </div>
-            </div>
+            // Rendu simplifié du diff. Une implémentation complète utiliserait un algorithme de diff visuel.
+            let diffHtml = '';
+            diffData.changes.forEach(change => {
+                if (change.change_type === 'DELETION') {
+                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg max-w-[95%] shadow-inner bg-red-50/50 border-red-500 text-slate-600 dark:bg-red-950/20 dark:border-red-500 dark:text-slate-400"><span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-red-700 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30">- Retrait</span><div class="line-through decoration-red-400 dark:decoration-red-900/60 opacity-80 text-xs leading-relaxed whitespace-pre-wrap">${change.old_text || ''}</div></div>`;
+                } else if (change.change_type === 'ADDITION') {
+                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-blue-50/50 border-blue-500 text-slate-800 dark:bg-blue-950/20 dark:border-blue-500 dark:text-slate-300"><span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-blue-700 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/20 dark:border-blue-500/30">+ Ajout</span><div class="text-xs leading-relaxed whitespace-pre-wrap">${change.new_text || ''}</div></div>`;
+                } else if (change.change_type === 'MODIFICATION') {
+                     // Pour une modification, on peut montrer l'ancien et le nouveau texte
+                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-amber-50/40 border-amber-400 dark:bg-[#181824]/40 dark:border-amber-500/70"><span class="inline-block mb-2 text-[9.5px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Modification</span><p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-300"><span class="font-medium rounded px-1 line-through bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">${change.old_text || ''}</span> <span class="font-medium rounded px-1 bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">${change.new_text || ''}</span></p></div>`;
+                } else { // UNCHANGED
+                     diffHtml += `<p class="text-xs leading-relaxed font-sans font-medium whitespace-pre-wrap text-slate-700 dark:text-slate-300">${change.new_text || ''}</p>`;
+                }
+            });
 
-            <div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-blue-50/50 border-blue-500 text-slate-800 dark:bg-blue-950/20 dark:border-blue-500 dark:text-slate-300">
-                <span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-blue-700 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/20 dark:border-blue-500/30">
-                    + Ajout entier
-                </span>
-                <div class="text-xs leading-relaxed whitespace-pre-wrap">
-                    Sous la recommandation du CTM 8, l'usage des briques géo-polymères (BTC) stabilisées est privilégié pour les ouvrages R+1.
-                </div>
-            </div>
+            viewer.innerHTML = diffHtml || `<p class="text-center py-10 text-slate-500 text-xs font-medium">Aucune différence significative détectée.</p>`;
+            lucide.createIcons();
 
-            <div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-amber-50/40 border-amber-400 dark:bg-[#181824]/40 dark:border-amber-500/70">
-                <span class="inline-block mb-2 text-[9.5px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                    Modification dans le paragraphe (Comparaison inline) :
-                </span>
-                <p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-300">
-                    Le contrôle qualité doit s'effectuer <span class="font-medium rounded px-1 line-through bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">chaque mois</span> <span class="font-medium rounded px-1 bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">tous les 15 jours</span> selon la nouvelle directive.
-                </p>
-            </div>
-        `;
+        } catch (error) {
+            console.error("Erreur de chargement des différences:", error);
+            viewer.innerHTML = `<p class="text-center py-10 text-red-500 text-xs font-medium">Erreur lors du chargement des différences.</p>`;
+        }
     }
 
     function quickCompare(targetVersion) {
-        v1Num = targetVersion;
-        if(documentVersions.length > 0) {
-            v2Num = documentVersions[0].versionNumber === targetVersion ? documentVersions[1].versionNumber : documentVersions[0].versionNumber;
+        historyState.v1Num = targetVersion;
+        if(historyState.versions.length > 0) {
+            historyState.v2Num = historyState.versions[0].version_number === targetVersion ? historyState.versions[1]?.version_number : historyState.versions[0].version_number;
         }
-        document.getElementById('select-v1').value = v1Num;
-        document.getElementById('select-v2').value = v2Num;
+        document.getElementById('select-v1').value = historyState.v1Num;
+        document.getElementById('select-v2').value = historyState.v2Num;
         updateDiffView();
     }
 
     function rollbackVersion(versionNum) {
-        if(confirm(`Êtes-vous sûr de vouloir restaurer la version v${versionNum} ?`)) {
-            if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`);
+        // TODO: Implémenter l'appel API pour la restauration
+        if(confirm(`Êtes-vous sûr de vouloir restaurer la version v${versionNum} ? Cette action créera une nouvelle version basée sur le contenu de cette version historique.`)) {
+            if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`, "info");
+            // Appeler l'API pour restaurer la version
+            // Après succès, recharger l'historique: loadHistoryData() puis renderTimeline()
         }
     }
 
     function clearAuthorFilter() {
-        selectedAuthorEmail = null;
+        historyState.selectedAuthorEmail = null;
         renderTimeline();
     }
 
-    setTimeout(initHistoryModule, 100);
+    // L'initialisation sera appelée depuis editor_area.html
+    // setTimeout(initHistoryModule, 100);
+
 </script>
