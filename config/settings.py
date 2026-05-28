@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'apps.public.apps.PublicConfig',
     'apps.mobileapp.apps.MobileappConfig',
     'apps.documents.apps.DocumentsConfig',
+    'apps.messaging.apps.MessagingConfig',
 ]
 
 MIDDLEWARE = [

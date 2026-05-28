@@ -21,6 +21,7 @@ from .mobile_views import (
 from .validation_views import LegisticReviewViewSet
 from .documents_views import DocumentFileViewSet
 from .public_views import PublicAmendementViewSet
+from .messaging_views import MessageViewSet
 
 # Créer le router et enregistrer les viewsets
 router = DefaultRouter()

@@ -84,46 +84,22 @@
     const sidebarState = {
         activeTab: 'editor',
         searchQuery: '',
-        selectedDocId: 'doc-1',
-        selectedWgId: 'wg-8.1',
-        selectedExpertId: 'exp-1',
+        selectedDocId: null,
+        selectedWgId: null,
+        selectedExpertId: null,
         expertSelectionType: 'expert', // 'wg' ou 'expert'
         historyAuthorFilter: null,
         userRole: 'ADMIN',
         
-        // Données (Simulées, à remplacer par fetch API)
-        documents: [
-            { id: "doc-1", code: "Pr-RDC 9001", title: "ISO 9001 - Révision RDC", category: "Qualité", updatedBy: "Masamba" },
-            { id: "doc-2", code: "Pr-RDC 27001", title: "Sécurité de l'information", category: "Sécurité", updatedBy: "Lukusa" }
-        ],
-        workingGroups: [
-            { id: "wg-8.1", code: "WG 8.1", title: "Matériaux Locaux (CTM 8)", tag: "Actif" },
-            { id: "wg-1.2", code: "WG 1.2", title: "Stabilité Sols (CTM 1)", tag: "Rédaction" }
-        ],
-        experts: [
-            { id: "exp-1", name: "Prof. Masamba Édouard", role: "Président scientifique", structure: "UNIKIN", email: "masamba@cnetp.cd", isApproved: true },
-            { id: "exp-2", name: "Ir. Chantal Mwamba", role: "Secrétaire", structure: "OVD", email: "chantal@cnetp.cd", isApproved: true }
-        ],
-        collaborators: [
-            { id: "col-1", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", email: "masamba@cnetp.cd", avatarColor: "#3b82f6", isActive: true },
-            { id: "col-2", name: "Marie Laurent", role: "Coordinateur CTC", email: "marie@cnetp.cd", avatarColor: "#ec4899", isActive: false }
-        ],
-        historyEditors: [
-            { email: "masamba@cnetp.cd", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", avatarColor: "#3b82f6", count: 12 },
-            { email: "chantal@cnetp.cd", name: "Ir. Chantal Mwamba", role: "Secrétaire", avatarColor: "#14b8a6", count: 3 }
-        ],
-        meetings: [
-            { id: "m-1", title: "Session CTM 8 - Argiles", date: "20 Mai 2026", status: "Terminé" },
-            { id: "m-2", title: "Concertation ITP", date: "24 Mai 2026", status: "En cours" }
-        ],
-        budgets: [
-            { id: "b-1", title: "Cotisation Annuelle OCC", amount: "78,500 CDF", status: "Payé" },
-            { id: "b-2", title: "Fonds ITP Secrétariat", amount: "125,000 CDF", status: "Validé" }
-        ],
-        validationSteps: [
-            { id: "s-1", title: "1. Enquête Publique 90 J.", desc: "Recueil des avis publics" },
-            { id: "s-2", title: "2. Conformité Formulation", desc: "Relit technique légistique" }
-        ]
+        // Données vides, à remplir par l'API
+        documents: [],
+        workingGroups: [],
+        experts: [],
+        collaborators: [],
+        historyEditors: [],
+        meetings: [],
+        budgets: [],
+        validationSteps: []
     };
 
     // --- FONCTION PRINCIPALE DE RENDU ---

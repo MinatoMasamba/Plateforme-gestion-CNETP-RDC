@@ -1887,3 +1887,127 @@ Traceback (most recent call last):
   File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
     raise TemplateDoesNotExist(template_name, chain=chain)
 django.template.exceptions.TemplateDoesNotExist: app/composants/meetings_module.html
+INFO 2026-05-27 22:56:05,684 autoreload 3555 129555162435712 Watching for file changes with StatReloader
+WARNING 2026-05-27 22:57:08,898 log 3555 129555030333120 Not Found: /favicon.ico
+INFO 2026-05-28 09:53:04,112 autoreload 3914 127926098817152 Watching for file changes with StatReloader
+WARNING 2026-05-28 09:54:11,496 log 3914 127925984687808 Not Found: /favicon.ico
+INFO 2026-05-28 10:12:08,654 autoreload 3914 127926098817152 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-28 10:12:15,975 autoreload 7144 138819165253760 Watching for file changes with StatReloader
+ERROR 2026-05-28 10:54:21,670 log 7144 138818963363520 Internal Server Error: /api/components/meetings/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 226, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/meetings_module.html
+ERROR 2026-05-28 11:03:52,258 log 7144 138818938185408 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 226, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+WARNING 2026-05-28 11:04:03,066 log 7144 138818938185408 Not Found: /api/components/validation/
+ERROR 2026-05-28 11:04:06,071 log 7144 138818938185408 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 226, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+INFO 2026-05-28 11:25:05,048 autoreload 7144 138819165253760 /home/minato/project/apps/meetings/models.py changed, reloading.
+INFO 2026-05-28 11:25:09,408 autoreload 11697 127523666681984 Watching for file changes with StatReloader
+INFO 2026-05-28 11:27:56,872 autoreload 11697 127523666681984 /home/minato/project/api/v1/meetings_serializers.py changed, reloading.
+INFO 2026-05-28 11:28:02,212 autoreload 11769 124222587592832 Watching for file changes with StatReloader
+INFO 2026-05-28 11:46:38,144 autoreload 11769 124222587592832 /home/minato/project/apps/meetings/models.py changed, reloading.
+INFO 2026-05-28 11:46:43,005 autoreload 12160 134651438649472 Watching for file changes with StatReloader
+INFO 2026-05-28 11:47:23,961 autoreload 12160 134651438649472 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-05-28 11:47:26,031 autoreload 12199 138189628498048 Watching for file changes with StatReloader
+INFO 2026-05-28 11:48:19,162 autoreload 12199 138189628498048 /home/minato/project/apps/messaging/apps.py changed, reloading.
+INFO 2026-05-28 11:48:21,795 autoreload 12218 128241685123200 Watching for file changes with StatReloader
+INFO 2026-05-28 11:48:40,370 autoreload 12218 128241685123200 /home/minato/project/apps/meetings/models.py changed, reloading.
+INFO 2026-05-28 11:48:43,447 autoreload 12226 129639496126592 Watching for file changes with StatReloader
+INFO 2026-05-28 11:48:54,204 autoreload 12226 129639496126592 /home/minato/project/api/v1/meetings_serializers.py changed, reloading.
+INFO 2026-05-28 11:48:56,846 autoreload 12232 125507619950720 Watching for file changes with StatReloader
+INFO 2026-05-28 11:49:21,324 autoreload 12232 125507619950720 /home/minato/project/api/v1/meetings_serializers.py changed, reloading.
+INFO 2026-05-28 11:49:24,801 autoreload 12269 137257004593280 Watching for file changes with StatReloader
+INFO 2026-05-28 11:49:59,184 autoreload 12269 137257004593280 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:50:01,999 autoreload 12280 138919303975040 Watching for file changes with StatReloader
+INFO 2026-05-28 11:55:11,780 autoreload 12280 138919303975040 /home/minato/project/api/v1/permissions.py changed, reloading.
+INFO 2026-05-28 11:55:16,846 autoreload 12605 129937264742528 Watching for file changes with StatReloader
+INFO 2026-05-28 11:56:07,442 autoreload 12605 129937264742528 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:56:10,071 autoreload 12684 131178311282816 Watching for file changes with StatReloader
+INFO 2026-05-28 11:56:23,327 autoreload 12691 140616221061248 Watching for file changes with StatReloader
+INFO 2026-05-28 11:57:25,281 autoreload 12691 140616221061248 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:57:25,549 autoreload 12684 131178311282816 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:57:29,103 autoreload 12716 137087688532096 Watching for file changes with StatReloader
+INFO 2026-05-28 11:57:29,320 autoreload 12717 129449081966720 Watching for file changes with StatReloader
+INFO 2026-05-28 11:58:19,650 autoreload 12717 129449081966720 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:58:19,948 autoreload 12716 137087688532096 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-28 11:58:21,450 autoreload 12736 128725041537152 Watching for file changes with StatReloader
+INFO 2026-05-28 11:58:22,076 autoreload 12737 130229708296320 Watching for file changes with StatReloader
+INFO 2026-05-28 12:10:32,723 autoreload 12736 128725041537152 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-28 12:10:41,946 autoreload 13413 126863787122816 Watching for file changes with StatReloader
+INFO 2026-05-28 12:10:52,760 autoreload 13413 126863787122816 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-28 12:11:02,143 autoreload 13454 136289463406720 Watching for file changes with StatReloader
+INFO 2026-05-28 12:11:22,214 autoreload 13454 136289463406720 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-28 12:11:39,737 autoreload 13494 126763371335808 Watching for file changes with StatReloader
+ERROR 2026-05-28 12:29:22,945 log 13494 126763257558720 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 227, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
