@@ -116,14 +116,17 @@
     // =========================================================================
     // ETAT DE LA MESSAGERIE (CONNECTÉ À L'API)
     // =========================================================================
-    const chatState = {
-        isOpen: false,
-        isMinimized: false,
-        activeContactId: null,
-        myProfile: { id: '{{ user.id }}', name: "{{ user.get_full_name|escapejs }}" },
-        contacts: [],
-        messages: {} 
-    };
+    if (typeof chatState === 'undefined') {
+        const chatState = {
+            isOpen: false,
+            isMinimized: false,
+            activeContactId: null,
+            myProfile: { id: '{{ user.id }}', name: "{{ user.get_full_name|escapejs }}" },
+            contacts: [],
+            messages: {} 
+        };
+        window.chatState = chatState;
+    }
 
     // =========================================================================
     // FONCTIONS D'APPEL API
