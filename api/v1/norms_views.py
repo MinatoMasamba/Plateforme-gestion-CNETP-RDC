@@ -11,7 +11,7 @@ from .norms_serializers import (
     NormeStatusUpdateSerializer, NormeVersionSerializer, NormeVersionCreateSerializer,
     NormeFullHistorySerializer, ChangementVersionSerializer
 )
-from .permissions import IsCTCCoordinator, IsExpert
+from .permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
 
 
 class NormeViewSet(viewsets.ModelViewSet):
@@ -26,6 +26,14 @@ class NormeViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'publication_date', 'reference_number']
     ordering = ['-created_at']
     
+    def perform_create(self, serializer):
+        """Associer l'utilisateur actuel à la création"""
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+    def perform_update(self, serializer):
+        """Associer l'utilisateur actuel à la modification"""
+        serializer.save(updated_by=self.request.user)
+
     def get_serializer_class(self):
         """Retourner le serializer approprié selon l'action"""
         if self.action == 'retrieve':
@@ -43,7 +51,7 @@ class NormeViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Permissions granulaires"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsExpert()]
+            return [IsExpertOrCTC()]
         elif self.action in ['update_status']:
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
@@ -155,6 +163,35 @@ class NormeViewSet(viewsets.ModelViewSet):
             'changes': ChangementVersionSerializer(changes, many=True).data
         })
     
+    @action(detail=True, methods=['post'], url_path='rollback-version')
+    def rollback_version(self, request, pk=None):
+        """Restaure une version précédente en créant une nouvelle version."""
+        norme = self.get_object()
+        version_number_to_restore = request.data.get('version_number')
+
+        if not version_number_to_restore:
+            return Response({'detail': 'Le numéro de version est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            version_to_restore = norme.versions.get(version_number=int(version_number_to_restore))
+        except NormeVersion.DoesNotExist:
+            return Response({'detail': 'Version non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Créer une nouvelle version basée sur l'ancienne
+        new_version_comment = f"Restauration du contenu de la version v{version_to_restore.version_number}"
+        
+        create_serializer = NormeVersionCreateSerializer(
+            data={'content': version_to_restore.content, 'comment': new_version_comment},
+            context={'norme': norme, 'request': request}
+        )
+        create_serializer.is_valid(raise_exception=True)
+        new_version = create_serializer.save()
+
+        return Response(
+            NormeVersionSerializer(new_version).data,
+            status=status.HTTP_201_CREATED
+        )
+        
     @action(detail=True, methods=['get'])
     def by_ctm(self, request, pk=None):
         """Récupérer les normes d'un CTM"""

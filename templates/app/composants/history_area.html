@@ -60,6 +60,21 @@
 </div>
 
 <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     const historyState = {
         normeId: null,
         versions: [],
@@ -240,12 +255,46 @@
         updateDiffView();
     }
 
-    function rollbackVersion(versionNum) {
-        // TODO: Implémenter l'appel API pour la restauration
-        if(confirm(`Êtes-vous sûr de vouloir restaurer la version v${versionNum} ? Cette action créera une nouvelle version basée sur le contenu de cette version historique.`)) {
-            if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`, "info");
-            // Appeler l'API pour restaurer la version
-            // Après succès, recharger l'historique: loadHistoryData() puis renderTimeline()
+    async function rollbackVersion(versionNum) {
+        if (!confirm(`Êtes-vous sûr de vouloir restaurer le contenu de la version v${versionNum} ?\nCette action créera une nouvelle version qui sera une copie de la v${versionNum}.`)) {
+            return;
+        }
+
+        if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`, "info");
+        
+        try {
+            const response = await fetch(`/api/v1/norms/${historyState.normeId}/rollback-version/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ version_number: versionNum })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Erreur lors de la restauration: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+
+            const newVersion = await response.json();
+            
+            // Mettre à jour l'éditeur avec le contenu restauré
+            if(typeof window.updateEditorContent === 'function') {
+                window.updateEditorContent(newVersion.content);
+            }
+
+            if(window.showAppToast) window.showAppToast(`Version v${versionNum} restaurée avec succès en tant que nouvelle version v${newVersion.version_number}.`, "success");
+            
+            // Recharger l'historique pour afficher la nouvelle version
+            await loadHistoryData();
+            populateDropdowns();
+            renderTimeline();
+
+        } catch (error) {
+            console.error("Erreur lors de la restauration de la version:", error);
+            if(window.showAppToast) window.showAppToast("Erreur lors de la restauration.", "error");
         }
     }
 
@@ -255,6 +304,4 @@
     }
 
     // L'initialisation sera appelée depuis editor_area.html
-    // setTimeout(initHistoryModule, 100);
-
 </script>

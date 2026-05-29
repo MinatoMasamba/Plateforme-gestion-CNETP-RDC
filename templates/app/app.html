@@ -714,7 +714,7 @@
                     if (window.showAppToast) window.showAppToast('Le panneau de profil est en cours de chargement...', 'info');
                     return;
                 }
-                const expertData = await apiFetch('/api/v1/experts/my-profile/');
+                const expertData = await apiFetch('/api/v1/experts/my_profile/');
                 const userData = expertData.user;
                 currentExpertId = expertData.id;
 
