@@ -19,7 +19,7 @@ from .filters import CTMFilter, WGFilter
 class CTMViewSet(viewsets.ModelViewSet):
     """ViewSet pour les Comités Techniques (CTM)"""
     queryset = CTM.objects.prefetch_related(
-        'working_groups', 'affectations__expert', 'roles'
+        'working_groups', 'affectations__expert'
     )
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

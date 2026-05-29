@@ -74,6 +74,20 @@ class Expert(BaseModel):
     bank_account = models.CharField(max_length=100, blank=True)
     bank_name = models.CharField(max_length=200, blank=True)
     mobile_money_number = models.CharField(max_length=20, blank=True, help_text="Pour paiements via Mobile Money")
+
+    # Champs financiers et d'activité
+    daily_rate = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text="Taux journalier pour les jetons de présence (en USD)"
+    )
+    monthly_research_allowance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text="Indemnité mensuelle de recherche (en USD)"
+    )
+    presence_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Nombre de présences cumulées aux sessions"
+    )
     
     # Tracking
     inscription_date = models.DateTimeField(auto_now_add=True)

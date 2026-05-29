@@ -80,10 +80,11 @@ class NormeCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Norme
         fields = [
-            'reference_number', 'title', 'description',
+            'id', 'reference_number', 'title', 'description',
             'ctm', 'wg', 'iso_reference', 'arso_reference',
             'tags', 'is_public'
         ]
+        read_only_fields = ['id']
     
     def validate(self, data):
         """Vérifier que WG appartient au CTM"""
@@ -151,6 +152,8 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
             norme=norme,
             version_number=next_version_number,
             version_author=self.context.get('request').user,
+            created_by=self.context.get('request').user,
+            updated_by=self.context.get('request').user,
             **validated_data
         )
         return version

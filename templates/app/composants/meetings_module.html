@@ -47,7 +47,22 @@
                     
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Organe :</label>
+                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">CTM :</label>
+                            <select id="meet-new-ctm" onchange="loadWGsByCTM(this.value)" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300">
+                                <option value="">-- Sélectionnez un CTM --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">WG / Type :</label>
+                            <select id="meet-new-wg" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300">
+                                <option value="">-- Sélectionnez un WG --</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Type de Réunion :</label>
                             <select id="meet-new-type" class="w-full p-2.5 rounded-lg border font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300">
                                 <option value="WG">Comité WG (Étude)</option>
                                 <option value="CTM">Comité CTM (Décision)</option>
@@ -60,6 +75,48 @@
                             <input type="time" id="meet-new-time" value="10:00" class="w-full p-2 rounded-lg border focus:outline-hidden font-mono bg-white border-slate-300 text-slate-800 dark:bg-black/65 dark:border-white/10 dark:text-slate-300" />
                         </div>
                     </div>
+                    
+                    <script>
+                    async function loadCTMs() {
+                        try {
+                            const response = await fetch('/api/ctms/');
+                            const ctms = await response.json();
+                            const ctmSelect = document.getElementById('meet-new-ctm');
+                            ctmSelect.innerHTML = '<option value="">-- Sélectionnez un CTM --</option>';
+                            ctms.forEach(ctm => {
+                                const option = document.createElement('option');
+                                option.value = ctm.id;
+                                option.textContent = `CTM ${ctm.number} - ${ctm.name}`;
+                                ctmSelect.appendChild(option);
+                            });
+                        } catch (error) {
+                            console.error('Erreur chargement CTMs:', error);
+                        }
+                    }
+                    
+                    async function loadWGsByCTM(ctmId) {
+                        const wgSelect = document.getElementById('meet-new-wg');
+                        wgSelect.innerHTML = '<option value="">-- Sélectionnez un WG --</option>';
+                        
+                        if (!ctmId) return;
+                        
+                        try {
+                            const response = await fetch(`/api/ctms/${ctmId}/wgs/`);
+                            const wgs = await response.json();
+                            wgs.forEach(wg => {
+                                const option = document.createElement('option');
+                                option.value = wg.id;
+                                option.textContent = `WG ${wg.number} - ${wg.name}`;
+                                wgSelect.appendChild(option);
+                            });
+                        } catch (error) {
+                            console.error('Erreur chargement WGs:', error);
+                        }
+                    }
+                    
+                    // Charger les CTMs au démarrage
+                    document.addEventListener('DOMContentLoaded', loadCTMs);
+                    </script>
 
                     <div>
                         <label class="block mb-1 font-semibold uppercase tracking-wider text-[9px] text-slate-600 dark:text-slate-400">Document réglementaire :</label>

@@ -1,0 +1,610 @@
+<div class="p-6 space-y-8 overflow-y-auto h-full transition-colors duration-250 text-slate-800 bg-slate-50/15 dark:text-slate-300 dark:bg-transparent">
+    
+    <div class="border-b pb-5 border-slate-200 dark:border-white/10">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <i data-lucide="users" class="h-6 w-6 text-blue-500"></i>
+                <h2 class="text-xl font-extrabold tracking-tight uppercase text-slate-900 dark:text-white">
+                    Gestion de la Co-Gouvernance CNETP
+                </h2>
+            </div>
+            <div class="flex rounded-lg p-0.5 text-xs font-semibold border bg-slate-200/60 border-slate-300 dark:bg-black/40 dark:border-white/10">
+                <button
+                    id="btn-view-wg"
+                    onclick="switchExpertView('wg')"
+                    class="px-3 py-1.5 rounded-md transition-all cursor-pointer bg-white text-blue-800 font-bold shadow-xs border border-slate-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                >
+                    Vue Groupe (WG)
+                </button>
+                <button
+                    id="btn-view-expert"
+                    onclick="switchExpertView('expert')"
+                    class="px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                >
+                    Fiche Expert
+                </button>
+            </div>
+        </div>
+        <p class="text-xs max-w-3xl leading-relaxed mt-2 text-slate-600 dark:text-slate-400">
+            Sélectionnez un Groupe de Travail (WG) ou un Expert dans la barre de navigation gauche pour consulter ses attributions, f'iches de conformités et d'accréditations au sein de la République Démocratique du Congo.
+        </p>
+    </div>
+
+    <div id="expert-access-alert" class="hidden mb-4.5 p-3 rounded-lg border border-red-500/35 bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-350 text-xs font-semibold leading-relaxed animate-slideIn"></div>
+
+    <div id="view-wg" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/10 rounded-xl p-5 relative overflow-hidden backdrop-blur-md border shadow-sm">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none"></div>
+                <div class="flex items-center gap-2 mb-2 font-mono text-[10.5px]">
+                    <span id="wg-code-badge" class="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400 border px-2 py-0.5 rounded-md font-bold text-xs"></span>
+                    <span class="text-slate-500"> • </span>
+                    <span class="text-slate-600 dark:text-slate-400 font-bold">STATUT LOCAL :</span>
+                    <span id="wg-status-badge" class="text-blue-600 dark:text-blue-400 font-bold uppercase"></span>
+                </div>
+                <h3 id="wg-title-text" class="text-xl font-extrabold text-slate-900 dark:text-white mt-2 leading-snug"></h3>
+                <p class="text-xs text-slate-600 dark:text-slate-400 mt-4 leading-relaxed">
+                    Ce groupe d'étude de co-gouvernance CNETP a pour vocation d'analyser les technologies d'exploitation, de mise en œuvre et d'établissement des limites réglementaires nationales de RDC de second œuvre ou de gros œuvre correspondantes.
+                </p>
+
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-white/5 pt-4 text-xs font-semibold">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="layers" class="h-4 w-4 text-slate-500"></i>
+                        <span class="text-slate-500">Comité de Rapprochement :</span>
+                        <span class="text-slate-800 dark:text-slate-200">CTC Miroir RDC</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-square" class="h-4 w-4 text-blue-500"></i>
+                        <span class="text-slate-500">Norme Directrice :</span>
+                        <span class="text-slate-800 dark:text-slate-200">ISO/CD National</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-white/5">
+                    <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="layers" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i>
+                        Évolution des Normes de l'Atelier
+                    </h4>
+                    <span id="wg-norms-count" class="text-[10px] font-mono text-slate-600 bg-slate-200 dark:text-slate-500 dark:bg-white/5 px-2 py-0.5 rounded-full"></span>
+                </div>
+
+                <div id="wg-norms-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    </div>
+            </div>
+
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-white/5">
+                    <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="check-square" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i>
+                        Livrables techniques en cours d'évaluation
+                    </h4>
+                    <span class="text-[10px] font-mono text-slate-500">Cliquez pour agir</span>
+                </div>
+
+                <div class="mb-4.5 p-3 rounded-lg border text-xs leading-relaxed bg-blue-50/50 border-blue-100 dark:bg-[#0d0d1d]/35 dark:border-white/5">
+                    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
+                            Statut de Co-Gouvernance :
+                        </span>
+                        <span id="wg-access-badge"></span>
+                    </div>
+                    <p id="wg-access-desc" class="text-[11px]"></p>
+                </div>
+
+                <div id="wg-tasks-list" class="space-y-6">
+                    </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border shadow-sm">
+                <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-2">
+                    <i data-lucide="users" class="h-4 w-4 text-slate-400"></i>
+                    Membres Officiels (<span id="wg-members-count">0</span>)
+                </h4>
+
+                <div id="wg-members-list" class="space-y-3">
+                    </div>
+            </div>
+
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/35 dark:border-white/10 rounded-xl p-5 text-xs space-y-3 border shadow-sm">
+                <h4 class="font-bold text-slate-800 dark:text-white flex items-center gap-1.5 uppercase text-[10.5px]">
+                    <i data-lucide="book-open" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i>
+                    Alignement Légistique
+                </h4>
+                <p class="text-slate-600 dark:text-slate-400 leading-normal text-[11px]">
+                    Tous les livrables d'avant-projets techniques rédigés par ce WG transitent par une relecture du Secrétariat CTC RDC avant homologation nationale sous forme de décret au Journal Officiel.
+                </p>
+                <div class="pt-2 border-t border-slate-200 dark:border-white/5 font-mono text-[9px] text-slate-500">
+                    <p> • Droit de vote réglementaire : Oui</p>
+                    <p> • Quorum Requis : 2/3 des votants</p>
+                    <p> • Période d'enquête publique : 90 jours</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-expert" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn hidden">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/10 rounded-xl p-5 relative overflow-hidden backdrop-blur-md border shadow-sm">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none"></div>
+                
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div id="exp-avatar" class="h-14 w-14 rounded-full bg-blue-500 text-white dark:text-black flex items-center justify-center font-extrabold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:shadow-[0_0_20px_rgba(16,185,129,0.3)] border-2 border-blue-400"></div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 id="exp-name" class="text-lg font-extrabold text-slate-900 dark:text-white"></h3>
+                                <span id="exp-role-badge" class="text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border"></span>
+                            </div>
+                            <p id="exp-struct" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium"></p>
+                        </div>
+                    </div>
+
+                    <div id="exp-approval-container"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 dark:border-white/5 pt-5 mt-5 text-xs text-slate-700 dark:text-slate-300">
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="building" class="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0"></i>
+                            <span class="text-slate-500 font-bold">Institution :</span>
+                            <span id="exp-detail-struct" class="text-slate-900 dark:text-white font-semibold truncate max-w-[200px]"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="map-pin" class="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0"></i>
+                            <span class="text-slate-500 font-bold">Province :</span>
+                            <span id="exp-detail-prov" class="text-slate-900 dark:text-white font-semibold"></span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="award" class="h-4 w-4 text-blue-500/60 shrink-0"></i>
+                            <span class="text-slate-500 font-bold">Comité CTM :</span>
+                            <span id="exp-detail-ctm" class="text-blue-600 dark:text-blue-400 font-bold truncate max-w-[200px]"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="book-open" class="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0"></i>
+                            <span class="text-slate-500 font-bold">Groupe de Travail :</span>
+                            <span id="exp-detail-wg" class="text-slate-900 dark:text-white font-semibold truncate max-w-[200px]"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border">
+                <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5">
+                    Vérification Juridique & Accréditation CTC
+                </h4>
+
+                <div class="space-y-4">
+                    <p id="exp-approval-desc" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></p>
+
+                    <div class="flex items-center gap-3 pt-2">
+                        <div id="exp-approve-btn-container" class="w-full"></div>
+                        <button onclick="triggerExpertDelete()" class="px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ml-auto" title="Supprimer définitivement la fiche expert">
+                            <i data-lucide="trash-2" class="h-4 w-4"></i> Détacher du CNETP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 space-y-4.5 border">
+                <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-200 dark:border-white/5">
+                    Canal Direct Sécurisé
+                </h4>
+
+                <div class="space-y-3 font-mono text-xs">
+                    <div class="space-y-1">
+                        <span class="text-slate-500 text-[10px] font-bold block uppercase">Courriel Officiel</span>
+                        <span id="exp-contact-email" class="text-slate-800 dark:text-slate-200 block break-all font-semibold select-all"></span>
+                    </div>
+                    <div class="space-y-1 pt-1">
+                        <span class="text-slate-500 text-[10px] font-bold block uppercase font-mono">Ligne Téléphonique</span>
+                        <span id="exp-contact-phone" class="text-slate-800 dark:text-slate-200 block font-semibold select-all"></span>
+                    </div>
+                </div>
+
+                <button onclick="openChatWithExpert()" class="w-full py-2.5 rounded-lg bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:border-blue-500/30 dark:text-blue-400 font-extrabold text-xs transition-all cursor-pointer block text-center border">
+                    💬 Discuter via Messagerie
+                </button>
+            </div>
+
+            <div class="bg-slate-50 border-slate-200 dark:bg-black/35 dark:border-white/10 rounded-xl p-5 text-xs space-y-3 border">
+                <h4 class="font-bold text-slate-800 dark:text-white flex items-center gap-1.5 uppercase text-[10.5px]">
+                    <i data-lucide="layers" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i> Profil CTM Affecté
+                </h4>
+                <div class="p-3 bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg space-y-2 border">
+                    <p id="exp-ctm-head" class="font-bold text-slate-900 dark:text-white text-[11px] leading-tight"></p>
+                    <p id="exp-ctm-sub" class="text-[10px] text-slate-600 dark:text-slate-400 leading-normal"></p>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed pt-1">
+                    Les nominations à ce comité sont renouvelables tous les 3 ans après audit des rapports d'activités techniques par le conseil légistique supérieur.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border shadow-sm">
+        <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-1.5">
+            <i data-lucide="trending-up" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i> Indicateurs Clés de la Commission CNETP RDC
+        </h4>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Comités Techniques Miroirs</span>
+                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">8 / 8 CTM</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 100%"></div></div>
+            </div>
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Groupes d'Études Actifs</span>
+                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">14 Bureaux (WG)</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 70%"></div></div>
+            </div>
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Experts Certifiés Accrédités</span>
+                <span id="footer-experts-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="footer-experts-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
+            </div>
+            <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Taux d'Avancement des Normes</span>
+                <span class="text-xl font-mono font-extrabold text-blue-600 dark:text-blue-400 mt-1 block">84.2 %</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-400 h-1 rounded-full" style="width: 84.2%"></div></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // =========================================================================
+    // 1. ÉTAT INTERNE DU COMPOSANT
+    // =========================================================================
+    const expState = {
+        viewMode: 'wg',
+        activeWgId: null,
+        activeExpId: null,
+        selectedNormFilter: 'ALL',
+        
+        myProfile: {
+            roleId: "{{ request.user.expert_profile.role|default:'OBSERVATEUR' }}",
+            wg: "", // Sera enrichi dynamiquement par l'API
+            ctm: ""  // Sera enrichi dynamiquement par l'API
+        },
+
+        workingGroups: [],
+        experts: [],
+        wgTasks: [] // Sera chargé avec les normes associées au WG actif
+    };
+
+    async function loadWorkingGroups() {
+        try {
+            const response = await fetch('/api/v1/wg/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les groupes de travail');
+            const data = await response.json();
+            expState.workingGroups = data.results;
+
+        } catch (error) {
+            console.error("Erreur de chargement des WGs:", error);
+            if(window.showAppToast) window.showAppToast("Erreur de chargement des groupes de travail.", "error");
+            expState.workingGroups = [];
+        }
+    }
+
+    async function loadExperts() {
+        try {
+            const response = await fetch('/api/v1/experts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les experts');
+            const data = await response.json();
+            expState.experts = data.results;
+
+        } catch (error) {
+            console.error("Erreur de chargement des experts:", error);
+            if(window.showAppToast) window.showAppToast("Erreur de chargement des experts.", "error");
+            expState.experts = [];
+        }
+    }
+
+    async function initExpertsModule() {
+        // Charger le profil de l'utilisateur authentifié pour myProfile
+        try {
+            const profileResponse = await fetch('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (profileResponse.ok) {
+                const profileData = await profileResponse.json();
+                expState.myProfile.roleId = profileData.role_id; // Assumant que l'API renvoie un role_id
+                expState.myProfile.wg = profileData.wg_details?.title || ""; 
+                expState.myProfile.ctm = profileData.ctm_details?.title || ""; 
+            }
+        } catch (error) {
+            console.error("Erreur de chargement du profil utilisateur:", error);
+        }
+
+        await Promise.all([
+            loadWorkingGroups(),
+            loadExperts()
+        ]);
+
+        // Si aucun WG actif, sélectionner le premier
+        if (!expState.activeWgId && expState.workingGroups.length > 0) {
+            expState.activeWgId = expState.workingGroups[0].id;
+        }
+        // Si aucun Expert actif, sélectionner le premier
+        if (!expState.activeExpId && expState.experts.length > 0) {
+            expState.activeExpId = expState.experts[0].id;
+        }
+
+        renderView();
+        renderFooterStats();
+    }
+
+    function switchExpertView(mode, render = true) {
+        expState.viewMode = mode;
+        const btnWg = document.getElementById('btn-view-wg');
+        const btnExp = document.getElementById('btn-view-expert');
+        const viewWg = document.getElementById('view-wg');
+        const viewExp = document.getElementById('view-expert');
+        const isDark = document.documentElement.classList.contains('dark');
+
+        if(mode === 'wg') {
+            if(isDark) {
+                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20";
+                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-400 hover:text-white";
+            } else {
+                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-white text-blue-800 font-bold shadow-xs border border-slate-300";
+                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-600 hover:text-slate-900";
+            }
+            viewWg.classList.remove('hidden'); viewExp.classList.add('hidden');
+        } else {
+            if(isDark) {
+                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20";
+                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-400 hover:text-white";
+            } else {
+                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-white text-blue-800 font-bold shadow-xs border border-slate-300";
+                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-600 hover:text-slate-900";
+            }
+            viewWg.classList.add('hidden'); viewExp.classList.remove('hidden');
+        }
+        if(render) renderView();
+    }
+
+    function renderView() {
+        if(expState.viewMode === 'wg') renderWgView();
+        else renderExpertView();
+        lucide.createIcons();
+    }
+
+    // =========================================================================
+    // 3. RENDU DE LA VUE WG
+    // =========================================================================
+    function renderWgView() {
+        const wg = expState.workingGroups.find(w => w.id === expState.activeWgId) || expState.workingGroups[0];
+        if (!wg) {
+            document.getElementById('view-wg').innerHTML = '<p class="text-center text-slate-500 py-10">Aucun groupe de travail disponible.</p>';
+            return;
+        }
+
+        document.getElementById('wg-code-badge').textContent = wg.number; 
+        document.getElementById('wg-title-text').textContent = wg.name; 
+
+        const isMyWg = expState.myProfile.wg.includes(wg.name);
+        const isSameCmt = expState.myProfile.ctm.includes(wg.ctm.name); 
+        const isAdmin = expState.myProfile.roleId === "ADMIN" || expState.myProfile.roleId === "COORD_CTC";
+        const hasWriteAccess = isMyWg || isAdmin;
+
+        const badgeContainer = document.getElementById('wg-access-badge');
+        const descContainer = document.getElementById('wg-access-desc');
+        
+        if (hasWriteAccess) {
+            badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/25 uppercase tracking-wide">✍️ Droits d'écriture accordés</span>`;
+            descContainer.innerHTML = `<span class="text-blue-700 dark:text-blue-300">Vous êtes affecté à <strong>${wg.name}</strong>. Vous avez le droit statutaire de modifier l'avancement des livrables.</span>`;
+        } else if (isSameCmt) {
+            badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/25 uppercase tracking-wide">👁️ Lecture Seule (Même CTM)</span>`;
+            descContainer.innerHTML = `<span class="text-blue-700 dark:text-blue-300">En tant que membre permanent du même comité, vous pouvez suivre l'atelier en lecture seule.</span>`;
+        } else {
+            badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-500/80 dark:border-amber-500/20 uppercase tracking-wide">🔒 Observateur (Hors CTM)</span>`;
+            descContainer.innerHTML = `<span class="text-slate-500 dark:text-slate-400 italic">Les travaux appartiennent à un autre comité. Consultation autorisée, édition interdite.</span>`;
+        }
+        document.getElementById('wg-status-badge').textContent = wg.status || "Actif"; 
+
+        // Render Norms summary (Workstreams) - Placeholder for now, needs API or custom endpoint for WG tasks
+        document.getElementById('wg-norms-count').textContent = `${0} Projet(s) de Norme`;
+        document.getElementById('wg-norms-grid').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucun projet de norme chargé.</p>`;
+
+        // Render Tasks checklist - Placeholder for now, needs API
+        document.getElementById('wg-tasks-list').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucun livrable planifié pour la sélection.</p>`;
+
+        // Render WG members
+        const wgMembers = wg.expert_list || []; 
+        document.getElementById('wg-members-count').textContent = wgMembers.length;
+        document.getElementById('wg-members-list').innerHTML = wgMembers.length === 0 ? `<div class="text-center py-6 text-slate-500 text-xs italic">Aucun membre rattaché à ce bureau.</div>` : wgMembers.map(m => {
+            const expertId = m.expert;
+            const expertName = m.expert_name; 
+            const expertRole = m.role;
+            const expertStructure = expState.experts.find(e => e.id === expertId)?.structure.name || ""; 
+            const expertProvince = expState.experts.find(e => e.id === expertId)?.user.province || ""; 
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            return `
+            <div onclick="expState.activeExpId='${expertId}'; switchExpertView('expert');" class="p-3 rounded-lg transition-all cursor-pointer flex items-center gap-3.5 group border ${isDark?'bg-black/45 border-white/5 hover:border-blue-500/30':'bg-white border-slate-200 hover:border-blue-300 shadow-sm'}">
+                <div class="h-9 w-9 rounded-lg flex items-center justify-center font-extrabold text-xs ${isDark?'bg-blue-500/10 border border-blue-500/20 text-blue-400':'bg-blue-50 border border-blue-200 text-blue-700'}">${expertName.substring(0,2).toUpperCase()}</div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-bold transition-colors truncate ${isDark?'text-white group-hover:text-blue-400':'text-slate-800 group-hover:text-blue-600'}">${expertName}</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5 truncate">${expertRole} • ${expertProvince}</p>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    // =========================================================================
+    // 4. RENDU DE LA VUE EXPERT
+    // =========================================================================
+    function renderExpertView() {
+        const exp = expState.experts.find(e => e.id === expState.activeExpId);
+        if (!exp) {
+            document.getElementById('view-expert').innerHTML = '<p class="text-center text-slate-500 py-10">Aucun expert sélectionné ou disponible.</p>';
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        document.getElementById('exp-avatar').textContent = exp.user.first_name.substring(0,2).toUpperCase();
+        document.getElementById('exp-name').textContent = `${exp.user.first_name} ${exp.user.last_name}`;
+        
+        const rBadge = document.getElementById('exp-role-badge');
+        const mainAffectation = exp.affectations && exp.affectations.length > 0 ? exp.affectations[0] : null;
+        const roleName = mainAffectation ? mainAffectation.role : 'Expert'; 
+        rBadge.textContent = roleName;
+
+        if(roleName.includes("Président")) rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-purple-500/20 text-purple-400 border-purple-500/30':'bg-purple-100 text-purple-700 border-purple-200'}`;
+        else if(roleName.includes("Secrétaire")) rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-blue-500/20 text-blue-400 border-blue-500/30':'bg-blue-100 text-blue-700 border-blue-200'}`;
+        else rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-blue-500/10 text-blue-400 border-blue-500/20':'bg-slate-100 text-slate-700 border-slate-200'}`;
+
+        document.getElementById('exp-struct').textContent = exp.structure.name;
+        document.getElementById('exp-detail-struct').textContent = exp.structure.name;
+        document.getElementById('exp-detail-prov').textContent = exp.user.province;
+        document.getElementById('exp-detail-ctm').textContent = mainAffectation ? mainAffectation.ctm_name : "N/A";
+        document.getElementById('exp-detail-wg').textContent = mainAffectation ? mainAffectation.wg_name : "N/A";
+        document.getElementById('exp-contact-email').textContent = exp.user.email;
+        document.getElementById('exp-contact-phone').textContent = exp.user.phone;
+        document.getElementById('exp-ctm-head').textContent = mainAffectation ? mainAffectation.ctm_name.split("–")[0] : "N/A";
+        document.getElementById('exp-ctm-sub').textContent = mainAffectation ? (mainAffectation.ctm_name.split("–")[1] || mainAffectation.ctm_name) : "N/A";
+
+        // Approval rendering
+        const appContainer = document.getElementById('exp-approval-container');
+        const descContainer = document.getElementById('exp-approval-desc');
+        const btnContainer = document.getElementById('exp-approve-btn-container');
+        const isApproved = exp.status === 'APPROVED'; 
+
+        if(isApproved) {
+            appContainer.innerHTML = `<span class="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 uppercase border ${isDark?'bg-blue-500/10 text-blue-400 border-blue-500/20':'bg-blue-50 text-blue-700 border-blue-200'}"><i data-lucide="check-circle" class="h-3.5 w-3.5"></i> Agréé CTC RDC</span>`;
+            descContainer.innerHTML = `Cet expert possède des droits <strong>actifs de vote et de co-gouvernance.</strong>`;
+            btnContainer.innerHTML = `<div class="p-3.5 rounded-lg flex items-center gap-2 w-full text-xs font-bold border ${isDark?'bg-blue-500/10 border-blue-500/20 text-blue-400':'bg-blue-50 border-blue-200 text-blue-700'}"><i data-lucide="check-circle" class="h-4 w-4"></i> Titre accrédité d'expert pour la RDC validé.</div>`;
+        } else {
+            appContainer.innerHTML = `<span class="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 uppercase animate-pulse border ${isDark?'bg-amber-500/15 text-amber-500 border-amber-500/25':'bg-amber-100 text-amber-700 border-amber-200'}"><i data-lucide="alert-triangle" class="h-3.5 w-3.5 animate-spin"></i> Accréditation en attente</span>`;
+            descContainer.innerHTML = `Avant de pouvoir valider ou amender un écrit au sein des comités CTC, la présence légale et technique des experts doit être validée par arrêté ministériel conjoint. Cet expert possède des droits <strong>temporaires en lecture seule.</strong>`;
+            btnContainer.innerHTML = `<button onclick="approveExpert('${exp.id}')" class="px-4.5 py-2.5 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${isDark?'bg-blue-500 hover:bg-blue-400 text-black':'bg-blue-600 hover:bg-blue-700 text-white'}"><i data-lucide="shield-check" class="h-4 w-4"></i> Valider et Accréditer l'Expert</button>`;
+        }
+    }
+
+    function renderFooterStats() {
+        const approvedCount = expState.experts.filter(e => e.status === 'APPROVED').length;
+        document.getElementById('footer-experts-count').textContent = `${approvedCount} Experts`;
+        document.getElementById('footer-experts-bar').style.width = `${(approvedCount / expState.experts.length) * 100}%`;
+    }
+
+    // =========================================================================
+    // 5. ACTIONS INTERACTIVES
+    // =========================================================================
+    function setNormFilter(code) {
+        expState.selectedNormFilter = code;
+        renderWgView();
+    }
+
+    async function toggleTaskStatus(taskId, hasWriteAccess) {
+        if (!hasWriteAccess) {
+            const alertBox = document.getElementById('expert-access-alert');
+            alertBox.innerHTML = `Accès Interdit: Votre rôle ne vous donne pas d'accréditations en écriture sur ce Groupe. Vous pouvez voir son travail en temps réel car vous êtes du même comité, mais vous ne pouvez pas le modifier !`;
+            alertBox.classList.remove('hidden');
+            setTimeout(() => alertBox.classList.add('hidden'), 5000);
+            return;
+        }
+
+        const task = expState.wgTasks.find(t => t.id === taskId);
+        if(task) {
+            // TODO: Appeler l'API pour changer le statut de la tâche
+            if(window.showAppToast) window.showAppToast("TODO: Connecter la mise à jour du statut de la tâche à l'API.", "warning");
+            task.status = task.status === "Completed" ? "In Progress" : task.status === "In Progress" ? "Planned" : "Completed";
+            task.progress = task.status === "Completed" ? 100 : task.status === "In Progress" ? 50 : 0;
+            renderWgView();
+        }
+    }
+
+    async function approveExpert(id) {
+        if(window.showAppToast) window.showAppToast(`Accréditation de l'expert ${id} en cours...`, "info");
+        try {
+            const response = await fetch(`/api/v1/experts/${id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: 'APPROVED' })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Erreur HTTP: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+
+            const updatedExpert = await response.json();
+            const index = expState.experts.findIndex(e => e.id === id);
+            if (index > -1) {
+                expState.experts[index] = updatedExpert; // Mettre à jour l'expert dans l'état
+            }
+            renderExpertView();
+            renderFooterStats();
+            if(window.showAppToast) window.showAppToast(`L'expert ${updatedExpert.user.first_name} ${updatedExpert.user.last_name} est désormais accrédité !`, "success");
+
+        } catch (error) {
+            console.error("Erreur lors de l'accréditation de l'expert:", error);
+            if(window.showAppToast) window.showAppToast("Erreur lors de l'accréditation de l'expert.", "error");
+        }
+    }
+
+    function triggerExpertDelete() {
+        // TODO: Connecter à l'API de suppression d'expert (si implémentée)
+        if(confirm("Voulez-vous vraiment retirer cet expert du CNETP RDC ? Cette action est irréversible.")) {
+            if(window.showAppToast) window.showAppToast("TODO: Connecter la suppression de l'expert à l'API.", "warning");
+            // Ici, vous feriez un appel API DELETE à /api/v1/experts/{id}/
+            expState.experts = expState.experts.filter(e => e.id !== expState.activeExpId);
+            if(expState.experts.length > 0) {
+                expState.activeExpId = expState.experts[0].id;
+                renderExpertView();
+            } else {
+                switchExpertView('wg');
+            }
+            renderFooterStats();
+            if(window.showAppToast) window.showAppToast("Expert détaché du système (simulation).");
+        }
+    }
+
+    function openChatWithExpert() {
+        if(typeof window.openMessagingWidget === 'function') {
+            window.openMessagingWidget(expState.activeExpId);
+        } else {
+            if(window.showAppToast) window.showAppToast("Messagerie indisponible.", "error");
+        }
+    }
+
+    // Auto-init for component loaded via AJAX
+    setTimeout(initExpertsModule, 100);
+
+</script>
