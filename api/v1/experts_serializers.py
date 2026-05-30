@@ -19,12 +19,13 @@ class StructureSerializer(serializers.ModelSerializer):
 class ExpertBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les experts (données minimales)"""
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     structure_name = serializers.CharField(source='structure.name', read_only=True)
     
     class Meta:
         model = Expert
-        fields = ['id', 'user_name', 'structure_name', 'status', 'specialties']
-        read_only_fields = ['id']
+        fields = ['id', 'user_id', 'user_name', 'structure_name', 'status', 'specialties']
+        read_only_fields = ['id', 'user_id']
 
 
 class ExpertDetailSerializer(serializers.ModelSerializer):

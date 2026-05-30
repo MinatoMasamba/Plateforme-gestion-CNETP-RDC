@@ -73,12 +73,14 @@ class CTMDetailSerializer(serializers.ModelSerializer):
     wg_list = WGBasicSerializer(source='working_groups', many=True, read_only=True)
     expert_count = serializers.SerializerMethodField()
     leadership = serializers.SerializerMethodField()
+    latest_norms = serializers.SerializerMethodField()
     
     class Meta:
         model = CTM
         fields = [
             'id', 'number', 'name', 'description', 'iso_reference',
-            'created_at', 'updated_at', 'wg_list', 'expert_count', 'leadership'
+            'created_at', 'updated_at', 'wg_list', 'expert_count', 'leadership',
+            'latest_norms'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
     
@@ -101,6 +103,13 @@ class CTMDetailSerializer(serializers.ModelSerializer):
         if obj.secretary:
             leaders['secretary'] = ExpertBasicSerializer(obj.secretary).data
         return leaders
+    
+    def get_latest_norms(self, obj):
+        """Retourner les 3 dernières normes du CTM"""
+        from apps.norms.models import Norme
+        from .norms_serializers import NormeBasicSerializer
+        norms = Norme.objects.filter(ctm=obj).order_by('-created_at')[:3]
+        return NormeBasicSerializer(norms, many=True).data
 
 
 class WGDetailSerializer(serializers.ModelSerializer):
@@ -108,12 +117,16 @@ class WGDetailSerializer(serializers.ModelSerializer):
     ctm = CTMBasicSerializer(read_only=True)
     expert_list = serializers.SerializerMethodField()
     expert_count = serializers.SerializerMethodField()
+    latest_norms = serializers.SerializerMethodField()
+    leadership = serializers.SerializerMethodField()
     
     class Meta:
         model = WG
         fields = [
-            'id', 'number', 'name', 'description', 'ctm', 'scope',
-            'created_at', 'updated_at', 'expert_list', 'expert_count'
+            'id', 'number', 'name', 'description', 'ctm',
+            'president', 'rapporteur', 'secretary',
+            'created_at', 'updated_at', 'expert_list', 'expert_count',
+            'latest_norms', 'leadership'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
     
@@ -125,6 +138,29 @@ class WGDetailSerializer(serializers.ModelSerializer):
     def get_expert_count(self, obj):
         """Compter les experts du WG"""
         return obj.affectations.values('expert').distinct().count()
+    
+    def get_latest_norms(self, obj):
+        """Retourner les 3 dernières normes du WG"""
+        from apps.norms.models import Norme
+        from .norms_serializers import NormeBasicSerializer
+        norms = Norme.objects.filter(wg=obj).order_by('-created_at')[:3]
+        return NormeBasicSerializer(norms, many=True).data
+    
+    def get_leadership(self, obj):
+        """Retourner les leaders du WG"""
+        from .experts_serializers import ExpertBasicSerializer
+        leaders = {
+            'president': None,
+            'rapporteur': None,
+            'secretary': None,
+        }
+        if obj.president:
+            leaders['president'] = ExpertBasicSerializer(obj.president).data
+        if obj.rapporteur:
+            leaders['rapporteur'] = ExpertBasicSerializer(obj.rapporteur).data
+        if obj.secretary:
+            leaders['secretary'] = ExpertBasicSerializer(obj.secretary).data
+        return leaders
 
 
 class ComitePilotageSerializer(serializers.ModelSerializer):

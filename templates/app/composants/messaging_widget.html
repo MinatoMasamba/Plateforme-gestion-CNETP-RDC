@@ -133,7 +133,7 @@
     // =========================================================================
     async function loadContacts() {
         try {
-            const response = await fetch('/api/v1/messaging/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const response = await fetch('/api/v1/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (!response.ok) throw new Error('Impossible de charger les contacts');
             const contactsData = await response.json();
             

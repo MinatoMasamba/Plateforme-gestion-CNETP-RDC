@@ -53,7 +53,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             if not bool(sender_ctms.intersection(recipient_ctms)):
                 raise permissions.PermissionDenied("L'expéditeur et le destinataire doivent partager au moins un CTM en commun.")
         
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated, IsMemberOfAnySharedCTM])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def contacts(self, request):
         """Liste les experts avec lesquels l'utilisateur actuel partage au moins un CTM."""
         user = request.user

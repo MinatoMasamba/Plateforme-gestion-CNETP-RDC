@@ -1,4 +1,5 @@
-<div class="p-6 space-y-8 overflow-y-auto h-full transition-colors duration-250 text-slate-800 bg-slate-50/15 dark:text-slate-300 dark:bg-transparent">
+<div class="w-full h-full flex flex-col overflow-hidden bg-slate-50/15 dark:bg-transparent">
+    <div class="p-6 space-y-8 overflow-y-auto h-full transition-colors duration-250 text-slate-800 dark:text-slate-300">
     
     <div class="border-b pb-5 border-slate-200 dark:border-white/10">
         <div class="flex items-center justify-between gap-4 flex-wrap">
@@ -32,7 +33,18 @@
 
     <div id="expert-access-alert" class="hidden mb-4.5 p-3 rounded-lg border border-red-500/35 bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-350 text-xs font-semibold leading-relaxed animate-slideIn"></div>
 
-    <div id="view-wg" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+    <div id="view-wg" class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fadeIn">
+        
+        <!-- Sidebar: List of Working Groups -->
+        <div class="lg:col-span-1 space-y-3 lg:max-h-[80vh] lg:overflow-y-auto">
+            <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-2 mb-3 flex items-center gap-2">
+                <i data-lucide="layers" class="h-4 w-4 text-blue-500"></i>
+                Groupes de Travail
+            </h4>
+            <div id="wg-sidebar-list" class="space-y-2">
+                <div class="flex justify-center py-4"><i data-lucide="loader-2" class="w-4 h-4 text-blue-500 animate-spin"></i></div>
+            </div>
+        </div>
         
         <div class="lg:col-span-2 space-y-6">
             
@@ -237,34 +249,40 @@
     </div>
 
     <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border shadow-sm">
-        <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-1.5">
-            <i data-lucide="trending-up" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i> Indicateurs Clés de la Commission CNETP RDC
-        </h4>
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-white/5">
+            <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="h-4 w-4 text-blue-500 dark:text-blue-400"></i> Indicateurs Clés <span id="ctm-indicators-title">de la Commission CNETP RDC</span>
+            </h4>
+            <select id="ctm-filter-select" onchange="setCtmFilter(this.value)" class="text-[9px] px-2 py-1 rounded border bg-white border-slate-200 dark:bg-black/40 dark:border-white/10 dark:text-slate-200">
+                <option value="all">Tous les CTM</option>
+            </select>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
-                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Comités Techniques Miroirs</span>
-                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">8 / 8 CTM</span>
-                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 100%"></div></div>
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Normes Actives</span>
+                <span id="indicator-norms-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="indicator-norms-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
             </div>
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
-                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Groupes d'Études Actifs</span>
-                <span class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">14 Bureaux (WG)</span>
-                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-500 h-1 rounded-full" style="width: 70%"></div></div>
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Réunions Planifiées</span>
+                <span id="indicator-meetings-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="indicator-meetings-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
             </div>
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
-                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Experts Certifiés Accrédités</span>
-                <span id="footer-experts-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
-                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="footer-experts-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Votes en Cours</span>
+                <span id="indicator-votes-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="indicator-votes-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
             </div>
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/5 p-4 rounded-lg border">
-                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Taux d'Avancement des Normes</span>
-                <span class="text-xl font-mono font-extrabold text-blue-600 dark:text-blue-400 mt-1 block">84.2 %</span>
-                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div class="bg-blue-400 h-1 rounded-full" style="width: 84.2%"></div></div>
+                <span class="text-[10px] text-slate-500 uppercase tracking-tight block">Experts Actifs CTM</span>
+                <span id="indicator-experts-count" class="text-xl font-mono font-extrabold text-slate-900 dark:text-white mt-1 block">...</span>
+                <div class="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full mt-2"><div id="indicator-experts-bar" class="bg-blue-500 h-1 rounded-full" style="width: 0%"></div></div>
             </div>
         </div>
     </div>
 
+    </div>
 </div>
 
 <script>
@@ -291,16 +309,19 @@
         activeWgId: null,
         activeExpId: null,
         selectedNormFilter: 'ALL',
+        activeCtmId: 'all', // Initialiser à 'all' pour tous les CTM
         
         myProfile: {
             roleId: "{{ request.user.expert_profile.role|default:'OBSERVATEUR' }}",
-            wg: "", // Sera enrichi dynamiquement par l'API
-            ctm: ""  // Sera enrichi dynamiquement par l'API
+            wg: "", 
+            ctm: "", 
+            ctmId: null,
         },
 
         workingGroups: [],
         experts: [],
-        wgTasks: [] // Sera chargé avec les normes associées au WG actif
+        ctms: [], // Nouvelle variable pour stocker les CTMs
+        wgTasks: [] 
     };
 
     async function loadWorkingGroups() {
@@ -331,15 +352,38 @@
         }
     }
 
+    async function loadCtms() {
+        try {
+            const response = await fetch('/api/v1/ctm/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les CTMs');
+            const data = await response.json();
+            expState.ctms = data.results;
+
+            // Populate CTM filter dropdown
+            const selectEl = document.getElementById('ctm-filter-select');
+            if (selectEl) {
+                selectEl.innerHTML = '<option value="all">Tous les CTM</option>' + 
+                                     expState.ctms.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                if (expState.myProfile.ctmId) {
+                    selectEl.value = expState.myProfile.ctmId;
+                    expState.activeCtmId = expState.myProfile.ctmId;
+                }
+            }
+        } catch (error) {
+            console.error("Erreur de chargement des CTMs:", error);
+            expState.ctms = [];
+        }
+    }
+
     async function initExpertsModule() {
-        // Charger le profil de l'utilisateur authentifié pour myProfile
         try {
             const profileResponse = await fetch('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (profileResponse.ok) {
                 const profileData = await profileResponse.json();
-                expState.myProfile.roleId = profileData.role_id; // Assumant que l'API renvoie un role_id
+                expState.myProfile.roleId = profileData.role_id; 
                 expState.myProfile.wg = profileData.wg_details?.title || ""; 
                 expState.myProfile.ctm = profileData.ctm_details?.title || ""; 
+                expState.myProfile.ctmId = profileData.ctm_details?.id || null; // Capture CTM ID
             }
         } catch (error) {
             console.error("Erreur de chargement du profil utilisateur:", error);
@@ -347,20 +391,93 @@
 
         await Promise.all([
             loadWorkingGroups(),
-            loadExperts()
+            loadExperts(),
+            loadCtms(), // Load CTMs at init
         ]);
 
-        // Si aucun WG actif, sélectionner le premier
         if (!expState.activeWgId && expState.workingGroups.length > 0) {
             expState.activeWgId = expState.workingGroups[0].id;
         }
-        // Si aucun Expert actif, sélectionner le premier
         if (!expState.activeExpId && expState.experts.length > 0) {
             expState.activeExpId = expState.experts[0].id;
         }
 
         renderView();
         renderFooterStats();
+        renderCtmIndicators(); // Call new indicator function
+    }
+
+    function setCtmFilter(ctmId) {
+        expState.activeCtmId = ctmId;
+        const ctmName = ctmId === 'all' ? 'de la Commission CNETP RDC' : expState.ctms.find(c => c.id == ctmId)?.name || 'Inconnu';
+        document.getElementById('ctm-indicators-title').textContent = ctmName ? `de ${ctmName}` : `de la Commission CNETP RDC`;
+        renderCtmIndicators();
+    }
+
+    // =========================================================================
+    // 2. RENDU DES INDICATEURS CTM
+    // =========================================================================
+    async function renderCtmIndicators() {
+        const ctmId = expState.activeCtmId === 'all' ? null : expState.activeCtmId;
+        const baseHeaders = { 'X-Requested-With': 'XMLHttpRequest' };
+
+        // --- Norms Count ---
+        try {
+            const normsUrl = ctmId ? `/api/v1/norms/?ctm__id=${ctmId}` : '/api/v1/norms/';
+            const normsResponse = await fetch(normsUrl, { headers: baseHeaders });
+            const normsData = await normsResponse.json();
+            const activeNorms = (normsData.results || normsData).filter(n => n.status === 'PUBLISHED' || n.status === 'DRAFT').length;
+            document.getElementById('indicator-norms-count').textContent = `${activeNorms} Normes`;
+            // Set bar width relative to total norms for context (e.g., 50 total norms in DB, 10 active = 20%)
+            const totalNormsInDb = normsData.count || (normsData.results || normsData).length; // Assuming 'count' for paginated results
+            document.getElementById('indicator-norms-bar').style.width = `${totalNormsInDb > 0 ? (activeNorms / totalNormsInDb) * 100 : 0}%`;
+
+        } catch (error) {
+            console.error("Erreur de chargement des normes pour les indicateurs:", error);
+            document.getElementById('indicator-norms-count').textContent = `Erreur`;
+            document.getElementById('indicator-norms-bar').style.width = `0%`;
+        }
+
+        // --- Meetings Count ---
+        try {
+            const meetingsUrl = ctmId ? `/api/v1/reunions/upcoming/?organisateur__ctm_choices__id=${ctmId}` : '/api/v1/reunions/upcoming/';
+            const meetingsResponse = await fetch(meetingsUrl, { headers: baseHeaders });
+            const meetingsData = await meetingsResponse.json();
+            const plannedMeetings = (meetingsData.results || meetingsData).filter(m => m.status === 'PLANNED' || m.status === 'ACTIVE').length;
+            document.getElementById('indicator-meetings-count').textContent = `${plannedMeetings} Réunions`;
+            // Assuming a max for visual bar, or total meetings in DB
+            const totalMeetingsInDb = meetingsData.count || (meetingsData.results || meetingsData).length;
+            document.getElementById('indicator-meetings-bar').style.width = `${totalMeetingsInDb > 0 ? (plannedMeetings / totalMeetingsInDb) * 100 : 0}%`;
+        } catch (error) {
+            console.error("Erreur de chargement des réunions pour les indicateurs:", error);
+            document.getElementById('indicator-meetings-count').textContent = `Erreur`;
+            document.getElementById('indicator-meetings-bar').style.width = `0%`;
+        }
+
+        // --- Votes Count (Placeholder - requires specific API or logic) ---
+        document.getElementById('indicator-votes-count').textContent = `0 Vote(s)`; 
+        document.getElementById('indicator-votes-bar').style.width = `0%`;
+
+        // --- Experts Count (by CTM) ---
+        try {
+            const expertsUrl = ctmId ? `/api/v1/experts/?ctm_choices__id=${ctmId}` : '/api/v1/experts/';
+            const expertsResponse = await fetch(expertsUrl, { headers: baseHeaders });
+            const expertsData = await expertsResponse.json();
+            const approvedExperts = (expertsData.results || expertsData).filter(e => e.status === 'APPROVED').length;
+            document.getElementById('indicator-experts-count').textContent = `${approvedExperts} Experts`;
+            const totalExpertsInDb = expertsData.count || (expertsData.results || expertsData).length;
+            document.getElementById('indicator-experts-bar').style.width = `${totalExpertsInDb > 0 ? (approvedExperts / totalExpertsInDb) * 100 : 0}%`;
+        } catch (error) {
+            console.error("Erreur de chargement des experts pour les indicateurs:", error);
+            document.getElementById('indicator-experts-count').textContent = `Erreur`;
+            document.getElementById('indicator-experts-bar').style.width = `0%`;
+        }
+
+        // Update CTM title if specific CTM is selected
+        const ctmName = ctmId ? expState.ctms.find(c => c.id == ctmId)?.name || 'Inconnu' : 'la Commission CNETP RDC';
+        document.getElementById('ctm-indicators-title').textContent = `de ${ctmName}`;
+
+        window.safeCreateIcons();
     }
 
     function switchExpertView(mode, render = true) {
@@ -402,7 +519,7 @@
     // =========================================================================
     // 3. RENDU DE LA VUE WG
     // =========================================================================
-    function renderWgView() {
+    async function renderWgView() {
         const wg = expState.workingGroups.find(w => w.id === expState.activeWgId) || expState.workingGroups[0];
         if (!wg) {
             document.getElementById('view-wg').innerHTML = '<p class="text-center text-slate-500 py-10">Aucun groupe de travail disponible.</p>';
@@ -432,9 +549,8 @@
         }
         document.getElementById('wg-status-badge').textContent = wg.status || "Actif"; 
 
-        // Render Norms summary (Workstreams) - Placeholder for now, needs API or custom endpoint for WG tasks
-        document.getElementById('wg-norms-count').textContent = `${0} Projet(s) de Norme`;
-        document.getElementById('wg-norms-grid').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucun projet de norme chargé.</p>`;
+        // Load and render norms for this WG
+        loadAndRenderWGNorms(wg.id);
 
         // Render Tasks checklist - Placeholder for now, needs API
         document.getElementById('wg-tasks-list').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucun livrable planifié pour la sélection.</p>`;
@@ -460,6 +576,9 @@
             </div>
         `;
         }).join('');
+        
+        // Render WG sidebar
+        renderWGSidebar();
     }
 
     // =========================================================================
@@ -602,6 +721,73 @@
         } else {
             if(window.showAppToast) window.showAppToast("Messagerie indisponible.", "error");
         }
+    }
+
+    // =========================================================================
+    // 6. RENDU DE LA SIDEBAR WG
+    // =========================================================================
+    async function loadAndRenderWGNorms(wgId) {
+        try {
+            const response = await fetch(`/api/v1/wg/${wgId}/`, { 
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Failed to load WG details');
+            
+            const wgData = await response.json();
+            const norms = wgData.latest_norms || [];
+            
+            document.getElementById('wg-norms-count').textContent = `${norms.length} Projet(s) de Norme`;
+            
+            if (norms.length === 0) {
+                document.getElementById('wg-norms-grid').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucune norme associée à ce groupe.</p>`;
+                return;
+            }
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('wg-norms-grid').innerHTML = norms.map(norm => `
+                <div class="p-3.5 rounded-lg border ${isDark?'bg-black/30 border-white/5':'bg-slate-50 border-slate-200'} text-xs">
+                    <div class="flex items-start gap-2 mb-2">
+                        <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isDark?'bg-blue-500/20 text-blue-300':'bg-blue-100 text-blue-700'}">${norm.reference_number || 'N/A'}</span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded ${norm.status === 'PUBLISHED' ? (isDark?'bg-green-500/20 text-green-300':'bg-green-100 text-green-700') : (isDark?'bg-amber-500/20 text-amber-300':'bg-amber-100 text-amber-700')}">${norm.status || 'DRAFT'}</span>
+                    </div>
+                    <p class="font-semibold line-clamp-2 mb-1">${norm.title || 'Sans titre'}</p>
+                    <p class="text-[10px] text-slate-500 line-clamp-1">${norm.description || 'Aucune description'}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error("Erreur de chargement des normes du WG:", error);
+            document.getElementById('wg-norms-count').textContent = `0 Projet(s) de Norme`;
+            document.getElementById('wg-norms-grid').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Erreur de chargement.</p>`;
+        }
+    }
+
+    function renderWGSidebar() {
+        const container = document.getElementById('wg-sidebar-list');
+        if(!container) return;
+
+        if(expState.workingGroups.length === 0) {
+            container.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs italic">Aucun groupe disponible.</div>';
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+        container.innerHTML = expState.workingGroups.map(wg => {
+            const isActive = wg.id === expState.activeWgId;
+            const bgClass = isActive 
+                ? (isDark ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-800 shadow-sm')
+                : (isDark ? 'bg-transparent border-white/5 hover:bg-white/5 text-slate-300' : 'bg-transparent border-slate-200 hover:bg-slate-50 text-slate-700');
+            
+            return `
+            <button onclick="expState.activeWgId='${wg.id}'; renderView();" class="w-full text-left p-3 rounded-lg border transition-all ${bgClass}">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isActive ? (isDark ? 'bg-blue-400/30 text-blue-200' : 'bg-blue-100 text-blue-700') : (isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-600')}">${wg.number}</span>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded ${isActive ? (isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-50 text-green-700') : (isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-600')}">${wg.expert_list ? wg.expert_list.length : 0} Membres</span>
+                </div>
+                <p class="text-xs font-bold truncate mb-1">${wg.name}</p>
+                <p class="text-[10px] text-slate-500 line-clamp-2 h-6">${wg.description || 'Aucune description'}</p>
+            </button>
+            `;
+        }).join('');
     }
 
     // Auto-init for component loaded via AJAX
