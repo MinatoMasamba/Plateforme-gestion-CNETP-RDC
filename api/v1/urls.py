@@ -76,6 +76,9 @@ router.register(r'legistic-reviews', LegisticReviewViewSet, basename='legistic-r
 router.register(r'documents', DocumentsAPIView, basename='documents')
 router.register(r'collaborators', CollaboratorsAPIView, basename='collaborators')
 
+# Messaging routes
+router.register(r'messages', MessageViewSet, basename='messages')
+
 # Public amendments routes
 router.register(r'public-amendments', PublicAmendementViewSet, basename='public-amendments')
 

@@ -1,3 +1,5 @@
+import difflib
+from django.db import transaction
 from rest_framework import serializers
 from apps.norms.models import Norme, NormeVersion, ChangementVersion
 from .experts_serializers import ExpertBasicSerializer
@@ -17,6 +19,7 @@ class ChangementVersionSerializer(serializers.ModelSerializer):
 class NormeVersionSerializer(serializers.ModelSerializer):
     """Serializer pour les versions de normes"""
     author_name = serializers.CharField(source='version_author.get_full_name', read_only=True)
+    author_email = serializers.EmailField(source='version_author.email', read_only=True)
     changes = ChangementVersionSerializer(many=True, read_only=True)
     
     class Meta:
@@ -24,9 +27,9 @@ class NormeVersionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'norme', 'version_number', 'title', 'content',
             'document', 'summary', 'is_draft', 'version_author',
-            'author_name', 'created_at', 'changes'
+            'author_name', 'author_email', 'created_at', 'changes'
         ]
-        read_only_fields = ['id', 'version_number', 'created_at', 'author_name']
+        read_only_fields = ['id', 'version_number', 'created_at', 'author_name', 'author_email']
 
 
 class NormeBasicSerializer(serializers.ModelSerializer):
@@ -138,8 +141,9 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
         model = NormeVersion
         fields = ['title', 'content', 'document', 'summary']
     
+    @transaction.atomic
     def create(self, validated_data):
-        """Créer une nouvelle version avec numéro auto-incrémenté"""
+        """Créer une nouvelle version avec numéro auto-incrémenté et détection des changements"""
         norme = self.context.get('norme')
         if not norme:
             raise serializers.ValidationError("Norme not provided in context")
@@ -148,7 +152,8 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
         latest = norme.versions.order_by('-version_number').first()
         next_version_number = (latest.version_number + 1) if latest else 1
         
-        version = NormeVersion.objects.create(
+        # 1. Créer la nouvelle version
+        new_version = NormeVersion.objects.create(
             norme=norme,
             version_number=next_version_number,
             version_author=self.context.get('request').user,
@@ -156,7 +161,55 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
             updated_by=self.context.get('request').user,
             **validated_data
         )
-        return version
+
+        # 2. Détecter les changements si une version précédente existe
+        if latest:
+            old_content = latest.content
+            new_content = new_version.content
+            
+            # Comparaison par paragraphe pour une meilleure structure de 'section'
+            old_paragraphs = old_content.split('\n\n')
+            new_paragraphs = new_content.split('\n\n')
+            
+            matcher = difflib.SequenceMatcher(None, old_paragraphs, new_paragraphs)
+            
+            for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+                if tag == 'replace':
+                    # On traite les remplacements comme une modification de paragraphe
+                    for idx in range(max(i2 - i1, j2 - j1)):
+                        old_p = old_paragraphs[i1 + idx] if (i1 + idx) < i2 else ""
+                        new_p = new_paragraphs[j1 + idx] if (j1 + idx) < j2 else ""
+                        ChangementVersion.objects.create(
+                            version=new_version,
+                            previous_version=latest,
+                            section=f"Paragraphe {i1 + idx + 1}",
+                            old_text=old_p,
+                            new_text=new_p,
+                            change_type='MODIFY',
+                            change_reason="Modification de paragraphe"
+                        )
+                elif tag == 'delete':
+                    for idx in range(i1, i2):
+                        ChangementVersion.objects.create(
+                            version=new_version,
+                            previous_version=latest,
+                            section=f"Paragraphe {idx + 1}",
+                            old_text=old_paragraphs[idx],
+                            change_type='REMOVE',
+                            change_reason="Suppression de paragraphe"
+                        )
+                elif tag == 'insert':
+                    for idx in range(j1, j2):
+                        ChangementVersion.objects.create(
+                            version=new_version,
+                            previous_version=latest,
+                            section=f"Paragraphe {j1 + idx}",
+                            new_text=new_paragraphs[idx],
+                            change_type='ADD',
+                            change_reason="Ajout de paragraphe"
+                        )
+                        
+        return new_version
 
 
 class NormeFullHistorySerializer(serializers.ModelSerializer):

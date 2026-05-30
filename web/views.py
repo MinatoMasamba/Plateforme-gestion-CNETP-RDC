@@ -40,11 +40,11 @@ class App(View):
         # Récupérer les structures et CTM pour le dashboard
         user = request.user
         data_expert =  Expert.objects.filter(user=user).first()
-        structures = data_expert.structures.all() if data_expert else []
-        ctms = data_expert.ctms.all() if data_expert else []
+        structure = data_expert.structure if data_expert else None
+        ctms = data_expert.ctm_choices.all() if data_expert else []
         context = {
             'user': user.username,
-            'structure' : structures,
+            'structure' : structure,
             'ctms' : ctms,
 
         }
@@ -205,7 +205,7 @@ def component_api_view(request, module_id):
     templates_map = {
         'editor': 'app/composants/editor_area.html',
         'history': 'app/composants/history_area.html',
-        'experts': 'app/composants/profil_expert.html',
+        'experts': 'app/composants/experts_groups_area.html',
         'meetings': 'app/composants/meetings_module.html',
         'financial': 'app/composants/financial_module.html',
         'sidebar': 'app/composants/sidebar.html',

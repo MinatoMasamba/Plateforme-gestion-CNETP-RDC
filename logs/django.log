@@ -2492,3 +2492,395 @@ INFO 2026-05-28 22:22:46,889 autoreload 31808 135133549760640 Watching for file 
 INFO 2026-05-28 22:24:38,032 autoreload 32022 138687576969344 Watching for file changes with StatReloader
 INFO 2026-05-29 21:38:25,806 autoreload 2427 129608848375936 Watching for file changes with StatReloader
 WARNING 2026-05-29 21:40:18,922 log 2427 129608735258304 Not Found: /favicon.ico
+WARNING 2026-05-29 21:47:33,207 log 2427 129608735258304 Not Found: /api/v1/experts/my-profile/
+WARNING 2026-05-29 22:01:53,482 log 2427 129608726865600 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-29 22:02:18,613 log 2427 129608726865600 Bad Request: /api/v1/norms/1/create_version/
+INFO 2026-05-30 10:53:29,914 autoreload 4954 135103101649024 Watching for file changes with StatReloader
+WARNING 2026-05-30 10:55:21,286 log 4954 135102759696064 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 10:55:22,124 log 4954 135102759696064 Not Found: /favicon.ico
+WARNING 2026-05-30 10:55:42,291 log 4954 135102759696064 Bad Request: /api/v1/norms/1/create_version/
+WARNING 2026-05-30 11:12:34,889 log 4954 135102759696064 Not Found: /api/v1/experts/my_profile/
+WARNING 2026-05-30 11:12:37,744 log 4954 135102759696064 Not Found: /api/v1/experts/my_profile/
+WARNING 2026-05-30 11:14:25,281 log 4954 135102742910656 Not Found: /api/v1/messages/contacts/
+WARNING 2026-05-30 11:17:11,334 log 4954 135102759696064 Bad Request: /api/v1/auth/login/
+WARNING 2026-05-30 11:17:11,495 log 4954 135102759696064 Not Found: /api/v1/messages/
+WARNING 2026-05-30 11:19:57,923 log 4954 135102759696064 Forbidden: /api/v1/norms/1/create_version/
+INFO 2026-05-30 11:22:25,168 autoreload 7277 137397063655552 Watching for file changes with StatReloader
+WARNING 2026-05-30 11:22:46,326 log 7277 137396867819200 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 11:22:57,314 log 7277 137396867819200 Bad Request: /api/v1/norms/1/create_version/
+INFO 2026-05-30 11:24:16,689 autoreload 7277 137397063655552 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-30 11:24:31,165 autoreload 7550 136949689196672 Watching for file changes with StatReloader
+INFO 2026-05-30 11:24:52,937 autoreload 7550 136949689196672 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-30 11:25:13,717 autoreload 7558 129507492348032 Watching for file changes with StatReloader
+INFO 2026-05-30 11:25:36,406 autoreload 7558 129507492348032 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-30 11:26:03,715 autoreload 7622 134013674758272 Watching for file changes with StatReloader
+WARNING 2026-05-30 11:26:30,928 log 7622 134013560813248 Forbidden: /api/v1/messages/
+WARNING 2026-05-30 11:27:04,831 log 7622 134013560813248 Forbidden: /api/v1/messages/contacts/
+WARNING 2026-05-30 11:34:30,688 log 7622 134013560813248 Forbidden: /api/v1/experts/my_profile/
+WARNING 2026-05-30 11:37:49,953 log 7622 134013551371968 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 11:37:56,545 log 7622 134013560813248 Bad Request: /api/v1/auth/login/
+WARNING 2026-05-30 11:38:17,201 log 7622 134013551371968 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 11:40:08,170 log 7622 134013560813248 Bad Request: /api/v1/auth/login/
+INFO 2026-05-30 11:51:28,403 autoreload 9086 137734082773120 Watching for file changes with StatReloader
+WARNING 2026-05-30 11:52:52,030 log 9086 137733896926912 Forbidden: /api/v1/messages/
+WARNING 2026-05-30 11:53:26,515 log 9086 137733896926912 Forbidden: /api/v1/messages/contacts/
+WARNING 2026-05-30 11:53:26,659 log 9086 137733896926912 Forbidden: /api/v1/experts/my_profile/
+INFO 2026-05-30 11:53:41,809 autoreload 9086 137734082773120 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-30 11:54:00,648 autoreload 9315 129131423469696 Watching for file changes with StatReloader
+INFO 2026-05-30 11:54:55,863 autoreload 9450 128741364473984 Watching for file changes with StatReloader
+WARNING 2026-05-30 11:55:09,361 log 9315 129131309168320 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 11:55:15,655 log 9315 129131077433024 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 11:55:42,728 log 9315 129131077433024 Bad Request: /api/v1/norms/1/create_version/
+WARNING 2026-05-30 11:56:25,006 log 9315 129131052254912 Forbidden: /api/v1/messages/contacts/
+WARNING 2026-05-30 11:56:25,127 log 9315 129131052254912 Not Found: /api/v1/experts/my_profile/
+WARNING 2026-05-30 11:57:00,303 log 9315 129131052254912 Bad Request: /api/v1/auth/login/
+WARNING 2026-05-30 11:57:03,888 log 9315 129131052254912 Forbidden: /api/v1/norms/1/create_version/
+WARNING 2026-05-30 11:57:38,883 log 9315 129131052254912 Forbidden: /api/v1/norms/
+WARNING 2026-05-30 11:58:54,892 log 9315 129131052254912 Forbidden: /api/v1/auth/login/
+WARNING 2026-05-30 11:58:55,122 log 9315 129131052254912 Forbidden: /api/v1/messages/contacts/
+WARNING 2026-05-30 11:58:56,084 log 9315 129131052254912 Not Found: /api/v1/experts/my_profile/
+INFO 2026-05-30 12:09:23,577 autoreload 10178 133446758170752 Watching for file changes with StatReloader
+WARNING 2026-05-30 12:09:28,772 log 10178 133446575847104 Forbidden: /api/v1/messages/
+WARNING 2026-05-30 12:10:09,791 log 10178 133446575847104 Forbidden: /api/v1/norms/
+WARNING 2026-05-30 12:10:16,883 log 10178 133446575847104 Forbidden: /api/v1/messages/contacts/
+WARNING 2026-05-30 12:10:18,052 log 10178 133446575847104 Not Found: /api/v1/experts/my_profile/
+INFO 2026-05-30 12:10:38,250 autoreload 10348 128456847491200 Watching for file changes with StatReloader
+INFO 2026-05-30 12:13:47,013 autoreload 10178 133446758170752 /home/minato/project/api/v1/messaging_views.py changed, reloading.
+INFO 2026-05-30 12:13:58,092 autoreload 10497 133567698575488 Watching for file changes with StatReloader
+WARNING 2026-05-30 12:14:03,499 log 10497 133567510214336 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:14:08,917 log 10497 133567493428928 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 12:14:44,680 log 10497 133567485036224 Bad Request: /api/v1/norms/1/create_version/
+WARNING 2026-05-30 12:16:08,159 log 10497 133567485036224 Not Found: /api/v1/experts/my_profile/
+WARNING 2026-05-30 12:16:24,643 log 10497 133567510214336 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:16:34,356 log 10497 133567493428928 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:16:58,673 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:23,928 log 10497 133567468250816 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:30,155 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:42,812 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:44,240 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:45,818 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:47,077 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:48,360 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:17:59,193 log 10497 133567476643520 Not Found: /api/v1/experts/my_profile/
+WARNING 2026-05-30 12:18:15,346 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:18:43,797 log 10497 133567468250816 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:18:55,511 log 10497 133567468250816 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:19:48,120 log 10497 133567476643520 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:19:56,126 log 10497 133567468250816 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-30 12:22:18,668 autoreload 10497 133567698575488 /home/minato/project/apps/experts/admin.py changed, reloading.
+INFO 2026-05-30 12:22:22,053 autoreload 11021 126109816365184 Watching for file changes with StatReloader
+WARNING 2026-05-30 12:22:44,940 log 11021 126109635049152 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:22:47,336 log 11021 126109635049152 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:22:48,736 log 11021 126109635049152 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:22:52,864 log 11021 126109635049152 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-30 12:24:41,682 autoreload 11021 126109816365184 /home/minato/project/apps/experts/admin.py changed, reloading.
+INFO 2026-05-30 12:24:44,135 autoreload 11198 128635244789888 Watching for file changes with StatReloader
+WARNING 2026-05-30 12:26:38,733 log 11198 128635103069888 Bad Request: /api/v1/norms/1/create_version/
+ERROR 2026-05-30 12:27:26,598 log 11198 128635103069888 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 43, in get
+    structures = data_expert.structures.all() if data_expert else []
+                 ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Expert' object has no attribute 'structures'. Did you mean: 'structure'?
+INFO 2026-05-30 12:29:18,350 autoreload 11198 128635244789888 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-30 12:29:23,816 autoreload 11615 136481550868608 Watching for file changes with StatReloader
+ERROR 2026-05-30 12:29:28,330 log 11615 136481436858048 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 43, in get
+    structures = data_expert.structure.all() if data_expert else []
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Structure' object has no attribute 'all'
+INFO 2026-05-30 12:36:19,516 autoreload 11615 136481550868608 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-30 12:36:26,915 autoreload 11966 135157681623168 Watching for file changes with StatReloader
+INFO 2026-05-30 12:36:30,373 autoreload 11974 138776893636736 Watching for file changes with StatReloader
+WARNING 2026-05-30 12:38:49,430 log 11966 135157541488320 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 12:39:22,793 log 11966 135157541488320 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 12:40:11,504 log 11966 135157549881024 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 12:41:19,342 log 11966 135157549881024 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:42:25,983 log 11966 135157549881024 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:43:34,736 log 11966 135157176592064 Not Found: /api/v1/experts/my_profile/
+ERROR 2026-05-30 12:54:42,008 log 13200 125986915598464 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2026-05-30 12:54:58,816 log 13204 137210586370176 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+WARNING 2026-05-30 12:57:46,692 log 11966 135157549881024 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 12:59:43,127 log 11966 135157559322304 Not Found: /api/v1/messaging/messages/contacts/
+WARNING 2026-05-30 13:02:47,091 log 11966 135157559322304 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 13:03:52,432 log 11966 135157541488320 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-30 13:08:18,812 autoreload 13620 139134016589952 Watching for file changes with StatReloader
+WARNING 2026-05-30 13:08:45,532 log 11966 135157176592064 Bad Request: /api/v1/auth/login/
+WARNING 2026-05-30 13:12:09,374 log 11966 135157184984768 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 13:15:04,893 log 11966 135157549881024 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-30 13:27:22,782 autoreload 11966 135157681623168 /home/minato/project/api/v1/messaging_views.py changed, reloading.
+INFO 2026-05-30 13:27:23,153 autoreload 13620 139134016589952 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-05-30 13:27:26,523 autoreload 15237 126211818197120 Watching for file changes with StatReloader
+INFO 2026-05-30 13:30:00,121 autoreload 15237 126211818197120 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:30:04,025 autoreload 15551 123564869107840 Watching for file changes with StatReloader
+INFO 2026-05-30 13:32:16,443 autoreload 15551 123564869107840 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:32:20,573 autoreload 15759 127069463945344 Watching for file changes with StatReloader
+INFO 2026-05-30 13:32:55,615 autoreload 15759 127069463945344 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:33:01,183 autoreload 15896 130444999528576 Watching for file changes with StatReloader
+INFO 2026-05-30 13:33:06,414 autoreload 15896 130444999528576 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:33:09,709 autoreload 15965 132412573433984 Watching for file changes with StatReloader
+INFO 2026-05-30 13:35:32,768 autoreload 15965 132412573433984 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:35:41,515 autoreload 16303 131650222596224 Watching for file changes with StatReloader
+INFO 2026-05-30 13:36:42,307 autoreload 16303 131650222596224 /home/minato/project/apps/norms/admin.py changed, reloading.
+INFO 2026-05-30 13:36:44,545 autoreload 16444 138414988116096 Watching for file changes with StatReloader
+WARNING 2026-05-30 13:37:22,491 log 16444 138414874687168 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 13:37:41,971 log 16444 138414624065216 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 13:37:54,864 log 16444 138414874687168 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-30 13:44:04,710 autoreload 16444 138414988116096 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-30 13:44:06,396 autoreload 16575 126508374429824 Watching for file changes with StatReloader
+WARNING 2026-05-30 14:07:24,976 log 16575 126508193543872 Forbidden: /api/v1/norms/1/create_version/
+INFO 2026-05-30 14:07:38,758 autoreload 17640 127131788296320 Watching for file changes with StatReloader
+WARNING 2026-05-30 14:15:40,233 log 16575 126508164171456 Not Found: /favicon.ico
+INFO 2026-05-30 14:27:00,263 autoreload 16575 126508374429824 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-30 14:27:15,312 autoreload 18163 125266646995072 Watching for file changes with StatReloader
+INFO 2026-05-30 14:28:11,852 autoreload 18163 125266646995072 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-30 14:28:18,856 autoreload 18258 130088784269440 Watching for file changes with StatReloader
+ERROR 2026-05-30 14:31:53,896 log 18258 130088670590656 Internal Server Error: /api/v1/wg/5/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/mixins.py", line 56, in retrieve
+    return Response(serializer.data)
+                    ^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 585, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 537, in to_representation
+    for field in fields:
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 398, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 386, in fields
+    for key, value in self.get_fields().items():
+                      ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1132, in get_fields
+    field_class, field_kwargs = self.build_field(
+                                ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1278, in build_field
+    return self.build_unknown_field(field_name, model_class)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1396, in build_unknown_field
+    raise ImproperlyConfigured(
+django.core.exceptions.ImproperlyConfigured: Field name `scope` is not valid for model `WG` in `api.v1.governance_serializers.WGDetailSerializer`.
+WARNING 2026-05-30 14:35:04,374 log 18258 130088553133760 Bad Request: /api/v1/norms/1/rollback-version/
+ERROR 2026-05-30 14:36:17,121 log 18258 130088544741056 Internal Server Error: /api/v1/wg/5/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/mixins.py", line 56, in retrieve
+    return Response(serializer.data)
+                    ^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 585, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 537, in to_representation
+    for field in fields:
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 398, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 386, in fields
+    for key, value in self.get_fields().items():
+                      ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1132, in get_fields
+    field_class, field_kwargs = self.build_field(
+                                ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1278, in build_field
+    return self.build_unknown_field(field_name, model_class)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/serializers.py", line 1396, in build_unknown_field
+    raise ImproperlyConfigured(
+django.core.exceptions.ImproperlyConfigured: Field name `scope` is not valid for model `WG` in `api.v1.governance_serializers.WGDetailSerializer`.
+INFO 2026-05-30 14:50:52,726 autoreload 18258 130088784269440 /home/minato/project/api/v1/governance_serializers.py changed, reloading.
+INFO 2026-05-30 14:51:00,522 autoreload 20080 136403419336832 Watching for file changes with StatReloader
+INFO 2026-05-30 15:00:22,761 autoreload 20276 125519216066688 Watching for file changes with StatReloader
+WARNING 2026-05-30 15:45:57,993 log 20276 125518850541248 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-30 15:46:10,614 log 20276 125518850541248 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-30 15:46:45,332 log 20276 125518850541248 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-30 15:48:59,018 log 20276 125518850541248 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-30 16:06:26,662 log 20276 125518850541248 Bad Request: /api/v1/norms/2/rollback-version/
+INFO 2026-05-30 16:07:16,750 autoreload 20276 125519216066688 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-05-30 16:07:20,917 autoreload 22385 125711653912704 Watching for file changes with StatReloader
+WARNING 2026-05-30 16:39:38,012 log 22385 125711540025024 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 16:40:02,311 log 22385 125711540025024 Not Found: /api/components/validation/
+ERROR 2026-05-30 16:40:10,010 log 22385 125711540025024 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 227, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+INFO 2026-05-30 16:41:23,434 autoreload 22385 125711653912704 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-05-30 16:41:40,873 autoreload 23846 125005546209408 Watching for file changes with StatReloader
+WARNING 2026-05-30 16:43:30,031 log 23846 125005358692032 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-05-30 16:43:40,037 log 23846 125005341906624 Not Found: /api/v1/experts/me/
+WARNING 2026-05-30 16:57:30,264 log 23846 125005341906624 Not Found: /api/v1/experts/me/
+INFO 2026-05-30 16:57:53,146 autoreload 26272 131455689203840 Watching for file changes with StatReloader
+WARNING 2026-05-30 17:02:49,820 log 23846 125005325121216 Not Found: /api/v1/experts/me/
+WARNING 2026-05-30 17:03:11,551 log 23846 125005325121216 Not Found: /api/components/validation/
+INFO 2026-05-30 17:05:05,616 autoreload 26272 131455689203840 /home/minato/project/api/v1/governance_serializers.py changed, reloading.
+INFO 2026-05-30 17:05:05,695 autoreload 23846 125005546209408 /home/minato/project/api/v1/governance_serializers.py changed, reloading.
+INFO 2026-05-30 17:05:12,341 autoreload 26998 128510979424384 Watching for file changes with StatReloader
+INFO 2026-05-30 17:05:18,280 autoreload 26998 128510979424384 /home/minato/project/api/v1/governance_serializers.py changed, reloading.
+INFO 2026-05-30 17:05:25,825 autoreload 27080 139630810046592 Watching for file changes with StatReloader
+INFO 2026-05-30 17:06:41,168 autoreload 27377 130048649085056 Watching for file changes with StatReloader
+INFO 2026-05-30 17:08:25,476 autoreload 27505 125072066191488 Watching for file changes with StatReloader
+WARNING 2026-05-30 17:08:57,470 log 27377 130048455603904 Not Found: /api/v1/experts/me/
+WARNING 2026-05-30 17:23:55,162 log 27377 130048455603904 Forbidden: /api/v1/ctm/
+INFO 2026-05-30 17:25:33,536 autoreload 29195 137215291342976 Watching for file changes with StatReloader
+WARNING 2026-05-30 17:27:17,393 log 27377 130048422033088 Not Found: /api/v1/experts/me/
+WARNING 2026-05-30 17:28:14,913 log 27377 130048447211200 Not Found: /api/v1/experts/me/
+INFO 2026-05-30 19:55:15,432 autoreload 27377 130048649085056 /home/minato/project/api/v1/messaging_views.py changed, reloading.
+INFO 2026-05-30 19:55:20,200 autoreload 39169 137545350811776 Watching for file changes with StatReloader
+INFO 2026-05-30 20:07:21,022 autoreload 39169 137545350811776 /home/minato/project/api/v1/filters.py changed, reloading.
+INFO 2026-05-30 20:07:28,224 autoreload 40336 125974571139200 Watching for file changes with StatReloader
+INFO 2026-05-30 20:09:11,623 autoreload 40336 125974571139200 /home/minato/project/api/v1/meetings_views.py changed, reloading.
+INFO 2026-05-30 20:09:16,180 autoreload 40512 137224204296320 Watching for file changes with StatReloader
+INFO 2026-05-30 20:11:38,096 autoreload 40743 136154122371200 Watching for file changes with StatReloader
+WARNING 2026-05-30 20:12:44,549 log 40743 136154000123584 Not Found: /api/v1/experts/me/
+WARNING 2026-05-30 20:14:48,134 log 40743 136153483179712 Forbidden: /api/v1/norms/
+ERROR 2026-05-30 20:16:56,181 log 41099 138993012744320 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2026-05-30 20:16:56,481 log 41099 138993012744320 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+INFO 2026-05-30 20:19:15,493 autoreload 40743 136154122371200 /home/minato/project/api/v1/filters.py changed, reloading.
+INFO 2026-05-30 20:19:32,643 autoreload 41227 129205286125696 Watching for file changes with StatReloader

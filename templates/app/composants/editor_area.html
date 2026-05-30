@@ -171,7 +171,7 @@
                 />
 
                 <div class="flex items-center justify-between pt-1">
-                    <button onclick="resetEditor()" class="px-3.5 py-1.5 text-xs rounded-lg font-bold transition-all flex items-center gap-1.5 hover:bg-slate-200/50 text-slate-600 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5">
+                    <button id="ed-reset-btn" onclick="resetEditor()" class="px-3.5 py-1.5 text-xs rounded-lg font-bold transition-all flex items-center gap-1.5 hover:bg-slate-200/50 text-slate-600 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5">
                         <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i> Réinitialiser
                     </button>
                     <button id="ed-save-btn" onclick="saveEditorVersion()" disabled class="px-4.5 py-2.5 text-xs font-bold rounded-lg disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400">
@@ -451,7 +451,7 @@
     // ==========================================
     async function loadShareContacts() {
         try {
-            const response = await fetch('/api/v1/messaging/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const response = await fetch('/api/v1/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (!response.ok) throw new Error('Impossible de charger les contacts pour le partage');
             const contactsData = await response.json();
             
@@ -521,10 +521,10 @@
         const commentEl = document.getElementById('ed-edit-comment');
         const comment = commentEl ? commentEl.value.trim() : "";
         const saveBtn = document.getElementById('ed-save-btn');
-        const cancelBtn = document.getElementById('cancel-edit-btn');
+        const resetBtn = document.getElementById('ed-reset-btn');
         
         if (saveBtn) saveBtn.disabled = !(isModified || comment.length > 0);
-        if (cancelBtn) cancelBtn.disabled = !(isModified || comment.length > 0);
+        if (resetBtn) resetBtn.disabled = !(isModified || comment.length > 0);
     }
 
     function resetEditor() {
@@ -561,6 +561,7 @@
         lucide.createIcons();
 
         const payload = {
+            title: editorState.document.title,
             content: editorState.text,
             comment: comment,
         };
@@ -589,7 +590,7 @@
             
             // Recharger l'historique des versions après la sauvegarde
             if (typeof loadHistoryData === 'function') {
-                await loadHistoryData();
+                await loadHistoryData(editorState.document.id);
                 populateDropdowns(); // Re-peupler les dropdowns pour inclure la nouvelle version
                 renderTimeline(); // Re-rendre la timeline
             }
@@ -603,6 +604,7 @@
                 icon.setAttribute('data-lucide', 'save');
                 icon.classList.remove('animate-spin');
             }
+            if (btn) btn.disabled = false;
             validateSaveBtn();
             lucide.createIcons();
         }
@@ -780,8 +782,7 @@
         setTimeout(() => {
             document.getElementById('ed-ai-result-panel').classList.remove('hidden');
             document.getElementById('ed-ai-explanation').textContent = "L'IA a identifié que cette formulation ne correspond pas tout à fait au canevas officiel ISO du CTM 8. Voici une révision plus stricte.";
-            document.getElementById('ed-ai-textarea').value = "Révision proposée : 
-" + editorState.text;
+            document.getElementById('ed-ai-textarea').value = "Révision proposée :\n" + editorState.text;
             
             icon.setAttribute('data-lucide', 'sparkles');
             icon.classList.remove('animate-spin');

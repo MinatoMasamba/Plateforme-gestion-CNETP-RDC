@@ -65,7 +65,7 @@ class NormeViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsExpertOrCTC])
     def create_version(self, request, pk=None):
         """Créer une nouvelle version d'une norme"""
         norme = self.get_object()
@@ -304,6 +304,7 @@ class NormeVersionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ChangementVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    print(f'[ChangementVersionViewSet] lancement du ViewSet')  # Debug log
     """ViewSet de lecture pour les changements de version"""
     queryset = ChangementVersion.objects.select_related(
         'version__norme', 'previous_version__norme'

@@ -850,29 +850,7 @@
                 } catch (err) { console.error('Erreur fetch messaging component:', err); }
             })();
 
-            // Charger le modal de profil
-            (async () => {
-                const modalsContainer = document.getElementById('modals-container');
-                if (!modalsContainer) return;
-                try {
-                    const res = await fetch('/api/components/experts/');
-                    if (res.ok) {
-                        const html = await res.text();
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = html;
-                        
-                        // Ajouter chaque enfant au conteneur de modals
-                        while (tempDiv.firstChild) {
-                            const child = tempDiv.firstChild;
-                            modalsContainer.appendChild(child);
-                            if (child.nodeType === 1) { // Element node
-                                executeScripts(child);
-                            }
-                        }
-                        safeCreateIcons();
-                    }
-                } catch (err) { console.error('Erreur fetch profile modal component:', err); }
-            })();
+
 
             // Connecter les boutons de profil
             document.getElementById('profile-btn').addEventListener('click', showMyProfile);

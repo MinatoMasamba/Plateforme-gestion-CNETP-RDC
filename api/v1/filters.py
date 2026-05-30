@@ -24,7 +24,7 @@ class ExpertFilter(FilterSet):
     
     class Meta:
         model = Expert
-        fields = ['status', 'structure']
+        fields = ['status', 'structure', 'ctm_choices__id']
 
 
 class StructureFilter(FilterSet):
