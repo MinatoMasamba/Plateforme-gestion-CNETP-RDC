@@ -312,4 +312,12 @@
     }
 
     // L'initialisation sera appelée depuis editor_area.html
+
+    // Auto-initialisation du module Historique
+    setTimeout(() => {
+        // Vérifier si sidebarState est défini et qu'un document est sélectionné
+        if (typeof sidebarState !== 'undefined' && sidebarState.selectedDocId) {
+            initHistoryModule(sidebarState.selectedDocId);
+        }
+    }, 100);
 </script>

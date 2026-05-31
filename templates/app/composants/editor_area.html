@@ -471,10 +471,6 @@
         if (editorState.document) {
             editorState.text = editorState.document.content;
             document.getElementById('ed-main-textarea').value = editorState.text;
-            // Initialiser le module d'historique avec l'ID du document
-            if (typeof initHistoryModule === 'function') {
-                await initHistoryModule(editorState.document.id);
-            }
         }
 
         await loadShareContacts();

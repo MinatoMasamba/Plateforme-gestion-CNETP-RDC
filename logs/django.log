@@ -2884,3 +2884,33 @@ Traceback (most recent call last):
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
 INFO 2026-05-30 20:19:15,493 autoreload 40743 136154122371200 /home/minato/project/api/v1/filters.py changed, reloading.
 INFO 2026-05-30 20:19:32,643 autoreload 41227 129205286125696 Watching for file changes with StatReloader
+INFO 2026-05-31 11:00:41,338 autoreload 14695 130873809961088 Watching for file changes with StatReloader
+WARNING 2026-05-31 11:01:02,960 log 14695 130873584232128 Not Found: /api/v1/experts/me/
+WARNING 2026-05-31 11:05:33,525 log 14695 130873617802944 Not Found: /api/v1/experts/me/
+INFO 2026-05-31 13:00:11,133 autoreload 14695 130873809961088 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 13:00:14,350 autoreload 20372 126796747763840 Watching for file changes with StatReloader
+WARNING 2026-05-31 13:10:22,689 log 20372 126796519417536 Bad Request: /api/v1/norms/2/rollback-version/
+INFO 2026-05-31 13:12:14,825 autoreload 20372 126796747763840 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 13:12:17,805 autoreload 21064 139468360618112 Watching for file changes with StatReloader
+WARNING 2026-05-31 13:13:16,204 log 21064 139468203861696 Not Found: /api/v1/experts/me/
+INFO 2026-05-31 13:14:17,318 autoreload 21064 139468360618112 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 13:14:20,652 autoreload 21097 126597808722048 Watching for file changes with StatReloader
+INFO 2026-05-31 13:15:16,086 autoreload 21097 126597808722048 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 13:15:19,693 autoreload 21132 127879981301888 Watching for file changes with StatReloader
+INFO 2026-05-31 13:33:17,337 autoreload 21132 127879981301888 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-31 13:33:20,504 autoreload 21932 130413051576448 Watching for file changes with StatReloader
+WARNING 2026-05-31 13:37:06,606 log 21932 130412937475776 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-31 13:37:33,029 log 21932 130412823164608 Bad Request: /api/v1/norms/2/rollback-version/
+WARNING 2026-05-31 14:05:22,415 log 21932 130412831557312 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2026-05-31 14:08:30,063 autoreload 21932 130413051576448 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-31 14:08:33,099 autoreload 22740 133948889919616 Watching for file changes with StatReloader
+INFO 2026-05-31 14:10:21,421 autoreload 22740 133948889919616 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 14:10:24,391 autoreload 22777 138716600791168 Watching for file changes with StatReloader
+INFO 2026-05-31 14:12:38,748 autoreload 22777 138716600791168 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-05-31 14:12:41,974 autoreload 22794 126313179115648 Watching for file changes with StatReloader
+INFO 2026-05-31 14:15:44,647 autoreload 22794 126313179115648 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 14:15:47,571 autoreload 22832 137241409425536 Watching for file changes with StatReloader
+INFO 2026-05-31 14:23:34,837 autoreload 22832 137241409425536 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
+INFO 2026-05-31 14:23:35,930 autoreload 22936 129001478099072 Watching for file changes with StatReloader
+WARNING 2026-05-31 15:20:47,296 log 22936 129001263711936 Not Found: /api/v1/experts/me/
+WARNING 2026-05-31 15:30:00,494 log 22936 129001263711936 Not Found: /api/components/validation/

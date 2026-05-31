@@ -181,7 +181,11 @@ class NormeViewSet(viewsets.ModelViewSet):
         new_version_comment = f"Restauration du contenu de la version v{version_to_restore.version_number}"
         
         create_serializer = NormeVersionCreateSerializer(
-            data={'content': version_to_restore.content, 'comment': new_version_comment},
+            data={
+                'content': version_to_restore.content,
+                'comment': new_version_comment,
+                'title': f"Rollback to v{version_to_restore.version_number}"
+            },
             context={'norme': norme, 'request': request}
         )
         create_serializer.is_valid(raise_exception=True)
