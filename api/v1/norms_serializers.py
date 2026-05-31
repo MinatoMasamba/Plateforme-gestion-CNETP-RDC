@@ -18,10 +18,10 @@ class ChangementVersionSerializer(serializers.ModelSerializer):
 
 class NormeVersionSerializer(serializers.ModelSerializer):
     """Serializer pour les versions de normes"""
-    author_name = serializers.CharField(source='version_author.get_full_name', read_only=True)
+    author_name = serializers.SerializerMethodField()
     author_email = serializers.EmailField(source='version_author.email', read_only=True)
     changes = ChangementVersionSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = NormeVersion
         fields = [
@@ -30,6 +30,12 @@ class NormeVersionSerializer(serializers.ModelSerializer):
             'author_name', 'author_email', 'created_at', 'changes'
         ]
         read_only_fields = ['id', 'version_number', 'created_at', 'author_name', 'author_email']
+
+    def get_author_name(self, obj):
+        """Retourner le nom complet de l'auteur ou 'Inconnu' si vide."""
+        if obj.version_author and obj.version_author.get_full_name():
+            return obj.version_author.get_full_name()
+        return "Inconnu"
 
 
 class NormeBasicSerializer(serializers.ModelSerializer):
@@ -135,11 +141,12 @@ class NormeStatusUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
-class NormeVersionCreateSerializer(serializers.ModelSerializer):
-    """Serializer pour créer une nouvelle version de norme"""
-    class Meta:
-        model = NormeVersion
-        fields = ['title', 'content', 'document', 'summary']
+class NormeVersionCreateSerializer(serializers.Serializer):
+    """Serializer pour créer une nouvelle version de norme (simplifié pour éviter les erreurs de validation)"""
+    title = serializers.CharField(max_length=500)
+    content = serializers.CharField()
+    comment = serializers.CharField(required=False, allow_blank=True)
+    document = serializers.FileField(required=False, allow_null=True)
     
     @transaction.atomic
     def create(self, validated_data):
@@ -152,6 +159,8 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
         latest = norme.versions.order_by('-version_number').first()
         next_version_number = (latest.version_number + 1) if latest else 1
         
+        summary = validated_data.pop('comment', '')
+        
         # 1. Créer la nouvelle version
         new_version = NormeVersion.objects.create(
             norme=norme,
@@ -159,6 +168,7 @@ class NormeVersionCreateSerializer(serializers.ModelSerializer):
             version_author=self.context.get('request').user,
             created_by=self.context.get('request').user,
             updated_by=self.context.get('request').user,
+            summary=summary,
             **validated_data
         )
 

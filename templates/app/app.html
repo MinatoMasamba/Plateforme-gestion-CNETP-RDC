@@ -498,20 +498,20 @@
 
         async function loadDocumentDetails(id) {
             try {
-                // S'assurer que le module éditeur est chargé
-                if (sidebarState.activeTab !== 'editor') {
-                    await loadModule('editor');
-                }
-
                 const doc = await apiFetch(`/api/v1/norms/${id}/`);
                 
-                // Mettre à jour l'état global de l'éditeur
+                // Mettre à jour l'état global de l'éditeur (si disponible)
                 if (typeof editorState !== 'undefined') {
                     editorState.document = doc;
                     editorState.text = doc.latest_version ? doc.latest_version.content : "";
                 }
 
-                // Mise à jour du DOM
+                // Notification pour le module historique s'il est actif
+                if (sidebarState.activeTab === 'history' && typeof initHistoryModule === 'function') {
+                    initHistoryModule(id);
+                }
+
+                // Mise à jour du DOM (seulement si les éléments existent, ex: quand l'éditeur est affiché)
                 const updates = {
                     'ed-doc-title': doc.title,
                     'ed-doc-code': doc.reference_number,
@@ -765,6 +765,9 @@
                 if (moduleId === 'editor' && sidebarState.selectedDocId) {
                     loadDocumentDetails(sidebarState.selectedDocId);
                 }
+                if (moduleId === 'history' && sidebarState.selectedDocId && typeof initHistoryModule === 'function') {
+                    initHistoryModule(sidebarState.selectedDocId);
+                }
                 return;
             }
 
@@ -786,6 +789,9 @@
 
                 if (moduleId === 'editor' && sidebarState.selectedDocId) {
                     loadDocumentDetails(sidebarState.selectedDocId);
+                }
+                if (moduleId === 'history' && sidebarState.selectedDocId && typeof initHistoryModule === 'function') {
+                    initHistoryModule(sidebarState.selectedDocId);
                 }
             } catch (error) {
                 console.error("AJAX Error:", error);

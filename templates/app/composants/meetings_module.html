@@ -353,14 +353,19 @@
 
     async function fetchMeetings() {
         try {
-            const response = await fetch('/api/v1/reunions/', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+            // Check if sidebarState.meetings is already populated
+            if (typeof sidebarState !== 'undefined' && sidebarState.meetings && sidebarState.meetings.length > 0) {
+                appState.meetings = sidebarState.meetings;
+            } else {
+                const response = await fetch('/api/v1/reunions/', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                const data = await response.json();
+                appState.meetings = data.results;
             }
-            const data = await response.json();
-            appState.meetings = data.results;
             
             // Si aucune réunion n'est active et qu'il y a des réunions, on sélectionne la première.
             if (!appState.activeMeetingId && appState.meetings.length > 0) {
