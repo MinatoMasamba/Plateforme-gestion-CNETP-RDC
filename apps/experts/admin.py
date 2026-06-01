@@ -1,6 +1,28 @@
 from django.contrib import admin
-
 from .models import Expert, Structure
+from apps.governance.models import Affectation, PilotageMembreship, CTCMembership, ExecutiveLevel
+
+
+class AffectationInline(admin.TabularInline):
+    model = Affectation
+    extra = 1
+    autocomplete_fields = ('ctm', 'wg')
+
+
+class PilotageMembreshipInline(admin.TabularInline):
+    model = PilotageMembreship
+    extra = 0
+
+
+class CTCMembershipInline(admin.TabularInline):
+    model = CTCMembership
+    extra = 0
+
+
+class ExecutiveLevelInline(admin.TabularInline):
+    model = ExecutiveLevel
+    extra = 0
+    max_num = 1
 
 
 @admin.register(Structure)
@@ -36,8 +58,7 @@ class ExpertAdmin(admin.ModelAdmin):
         'appointment_decree_number',
     )
     list_filter = ('status', 'structure', 'appointment_date')
-    autocomplete_fields = ('user', 'structure')
-    filter_horizontal = ('ctm_choices',)
+    autocomplete_fields = ('user', 'structure', 'ctm')
     ordering = ('user__last_name', 'user__first_name')
     readonly_fields = ('inscription_date', 'activation_date')
 
@@ -46,6 +67,7 @@ class ExpertAdmin(admin.ModelAdmin):
             'fields': (
                 'user',
                 'structure',
+                'ctm',
                 'status',
                 'appointment_decree_number',
                 'appointment_date',
@@ -55,7 +77,6 @@ class ExpertAdmin(admin.ModelAdmin):
             'fields': (
                 'specialties',
                 'cv',
-                'ctm_choices',
             )
         }),
         ('Informations bancaires', {
@@ -75,6 +96,13 @@ class ExpertAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+    inlines = [
+        AffectationInline,
+        PilotageMembreshipInline,
+        CTCMembershipInline,
+        ExecutiveLevelInline,
+    ]
 
     actions = ('make_active', 'make_inactive',)
 

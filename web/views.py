@@ -41,7 +41,7 @@ class App(View):
         user = request.user
         data_expert =  Expert.objects.filter(user=user).first()
         structure = data_expert.structure if data_expert else None
-        ctms = data_expert.ctm_choices.all() if data_expert else []
+        ctms = [data_expert.ctm] if data_expert and data_expert.ctm else []
         context = {
             'user': user.username,
             'structure' : structure,
@@ -188,7 +188,7 @@ class ExpertLoginView(View):
             user = form.cleaned_data.get('user')
             auth_login(request, user)
             messages.success(request, f"Bienvenue expert {user.get_full_name()}")
-            return redirect('web:home')
+            return redirect('web:app')
         return render(request, self.template_name, {'form': form})
 
 

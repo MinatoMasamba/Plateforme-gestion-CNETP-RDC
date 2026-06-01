@@ -120,7 +120,7 @@ class IsLegist(permissions.BasePermission):
 
 
 class IsMemberOfAnySharedCTM(permissions.BasePermission):
-    """Permission : Permet aux experts de communiquer s'ils partagent au moins un CTM en commun."""
+    """Permission : Permet aux experts de communiquer s'ils appartiennent au même CTM."""
 
     def has_permission(self, request, view):
         # Seuls les utilisateurs authentifiés et experts peuvent initier ou voir des conversations de messagerie.
@@ -130,29 +130,25 @@ class IsMemberOfAnySharedCTM(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Pour les messages existants, vérifier si l'utilisateur actuel est l'expéditeur ou le destinataire
-        # et s'ils partagent un CTM commun avec l'autre partie.
+        # et s'ils appartiennent au même CTM.
         if not (request.user and request.user.is_authenticated and hasattr(request.user, 'expert_profile')):
             return False
 
-        current_expert_ctms = set(request.user.expert_profile.ctm_choices.values_list('id', flat=True))
+        current_ctm = request.user.expert_profile.ctm
 
         if obj.sender == request.user:
             # L'utilisateur est l'expéditeur, vérifier le destinataire
             if obj.recipient and hasattr(obj.recipient, 'expert_profile'):
-                recipient_expert_ctms = set(obj.recipient.expert_profile.ctm_choices.values_list('id', flat=True))
-                return bool(current_expert_ctms.intersection(recipient_expert_ctms))
-            # Si pas de destinataire (ex: message de groupe ou diffusé sans destinataire explicite), pas de restriction de CTM ici
+                recipient_ctm = obj.recipient.expert_profile.ctm
+                return current_ctm is not None and current_ctm == recipient_ctm
+            # Si pas de destinataire, pas de restriction de CTM ici
             return True 
 
         elif obj.recipient == request.user:
             # L'utilisateur est le destinataire, vérifier l'expéditeur
             if obj.sender and hasattr(obj.sender, 'expert_profile'):
-                sender_expert_ctms = set(obj.sender.expert_profile.ctm_choices.values_list('id', flat=True))
-                return bool(current_expert_ctms.intersection(sender_expert_ctms))
+                sender_ctm = obj.sender.expert_profile.ctm
+                return current_ctm is not None and current_ctm == sender_ctm
             return True
         
-        # Si le message est lié à une réunion, l'accès est déterminé par la participation à la réunion ou le CTM de la réunion.
-        # Pour l'instant, nous ne gérons pas cette complexité de CTM-Reunion car le modèle Reunion n'a pas de lien direct avec CTM.
-        # La logique par défaut ci-dessus couvre les messages directs entre experts.
-
         return False # Par défaut, refuser l'accès si aucune des conditions n'est remplie.

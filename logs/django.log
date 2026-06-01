@@ -2914,3 +2914,331 @@ INFO 2026-05-31 14:23:34,837 autoreload 22832 137241409425536 /home/minato/proje
 INFO 2026-05-31 14:23:35,930 autoreload 22936 129001478099072 Watching for file changes with StatReloader
 WARNING 2026-05-31 15:20:47,296 log 22936 129001263711936 Not Found: /api/v1/experts/me/
 WARNING 2026-05-31 15:30:00,494 log 22936 129001263711936 Not Found: /api/components/validation/
+WARNING 2026-05-31 16:56:50,124 log 22936 129001263711936 Not Found: /api/v1/experts/me/
+WARNING 2026-05-31 17:01:17,670 log 22936 129001246926528 Not Found: /api/v1/experts/me/
+ERROR 2026-05-31 17:02:22,573 log 22936 129001246926528 Internal Server Error: /api/components/financial/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 227, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: app/composants/financial_module.html
+WARNING 2026-05-31 17:02:37,428 log 22936 129001246926528 Not Found: /api/components/validation/
+INFO 2026-06-01 01:51:31,525 autoreload 22936 129001478099072 /home/minato/project/apps/experts/admin.py changed, reloading.
+INFO 2026-06-01 01:51:33,706 autoreload 29179 124265768390784 Watching for file changes with StatReloader
+INFO 2026-06-01 01:52:33,627 autoreload 29179 124265768390784 /home/minato/project/apps/governance/admin.py changed, reloading.
+INFO 2026-06-01 01:52:37,256 autoreload 29212 138841876705408 Watching for file changes with StatReloader
+INFO 2026-06-01 01:56:30,068 autoreload 29212 138841876705408 /home/minato/project/apps/experts/admin.py changed, reloading.
+INFO 2026-06-01 01:56:33,639 autoreload 29254 131651812626560 Watching for file changes with StatReloader
+INFO 2026-06-01 02:00:26,242 autoreload 29254 131651812626560 /home/minato/project/apps/core/admin.py changed, reloading.
+INFO 2026-06-01 02:00:27,705 autoreload 29330 131689348796544 Watching for file changes with StatReloader
+INFO 2026-06-01 02:02:05,373 autoreload 29352 140716915036288 Watching for file changes with StatReloader
+WARNING 2026-06-01 02:14:20,971 log 29330 131689226430144 Not Found: /api/v1/experts/me/
+INFO 2026-06-01 02:30:12,731 autoreload 29330 131689348796544 /home/minato/project/apps/experts/models.py changed, reloading.
+INFO 2026-06-01 02:30:14,759 autoreload 29794 132424803561600 Watching for file changes with StatReloader
+INFO 2026-06-01 02:30:19,756 autoreload 29794 132424803561600 /home/minato/project/apps/experts/admin.py changed, reloading.
+INFO 2026-06-01 02:30:21,029 autoreload 29827 123178086502528 Watching for file changes with StatReloader
+INFO 2026-06-01 02:30:24,651 autoreload 29827 123178086502528 /home/minato/project/apps/core/admin.py changed, reloading.
+INFO 2026-06-01 02:30:26,221 autoreload 29829 132808775078016 Watching for file changes with StatReloader
+INFO 2026-06-01 02:31:49,511 autoreload 29853 123191397822592 Watching for file changes with StatReloader
+WARNING 2026-06-01 02:32:21,648 base 29853 123191284463296 Session data corrupted
+WARNING 2026-06-01 02:32:22,042 base 29853 123191284463296 Session data corrupted
+WARNING 2026-06-01 02:32:25,925 base 29853 123191284463296 Session data corrupted
+ERROR 2026-06-01 02:36:34,292 log 29853 123191284463296 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm_choices.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Expert' object has no attribute 'ctm_choices'
+ERROR 2026-06-01 02:36:35,146 log 29853 123191284463296 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm_choices.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Expert' object has no attribute 'ctm_choices'
+INFO 2026-06-01 02:37:11,184 autoreload 29853 123191397822592 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-01 02:37:16,200 autoreload 30092 130679127937152 Watching for file changes with StatReloader
+ERROR 2026-06-01 02:37:18,430 log 30092 130678943381184 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+INFO 2026-06-01 02:39:02,613 autoreload 30167 137934537240704 Watching for file changes with StatReloader
+INFO 2026-06-01 02:40:53,507 autoreload 30167 137934537240704 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 02:40:54,811 autoreload 30213 133128480174208 Watching for file changes with StatReloader
+INFO 2026-06-01 02:42:43,171 autoreload 30213 133128480174208 /home/minato/project/api/v1/expert_registration_views.py changed, reloading.
+INFO 2026-06-01 02:42:44,510 autoreload 30220 138043327713408 Watching for file changes with StatReloader
+INFO 2026-06-01 02:43:20,524 autoreload 29829 132808775078016 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-06-01 02:43:20,556 autoreload 30220 138043327713408 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-06-01 02:43:22,537 autoreload 30222 138266247737472 Watching for file changes with StatReloader
+INFO 2026-06-01 02:43:22,703 autoreload 30223 140569686126720 Watching for file changes with StatReloader
+INFO 2026-06-01 02:43:28,123 autoreload 30223 140569686126720 /home/minato/project/api/v1/meetings_views.py changed, reloading.
+INFO 2026-06-01 02:43:29,410 autoreload 30227 132586782535808 Watching for file changes with StatReloader
+ERROR 2026-06-01 02:44:01,153 log 30227 132586669078208 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+INFO 2026-06-01 02:44:11,672 autoreload 30246 139931511435392 Watching for file changes with StatReloader
+INFO 2026-06-01 02:44:14,017 autoreload 30227 132586782535808 /home/minato/project/api/v1/messaging_views.py changed, reloading.
+INFO 2026-06-01 02:44:15,372 autoreload 30248 138655142015104 Watching for file changes with StatReloader
+ERROR 2026-06-01 02:44:20,574 log 30248 138655027951296 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+ERROR 2026-06-01 02:44:21,204 log 30248 138655027951296 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+INFO 2026-06-01 02:44:30,834 autoreload 30248 138655142015104 /home/minato/project/api/v1/messaging_views.py changed, reloading.
+INFO 2026-06-01 02:44:32,199 autoreload 30258 137121351512192 Watching for file changes with StatReloader
+INFO 2026-06-01 02:45:21,678 autoreload 30258 137121351512192 /home/minato/project/api/v1/permissions.py changed, reloading.
+INFO 2026-06-01 02:45:22,786 autoreload 30294 139934357631104 Watching for file changes with StatReloader
+INFO 2026-06-01 02:45:33,234 autoreload 30300 139999970062464 Watching for file changes with StatReloader
+ERROR 2026-06-01 02:47:06,288 log 30294 139934243485376 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+ERROR 2026-06-01 02:47:08,074 log 30294 139934243485376 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+ERROR 2026-06-01 02:47:10,824 log 30294 139934243485376 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+INFO 2026-06-01 02:47:28,663 autoreload 30317 131800830480512 Watching for file changes with StatReloader
+INFO 2026-06-01 02:50:01,960 autoreload 30348 129919937777792 Watching for file changes with StatReloader
+WARNING 2026-06-01 02:50:07,837 base 30348 129919823640256 Session data corrupted
+WARNING 2026-06-01 02:50:23,218 base 30348 129919823640256 Session data corrupted
+WARNING 2026-06-01 02:50:23,330 base 30348 129919823640256 Session data corrupted
+WARNING 2026-06-01 02:50:26,091 base 30348 129919823640256 Session data corrupted
+ERROR 2026-06-01 02:50:34,567 log 30348 129919823640256 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+ERROR 2026-06-01 02:50:35,456 log 30348 129919823640256 Internal Server Error: /app/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/generic/base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 44, in get
+    ctms = data_expert.ctm.all() if data_expert else []
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CTM' object has no attribute 'all'
+INFO 2026-06-01 02:51:41,449 autoreload 30348 129919937777792 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-01 02:51:43,887 autoreload 30436 133488935927936 Watching for file changes with StatReloader
+INFO 2026-06-01 03:03:20,473 autoreload 30436 133488935927936 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 03:03:29,220 autoreload 30778 133712407244928 Watching for file changes with StatReloader
+INFO 2026-06-01 03:03:34,939 autoreload 30778 133712407244928 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 03:03:41,443 autoreload 30817 123684870369408 Watching for file changes with StatReloader
+INFO 2026-06-01 03:04:36,796 autoreload 30817 123684870369408 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 03:04:43,519 autoreload 30930 138088650780800 Watching for file changes with StatReloader
+INFO 2026-06-01 03:07:00,726 autoreload 30930 138088650780800 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 03:07:08,333 autoreload 31077 132296884433024 Watching for file changes with StatReloader
+INFO 2026-06-01 03:07:22,688 forms 31077 132296770320064 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:07:22,790 forms 31077 132296770320064 [ExpertLoginForm]-[clean_email] - Validation de l'email expert: experttest@example.com
+INFO 2026-06-01 03:07:22,822 forms 31077 132296770320064 [ExpertLoginForm]-[clean_email] - Email validé: experttest@example.com
+INFO 2026-06-01 03:07:22,822 forms 31077 132296770320064 [ExpertLoginForm]-[clean_password] - Validation du mot de passe expert
+INFO 2026-06-01 03:07:22,823 forms 31077 132296770320064 [ExpertLoginForm]-[clean_password] - Mot de passe valide
+INFO 2026-06-01 03:07:22,824 forms 31077 132296770320064 [ExpertLoginForm]-[clean] - DÉBUT validation globale formulaire expert
+INFO 2026-06-01 03:07:22,824 forms 31077 132296770320064 [ExpertLoginForm]-[clean] - Tentative authentification expert pour: experttest@example.com
+INFO 2026-06-01 03:07:22,825 forms 31077 132296770320064 [ExpertLoginForm]-[clean] - Étape 1: Authentification utilisateur
+WARNING 2026-06-01 03:07:22,828 forms 31077 132296770320064 [ExpertLoginForm]-[clean] - Étape 1 échouée: Authentification invalide pour experttest@example.com
+INFO 2026-06-01 03:11:55,907 autoreload 31077 132296884433024 /home/minato/project/web/forms.py changed, reloading.
+INFO 2026-06-01 03:12:02,954 autoreload 31236 129834811043968 Watching for file changes with StatReloader
+INFO 2026-06-01 03:12:44,246 forms 31236 129834697094848 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:12:44,327 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Validation email: experttest@example.com
+INFO 2026-06-01 03:12:44,333 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-01 03:12:44,336 forms 31236 129834697094848 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-01 03:12:44,336 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+INFO 2026-06-01 03:12:44,337 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Utilisateur trouvé: ID=12, is_active=True
+INFO 2026-06-01 03:12:45,855 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Mot de passe valide: True
+INFO 2026-06-01 03:12:45,860 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Profil expert trouvé: ID=7, statut=PENDING
+WARNING 2026-06-01 03:12:45,860 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - ⏳ Expert en attente de validation: experttest@example.com
+INFO 2026-06-01 03:13:25,916 forms 31236 129834697094848 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:13:25,919 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Validation email: sourceacademique@gmail.com
+INFO 2026-06-01 03:13:25,930 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-01 03:13:25,934 forms 31236 129834697094848 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-01 03:13:25,937 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+WARNING 2026-06-01 03:13:25,938 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Email ou mot de passe manquant
+INFO 2026-06-01 03:14:00,471 forms 31236 129834697094848 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:14:00,471 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Validation email: sourceacademique@gmail.com
+INFO 2026-06-01 03:14:00,497 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-01 03:14:00,504 forms 31236 129834697094848 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-01 03:14:00,504 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+WARNING 2026-06-01 03:14:00,504 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Email ou mot de passe manquant
+INFO 2026-06-01 03:15:02,629 forms 31236 129834697094848 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:15:02,635 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Validation email: sourceacademique@gmail.com
+INFO 2026-06-01 03:15:02,658 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-01 03:15:02,685 forms 31236 129834697094848 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-01 03:15:02,690 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+WARNING 2026-06-01 03:15:02,694 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Email ou mot de passe manquant
+INFO 2026-06-01 03:15:11,981 forms 31236 129834697094848 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-01 03:15:11,981 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Validation email: sourceacademique@gmail.com
+INFO 2026-06-01 03:15:11,987 forms 31236 129834697094848 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-01 03:15:11,992 forms 31236 129834697094848 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-01 03:15:11,992 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+INFO 2026-06-01 03:15:11,993 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Utilisateur trouvé: ID=6, is_active=True
+INFO 2026-06-01 03:15:13,312 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Mot de passe valide: True
+INFO 2026-06-01 03:15:13,317 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - Profil expert trouvé: ID=6, statut=ACTIVE
+INFO 2026-06-01 03:15:13,318 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - ✅ AUTHENTIFICATION EXPERT RÉUSSIE - sourceacademique@gmail.com
+INFO 2026-06-01 03:15:13,319 forms 31236 129834697094848 [ExpertLoginForm]-[clean] - FIN validation - SUCCÈS
+INFO 2026-06-01 03:53:46,393 autoreload 31236 129834811043968 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-01 03:53:57,384 autoreload 32169 135824710766720 Watching for file changes with StatReloader
