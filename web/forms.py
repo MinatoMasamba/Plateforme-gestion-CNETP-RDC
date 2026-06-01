@@ -170,19 +170,19 @@ class ExpertRegistrationForm(forms.ModelForm):
         })
     )
     
-    # CTM - Choix multiples
-    ctm_choices = forms.ModelMultipleChoiceField(
+    # CTM - Choix unique
+    ctm = forms.ModelChoiceField(
         queryset=CTM.objects.all(),
         required=True,
-        label="Sous-Commissions Techniques (CTM)",
-        widget=forms.CheckboxSelectMultiple(attrs={
-            'class': 'form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+        label="Sous-Commission Technique (CTM) principale",
+        widget=forms.Select(attrs={
+            'class': 'block w-full px-4 py-2 border border-gray-300 rounded-lg',
         })
     )
-    
+
     class Meta:
         model = Expert
-        fields = ['structure', 'specialties', 'cv', 'ctm_choices']
+        fields = ['structure', 'specialties', 'cv', 'ctm']
     
     def clean_password_confirm(self):
         """Vérifier que les mots de passe correspondent"""
@@ -246,11 +246,20 @@ class ExpertRegistrationForm(forms.ModelForm):
         
         return expert
 
+import logging
+import traceback
+from django import forms
+from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
+from apps.core.models import User
+from apps.experts.models import Expert
+
+logger = logging.getLogger(__name__)
 
 class UserLoginForm(forms.Form):
     """Formulaire de connexion pour les utilisateurs simples"""
     
-    # Classes Tailwind pour le Glassmorphism
     GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300'
 
     email = forms.EmailField(
@@ -269,23 +278,66 @@ class UserLoginForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        logger.info(f"[UserLoginForm] - Initialisation du formulaire")
+        self._validation_errors = []
+
+    def clean_email(self):
+        method = "clean_email"
+        email = self.cleaned_data.get('email')
+        logger.info(f"[UserLoginForm]-[{method}] - Validation de l'email: {email if email else 'None'}")
+        if not email:
+            logger.warning(f"[UserLoginForm]-[{method}] - Email manquant")
+            raise ValidationError("L'adresse email est obligatoire.")
+        if '@' not in email:
+            logger.warning(f"[UserLoginForm]-[{method}] - Format email invalide: {email}")
+            raise ValidationError("Veuillez entrer une adresse email valide.")
+        logger.info(f"[UserLoginForm]-[{method}] - Email valide: {email}")
+        return email
+
+    def clean_password(self):
+        method = "clean_password"
+        password = self.cleaned_data.get('password')
+        logger.info(f"[UserLoginForm]-[{method}] - Validation du mot de passe")
+        if not password:
+            logger.warning(f"[UserLoginForm]-[{method}] - Mot de passe manquant")
+            raise ValidationError("Le mot de passe est obligatoire.")
+        if len(password) < 4:
+            logger.warning(f"[UserLoginForm]-[{method}] - Mot de passe trop court: {len(password)} caractères")
+            raise ValidationError("Le mot de passe doit contenir au moins 4 caractères.")
+        logger.info(f"[UserLoginForm]-[{method}] - Mot de passe valide")
+        return password
+
     def clean(self):
+        method = "clean"
+        logger.info(f"[UserLoginForm]-[{method}] - Début de la validation globale")
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
         password = cleaned_data.get('password')
-
-        if email and password:
-            user = authenticate(username=email, password=password)
-            if user is None:
-                raise ValidationError("Email ou mot de passe invalide.")
-            cleaned_data['user'] = user
+        logger.info(f"[UserLoginForm]-[{method}] - Tentative d'authentification pour: {email if email else 'email non fourni'}")
+        try:
+            if email and password:
+                logger.info(f"[UserLoginForm]-[{method}] - Appel à authenticate()")
+                user = authenticate(email=email, password=password)
+                if user is None:
+                    logger.warning(f"[UserLoginForm]-[{method}] - Échec d'authentification - Email ou mot de passe invalide: {email}")
+                    raise ValidationError("Email ou mot de passe invalide.")
+                logger.info(f"[UserLoginForm]-[{method}] - Authentification réussie pour: {email} (ID: {user.id})")
+                cleaned_data['user'] = user
+            else:
+                logger.warning(f"[UserLoginForm]-[{method}] - Email ou mot de passe manquant")
+        except Exception as e:
+            logger.error(f"[UserLoginForm]-[{method}] - ERREUR CRITIQUE: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise ValidationError("Une erreur technique est survenue. Veuillez réessayer.")
+        logger.info(f"[UserLoginForm]-[{method}] - Fin validation - SUCCÈS")
         return cleaned_data
 
 
 class ExpertLoginForm(forms.Form):
-    """Formulaire de connexion pour les experts (vérifie également qu'un Expert existe)"""
+    """Formulaire de connexion pour les experts avec diagnostic précis"""
     
-    # Classes Tailwind pour le Glassmorphism
     GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300'
 
     email = forms.EmailField(
@@ -304,17 +356,110 @@ class ExpertLoginForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        logger.info("[ExpertLoginForm] - Initialisation du formulaire expert")
+        self._user = None
+        self._expert_profile = None
+
+    def clean_email(self):
+        method = "clean_email"
+        email = self.cleaned_data.get('email')
+        logger.info(f"[ExpertLoginForm]-[{method}] - Validation email: {email}")
+        if not email:
+            raise ValidationError("L'adresse email est obligatoire.")
+        if '@' not in email or '.' not in email:
+            raise ValidationError("Veuillez entrer une adresse email valide.")
+        
+        # Vérifier si l'utilisateur existe (sans lever d'erreur tout de suite)
+        user_exists = User.objects.filter(email=email).exists()
+        logger.info(f"[ExpertLoginForm]-[{method}] - Utilisateur existe: {user_exists}")
+        if not user_exists:
+            # On stocke l'info pour le clean global
+            self._user = None
+        else:
+            self._user = User.objects.get(email=email)
+        return email
+
+    def clean_password(self):
+        method = "clean_password"
+        password = self.cleaned_data.get('password')
+        logger.info(f"[ExpertLoginForm]-[{method}] - Validation mot de passe")
+        if not password:
+            raise ValidationError("Le mot de passe est obligatoire.")
+        if len(password) < 6:
+            raise ValidationError("Le mot de passe doit contenir au moins 6 caractères.")
+        return password
+
     def clean(self):
+        method = "clean"
+        logger.info(f"[ExpertLoginForm]-[{method}] - DÉBUT validation globale")
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
         password = cleaned_data.get('password')
+        
+        # --- Étape 1 : Vérifier si l'utilisateur existe ---
+        if not email or not password:
+            logger.warning(f"[ExpertLoginForm]-[{method}] - Email ou mot de passe manquant")
+            return cleaned_data
 
-        if email and password:
-            user = authenticate(username=email, password=password)
+        try:
+            user = self._user  # déjà récupéré dans clean_email
             if user is None:
-                raise ValidationError("Email ou mot de passe invalide.")
-            # Vérifier qu'il existe un objet Expert lié
-            if not Expert.objects.filter(user=user).exists():
-                raise ValidationError("Accès refusé : Aucun profil expert associé à cet utilisateur.")
+                logger.warning(f"[ExpertLoginForm]-[{method}] - ❌ Utilisateur inexistant: {email}")
+                raise ValidationError("Aucun compte associé à cet email. Veuillez vous inscrire.")
+            
+            logger.info(f"[ExpertLoginForm]-[{method}] - Utilisateur trouvé: ID={user.id}, is_active={user.is_active}")
+            
+            # --- Étape 2 : Vérifier le mot de passe ---
+            password_valid = check_password(password, user.password)
+            logger.info(f"[ExpertLoginForm]-[{method}] - Mot de passe valide: {password_valid}")
+            
+            if not password_valid:
+                logger.warning(f"[ExpertLoginForm]-[{method}] - ❌ Mot de passe incorrect pour {email}")
+                raise ValidationError("Mot de passe incorrect.")
+            
+            # --- Étape 3 : Vérifier si l'utilisateur est actif ---
+            if not user.is_active:
+                logger.warning(f"[ExpertLoginForm]-[{method}] - ❌ Compte utilisateur désactivé: {email}")
+                raise ValidationError("Votre compte est désactivé. Contactez l'administrateur.")
+            
+            # --- Étape 4 : Vérifier l'existence du profil expert ---
+            try:
+                expert_profile = Expert.objects.select_related('structure').get(user=user)
+                self._expert_profile = expert_profile
+                logger.info(f"[ExpertLoginForm]-[{method}] - Profil expert trouvé: ID={expert_profile.id}, statut={expert_profile.status}")
+            except Expert.DoesNotExist:
+                logger.error(f"[ExpertLoginForm]-[{method}] - ❌ Pas de profil expert pour l'utilisateur {email}")
+                raise ValidationError("Vous n'êtes pas inscrit en tant qu'expert. Veuillez utiliser le formulaire d'inscription expert.")
+            
+            # --- Étape 5 : Vérifier le statut de l'expert ---
+            if expert_profile.status == 'INACTIVE':
+                logger.warning(f"[ExpertLoginForm]-[{method}] - ❌ Expert inactif: {email}")
+                raise ValidationError("Votre profil expert est inactif. Veuillez contacter le secrétariat.")
+            
+            if expert_profile.status == 'PENDING':
+                logger.warning(f"[ExpertLoginForm]-[{method}] - ⏳ Expert en attente de validation: {email}")
+                raise ValidationError("Votre inscription est en attente de validation par le comité. Vous serez notifié par email.")
+            
+            # --- Étape 6 : Authentification finale (optionnelle, mais on peut aussi utiliser authenticate) ---
+            # On authentifie manuellement car on a déjà validé le mot de passe
+            from django.contrib.auth import login
+            # On ne fait pas login ici, on retourne juste l'utilisateur
             cleaned_data['user'] = user
+            cleaned_data['expert_profile'] = expert_profile
+            
+            logger.info(f"[ExpertLoginForm]-[{method}] - ✅ AUTHENTIFICATION EXPERT RÉUSSIE - {email}")
+            
+        except ValidationError:
+            raise
+        except Exception as e:
+            logger.error(f"[ExpertLoginForm]-[{method}] - ERREUR CRITIQUE: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise ValidationError("Une erreur technique est survenue. Veuillez réessayer.")
+        
+        logger.info(f"[ExpertLoginForm]-[{method}] - FIN validation - SUCCÈS")
         return cleaned_data
+    
+    def get_expert_profile(self):
+        return self._expert_profile

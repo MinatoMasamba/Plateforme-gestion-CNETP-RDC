@@ -70,7 +70,7 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
             expert = serializer.save()
             
             # Récupérer les CTM pour la réponse
-            ctm_ids = [ctm.id for ctm in expert.ctm_choices.all()]
+            ctm_ids = [expert.ctm.id] if expert.ctm else []
             
             return Response(
                 {

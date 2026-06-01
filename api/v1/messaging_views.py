@@ -46,26 +46,28 @@ class MessageViewSet(viewsets.ModelViewSet):
             if not hasattr(recipient, 'expert_profile'):
                 raise permissions.PermissionDenied("Le destinataire doit être un expert.")
 
-            # Check if sender and recipient share at least one CTM
-            sender_ctms = set(sender.expert_profile.ctm_choices.values_list('id', flat=True))
-            recipient_ctms = set(recipient.expert_profile.ctm_choices.values_list('id', flat=True))
+            # Check if sender and recipient share the same CTM
+            sender_ctm = sender.expert_profile.ctm
+            recipient_ctm = recipient.expert_profile.ctm
 
-            if not bool(sender_ctms.intersection(recipient_ctms)):
-                raise permissions.PermissionDenied("L'expéditeur et le destinataire doivent partager au moins un CTM en commun.")
+            if sender_ctm != recipient_ctm or sender_ctm is None:
+                raise permissions.PermissionDenied("L'expéditeur et le destinataire doivent appartenir au même CTM.")
         
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def contacts(self, request):
-        """Liste les experts avec lesquels l'utilisateur actuel partage au moins un CTM."""
+        """Liste les experts appartenant au même CTM que l'utilisateur actuel."""
         user = request.user
         if not hasattr(user, 'expert_profile'):
             return Response([], status=status.HTTP_200_OK)
         
-        current_expert_ctms = user.expert_profile.ctm_choices.all()
+        current_ctm = user.expert_profile.ctm
+        if not current_ctm:
+            return Response([], status=status.HTTP_200_OK)
         
-        # Find all experts who share at least one CTM with the current user
+        # Find all experts who belong to the same CTM as the current user
         # Exclude the current user themselves
         shared_ctm_experts = Expert.objects.filter(
-            ctm_choices__in=current_expert_ctms
+            ctm=current_ctm
         ).exclude(user=user).distinct()
         
         serializer = ExpertBasicSerializer(shared_ctm_experts, many=True, context={'request': request})

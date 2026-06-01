@@ -26,7 +26,7 @@ class ReunionViewSet(viewsets.ModelViewSet):
     ).prefetch_related('presences__expert__user')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['type', 'status', 'organisateur__ctm_choices__id']
+    filterset_fields = ['type', 'status', 'organisateur__ctm__id']
     search_fields = ['titre', 'description', 'ordre_jour']
     ordering_fields = ['date', 'created_at']
     ordering = ['-date']

@@ -324,9 +324,10 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
             cv=cv,  # Upload du CV
         )
         
-        # Associer les CTM sélectionnés
-        for ctm_id in ctm_ids:
-            ctm = CTM.objects.get(id=ctm_id)
-            expert.ctm_choices.add(ctm)
+        # Associer le premier CTM sélectionné (puisque désormais limité à un seul)
+        if ctm_ids:
+            ctm = CTM.objects.get(id=ctm_ids[0])
+            expert.ctm = ctm
+            expert.save()
         
         return expert

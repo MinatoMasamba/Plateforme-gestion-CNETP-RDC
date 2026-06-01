@@ -4,13 +4,13 @@ from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, Te
 @admin.register(CTM)
 class CTMAdmin(admin.ModelAdmin):
     list_display = ('number', 'name', 'scientific_president', 'rapporteur')
-    search_fields = ('name', 'iso_reference')
+    search_fields = ('name', 'iso_reference', 'number')
     ordering = ('number',)
 
 @admin.register(WG)
 class WGAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'ctm', 'president')
-    search_fields = ('name', 'ctm__name')
+    search_fields = ('name', 'ctm__name', 'number')
     list_filter = ('ctm',)
 
 @admin.register(Affectation)

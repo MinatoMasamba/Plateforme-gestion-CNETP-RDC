@@ -54,11 +54,12 @@ class Expert(BaseModel):
     cv = models.FileField(upload_to='experts/cv/', blank=True, null=True)
     
     # Sélection des CTM (Sous-Commissions Techniques)
-    ctm_choices = models.ManyToManyField(
+    ctm = models.ForeignKey(
         'governance.CTM',
+        on_delete=models.SET_NULL,
         related_name='member_experts',
-        blank=True,
-        help_text="Sous-commissions sélectionnées par l'expert"
+        null=True, blank=True,
+        help_text="Sous-commission principale sélectionnée par l'expert"
     )
     
     # Statuts

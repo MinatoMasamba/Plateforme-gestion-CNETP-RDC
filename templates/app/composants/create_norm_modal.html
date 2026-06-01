@@ -251,30 +251,132 @@
             filenameDisplay.textContent = `Source : ${file.name}`;
         }
         
-        // Simulation d'une extraction IA
-        if (cnmLoadingText) cnmLoadingText.textContent = "Extraction des clauses réglementaires...";
-        
-        setTimeout(() => {
-            if (cnmLoadingText) cnmLoadingText.textContent = "Structuration de la nomenclature gouvernementale...";
-            
-            setTimeout(() => {
-                // Auto-remplissage du formulaire
-                const cleanName = file.name.replace(/\.[^/.]+$/, ""); // supprime extension
-                document.getElementById('cnm-title').value = "Projet de Norme RDC-ITP - " + cleanName.replace(/[_-]/g, " ");
-                document.getElementById('cnm-code').value = "PR-RDC-" + cleanName.toUpperCase().replace(/[^A-Z0-9]/g, "-").slice(0, 10);
-                document.getElementById('cnm-content').value = "Clause 1. Objectif du document issu de " + file.name + "\n\nClause 2. Conformité et champ d'application...";
-                
-                // Afficher le formulaire et badge d'extraction
-                if (cnmLoadingStep) {
-                    cnmLoadingStep.classList.remove('flex');
-                    cnmLoadingStep.classList.add('hidden');
-                }
-                if (cnmFormStep) cnmFormStep.classList.remove('hidden');
-                const extractBadge = document.getElementById('cnm-extract-badge');
-                if (extractBadge) extractBadge.classList.remove('hidden');
+        const reader = new FileReader();
 
-            }, 1000);
-        }, 1500);
+        // Handle different file types
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        const textFileTypes = ['txt', 'md', 'json']; // Add more text-based formats if needed
+        const binaryFileTypes = ['pdf', 'doc', 'docx'];
+
+        if (textFileTypes.includes(fileExtension)) {
+            reader.onloadstart = () => {
+                if (cnmLoadingText) cnmLoadingText.textContent = "Lecture du fichier texte en cours...";
+            };
+            reader.onload = (e) => {
+                if (cnmLoadingText) cnmLoadingText.textContent = "Extraction et structuration des clauses...";
+                setTimeout(() => {
+                    const extractedContent = extractClauses(e.target.result);
+                    document.getElementById('cnm-content').value = extractedContent;
+                    
+                    // Génération automatique du code de classification
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+                    const day = String(today.getDate()).padStart(2, '0');
+                    document.getElementById('cnm-code').value = `PR-RDC-${year}-${month}-${day}`;
+
+                    // Afficher le formulaire et badge d'extraction
+                    if (cnmLoadingStep) {
+                        cnmLoadingStep.classList.remove('flex');
+                        cnmLoadingStep.classList.add('hidden');
+                    }
+                    if (cnmFormStep) cnmFormStep.classList.remove('hidden');
+                    const extractBadge = document.getElementById('cnm-extract-badge');
+                    if (extractBadge) extractBadge.classList.remove('hidden');
+                    if (window.showAppToast) window.showAppToast(`Extraction réussie de ${file.name}.`);
+                }, 1000); // Simulate processing time for better UX
+            };
+            reader.onerror = () => {
+                if (cnmLoadingText) cnmLoadingText.textContent = "Erreur de lecture du fichier.";
+                if (window.showAppToast) window.showAppToast("Erreur lors de la lecture du fichier.", "error");
+                resetToChoiceStep();
+            };
+            reader.readAsText(file);
+        } else if (binaryFileTypes.includes(fileExtension)) {
+            reader.onloadstart = () => {
+                if (cnmLoadingText) cnmLoadingText.textContent = `Lecture du fichier binaire (${fileExtension})...`;
+            };
+            reader.onload = (e) => {
+                if (cnmLoadingText) cnmLoadingText.textContent = "Tentative d'extraction de texte brut...";
+                setTimeout(() => {
+                    // For binary files, we get raw text, which may be unreadable.
+                    // Warn the user and put the raw content.
+                    document.getElementById('cnm-content').value = `Impossible d'extraire le contenu structuré de ce fichier binaire (${fileExtension}). Contenu brut (potentiellement illisible) :\n\n` + e.target.result;
+                    
+                    if (cnmLoadingStep) {
+                        cnmLoadingStep.classList.remove('flex');
+                        cnmLoadingStep.classList.add('hidden');
+                    }
+                    if (cnmFormStep) cnmFormStep.classList.remove('hidden');
+                    const extractBadge = document.getElementById('cnm-extract-badge');
+                    if (extractBadge) extractBadge.classList.remove('hidden');
+                    if (window.showAppToast) window.showAppToast(`Extraction limitée pour ${file.name}. Format non textuel.`, "warning");
+                }, 1500); // Simulate processing time
+            };
+            reader.onerror = () => {
+                if (cnmLoadingText) cnmLoadingText.textContent = "Erreur de lecture du fichier binaire.";
+                if (window.showAppToast) window.showAppToast("Erreur lors de la lecture du fichier binaire.", "error");
+                resetToChoiceStep();
+            };
+            // For binary files, read as ArrayBuffer or DataURL if a dedicated parser was to be used.
+            // For raw text attempt, we might still readAsText, but with encoding considerations.
+            // For now, we'll read as text and issue a warning.
+            reader.readAsText(file, 'UTF-8'); // Attempt to read as text, might result in garbage
+        } else {
+            if (cnmLoadingText) cnmLoadingText.textContent = "Format de fichier non pris en charge.";
+            if (window.showAppToast) window.showAppToast("Format de fichier non pris en charge.", "error");
+            resetToChoiceStep();
+        }
+    }
+
+    // Algorithme d'extraction de clauses
+    function extractClauses(rawText) {
+        // 1. Nettoyage et normalisation
+        let cleanedText = rawText
+            .replace(/\r\n/g, '\n') // Normaliser les retours à la ligne
+            .replace(/\r/g, '\n')
+            .replace(/\n{2,}/g, '\n\n') // Remplacer multiples sauts de ligne par deux
+            .trim();
+
+        // Patterns de détection de début de clause/article/section
+        const clausePatterns = [
+            /^\s*(article|clause|section)\s+\d+(\.\d+)*\s*[:-]?\s*/i,
+            /^\s*\d+(\.\d+)*\s*[:-]?\s*/,
+            /^\s*[IVXLCDM]+\.\s*/i, // Roman numerals
+            /^\s*[a-zA-Z]\.\s*/ // Alphabetical
+        ];
+
+        let clauses = [];
+        let currentClauseNum = 1;
+        let tempContent = [];
+
+        const lines = cleanedText.split('\n');
+
+        lines.forEach((line, index) => {
+            let isNewClauseStart = false;
+
+            for (const pattern of clausePatterns) {
+                if (line.match(pattern)) {
+                    isNewClauseStart = true;
+                    break;
+                }
+            }
+
+            if (isNewClauseStart && tempContent.length > 0) {
+                // Save previous clause content
+                clauses.push(`Clause ${currentClauseNum}. ${tempContent.join('\n').trim()}`);
+                tempContent = [];
+                currentClauseNum++;
+            }
+            tempContent.push(line);
+        });
+
+        // Add the last clause
+        if (tempContent.length > 0) {
+            clauses.push(`Clause ${currentClauseNum}. ${tempContent.join('\n').trim()}`);
+        }
+
+        return clauses.join('\n\n'); // Join clauses with double newline for separation
     }
 
     // --- SOUMISSION DU FORMULAIRE ---
