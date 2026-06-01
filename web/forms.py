@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM
+from apps.governance.models import CTM, ComitePilotage, TechnicalCell
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
@@ -173,8 +173,70 @@ class ExpertRegistrationForm(forms.ModelForm):
     # CTM - Choix unique
     ctm = forms.ModelChoiceField(
         queryset=CTM.objects.all(),
-        required=True,
-        label="Sous-Commission Technique (CTM) principale",
+        required=False,
+        label="Sous-Commission Technique (CTM)",
+        widget=forms.Select(attrs={
+            'class': 'block w-full px-4 py-2 border border-gray-300 rounded-lg',
+        })
+    )
+    
+    # Comité de Pilotage
+    pilotage_member = forms.BooleanField(
+        required=False,
+        label="Membre du Comité de Pilotage",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 rounded',
+        })
+    )
+    
+    pilotage_role = forms.ChoiceField(
+        required=False,
+        label="Rôle au Comité de Pilotage",
+        choices=[
+            ('CONSEILLER', 'Conseiller'),
+            ('CONSEILLER_POLITIQUE', 'Conseiller Institutionnel et Politique'),
+            ('ADMIN_TECH_FIN', 'Administrateur Technique et Financier'),
+            ('PARTENAIRE_SOC_CIV', 'Partenaire Sectoriel et Société Civile'),
+            ('RAPPORTEUR', 'Rapporteur Général (Bureau)'),
+            ('SECRETARY', 'Secrétaire (Bureau)'),
+            ('VICE_PRESIDENT', 'Vice-Président (Bureau)'),
+            ('PRESIDENT', 'Président (Bureau)'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'block w-full px-4 py-2 border border-gray-300 rounded-lg',
+        })
+    )
+    
+    # Cellule Technique de Coordination
+    ctc_member = forms.BooleanField(
+        required=False,
+        label="Membre de la Cellule Technique de Coordination",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 rounded',
+        })
+    )
+    
+    ctc_role = forms.ChoiceField(
+        required=False,
+        label="Rôle à la Cellule Technique",
+        choices=[
+            ('ISO_EXPERT', 'Expert Veille ISO'),
+            ('LEGAL', 'Légiste'),
+            ('ENVIRONMENTAL', 'Environnementaliste'),
+            ('PLANNER', 'Planificateur'),
+            ('ECONOMIST', 'Économiste'),
+            ('SCIENTIFIC', 'Conseiller Scientifique'),
+            ('ACCOUNTANT', 'Comptable'),
+            ('ENQUIRY_MANAGER', 'Responsable Enquêtes'),
+            ('INDUSTRIAL', 'Liaison Industrielle'),
+            ('COMMUNICATOR', 'Communicateur'),
+            ('EXECUTIVE', 'Assistant Exécutif'),
+            ('CARTOGRAPHER', 'Cartographe SIG'),
+            ('DATA_ENTRY', 'Opérateur de Saisie'),
+            ('IT_ADMIN', 'Administrateur IT'),
+            ('VICE_COORDINATOR', 'Vice-Coordonnateur'),
+            ('COORDINATOR', 'Coordonnateur'),
+        ],
         widget=forms.Select(attrs={
             'class': 'block w-full px-4 py-2 border border-gray-300 rounded-lg',
         })
@@ -182,7 +244,7 @@ class ExpertRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = Expert
-        fields = ['structure', 'specialties', 'cv', 'ctm']
+        fields = ['structure', 'specialties', 'cv']
     
     def clean_password_confirm(self):
         """Vérifier que les mots de passe correspondent"""
@@ -224,7 +286,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         return cv
     
     def save(self, commit=True):
-        """Créer l'utilisateur et l'expert"""
+        """Créer l'utilisateur et l'expert avec ses affiliations aux comités"""
         # Créer l'utilisateur Django
         user = User.objects.create_user(
             username=self.cleaned_data['email'],
@@ -237,14 +299,45 @@ class ExpertRegistrationForm(forms.ModelForm):
         # Créer l'expert
         expert = super().save(commit=False)
         expert.user = user
-        expert.status = 'PENDING' # CHOIX POUR LEQUEL J'AI PAS CONSENTIE
+        expert.status = 'PENDING'
         
         if commit:
             expert.save()
-            # Ajouter les CTM choisis
-            self.save_m2m()
+            
+            # Ajouter à CTM si sélectionné
+            ctm = self.cleaned_data.get('ctm')
+            if ctm:
+                expert.ctm = ctm
+                expert.save()
+            
+            # Ajouter au Comité de Pilotage si sélectionné
+            if self.cleaned_data.get('pilotage_member'):
+                from apps.governance.models import PilotageMembreship
+                comite = ComitePilotage.objects.first() or ComitePilotage.objects.create(
+                    name="Comité de Pilotage Stratégique CNETP"
+                )
+                PilotageMembreship.objects.get_or_create(
+                    comite=comite,
+                    expert=expert,
+                    defaults={'role': self.cleaned_data.get('pilotage_role', 'CONSEILLER')}
+                )
+            
+            # Ajouter à la Cellule Technique de Coordination si sélectionné
+            if self.cleaned_data.get('ctc_member'):
+                from apps.governance.models import CTCMembership
+                ctc = TechnicalCell.objects.first() or TechnicalCell.objects.create(
+                    name="Cellule Technique de Coordination"
+                )
+                CTCMembership.objects.get_or_create(
+                    ctc=ctc,
+                    expert=expert,
+                    defaults={'role': self.cleaned_data.get('ctc_role', 'ISO_EXPERT')}
+                )
         
         return expert
+
+
+
 
 import logging
 import traceback

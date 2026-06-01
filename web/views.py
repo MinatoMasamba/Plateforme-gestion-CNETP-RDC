@@ -37,9 +37,15 @@ class App(View):
 
         if not request.user.is_authenticated:
             return redirect('web:expert_registration')
+        
+            
+            return redirect('web:home')
         # Récupérer les structures et CTM pour le dashboard
         user = request.user
         data_expert =  Expert.objects.filter(user=user).first()
+        if not data_expert:
+            print("User is authenticated but not an expert:", request.user.username)
+            messages.warning(request, "Votre compte n'est pas encore validé en tant qu'expert. Veuillez patienter ou contacter l'administrateur.")
         structure = data_expert.structure if data_expert else None
         ctms = [data_expert.ctm] if data_expert and data_expert.ctm else []
         context = {
@@ -113,6 +119,8 @@ class User_RegistrationView(View):
         return render(request, self.template_name, context)
 
 
+
+
 class ExpertRegistrationView(View):
     """
     Vue pour l'inscription des experts avec formulaire Django
@@ -137,7 +145,7 @@ class ExpertRegistrationView(View):
                 expert = form.save()
                 messages.success(
                     request,
-                    f"✅ Inscription réussie! Bienvenue {expert.user.get_full_name()}. Veuillez vérifier votre email pour confirmer votre compte."
+                    f"✅ Inscription réussie! Bienvenue {expert.user.get_full_name()}. Vous recevrez un email de confirmation une fois votre compte validé par l'administrateur."
                 )
                 return redirect('web:expert_login')
             except Exception as e:
@@ -152,6 +160,9 @@ class ExpertRegistrationView(View):
             'form': form,
         }
         return render(request, self.template_name, context)
+
+
+
 
 
 class UserLoginView(View):

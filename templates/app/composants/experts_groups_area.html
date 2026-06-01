@@ -18,20 +18,9 @@
 
     <div id="expert-access-alert" class="hidden mb-4.5 p-3 rounded-lg border border-red-500/35 bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-350 text-xs font-semibold leading-relaxed animate-slideIn"></div>
 
-    <div id="view-wg" class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fadeIn">
+    <div id="view-wg" class="w-full space-y-6 animate-fadeIn">
         
-        <!-- Sidebar: List of Working Groups -->
-        <div class="lg:col-span-1 space-y-3 lg:max-h-[80vh] lg:overflow-y-auto">
-            <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-2 mb-3 flex items-center gap-2">
-                <i data-lucide="layers" class="h-4 w-4 text-blue-500"></i>
-                Groupes de Travail
-            </h4>
-            <div id="wg-sidebar-list" class="space-y-2">
-                <div class="flex justify-center py-4"><i data-lucide="loader-2" class="w-4 h-4 text-blue-500 animate-spin"></i></div>
-            </div>
-        </div>
-        
-        <div class="lg:col-span-2 space-y-6">
+    <div class="space-y-6">
             
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/10 rounded-xl p-5 relative overflow-hidden backdrop-blur-md border shadow-sm">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none"></div>
@@ -393,9 +382,15 @@
             loadCtms(), // Load CTMs at init
         ]);
 
-        if (!expState.activeWgId && expState.workingGroups.length > 0) {
+        // Check if a WG was selected from sidebar
+        const selectedWgId = sessionStorage.getItem('selectedWgId');
+        if (selectedWgId) {
+            expState.activeWgId = selectedWgId;
+            sessionStorage.removeItem('selectedWgId');
+        } else if (!expState.activeWgId && expState.workingGroups.length > 0) {
             expState.activeWgId = expState.workingGroups[0].id;
         }
+
         if (!expState.activeExpId && expState.experts.length > 0) {
             expState.activeExpId = expState.experts[0].id;
         }
@@ -403,6 +398,7 @@
         renderView();
         renderFooterStats();
         renderCtmIndicators(); // Call new indicator function
+        renderWGSidebar(); // Render sidebar WG list
     }
 
     function setCtmFilter(ctmId) {

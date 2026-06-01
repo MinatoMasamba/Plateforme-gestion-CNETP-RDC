@@ -1,370 +1,495 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Inscription Expert - CNETP{% endblock %}
-
-{% block extra_css %}
-<style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devenir Expert - CNETP</title>
     
-    .registration-container {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        max-width: 700px;
-        width: 100%;
-        padding: 40px;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
-    .registration-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    
-    .registration-header h1 {
-        color: #333;
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-    
-    .registration-header p {
-        color: #666;
-        font-size: 14px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        color: #333;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-    
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .form-group ul {
-        list-style: none;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 15px;
-        margin-top: 10px;
-    }
-    
-    .form-group li {
-        display: flex;
-        align-items: flex-start;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .form-group li:hover {
-        border-color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
-    }
-    
-    .form-group li input[type="checkbox"] {
-        width: auto;
-        margin-right: 8px;
-        margin-top: 2px;
-        cursor: pointer;
-    }
-    
-    .form-group li label {
-        margin: 0;
-        font-weight: 400;
-        cursor: pointer;
-        font-size: 13px;
-    }
-    
-    .errorlist {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .errorlist li {
-        color: #e74c3c;
-        font-size: 13px;
-        margin-top: 5px;
-        padding: 8px;
-        background: #fadbd8;
-        border-radius: 3px;
-    }
-    
-    .required {
-        color: #e74c3c;
-    }
-    
-    .info-text {
-        font-size: 12px;
-        color: #999;
-        margin-top: 5px;
-    }
-    
-    .submit-btn {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .submit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .submit-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
-    .messages {
-        margin-bottom: 20px;
-    }
-    
-    .alert {
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .alert-success {
-        background: #d5f4e6;
-        color: #27ae60;
-        border: 1px solid #27ae60;
-    }
-    
-    .alert-error {
-        background: #fadbd8;
-        color: #e74c3c;
-        border: 1px solid #e74c3c;
-    }
-    
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-    
-    @media (max-width: 600px) {
-        .form-row {
-            grid-template-columns: 1fr;
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 100: '#06060c', 200: '#020204' }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'spin-slow': 'spin 1.5s linear infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                        }
+                    }
+                }
+            }
         }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
         
-        .registration-container {
-            padding: 20px;
+        /* Select dropdown arrow customization */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-    }
-</style>
-{% endblock %}
+    </style>
+</head>
+<body class="min-h-screen relative overflow-y-auto flex items-center justify-center p-4 transition-colors duration-300 bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300">
+    
+    <div class="fixed inset-0 pointer-events-none transition-opacity duration-300 bg-gradient-to-br from-blue-50 to-slate-100 opacity-100 dark:from-blue-900/10 dark:via-black dark:to-slate-900/20"></div>
+    
+    <div class="fixed top-1/4 -left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-{% block content %}
-<div class="registration-container">
-    <div class="registration-header">
-        <h1>📋 Inscription Expert</h1>
-        <p>Rejoignez les Sous-Commissions Techniques de la CNETP</p>
-    </div>
-    
-    <!-- Messages d'alerte -->
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <form method="post" enctype="multipart/form-data" class="space-y-4">
-        {% csrf_token %}
+    <button
+        onclick="toggleTheme()"
+        class="fixed top-6 right-6 z-50 p-3 rounded-full backdrop-blur-md transition-all bg-white/80 border border-slate-200 hover:bg-white text-slate-700 hover:shadow-xl dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:text-yellow-500 dark:shadow-lg"
+        title="Changer de mode"
+    >
+        <i id="theme-icon" data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+    </button>
+
+    <div class="w-full max-w-2xl relative z-10 py-12 animate-fade-in-up">
         
-        <!-- Informations Personnelles -->
-        <div class="form-group">
-            <label for="{{ form.first_name.id_for_label }}">
-                {{ form.first_name.label }} <span class="required">*</span>
-            </label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}
-                <ul class="errorlist">
-                    {% for error in form.first_name.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(59,130,246,0.15)] animate-fade-in-up" style="animation-delay: 0.1s;">
+                <i data-lucide="shield-check" class="w-8 h-8 text-blue-400"></i>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-widest uppercase text-center mb-2 text-slate-900 dark:text-white">
+                Devenir Expert
+            </h1>
+            <p class="text-blue-500 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-center">
+                Bureau d'Accès Technique CNETP
+            </p>
         </div>
-        
-        <div class="form-group">
-            <label for="{{ form.last_name.id_for_label }}">
-                {{ form.last_name.label }} <span class="required">*</span>
-            </label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}
-                <ul class="errorlist">
-                    {% for error in form.last_name.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.email.id_for_label }}">
-                {{ form.email.label }} <span class="required">*</span>
-            </label>
-            {{ form.email }}
-            {% if form.email.errors %}
-                <ul class="errorlist">
-                    {% for error in form.email.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <!-- Mots de passe -->
-        <div class="form-row">
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}">
-                    {{ form.password.label }} <span class="required">*</span>
-                </label>
-                {{ form.password }}
-                <p class="info-text">Min 8 caractères</p>
-                {% if form.password.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.password.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+
+        <div class="border rounded-3xl p-6 sm:p-10 backdrop-blur-xl relative overflow-hidden transition-colors duration-300 bg-white/90 border-slate-200 shadow-xl dark:bg-[#06060c]/80 dark:border-white/5 dark:shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500/20 via-blue-400/80 to-blue-500/20"></div>
+            
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-1.5 text-slate-900 dark:text-white">Formulaire d'inscription</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-500">Veuillez renseigner vos informations pour rejoindre la plateforme en tant qu'expert.</p>
             </div>
             
-            <div class="form-group">
-                <label for="{{ form.password_confirm.id_for_label }}">
-                    {{ form.password_confirm.label }} <span class="required">*</span>
-                </label>
-                {{ form.password_confirm }}
-                {% if form.password_confirm.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.password_confirm.errors %}
-                        <li>{{ error }}</li>
+            <div id="form-error-box" class="{% if form.errors or messages %}flex{% else %}hidden{% endif %} overflow-hidden mb-6 transition-all duration-300">
+                <div class="bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium p-4 rounded-xl flex items-start gap-3 w-full">
+                    <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-px text-red-500"></i>
+                    <div class="leading-relaxed flex flex-col gap-1 w-full" id="form-error-text">
+                        {% for message in messages %}
+                            <span>{{ message }}</span>
                         {% endfor %}
-                    </ul>
-                {% endif %}
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <form id="expert-register-form" method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Prénom</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="type" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <input 
+                                type="text"
+                                name="{{ form.first_name.name }}"
+                                id="{{ form.first_name.id_for_label }}"
+                                value="{{ form.first_name.value|default:'' }}"
+                                required
+                                placeholder="Votre prénom"
+                                class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Nom</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="type" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <input 
+                                type="text"
+                                name="{{ form.last_name.name }}"
+                                id="{{ form.last_name.id_for_label }}"
+                                value="{{ form.last_name.value|default:'' }}"
+                                required
+                                placeholder="Votre nom"
+                                class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Email</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                            <i data-lucide="mail" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <input 
+                            type="email"
+                            name="{{ form.email.name }}"
+                            id="{{ form.email.id_for_label }}"
+                            value="{{ form.email.value|default:'' }}"
+                            required
+                            placeholder="votre.email@exemple.com"
+                            class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                        />
+                    </div>
+                </div>
+
+                <hr class="my-8 border-t border-slate-200 dark:border-white/10" />
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Organisation</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="building" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <select
+                                name="{{ form.structure.name }}"
+                                id="{{ form.structure.id_for_label }}"
+                                required
+                                class="block w-full pl-11 pr-10 py-3 border rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            >
+                                <option value="" disabled selected class="bg-white dark:bg-slate-900">Sélectionnez votre organisation</option>
+                                {% for choice in form.structure.field.queryset %}
+                                    <option value="{{ choice.pk }}" {% if form.structure.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %} class="bg-white dark:bg-slate-900">
+                                        {{ choice.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">CTM Principale</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="layers" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <select
+                                name="{{ form.ctm.name }}"
+                                id="{{ form.ctm.id_for_label }}"
+                                class="block w-full pl-11 pr-10 py-3 border rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            >
+                                <option value="" disabled selected class="bg-white dark:bg-slate-900">Sélectionnez une CTM (optionnel)</option>
+                                {% for choice in form.ctm.field.queryset %}
+                                    <option value="{{ choice.pk }}" {% if form.ctm.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %} class="bg-white dark:bg-slate-900">
+                                        {{ choice.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comité de Pilotage -->
+                    <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                        <div class="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                name="{{ form.pilotage_member.name }}"
+                                id="{{ form.pilotage_member.id_for_label }}"
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+                                onchange="togglePilotageRole()"
+                            />
+                            <label for="{{ form.pilotage_member.id_for_label }}" class="text-[11px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer">
+                                Comité de Pilotage (27 postes)
+                            </label>
+                        </div>
+                        <div id="pilotage-role-section" class="pl-7 hidden">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Rôle au Comité</label>
+                            <select
+                                name="{{ form.pilotage_role.name }}"
+                                id="{{ form.pilotage_role.id_for_label }}"
+                                class="block w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            >
+                                {% for value, label in form.pilotage_role.field.choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cellule Technique de Coordination -->
+                    <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                        <div class="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                name="{{ form.ctc_member.name }}"
+                                id="{{ form.ctc_member.id_for_label }}"
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+                                onchange="toggleCtcRole()"
+                            />
+                            <label for="{{ form.ctc_member.id_for_label }}" class="text-[11px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer">
+                                Cellule Technique de Coordination (20 postes)
+                            </label>
+                        </div>
+                        <div id="ctc-role-section" class="pl-7 hidden">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Rôle à la Cellule</label>
+                            <select
+                                name="{{ form.ctc_role.name }}"
+                                id="{{ form.ctc_role.id_for_label }}"
+                                class="block w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            >
+                                {% for value, label in form.ctc_role.field.choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Domaines de compétence</label>
+                    <div class="relative group">
+                        <textarea
+                            name="{{ form.specialties.name }}"
+                            id="{{ form.specialties.id_for_label }}"
+                            rows="3"
+                            placeholder="Ex: Géotechnique, Structures en béton..."
+                            class="block w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium resize-y bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                        >{{ form.specialties.value|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Curriculum Vitae (CV)</label>
+                    <div class="relative px-4 py-5 border-2 border-dashed rounded-xl transition-colors text-center group cursor-pointer border-slate-300 hover:border-blue-500 bg-slate-50 dark:border-white/10 dark:hover:border-blue-500/40 dark:bg-white/5">
+                        
+                        <input
+                            type="file"
+                            name="{{ form.cv.name }}"
+                            id="id_cv"
+                            accept=".pdf,.doc,.docx,.txt"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        
+                        <div id="cv-empty-ui" class="flex flex-col items-center gap-2">
+                            <div class="p-3 rounded-full transition-all bg-white text-slate-500 shadow-sm group-hover:text-blue-500 group-hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:group-hover:text-blue-400 dark:group-hover:bg-blue-500/10">
+                                <i data-lucide="upload" class="h-6 w-6"></i>
+                            </div>
+                            <span class="text-sm font-bold text-slate-800 dark:text-white">Cliquez pour télécharger</span>
+                            <span class="text-xs leading-relaxed text-slate-500">PDF, DOC, DOCX ou TXT (Max: 5MB)</span>
+                        </div>
+
+                        <div id="cv-selected-ui" class="hidden flex-col items-center gap-2">
+                            <i data-lucide="check-circle" class="h-8 w-8 text-green-500"></i>
+                            <span class="text-sm font-bold text-green-600 dark:text-green-400">Fichier sélectionné</span>
+                            <span id="cv-filename" class="text-xs text-slate-500 dark:text-slate-400"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-8 border-t border-slate-200 dark:border-white/10" />
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Mot de passe</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="lock" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <input 
+                                type="password" 
+                                name="{{ form.password.name }}"
+                                id="{{ form.password.id_for_label }}"
+                                required
+                                minlength="8"
+                                placeholder="Min 8 caractères"
+                                class="pass-input block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium tracking-widest bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Confirmer mot de passe</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                                <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <input 
+                                type="password" 
+                                name="{{ form.password_confirm.name }}"
+                                id="{{ form.password_confirm.id_for_label }}"
+                                required
+                                minlength="8"
+                                placeholder="Confirmez"
+                                class="pass-input block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium tracking-widest bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-blue-500/30 focus:border-blue-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-blue-500/40 dark:focus:border-blue-500/40"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button 
+                        type="submit" 
+                        id="submit-btn"
+                        class="w-full py-4 bg-blue-500 text-black rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-blue-400 shadow-[0_4px_20px_rgba(59,130,246,0.2)] hover:shadow-[0_4px_25px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:bg-blue-500 disabled:shadow-none disabled:cursor-not-allowed group active:scale-95"
+                    >
+                        <span>Soumettre la candidature</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    
+                    <div class="mt-4 flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 text-blue-500 mt-0.5"></i>
+                        <p class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">
+                            En soumettant ce formulaire, votre demande d'inscription en tant qu'expert sera mise en statut <strong class="dark:text-slate-300">En attente (PENDING)</strong> jusqu'à validation par l'administration.
+                        </p>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="mt-8 text-center -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 sm:p-8 border-t transition-colors bg-slate-50/80 border-slate-200 dark:bg-white/5 dark:border-white/5">
+                <p class="text-xs text-slate-600 dark:text-slate-400">
+                    Vous avez déjà un compte validé ?
+                    <a href="{% url 'web:expert_login' %}" class="text-blue-500 hover:text-blue-400 font-bold transition-colors uppercase tracking-wider ml-1 relative z-20">
+                        Se Connecter
+                    </a>
+                </p>
             </div>
         </div>
         
-        <!-- Organisation et Compétences -->
-        <div class="form-group">
-            <label for="{{ form.structure.id_for_label }}">
-                {{ form.structure.label }} <span class="required">*</span>
-            </label>
-            {{ form.structure }}
-            {% if form.structure.errors %}
-                <ul class="errorlist">
-                    {% for error in form.structure.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.specialties.id_for_label }}">
-                {{ form.specialties.label }}
-            </label>
-            {{ form.specialties }}
-            <p class="info-text">Ex: Géotechnique, Structures en béton, ...</p>
-            {% if form.specialties.errors %}
-                <ul class="errorlist">
-                    {% for error in form.specialties.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <!-- CV Upload -->
-        <div class="form-group">
-            <label for="{{ form.cv.id_for_label }}">
-                {{ form.cv.label }}
-            </label>
-            {{ form.cv }}
-            <p class="info-text">Format: PDF, DOC, DOCX, TXT (Max 5 MB)</p>
-            {% if form.cv.errors %}
-                <ul class="errorlist">
-                    {% for error in form.cv.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <!-- CTM Selection -->
-        <div class="form-group">
-            <label>{{ form.ctm_choices.label }} <span class="required">*</span></label>
-            <p class="info-text">Sélectionnez au minimum une Sous-Commission Technique</p>
-            {{ form.ctm_choices }}
-            {% if form.ctm_choices.errors %}
-                <ul class="errorlist">
-                    {% for error in form.ctm_choices.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        
-        <!-- Submit -->
-        <button type="submit" class="submit-btn">
-            S'inscrire
-        </button>
-    </form>
-    
-    <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
-        Vous avez déjà un compte? 
-        <a href="{% url 'web:expert_login' %}" style="color: #667eea; text-decoration: none; font-weight: 600;">
-            Connectez-vous
-        </a>
-    </p>
-</div>
-{% endblock %}
-Note 2: La comprÃ©hension du contexte interne est facilitÃ©e par la surveillance des valeurs, de la culture d'entreprise et des indicateurs de performance.
+    </div>
+
+    <script>
+        // Initialiser Lucide Icons
+        lucide.createIcons();
+
+        // 1. Gestion du Thème (Dark / Light)
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            // Gérer les icônes du bouton
+            document.querySelectorAll('#theme-icon').forEach(icon => {
+                const parent = icon.parentElement;
+                parent.innerHTML = isDark 
+                    ? '<i data-lucide="sun" class="w-5 h-5"></i>' 
+                    : '<i data-lucide="moon" class="w-5 h-5"></i>';
+            });
+            lucide.createIcons();
+        }
+
+        // 2. Gestion des comités
+        function togglePilotageRole() {
+            const checkbox = document.getElementById('{{ form.pilotage_member.id_for_label }}');
+            const roleSection = document.getElementById('pilotage-role-section');
+            if (checkbox.checked) {
+                roleSection.classList.remove('hidden');
+            } else {
+                roleSection.classList.add('hidden');
+            }
+        }
+
+        function toggleCtcRole() {
+            const checkbox = document.getElementById('{{ form.ctc_member.id_for_label }}');
+            const roleSection = document.getElementById('ctc-role-section');
+            if (checkbox.checked) {
+                roleSection.classList.remove('hidden');
+            } else {
+                roleSection.classList.add('hidden');
+            }
+        }
+
+        // 3. Gestion de l'Upload du CV (Limitation 5MB et UI dynamique)
+        const fileInput = document.getElementById('id_cv');
+        const emptyUI = document.getElementById('cv-empty-ui');
+        const selectedUI = document.getElementById('cv-selected-ui');
+        const filenameText = document.getElementById('cv-filename');
+        const errorBox = document.getElementById('form-error-box');
+        const errorText = document.getElementById('form-error-text');
+
+        function showError(msg) {
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+            errorText.innerHTML = `<span>${msg}</span>`;
+        }
+
+        function hideError() {
+            errorBox.classList.remove('flex');
+            errorBox.classList.add('hidden');
+            errorText.innerHTML = '';
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('Le fichier CV ne doit pas dépasser 5 MB.');
+                    this.value = ''; // Réinitialiser le fichier
+                    emptyUI.classList.remove('hidden');
+                    emptyUI.classList.add('flex');
+                    selectedUI.classList.remove('flex');
+                    selectedUI.classList.add('hidden');
+                } else {
+                    hideError();
+                    filenameText.textContent = file.name;
+                    emptyUI.classList.remove('flex');
+                    emptyUI.classList.add('hidden');
+                    selectedUI.classList.remove('hidden');
+                    selectedUI.classList.add('flex');
+                }
+            }
+        });
+
+        // 3. Validation du Formulaire (Mots de passe et Loading State)
+        const form = document.getElementById('expert-register-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const pass1 = document.getElementById('{{ form.password.id_for_label }}');
+        const pass2 = document.getElementById('{{ form.password_confirm.id_for_label }}');
+
+        // Check en direct pour la coloration rouge des mots de passe
+        function checkPasswords() {
+            if (pass1.value && pass2.value && pass1.value !== pass2.value) {
+                pass2.classList.add('border-red-500/50', 'focus:border-red-500/40', 'focus:ring-red-500/40', 'bg-red-500/5');
+            } else {
+                pass2.classList.remove('border-red-500/50', 'focus:border-red-500/40', 'focus:ring-red-500/40', 'bg-red-500/5');
+            }
+        }
+        pass1.addEventListener('input', checkPasswords);
+        pass2.addEventListener('input', checkPasswords);
+
+        form.addEventListener('submit', function(e) {
+            if (pass1.value !== pass2.value) {
+                e.preventDefault();
+                showError('Les mots de passe ne correspondent pas.');
+                return;
+            }
+
+            // Afficher le loader et désactiver le bouton
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('hover:bg-blue-400', 'active:scale-95');
+            submitBtn.innerHTML = `
+                <div class="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                <span>Création du compte...</span>
+            `;
+        });
+    </script>
+</body>
+</html>

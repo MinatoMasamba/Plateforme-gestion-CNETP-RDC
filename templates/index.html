@@ -78,12 +78,15 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
+                    {% if not user.is_authenticated %}
                     <button onclick="window.location.href='{% url "web:expert_login" %}'" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-teal-400 transition-colors cursor-pointer">
                         Se Connecter
                     </button>
+                    {% else %}
                     <button onclick="window.location.href='{% url "web:app" %}'" class="px-5 py-2.5 bg-teal-500 text-black rounded font-bold uppercase tracking-wider text-xs hover:bg-teal-400 hover:scale-105 hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] active:scale-95 transition-all duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.3)] cursor-pointer">
                         Accès <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
