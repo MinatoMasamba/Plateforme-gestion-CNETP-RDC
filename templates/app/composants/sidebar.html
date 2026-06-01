@@ -1,22 +1,29 @@
-<div class="flex flex-col h-full bg-slate-50 dark:bg-[#06060c]/90 border-r border-slate-250 dark:border-white/10 text-slate-800 dark:text-slate-300 transition-colors duration-250 w-80 shrink-0 backdrop-blur-md">
+<aside id="sidebar-container" class="w-80 flex flex-col h-full shrink-0 backdrop-blur-md transition-colors duration-250 bg-slate-50 border-r border-slate-200 text-slate-800 dark:bg-[#06060c]/90 dark:border-white/10 dark:text-slate-300">
     
-    <div class="p-4 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black/15">
+    <div class="p-4 flex items-center gap-3 border-b bg-white border-slate-200 dark:bg-black/15 dark:border-white/10">
+        
         <div class="flex items-center gap-2 shrink-0 select-none">
+            
             <svg width="46" height="46" viewBox="0 0 100 100" class="shrink-0 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.2)]">
                 <circle cx="50" cy="50" r="46" class="fill-[#ffffff] dark:fill-[#171717]" stroke="#d4af37" stroke-width="1.5" />
                 <circle cx="50" cy="50" r="41" fill="none" stroke="#d4af37" stroke-width="0.5" stroke-dasharray="3 2" />
+                
                 <path id="textPathTop" d="M 12 52 A 38 38 0 0 1 88 52" fill="none" />
                 <text font-family="sans-serif" font-weight="800" font-size="5.2" class="fill-[#334155] dark:fill-[#e2e8f0]" letter-spacing="0.2">
                     <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">REP. DEM. DU CONGO</textPath>
                 </text>
+                
                 <path id="textPathBottom" d="M 88 48 A 38 38 0 0 1 12 48" fill="none" />
                 <text font-family="sans-serif" font-weight="900" font-size="5.5" class="fill-[#0095c9] dark:fill-[#ffd700]" letter-spacing="0.3">
                     <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">LE GOUVERNEMENT</textPath>
                 </text>
+
                 <g transform="translate(18, 22) scale(0.65)">
                     <line x1="20" y1="65" x2="70" y2="15" stroke="#78350f" stroke-width="3" stroke-linecap="round" />
                     <polygon points="70,15 74,10 75,18 70,15" fill="#94a3b8" stroke="#334155" stroke-width="0.5" />
+                    
                     <path d="M 23 72 C 15 50 25 30 35 22 C 30 35 25 55 25 72 Z" fill="#fdfae6" stroke="#cbb281" stroke-width="1" />
+                    
                     <ellipse cx="48" cy="55" rx="14" ry="7" fill="#dc2626" stroke="#991b1b" stroke-width="1" />
                     <ellipse cx="48" cy="46" rx="15" ry="12" fill="#ffea00" stroke="#000" stroke-width="1" />
                     <path d="M 36 38 Q 30 30 38 34" fill="#ffea00" stroke="#000" stroke-width="1" />
@@ -30,15 +37,18 @@
                     <circle cx="43" cy="43" r="0.8" fill="#000" />
                     <circle cx="53" cy="43" r="0.8" fill="#000" />
                 </g>
+                
                 <path d="M 22 74 Q 50 83 78 74 L 75 79 Q 50 87 25 79 Z" fill="#db3832" stroke="#991b1b" stroke-width="0.5" />
                 <text x="50" y="78.5" font-size="3.8" fill="#ffffff" font-weight="bold" text-anchor="middle" letter-spacing="0.4">PAIX - JUSTICE - TRAVAIL</text>
             </svg>
+
             <div class="w-[4px] h-[34px] flex flex-col rounded-sm overflow-hidden shrink-0">
                 <div class="flex-1 bg-[#0095c9]" title="Bleu : Paix / Souveraineté"></div>
                 <div class="h-[25%] bg-[#fff24b]" title="Jaune : Richesses du Pays"></div>
                 <div class="flex-1 bg-[#db3832]" title="Rouge : Sang des Martyrs"></div>
             </div>
         </div>
+
         <div class="min-w-0">
             <h1 class="text-xs uppercase tracking-wider leading-none font-bold text-slate-500 dark:text-slate-400 dark:font-normal">SÉCRÉTARIAT TECHNIQUE</h1>
             <h2 class="text-[12px] font-black tracking-tight leading-tight mt-1 uppercase text-blue-600 dark:text-blue-500">Portail CNETP RDC</h2>
@@ -56,50 +66,92 @@
 
     </div>
 
-    <div class="p-3.5 border-t text-[10px] font-semibold flex flex-col gap-2.5 tracking-wide transition-colors border-slate-200 bg-slate-100 text-slate-600 dark:border-white/5 dark:bg-black/95 dark:text-slate-500">
-        <div class="flex items-center justify-between uppercase">
-            <span class="font-mono text-[9px] text-slate-500">ISO Compliance Mode</span>
-            <span class="flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-400">
-                <span class="w-1.5 h-1.5 rounded-full animate-pulse bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] dark:bg-amber-400 dark:shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
-                Sync
-            </span>
-        </div>
-        <div class="flex items-center justify-between pt-1.5 border-t border-slate-200 dark:border-white/5">
-            <span class="text-[9px] uppercase text-slate-500 dark:text-slate-400">Poste Actif :</span>
-            <span id="footer-active-role" class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase text-blue-600 bg-blue-50 border border-blue-200 dark:text-amber-400 dark:bg-amber-400/10 dark:border-amber-400/25">
-                Administrateur
-            </span>
-        </div>
-        <div class="pt-1.5">
-            <button onclick="openProfileModal()" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-[9.5px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm focus:outline-none border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:border-blue-400 dark:border-amber-500/20 dark:bg-amber-500/5 dark:hover:bg-amber-500/15 dark:text-amber-400 dark:hover:border-amber-400" title="Configurer Profil Test">
-                <span>👤 Configurer Profil Test</span>
-                <span class="text-blue-500 dark:text-amber-300">&rarr;</span>
-            </button>
-        </div>
+    <div id="sidebar-footer-stats" class="p-3.5 border-t text-[10px] font-semibold flex flex-col gap-2.5 tracking-wide transition-colors border-slate-200 bg-slate-100 text-slate-600 dark:border-white/5 dark:bg-black/95 dark:text-slate-500">
     </div>
-</div>
+
+</aside>
 
 <script>
-    // --- ÉTAT GLOBAL DE LA SIDEBAR ---
+    // =========================================================================
+    // 1. ÉTAT GLOBAL DE LA SIDEBAR (Simulation API)
+    // =========================================================================
     const sidebarState = {
-        activeTab: 'editor',
+        activeTab: 'experts', // Défini par défaut sur experts pour voir le résultat
         searchQuery: '',
         selectedDocId: null,
-        selectedWgId: null,
-        selectedExpertId: null,
-        expertSelectionType: 'expert', // 'wg' ou 'expert'
+        selectedWgId: 'wg-8.1',
+        selectedExpertId: 'exp-1',
+        expertSelectionType: 'wg', // 'wg' ou 'expert' ou 'pending'
         historyAuthorFilter: null,
         userRole: 'ADMIN',
         
-        // Données vides, à remplir par l'API
-        documents: [],
-        workingGroups: [],
-        experts: [],
-        collaborators: [],
-        historyEditors: [],
-        meetings: [],
-        budgets: [],
-        validationSteps: []
+        // Simuler un profil connecté
+        testProfile: {
+            email: "masamba@cnetp.cd",
+            roleId: "ADMIN"
+        },
+        
+        // Données complètes issues du React
+        documents: [
+            { id: "doc-1", code: "Pr-RDC 9001", title: "ISO 9001 - Révision RDC", category: "Qualité", updatedBy: "Masamba" },
+            { id: "doc-2", code: "Pr-RDC 27001", title: "Sécurité de l'information", category: "Sécurité", updatedBy: "Lukusa" }
+        ],
+        workingGroups: [
+            { id: "wg-8.1", code: "WG 8.1", title: "Matériaux Locaux (CTM 8)", tag: "Actif" },
+            { id: "wg-1.2", code: "WG 1.2", title: "Stabilité Sols (CTM 1)", tag: "Rédaction" }
+        ],
+        experts: [
+            { id: "exp-1", name: "Prof. Masamba Édouard", role: "Président scientifique", structure: "UNIKIN", email: "masamba@cnetp.cd", ctm: "CTM 8", wg: "WG 8.1", isApproved: true },
+            { id: "exp-2", name: "Ir. Chantal Mwamba", role: "Secrétaire", structure: "OVD", email: "chantal@cnetp.cd", ctm: "CTM 5", wg: "WG 5.1", isApproved: true },
+            { id: "exp-3", name: "Arch. Sylvain Lukusa", role: "Rapporteur", structure: "ONA", email: "sylvain@cnetp.cd", ctm: "CTM 3", wg: "WG 3.2", isApproved: false }
+        ],
+        collaborators: [
+            { id: "col-1", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", email: "masamba@cnetp.cd", avatarColor: "#3b82f6", isActive: true },
+            { id: "col-2", name: "Marie Laurent", role: "Coordinateur CTC", email: "marie@cnetp.cd", avatarColor: "#ec4899", isActive: false }
+        ],
+        historyEditors: [
+            { email: "masamba@cnetp.cd", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", avatarColor: "#3b82f6", count: 12 },
+            { email: "chantal@cnetp.cd", name: "Ir. Chantal Mwamba", role: "Secrétaire", avatarColor: "#14b8a6", count: 3 }
+        ],
+        meetings: [
+            { id: "m-1", title: "Session CTM 8 - Argiles", date: "20 Mai 2026", status: "Terminé" },
+            { id: "m-2", title: "Concertation ITP", date: "24 Mai 2026", status: "En cours" }
+        ],
+        budgets: [
+            { id: "b-1", title: "Cotisation Annuelle OCC", amount: "78,500 CDF", status: "Payé" },
+            { id: "b-2", title: "Fonds ITP Secrétariat", amount: "125,000 CDF", status: "Validé" }
+        ],
+        validationSteps: [
+            { id: "s-1", title: "1. Enquête Publique 90 J.", desc: "Recueil des avis publics" },
+            { id: "s-2", title: "2. Conformité Formulation", desc: "Relit technique légistique" }
+        ]
+    };
+
+    // --- FONCTIONS UTILITAIRES POUR EXPERTS ---
+    const getCmtNumber = (ctmStr) => {
+        if (!ctmStr) return null;
+        const match = ctmStr.match(/CTM\s*(\d+)/i);
+        return match ? match[1] : null;
+    };
+
+    const getWgCmtNumber = (wgCodeStr) => {
+        if (!wgCodeStr) return null;
+        const match = wgCodeStr.match(/(?:WG|wg)\s*(\d+)\.?/i);
+        return match ? match[1] : null;
+    };
+
+    const getParallelNormsForWg = (wgCode) => {
+        switch (wgCode) {
+            case "WG 8.1": return ["Pr-RDC 801 (BTC)", "Pr-RDC 802 (Eco-Briques)", "Pr-RDC 803 (Recyclage)"];
+            case "WG 8.2": return ["Pr-RDC 812 (Ultrasons)", "Pr-RDC 813 (Mécanique)"];
+            case "WG 8.3": return ["Pr-RDC 821 (Label Vert)"];
+            case "WG 1.1": return ["Pr-RDC 101 (Argiles)", "Pr-RDC 102 (CBR Route)"];
+            case "WG 1.2": return ["Pr-RDC 112 (Anti-Érosion)"];
+            case "WG 2.3": return ["Pr-RDC 231 (Sismique)"];
+            case "WG 5.1": return ["Pr-RDC 501 (Enrobés Latérite)"];
+            case "WG 6.2": return ["Pr-RDC 611 (Assainissement)"];
+            default: return [];
+        }
     };
 
     // --- FONCTION PRINCIPALE DE RENDU ---
@@ -107,231 +159,247 @@
         if (tab) sidebarState.activeTab = tab;
         const topSection = document.getElementById('sidebar-top-section');
         const bottomSection = document.getElementById('sidebar-bottom-section');
+        const isDark = document.documentElement.classList.contains('dark');
         
         let topHtml = '';
         let bottomHtml = '';
 
-        // 1. RENDU DE LA SECTION HAUTE SELON L'ONGLET
+        // ==========================================
+        // 1. RENDU DE LA SECTION HAUTE (TOP)
+        // ==========================================
+        
         if (sidebarState.activeTab === 'editor') {
             topHtml = `
                 <div class="flex items-center justify-between mb-3 px-2">
                     <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
                         <i data-lucide="file-text" class="h-3.5 w-3.5 text-slate-400"></i> Documents / Normes
                     </h2>
-                    <button onclick="handleAddAction('doc')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 cursor-pointer shadow-xs border text-blue-600 hover:bg-blue-100 bg-blue-50 border-blue-200 dark:text-blue-400 dark:hover:text-white dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:border-blue-500/20">
-                        <i data-lucide="plus" class="h-3 w-3"></i> Nouveau
+                    <button onclick="handleAddAction('doc')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 cursor-pointer shadow-xs border ${isDark ? 'text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20' : 'text-blue-600 hover:bg-blue-100 bg-blue-50 border-blue-200'}">
+                        <i data-lucide="plus" class="h-3 w-3 inline"></i> Nouveau
                     </button>
                 </div>
                 <div class="space-y-1">
                     ${sidebarState.documents.map(doc => {
                         const isSelected = doc.id === sidebarState.selectedDocId;
-                        const bgClass = isSelected ? "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 shadow-xs font-bold" : "bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400";
-                        const catColor = doc.category === 'Qualité' ? "text-blue-600 bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400" : "text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400";
+                        const bgClass = isSelected ? (isDark ? 'bg-blue-600/15 border-blue-500/30 text-blue-300 shadow-xs font-bold' : 'bg-blue-50 border-blue-200 text-blue-800 shadow-xs font-bold') : (isDark ? 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/5 text-slate-400 hover:text-white' : 'bg-transparent border-transparent hover:bg-slate-100 hover:border-slate-100 text-slate-600 hover:text-slate-900');
+                        const catColor = doc.category === 'Qualité' ? (isDark ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-slate-300 border-white/10') : (isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-white/5 text-slate-300 border-white/10');
                         
                         return `
                         <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
                             <div class="flex items-start justify-between gap-2 w-full">
-                                <span class="font-semibold text-xs truncate max-w-[150px] ${isSelected ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
-                                <span class="text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${catColor}">${doc.category}</span>
+                                <span class="font-semibold text-xs truncate max-w-[150px] ${isSelected ? (isDark ? 'text-white' : 'text-blue-950') : (isDark ? 'text-slate-300' : 'text-slate-700')}">${doc.title}</span>
+                                <span class="text-[9.5px] px-1.5 py-0.5 rounded-full font-bold border shrink-0 ${catColor}">${doc.category}</span>
                             </div>
                             <div class="flex items-center justify-between text-[10px] text-slate-500">
-                                <span class="font-mono bg-slate-100 border-slate-200 dark:bg-white/5 dark:border-white/5 px-1.5 rounded font-semibold">${doc.code}</span>
+                                <span class="font-mono ${isDark ? 'bg-white/5 border-white/5 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-600'} border px-1.5 rounded font-semibold">${doc.code}</span>
                                 <span class="truncate max-w-[100px]">Par ${doc.updatedBy}</span>
-                            </div>
-                            <div class="mt-2 pt-2 border-t border-dashed border-slate-200 dark:border-white/5 flex items-center justify-between">
-                                <span class="text-[10px] font-bold flex items-center gap-1 text-slate-600 dark:text-slate-400">
-                                    <span class="inline-block w-1.5 h-1.5 rounded-full animate-pulse bg-blue-500"></span> Avis officiel
-                                </span>
-                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded border flex items-center gap-1 uppercase ${isSelected ? 'bg-blue-600 border-blue-500 text-white dark:bg-blue-500' : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20'}">
-                                    🗳️ Voter
-                                </span>
                             </div>
                         </button>`;
                     }).join('')}
                 </div>
             `;
         } 
-        else if (sidebarState.activeTab === 'history') {
-            topHtml = `
-                <div class="px-2 mb-4 relative">
-                    <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
-                    <input type="text" placeholder="Rechercher une norme..." oninput="updateSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none dark:border-white/10 dark:bg-black/55 dark:text-white placeholder-slate-400 font-semibold" />
-                </div>
-                <div class="flex items-center justify-between mb-3 px-2">
-                    <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                        <i data-lucide="file-text" class="h-3.5 w-3.5 text-slate-400"></i> Documents / Normes
-                    </h2>
-                </div>
-                <div class="space-y-1">
-                    ${sidebarState.documents.filter(d => d.title.toLowerCase().includes(sidebarState.searchQuery.toLowerCase())).map(doc => {
-                        const isSelected = doc.id === sidebarState.selectedDocId;
-                        const bgClass = isSelected ? "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300" : "bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400";
-                        return `
-                        <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
-                            <div class="flex items-start justify-between gap-2 w-full">
-                                <span class="font-semibold text-xs truncate max-w-[150px] ${isSelected ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
-                            </div>
-                            <div class="flex items-center justify-between text-[10px] text-slate-500">
-                                <span class="font-mono px-1.5 rounded font-semibold">${doc.code}</span>
-                            </div>
-                        </button>`;
-                    }).join('')}
-                </div>
-            `;
-        }
         else if (sidebarState.activeTab === 'experts') {
+            const query = (sidebarState.searchQuery || "").toLowerCase();
+            
+            // Trouver l'expert simulé pour comparer les droits
+            const currentExpert = sidebarState.testProfile 
+                ? sidebarState.experts.find(e => e.email && e.email.toLowerCase() === sidebarState.testProfile.email.toLowerCase()) 
+                : sidebarState.experts.find(e => e.id === "exp-1");
+            const currentExpertCmtNum = currentExpert ? getCmtNumber(currentExpert.ctm) : null;
+
+            const filteredWgs = sidebarState.workingGroups.filter(wg => 
+                wg.code.toLowerCase().includes(query) || wg.title.toLowerCase().includes(query)
+            );
+
             topHtml = `
                 <div class="px-2 mb-4 relative">
-                    <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
-                    <input type="text" placeholder="Rechercher groupe ou expert..." oninput="updateSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none dark:border-white/10 dark:bg-black/55 dark:text-white placeholder-slate-400 font-semibold" />
+                    <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
+                    <input type="text" placeholder="Rechercher groupe ou expert..." oninput="updateSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 pr-4 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-black/55 text-white placeholder-slate-500' : 'border-slate-300 bg-white text-slate-800 placeholder-slate-400'} text-xs focus:outline-hidden font-semibold" />
                 </div>
+                
                 <div class="flex items-center justify-between mb-3 px-2">
                     <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
                         <i data-lucide="award" class="h-3.5 w-3.5 text-slate-400"></i> Groupes de Travail (WG)
                     </h2>
                 </div>
+                
                 <div class="space-y-1.5">
-                    ${sidebarState.workingGroups.map(wg => {
+                    ${filteredWgs.length === 0 ? `
+                        <p class="text-[11px] text-slate-500 italic p-3 text-center border border-dashed rounded-lg ${isDark ? 'border-white/5' : 'border-slate-300'}">Aucun groupe trouvé.</p>
+                    ` : filteredWgs.map(wg => {
                         const isSelected = sidebarState.expertSelectionType === 'wg' && wg.id === sidebarState.selectedWgId;
-                        const bgClass = isSelected ? "bg-blue-50 border-blue-300 shadow-sm dark:bg-blue-500/10 dark:border-blue-500/35" : "bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/5";
+                        const wgCmtNum = getWgCmtNumber(wg.code);
+                        const isSameCmt = currentExpertCmtNum && wgCmtNum ? currentExpertCmtNum === wgCmtNum : false;
+                        const isMyWg = currentExpert?.wg && wg.code ? currentExpert.wg.toLowerCase().includes(wg.code.toLowerCase()) : false;
+                        const parallelNorms = getParallelNormsForWg(wg.code);
+
+                        const bgClass = isSelected 
+                            ? (isDark ? "bg-blue-500/10 border-blue-500/35 text-blue-400 shadow-[0_4px_12px_rgba(16,185,129,0.05)]" : "bg-blue-50 border-blue-300 text-blue-800 shadow-sm") 
+                            : (isDark ? "bg-white/[0.02] hover:bg-white/[0.05] border-white/5 hover:border-white/10 text-slate-300" : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700");
+                        
+                        const codeClass = isSelected
+                            ? (isDark ? "bg-blue-500/20 text-blue-300 border-blue-500/30" : "bg-blue-100 text-blue-800 border-blue-300")
+                            : (isDark ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-slate-100 text-slate-600 border-slate-200");
+
                         return `
-                        <button onclick="sidebarSelect('wg', '${wg.id}')" class="w-full p-3 rounded-lg border transition-all text-left block ${bgClass}">
+                        <button type="button" onclick="sidebarSelect('wg', '${wg.id}')" class="w-full p-3 rounded-lg border transition-all duration-200 text-left block cursor-pointer ${bgClass}">
                             <div class="flex items-center justify-between gap-1.5">
-                                <span class="font-mono text-[9.5px] font-bold px-1.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">${wg.code}</span>
-                                <span class="text-[9px] font-bold text-slate-500 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-full uppercase">${wg.tag}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono text-[9.5px] font-bold px-1.5 rounded border ${codeClass}">${wg.code}</span>
+                                    
+                                    ${isMyWg ? `
+                                        <span class="text-[8.5px] px-1 rounded font-extrabold uppercase scale-90 origin-left border ${isDark ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-blue-100 text-blue-700 border-blue-200'}">Mon WG</span>
+                                    ` : isSameCmt ? `
+                                        <span class="text-[8.5px] px-1 rounded font-extrabold uppercase scale-90 origin-left border ${isDark ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-blue-100 text-blue-700 border-blue-200'}" title="Même CTM">Même CTM</span>
+                                    ` : `
+                                        <span class="text-[8.5px] px-1 rounded font-bold uppercase scale-90 origin-left border ${isDark ? 'bg-white/5 text-slate-500 border-white/5' : 'bg-slate-100 text-slate-500 border-slate-200'}" title="Hors CTM">Hors CTM</span>
+                                    `}
+                                </div>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tight ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-100 text-slate-600'}">${wg.tag || 'Actif'}</span>
                             </div>
-                            <p class="text-xs font-semibold mt-1.5 line-clamp-1 text-slate-800 dark:text-slate-200">${wg.title}</p>
+                            <p class="text-xs font-semibold mt-1.5 line-clamp-1 ${isSelected ? (isDark ? 'text-white' : 'text-slate-900') : (isDark ? 'text-slate-200' : 'text-slate-700')}">${wg.title}</p>
+                            
+                            ${parallelNorms.length > 0 ? `
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                ${parallelNorms.map(norm => `
+                                <span title="${norm}" class="text-[8.5px] px-1 rounded font-mono font-bold tracking-tight border ${isSelected ? (isDark ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-blue-100 text-blue-700 border-blue-200') : (isDark ? 'bg-white/5 text-slate-400 border-white/5' : 'bg-slate-100 text-slate-500 border-slate-200')}">
+                                    ${norm.split(" ")[0]}
+                                </span>
+                                `).join('')}
+                            </div>
+                            ` : ''}
                         </button>`;
                     }).join('')}
                 </div>
             `;
         }
-        else if (sidebarState.activeTab === 'meetings') {
-            topHtml = `
-                <div class="flex items-center justify-between mb-3 px-2">
-                    <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                        <i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i> Réunions Planifiées
-                    </h2>
-                    <button onclick="handleAddAction('meeting')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 shadow-xs border text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">
-                        <i data-lucide="plus" class="h-3 w-3"></i> Planifier
-                    </button>
-                </div>
-                <div class="space-y-1.5">
-                    ${sidebarState.meetings.map(m => `
-                    <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold">${m.date}</span>
-                            <span class="text-[8.5px] px-1 rounded font-bold uppercase ${m.status === 'Terminé' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'}">${m.status}</span>
-                        </div>
-                        <p class="text-xs font-bold text-slate-800 dark:text-white mt-1.5 line-clamp-1">${m.title}</p>
-                    </div>`).join('')}
-                </div>
-            `;
-        }
-        else if (sidebarState.activeTab === 'financial') {
-            topHtml = `
-                <div class="flex items-center justify-between mb-3 px-2">
-                    <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                        <i data-lucide="coins" class="h-3.5 w-3.5 text-slate-400"></i> Cotisations & Budgets
-                    </h2>
-                    <button onclick="handleAddAction('budget')" class="text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 shadow-xs border text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">
-                        <i data-lucide="plus" class="h-3 w-3"></i> Déclarer
-                    </button>
-                </div>
-                <div class="space-y-1.5">
-                    ${sidebarState.budgets.map(b => `
-                    <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                        <p class="text-xs font-bold text-slate-800 dark:text-white line-clamp-1">${b.title}</p>
-                        <div class="flex items-center justify-between mt-1.5 font-mono text-[9px]">
-                            <span class="font-semibold text-blue-600 dark:text-blue-400">${b.amount}</span>
-                            <span class="text-slate-500 font-semibold">${b.status}</span>
-                        </div>
-                    </div>`).join('')}
-                </div>
-            `;
-        }
-        else if (sidebarState.activeTab === 'validation') {
-            topHtml = `
-                <div class="flex items-center mb-3 px-2">
-                    <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                        <i data-lucide="check-square" class="h-3.5 w-3.5 text-slate-400"></i> Processus ISO
-                    </h2>
-                </div>
-                <div class="space-y-1.5">
-                    ${sidebarState.validationSteps.map(s => `
-                    <div class="p-3 bg-white border border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg text-left">
-                        <p class="text-xs font-bold text-blue-600 dark:text-blue-400">${s.title}</p>
-                        <p class="text-[10px] text-slate-500 leading-normal mt-0.5">${s.desc}</p>
-                    </div>`).join('')}
-                </div>
-            `;
+        else {
+            topHtml = `<div class="flex justify-center py-4"><i data-lucide="loader-2" class="w-4 h-4 text-blue-500 animate-spin"></i></div>`;
         }
 
-        // 2. RENDU DE LA SECTION BASSE (Collaborateurs/Experts)
+        // ==========================================
+        // 2. RENDU DE LA SECTION BASSE (BOTTOM)
+        // ==========================================
+        
         let bottomTitle = "Collaborateurs";
-        if (sidebarState.activeTab === 'history') bottomTitle = "Éditeurs de la Norme";
-        if (sidebarState.activeTab === 'experts') bottomTitle = "Experts du CNETP";
-        if (sidebarState.activeTab === 'meetings') bottomTitle = "Validations Assemblée";
-        if (sidebarState.activeTab === 'financial') bottomTitle = "Trésoriers & Signataires";
+        let bottomSubtitle = "Membres du Groupe de Travail (WG) affectés :";
+        
+        if (sidebarState.activeTab === 'experts') { 
+            bottomTitle = "Experts du CNETP"; 
+            bottomSubtitle = "Experts actifs du comité d'évaluation :"; 
+        }
 
         bottomHtml = `
-            <div class="mb-3 px-2 flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/5">
-                <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-                    <i data-lucide="users" class="h-3.5 w-3.5 text-slate-400"></i> ${bottomTitle}
+            <div class="mb-3 px-2 flex items-center justify-between pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-200'}">
+                <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5 flex-1 min-w-0 pr-2">
+                    <i data-lucide="users" class="h-3.5 w-3.5 text-slate-400 shrink-0"></i>
+                    <span class="truncate">${bottomTitle}</span>
                 </h2>
-                ${sidebarState.activeTab === 'editor' ? `
-                <button onclick="handleAddAction('expert')" class="text-[10px] font-bold px-2 py-0.5 rounded transition-all flex items-center gap-1 border text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20">
-                    <i data-lucide="plus" class="h-3 w-3"></i> Inviter
-                </button>` : ''}
+
+                ${sidebarState.activeTab === 'experts' && sidebarState.userRole === "ADMIN" ? `
+                    <button onclick="sidebarSelect('pending', null)" class="text-[9.5px] font-bold px-2 py-0.5 rounded transition-all flex items-center gap-1 cursor-pointer shadow-xs border whitespace-nowrap ${
+                        sidebarState.expertSelectionType === "pending"
+                            ? (isDark ? "bg-amber-500/20 text-amber-400 border-amber-500/30" : "bg-amber-100 text-amber-700 border-amber-300")
+                            : (isDark ? "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10" : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200")
+                    }" title="Demandes d'adhésion">
+                        <i data-lucide="alert-triangle" class="h-2.5 w-2.5 shrink-0"></i>
+                        En attente (${sidebarState.experts.filter(e => !e.isApproved).length})
+                    </button>
+                ` : ''}
             </div>
+            <p class="text-[11px] mt-0.5 leading-relaxed px-2 mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}">${bottomSubtitle}</p>
             
             <div class="space-y-2">
-                ${sidebarState.activeTab === 'experts' 
-                    ? sidebarState.experts.filter(e => e.name.toLowerCase().includes(sidebarState.searchQuery.toLowerCase())).map(e => {
-                        const isSelected = sidebarState.expertSelectionType === 'expert' && sidebarState.selectedExpertId === e.id;
-                        const bgClass = isSelected ? "bg-blue-50 border-blue-200 dark:bg-blue-500/15 dark:border-blue-500/30" : "bg-transparent border-transparent hover:bg-slate-100 dark:bg-black/10 dark:border-white/5";
-                        return `
-                        <button onclick="sidebarSelect('expert', '${e.id}')" class="w-full text-left p-2.5 rounded-lg border flex items-center gap-3 transition-all ${bgClass}">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-slate-700">
-                                ${e.name.substring(0,2).toUpperCase()}
+        `;
+
+        if (sidebarState.activeTab === 'experts') {
+            const query = (sidebarState.searchQuery || "").toLowerCase();
+            const filteredExps = sidebarState.experts.filter(exp => 
+                (exp.name && exp.name.toLowerCase().includes(query)) ||
+                (exp.structure && exp.structure.toLowerCase().includes(query)) ||
+                (exp.role && exp.role.toLowerCase().includes(query))
+            );
+
+            if (filteredExps.length === 0) {
+                bottomHtml += `<p class="text-[11px] italic p-3 text-center border border-dashed rounded-lg ${isDark ? 'text-slate-500 border-white/5' : 'text-slate-500 border-slate-300'}">Aucun expert trouvé.</p>`;
+            } else {
+                bottomHtml += filteredExps.map(exp => {
+                    const isSelected = sidebarState.expertSelectionType === "expert" && sidebarState.selectedExpertId === exp.id;
+                    const btnClass = isSelected
+                        ? (isDark ? "bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-xs" : "bg-blue-50 border-blue-300 text-blue-800 shadow-sm")
+                        : (isDark ? "bg-black/10 border-white/5 hover:border-white/10 text-slate-300" : "bg-white border-transparent hover:bg-slate-50 text-slate-700");
+
+                    return `
+                    <button type="button" onclick="sidebarSelect('expert', '${exp.id}')" class="w-full text-left p-2.5 rounded-lg border flex items-center gap-3 transition-all duration-200 group relative cursor-pointer ${btnClass}">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs relative ring-1 ${isDark ? 'ring-white/10 bg-slate-700/80' : 'ring-slate-200 bg-slate-600'}">
+                            ${exp.name.split(" ").map(n => n[0]).join("")}
+                            ${exp.isApproved ? `<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border-2 ${isDark ? 'border-slate-950' : 'border-white'} rounded-full shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>` : ''}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <p class="text-xs font-semibold truncate ${isSelected ? (isDark ? 'text-blue-400' : 'text-blue-800') : (isDark ? 'text-slate-200' : 'text-slate-800')}">${exp.name}</p>
+                                ${isSelected ? `<span class="text-[8px] font-bold px-1 py-0.5 rounded shrink-0 uppercase tracking-tighter border ${isDark ? 'text-blue-400 bg-blue-500/10 border-blue-400/30' : 'text-blue-700 bg-blue-100 border-blue-300'}">SÉLEC</span>` : ''}
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-semibold truncate ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-200'}">${e.name}</p>
-                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${e.role}</p>
-                            </div>
-                        </button>`;
-                    }).join('')
-                    : sidebarState.activeTab === 'history'
-                    ? sidebarState.historyEditors.map(e => `
-                        <button onclick="sidebarSelect('historyAuthor', '${e.email}')" class="w-full text-left p-2.5 rounded-lg border flex items-center gap-3 transition-all bg-transparent border-transparent hover:bg-slate-100 dark:bg-black/10 dark:border-white/5">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style="background-color: ${e.avatarColor}">
-                                ${e.name.substring(0,2).toUpperCase()}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-center">
-                                    <p class="text-xs font-semibold truncate text-slate-700 dark:text-slate-200">${e.name}</p>
-                                    <span class="text-[8.5px] font-bold px-1.5 rounded bg-slate-200 dark:bg-white/5">${e.count} edits</span>
-                                </div>
-                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${e.role}</p>
-                            </div>
-                        </button>`).join('')
-                    : sidebarState.collaborators.map(c => `
-                        <button class="w-full text-left p-2.5 rounded-lg border flex items-center gap-3 transition-all bg-transparent border-transparent hover:bg-slate-100 dark:bg-black/10 dark:border-white/5">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 relative" style="background-color: ${c.avatarColor}">
-                                ${c.name.substring(0,2).toUpperCase()}
-                                ${c.isActive ? '<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border-2 border-white dark:border-slate-950 rounded-full"></span>' : ''}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-semibold truncate text-slate-700 dark:text-slate-200">${c.name}</p>
-                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${c.role}</p>
-                            </div>
-                        </button>`).join('')
-                }
+                            <p class="text-[10px] truncate mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-500'}">${exp.role} (${(exp.structure || "").split(" ")[0]})</p>
+                        </div>
+                    </button>`;
+                }).join('');
+            }
+        } 
+        else {
+            // Vue éditeur par défaut
+            bottomHtml += sidebarState.collaborators.map(c => `
+                <button class="w-full text-left p-2.5 rounded-lg border border-transparent flex items-center gap-3 transition-all ${isDark ? 'hover:bg-white/10 bg-black/10' : 'hover:bg-slate-100 bg-black/5'}">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 relative" style="background-color: ${c.avatarColor}">
+                        ${c.name.substring(0,2).toUpperCase()}
+                        ${c.isActive ? `<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border-2 ${isDark ? 'border-slate-950' : 'border-white'} rounded-full"></span>` : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold truncate ${isDark ? 'text-slate-200' : 'text-slate-700'}">${c.name}</p>
+                        <p class="text-[10px] text-slate-500 truncate mt-0.5">${c.role}</p>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        bottomHtml += `</div>`;
+
+        // ==========================================
+        // 3. RENDU DU FOOTER (KPIs)
+        // ==========================================
+        const roleMap = {
+            "ADMIN": "Administrateur", "RAP_CTM": "Rapporteur CTM", "SEC_PERM": "Secrétaire SG",
+            "PRES_CTM": "Président CTM", "GEST_COMP": "Comptable", "COORD_CTC": "Coordonnateur CTC"
+        };
+        const displayRole = roleMap[sidebarState.userRole] || "Membre Expert";
+
+        const footerHtml = `
+            <div class="flex items-center justify-between uppercase">
+                <span class="font-mono text-[9px] text-slate-500">ISO Compliance Mode</span>
+                <span class="flex items-center gap-1 text-[9px] ${isDark ? 'text-slate-400' : 'text-slate-600'}">
+                    <span class="w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}"></span> Sync
+                </span>
+            </div>
+            <div class="flex items-center justify-between pt-1.5 border-t ${isDark ? 'border-white/5' : 'border-slate-200'}">
+                <span class="text-[9px] uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}">Poste Actif :</span>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border ${isDark ? 'text-amber-400 bg-amber-400/10 border-amber-400/25' : 'text-blue-600 bg-blue-50 border-blue-200'}">
+                    ${displayRole}
+                </span>
+            </div>
+            <div class="pt-1.5">
+                <button type="button" onclick="alert('Configuration de profil en cours de développement...')" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-[9.5px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm focus:outline-hidden ${isDark ? 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/15 text-amber-400 hover:border-amber-400' : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:border-blue-400'}">
+                    <span>👤 Configurer Profil Test</span>
+                    <span class="${isDark ? 'text-amber-300' : 'text-blue-500'}">&rarr;</span>
+                </button>
             </div>
         `;
 
         topSection.innerHTML = topHtml;
         bottomSection.innerHTML = bottomHtml;
+        const footerSection = document.getElementById('sidebar-footer-stats');
+        if(footerSection) footerSection.innerHTML = footerHtml;
+
         lucide.createIcons();
     }
 
@@ -345,40 +413,14 @@
         if (type === 'doc') sidebarState.selectedDocId = id;
         if (type === 'wg') { sidebarState.selectedWgId = id; sidebarState.expertSelectionType = 'wg'; }
         if (type === 'expert') { sidebarState.selectedExpertId = id; sidebarState.expertSelectionType = 'expert'; }
-        if (type === 'historyAuthor') sidebarState.historyAuthorFilter = id;
+        if (type === 'pending') { sidebarState.expertSelectionType = 'pending'; }
         
         renderSidebarContent();
-        if(window.showAppToast) window.showAppToast("Sélection mise à jour.");
-    }
-
-    function handleAddAction(type) {
-        let val;
-        if(type === 'doc') {
-            if(typeof openCreateNormModal === 'function') {
-                openCreateNormModal();
-            } else {
-                if(window.showAppToast) window.showAppToast("L'assistant de création n'est pas encore chargé.", "warning");
-            }
+        
+        // Simuler un appel vers la vue principale (si ExpertsModule est monté)
+        if(typeof switchExpertViewMode === 'function') {
+            switchExpertViewMode(sidebarState.expertSelectionType);
         }
-        if(type === 'meeting') {
-            val = prompt("Sujet de la nouvelle séance de concertation :");
-            if(val) { sidebarState.meetings.push({id:`m-${Date.now()}`, title: val, date: "Planifié", status: "En attente"}); renderSidebarContent(); }
-        }
-        if(type === 'budget') {
-            val = prompt("Nom de la ligne budgétaire :");
-            if(val) { sidebarState.budgets.push({id:`b-${Date.now()}`, title: val, amount: "À définir", status: "En attente"}); renderSidebarContent(); }
-        }
-        if(type === 'expert') {
-            val = prompt("Nom de l'expert à inviter :");
-            if(val && window.showAppToast) window.showAppToast(`Invitation envoyée à ${val}`);
-        }
-    }
-
-    // --- ECOUTEURS GLOBAUX ---
-    // Cette fonction sera appelée par app.html lorsque l'utilisateur change d'onglet
-    window.updateSidebarForTab = function(tabId) {
-        sidebarState.searchQuery = ""; // Reset search on tab change
-        renderSidebarContent(tabId);
     }
 
     // Premier rendu au chargement

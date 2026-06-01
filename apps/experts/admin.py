@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Expert, Structure
 from apps.governance.models import Affectation, PilotageMembreship, CTCMembership, ExecutiveLevel
 
@@ -45,6 +47,7 @@ class ExpertAdmin(admin.ModelAdmin):
         'user',
         'structure',
         'status',
+        'get_committees',
         'appointment_date',
         'presence_count',
     )
@@ -60,7 +63,7 @@ class ExpertAdmin(admin.ModelAdmin):
     list_filter = ('status', 'structure', 'appointment_date')
     autocomplete_fields = ('user', 'structure', 'ctm')
     ordering = ('user__last_name', 'user__first_name')
-    readonly_fields = ('inscription_date', 'activation_date')
+    readonly_fields = ('inscription_date', 'activation_date', 'get_committees_detail')
 
     fieldsets = (
         ('Informations générales', {
@@ -78,6 +81,12 @@ class ExpertAdmin(admin.ModelAdmin):
                 'specialties',
                 'cv',
             )
+        }),
+        ('Affectations aux comités', {
+            'fields': (
+                'get_committees_detail',
+            ),
+            'classes': ('collapse',)
         }),
         ('Informations bancaires', {
             'fields': (
@@ -113,3 +122,43 @@ class ExpertAdmin(admin.ModelAdmin):
     def make_inactive(self, request, queryset):
         queryset.update(status='INACTIVE')
     make_inactive.short_description = 'Marquer les experts sélectionnés comme inactifs'
+    
+    def get_committees(self, obj):
+        """Afficher les comités dans la liste"""
+        committees = []
+        
+        if obj.ctm:
+            committees.append(f"CTM {obj.ctm.number}")
+        
+        pilotage = obj.pilotage_member_of.first()
+        if pilotage:
+            committees.append(f"Pilotage ({pilotage.role})")
+        
+        ctc = obj.ctc_member_of.first()
+        if ctc:
+            committees.append(f"CTC ({ctc.role})")
+        
+        return ", ".join(committees) if committees else "—"
+    get_committees.short_description = "Comités"
+    
+    def get_committees_detail(self, obj):
+        """Afficher les détails des comités"""
+        details = []
+        
+        if obj.ctm:
+            details.append(f"<strong>CTM Principale:</strong> CTM {obj.ctm.number} - {obj.ctm.name}")
+        
+        pilotages = obj.pilotage_member_of.all()
+        if pilotages:
+            for pilotage in pilotages:
+                details.append(f"<strong>Comité de Pilotage:</strong> {pilotage.role}")
+        
+        ctcs = obj.ctc_member_of.all()
+        if ctcs:
+            for ctc in ctcs:
+                details.append(f"<strong>Cellule Technique:</strong> {ctc.role}")
+        
+        if not details:
+            return mark_safe("<em>Aucun comité assigné</em>")
+        return mark_safe("<br/>".join(details))
+    get_committees_detail.short_description = "Affectations aux comités"

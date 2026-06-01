@@ -597,12 +597,14 @@
         } finally {
             // Réinitialiser le bouton et l'icône, qu'il y ait succès ou échec
             if (icon) {
-                icon.setAttribute('data-lucide', 'save');
                 icon.classList.remove('animate-spin');
+                icon.setAttribute('data-lucide', 'save');
+                // Force recréation de l'icône avec un délai minimal
+                await new Promise(resolve => setTimeout(resolve, 50));
+                lucide.createIcons();
             }
             if (btn) btn.disabled = false;
             validateSaveBtn();
-            lucide.createIcons();
         }
     }
 

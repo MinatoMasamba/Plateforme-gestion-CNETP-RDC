@@ -160,10 +160,18 @@ class PilotageMembreship(BaseModel):
     role = models.CharField(
         max_length=50,
         choices=[
-            ('PRESIDENT', 'Président'),
-            ('VICE_PRESIDENT', 'Vice-Président'),
-            ('SECRETARY', 'Secrétaire'),
-            ('RAPPORTEUR', 'Rapporteur Général'),
+            # Bureau Directoire
+            ('PRESIDENT', 'Président (Bureau)'),
+            ('VICE_PRESIDENT', 'Vice-Président (Bureau)'),
+            ('SECRETARY', 'Secrétaire (Bureau)'),
+            ('RAPPORTEUR', 'Rapporteur Général (Bureau)'),
+            
+            # Collèges
+            ('CONSEILLER_POLITIQUE', 'Conseiller Institutionnel et Politique'),
+            ('ADMIN_TECH_FIN', 'Administrateur Technique et Financier'),
+            ('PARTENAIRE_SOC_CIV', 'Partenaire Sectoriel et Société Civile'),
+            
+            # Default/Generic
             ('CONSEILLER', 'Conseiller'),
         ],
         default='CONSEILLER'
