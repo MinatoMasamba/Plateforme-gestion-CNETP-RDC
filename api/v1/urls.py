@@ -22,6 +22,12 @@ from .validation_views import LegisticReviewViewSet
 from .documents_views import DocumentFileViewSet
 from .public_views import PublicAmendementViewSet
 from .messaging_views import MessageViewSet
+from .sidebar_views import (
+    UserProfileViewSet, WorkingGroupSidebarViewSet, ExpertSidebarViewSet,
+    TaskDetailViewSet, DocumentSidebarViewSet, MeetingSidebarViewSet,
+    BudgetSidebarViewSet, DocumentHistoryViewSet, DashboardKPIsViewSet,
+    ExpertActionsViewSet
+)
 
 # Créer le router et enregistrer les viewsets
 router = DefaultRouter()
@@ -29,6 +35,7 @@ router = DefaultRouter()
 # Auth routes
 router.register(r'auth', AuthViewSet, basename='auth')
 router.register(r'users', UserListViewSet, basename='users')
+router.register(r'users/me', UserProfileViewSet, basename='user-profile')
 
 # Experts routes
 router.register(r'structures', StructureViewSet, basename='structures')
@@ -81,6 +88,17 @@ router.register(r'messages', MessageViewSet, basename='messages')
 
 # Public amendments routes
 router.register(r'public-amendments', PublicAmendementViewSet, basename='public-amendments')
+
+# SIDEBAR API ROUTES (Cahier des Charges Co-Gouvernance)
+router.register(r'working-groups', WorkingGroupSidebarViewSet, basename='working-groups-sidebar')
+router.register(r'experts', ExpertSidebarViewSet, basename='experts-sidebar')
+router.register(r'documents', DocumentSidebarViewSet, basename='documents-sidebar')
+router.register(r'meetings', MeetingSidebarViewSet, basename='meetings-sidebar')
+router.register(r'budgets', BudgetSidebarViewSet, basename='budgets-sidebar')
+router.register(r'dashboard/kpis', DashboardKPIsViewSet, basename='dashboard-kpis')
+router.register(r'tasks', TaskDetailViewSet, basename='tasks-sidebar')
+router.register(r'document-history', DocumentHistoryViewSet, basename='document-history')
+router.register(r'expert-actions', ExpertActionsViewSet, basename='expert-actions')
 
 # Mobile routes (v2 API)
 router.register(r'mobile/auth', MobileAuthViewSet, basename='mobile-auth')

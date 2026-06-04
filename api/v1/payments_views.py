@@ -58,8 +58,8 @@ class CotisationViewSet(viewsets.ModelViewSet):
             )
         
         # TODO: Implémenter l'envoi d'email
-        # from apps.payments.tasks import send_payment_reminder
-        # send_payment_reminder.delay(cotisation.id)
+        from apps.payments.tasks import send_payment_reminder
+        send_payment_reminder.delay(cotisation.id)
         
         return Response({
             'message': 'Rappel envoyé à la structure.',

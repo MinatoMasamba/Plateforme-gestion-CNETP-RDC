@@ -75,6 +75,7 @@ class Expert(BaseModel):
     bank_account = models.CharField(max_length=100, blank=True)
     bank_name = models.CharField(max_length=200, blank=True)
     mobile_money_number = models.CharField(max_length=20, blank=True, help_text="Pour paiements via Mobile Money")
+    whatsapp_number = models.CharField(max_length=20, blank=True, help_text="Numéro WhatsApp de l'expert")
 
     # Champs financiers et d'activité
     daily_rate = models.DecimalField(

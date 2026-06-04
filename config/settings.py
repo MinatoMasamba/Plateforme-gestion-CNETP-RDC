@@ -181,6 +181,18 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cnetp.cd')
 
+# Firebase Cloud Messaging (FCM) Configuration
+FIREBASE_CREDENTIALS_PATH = config('FIREBASE_CREDENTIALS_PATH', default='')
+FIREBASE_CREDENTIALS_JSON = config('FIREBASE_CREDENTIALS_JSON', default='')
+
+# Notification Settings
+NOTIFICATION_SETTINGS = {
+    'EMAIL_ENABLED': config('NOTIFICATION_EMAIL_ENABLED', default=True, cast=bool),
+    'FCM_ENABLED': config('NOTIFICATION_FCM_ENABLED', default=True, cast=bool),
+    'RETRY_ATTEMPTS': config('NOTIFICATION_RETRY_ATTEMPTS', default=3, cast=int),
+    'RETRY_DELAY_SEC': config('NOTIFICATION_RETRY_DELAY_SEC', default=60, cast=int),
+}
+
 # Logging
 LOGGING = {
     'version': 1,

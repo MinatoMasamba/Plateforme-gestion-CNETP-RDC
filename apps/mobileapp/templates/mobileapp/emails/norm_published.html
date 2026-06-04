@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f4f4f4; }
+        .header { background: #007bff; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background: white; padding: 20px; }
+        .footer { background: #333; color: white; padding: 10px; text-align: center; border-radius: 0 0 5px 5px; font-size: 12px; }
+        .button { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 {{ title }}</h1>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ user.get_full_name|default:user.email }},</p>
+            
+            <p>{{ body }}</p>
+            
+            {% if data.norm_title %}
+            <h2>Détails de la norme</h2>
+            <p><strong>Titre:</strong> {{ data.norm_title }}</p>
+            {% endif %}
+            
+            <p>Consultez la norme complète sur notre plateforme en cliquant sur le bouton ci-dessous:</p>
+            <p style="text-align: center; margin: 20px 0;">
+                <a href="https://cnetp.app/norms/{{ data.norm_id }}/" class="button">Voir la norme</a>
+            </p>
+            
+            <p>Cordialement,<br>L'équipe CNETP</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 CNETP. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

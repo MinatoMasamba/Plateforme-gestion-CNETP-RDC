@@ -12,6 +12,7 @@ class User(AbstractUser):
     is_ctc_staff = models.BooleanField(default=False)
     is_minister = models.BooleanField(default=False)
     bio = models.TextField(blank=True, null=True)
+    email_confirmed = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -31,7 +31,7 @@ class AffectationSerializer(serializers.ModelSerializer):
         model = Affectation
         fields = [
             'id', 'expert', 'expert_name', 'ctm', 'ctm_name',
-            'wg', 'wg_name', 'role', 'affectation_date', 'created_at'
+            'wg', 'wg_name', 'affectation_date', 'created_at'
         ]
         read_only_fields = ['id', 'expert_name', 'ctm_name', 'wg_name', 'created_at']
 
@@ -40,7 +40,7 @@ class AffectationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer/mettre à jour une affectation"""
     class Meta:
         model = Affectation
-        fields = ['expert', 'ctm', 'wg', 'role']
+        fields = ['expert', 'ctm', 'wg']
     
     def validate(self, data):
         """Vérifier la cohérence CTM/WG"""
