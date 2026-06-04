@@ -288,8 +288,8 @@ python manage.py loaddata data.json
 
 ## 👥 Contributeurs
 
-- **Développement** : Équipe Backend Django
-- **Architecture** : Conception modulaire CNETP
+- **Développement** : Équipe Backend Django et frontend eddy masamba et son équipe 
+- **Architecture** : Conception emmany luwenga et son équipe 
 
 ---
 
@@ -302,8 +302,8 @@ Propriété exclusive de l'État Congolais / Ministère ITP
 ## 📞 Support
 
 Pour questions ou issues :
-- 📧 Email : support@cnetp.cd
-- 📱 Tél : +243 8X XXX XXXX
+- 📧 Email du createur de la structure : e.luwenga@yahoo.fr
+- 📱 Tél du dev : +243 98 329 0982
 - 🐛 Issues : [GitHub Issues](https://github.com/cnetp/cnetp-platform/issues)
 
 ---
