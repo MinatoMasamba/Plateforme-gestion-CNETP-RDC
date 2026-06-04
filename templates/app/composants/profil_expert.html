@@ -118,12 +118,54 @@
 
                 </div>
 
-                <div class="flex flex-col h-full">
-                    <h4 class="text-[10px] font-bold text-amber-600 uppercase tracking-widest border-b border-slate-200 pb-1 mb-3 dark:text-amber-400 dark:border-white/5">
+                <div class="flex flex-col h-full space-y-4">
+                    <h4 class="text-[10px] font-bold text-amber-600 uppercase tracking-widest border-b border-slate-200 pb-1 mb-1 dark:text-amber-400 dark:border-white/5">
                         ❸ Rôle et Permissions
                     </h4>
-                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed dark:bg-amber-900/10 dark:border-amber-500/20 dark:text-amber-300">
+                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed dark:bg-amber-900/10 dark:border-amber-500/20 dark:text-amber-300 mb-3">
                         Le rôle réglementaire est attribué par l'administrateur du CNETP et ne peut être modifié depuis cette interface.
+                    </div>
+
+                    <h4 class="text-[10px] font-bold text-teal-600 uppercase tracking-widest border-b border-slate-200 pb-1 mb-1 dark:text-teal-400 dark:border-white/5">
+                        ❹ Statistiques et Rémunération
+                    </h4>
+                    <div class="space-y-3 pt-1">
+                        <div>
+                            <label class="block text-slate-600 mb-1 font-semibold uppercase tracking-wider text-[9px] dark:text-slate-400">Taux Journalier (Simulation) :</label>
+                            <input
+                                type="text"
+                                id="profile-daily-rate"
+                                disabled
+                                class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 font-semibold focus:outline-hidden dark:bg-black/20 dark:border-white/5 dark:text-slate-400"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 mb-1 font-semibold uppercase tracking-wider text-[9px] dark:text-slate-400">Allocation Mensuelle Recherche (Simulation) :</label>
+                            <input
+                                type="text"
+                                id="profile-monthly-research-allowance"
+                                disabled
+                                class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 font-semibold focus:outline-hidden dark:bg-black/20 dark:border-white/5 dark:text-slate-400"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 mb-1 font-semibold uppercase tracking-wider text-[9px] dark:text-slate-400">Nombre de Présences (Simulation) :</label>
+                            <input
+                                type="text"
+                                id="profile-presence-count"
+                                disabled
+                                class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 font-semibold focus:outline-hidden dark:bg-black/20 dark:border-white/5 dark:text-slate-400"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 mb-1 font-semibold uppercase tracking-wider text-[9px] dark:text-slate-400">ID du Rôle (Simulation) :</label>
+                            <input
+                                type="text"
+                                id="profile-role-id"
+                                disabled
+                                class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 font-semibold focus:outline-hidden dark:bg-black/20 dark:border-white/5 dark:text-slate-400"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -162,6 +204,12 @@
             document.getElementById('profile-structure').value = profileData.structure || '';
             document.getElementById('profile-payout-method').value = profileData.payoutMethod || 'Equity BCDC';
             document.getElementById('profile-account-details').value = profileData.accountDetails || '';
+            
+            // Populate new read-only fields
+            document.getElementById('profile-daily-rate').value = profileData.dailyRate !== undefined ? `${profileData.dailyRate} USD` : '';
+            document.getElementById('profile-monthly-research-allowance').value = profileData.monthlyResearchAllowance !== undefined ? `${profileData.monthlyResearchAllowance} USD` : '';
+            document.getElementById('profile-presence-count').value = profileData.presenceCount !== undefined ? `${profileData.presenceCount} Présences` : '';
+            document.getElementById('profile-role-id').value = profileData.roleId || '';
         }
         document.getElementById("profile-modal").classList.remove("hidden");
     }

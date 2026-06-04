@@ -308,3 +308,52 @@ class ExecutiveLevel(BaseModel):
     def __str__(self):
         name = self.expert.full_name if self.expert else "Vacant"
         return f"{self.get_position_display()} - {name}"
+
+
+class Tache(BaseModel):
+    """Tâches et checklist pour les groupes de travail"""
+    working_group = models.ForeignKey(
+        WG,
+        on_delete=models.CASCADE,
+        related_name='tasks'
+    )
+    norme = models.ForeignKey(
+        'norms.Norme',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tasks'
+    )
+    titre = models.CharField(max_length=300)
+    description = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=50,
+        choices=[
+            ('PLANNED', 'Planifiée'),
+            ('IN_PROGRESS', 'En cours'),
+            ('COMPLETED', 'Complétée'),
+            ('BLOCKED', 'Bloquée'),
+            ('ON_HOLD', 'En attente'),
+        ],
+        default='PLANNED'
+    )
+    progress = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    assigned_to = models.ForeignKey(
+        Expert,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_tasks'
+    )
+    due_date = models.DateField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Tâche WG"
+        verbose_name_plural = "Tâches WG"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.titre} ({self.working_group.name})"

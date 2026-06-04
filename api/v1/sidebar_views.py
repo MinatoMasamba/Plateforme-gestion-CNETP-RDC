@@ -12,17 +12,17 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.experts.models import Expert
-from apps.governance.models import CTM, WorkingGroup, CTMExpertAffectation, Tache
+from apps.governance.models import CTM, WG, Affectation, Tache
 from apps.norms.models import Norme
 from apps.meetings.models import Reunion
 from apps.payments.models import Cotisation
 from apps.amendments.models import Amendement
 
 from .experts_serializers import ExpertBasicSerializer
-from .governance_serializers import CTMSerializer, WorkingGroupSerializer
-from .norms_serializers import NormeBasicSerializer
-from .meetings_serializers import ReunionBasicSerializer
-from .payments_serializers import CotisationBasicSerializer
+from .sidebar_serializers import (
+    WorkingGroupSidebarSerializer, ExpertSidebarSerializer, TaskSerializer,
+    DocumentSidebarSerializer, MeetingSidebarSerializer, BudgetSidebarSerializer
+)
 
 
 # =========================================================================
@@ -97,17 +97,16 @@ class WorkingGroupSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     """
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['code', 'title', 'description']
+    search_fields = ['code', 'name', 'description']
     
     def get_queryset(self):
-        return WorkingGroup.objects.prefetch_related(
+        return WG.objects.prefetch_related(
             'norms', 'affectations__expert'
         ).annotate(
             expert_count=Count('affectations__expert', distinct=True)
         )
     
     def get_serializer_class(self):
-        from .sidebar_serializers import WorkingGroupSidebarSerializer
         return WorkingGroupSidebarSerializer
     
     def list(self, request, *args, **kwargs):
@@ -119,27 +118,30 @@ class WorkingGroupSidebarViewSet(viewsets.ReadOnlyModelViewSet):
         # Ajouter les normes parallèles pour chaque WG
         for wg_data in data:
             wg_id = wg_data['id']
-            wg = WorkingGroup.objects.get(id=wg_id)
-            
-            # Récupérer les normes parallèles
-            norms = wg.norms.all()
-            wg_data['parallel_norms'] = [
-                f"{norm.code} ({norm.domaine})" for norm in norms
-            ]
-            
-            # Calculer le progress des tâches
-            tasks = Tache.objects.filter(working_group=wg)
-            total_tasks = tasks.count()
-            completed_tasks = tasks.filter(status='COMPLETED').count()
-            average_progress = 0
-            if total_tasks > 0:
-                average_progress = int((completed_tasks / total_tasks) * 100)
-            
-            wg_data['tasks_progress'] = {
-                'total': total_tasks,
-                'completed': completed_tasks,
-                'average_progress': average_progress
-            }
+            try:
+                wg = WG.objects.get(id=wg_id)
+                
+                # Récupérer les normes parallèles
+                norms = wg.norms.all()
+                wg_data['parallel_norms'] = [
+                    f"{norm.code} ({norm.domaine})" for norm in norms
+                ]
+                
+                # Calculer le progress des tâches
+                tasks = Tache.objects.filter(working_group=wg)
+                total_tasks = tasks.count()
+                completed_tasks = tasks.filter(status='COMPLETED').count()
+                average_progress = 0
+                if total_tasks > 0:
+                    average_progress = int((completed_tasks / total_tasks) * 100)
+                
+                wg_data['tasks_progress'] = {
+                    'total': total_tasks,
+                    'completed': completed_tasks,
+                    'average_progress': average_progress
+                }
+            except WG.DoesNotExist:
+                pass
         
         return Response(data)
 
@@ -164,7 +166,6 @@ class ExpertSidebarViewSet(viewsets.ReadOnlyModelViewSet):
         ).prefetch_related('governance_affectations')
     
     def get_serializer_class(self):
-        from .sidebar_serializers import ExpertSidebarSerializer
         return ExpertSidebarSerializer
 
 
@@ -182,13 +183,12 @@ class TaskDetailViewSet(viewsets.ViewSet):
     def wg_tasks(self, request, wg_id=None):
         """Récupérer les tâches d'un WG"""
         try:
-            wg = WorkingGroup.objects.get(id=wg_id)
+            wg = WG.objects.get(id=wg_id)
             tasks = Tache.objects.filter(working_group=wg).select_related('norme')
             
-            from .sidebar_serializers import TaskSerializer
             serializer = TaskSerializer(tasks, many=True)
             return Response(serializer.data)
-        except WorkingGroup.DoesNotExist:
+        except WG.DoesNotExist:
             return Response(
                 {"detail": "Working group not found"},
                 status=status.HTTP_404_NOT_FOUND
@@ -204,7 +204,6 @@ class TaskDetailViewSet(viewsets.ViewSet):
                 task.progress = request.data.get('progress', task.progress)
                 task.save()
             
-            from .sidebar_serializers import TaskSerializer
             serializer = TaskSerializer(task)
             return Response(serializer.data)
         except Tache.DoesNotExist:
@@ -230,7 +229,6 @@ class DocumentSidebarViewSet(viewsets.ReadOnlyModelViewSet):
         return Norme.objects.select_related('created_by').order_by('-date_creation')
     
     def get_serializer_class(self):
-        from .sidebar_serializers import DocumentSidebarSerializer
         return DocumentSidebarSerializer
 
 
@@ -250,7 +248,6 @@ class MeetingSidebarViewSet(viewsets.ReadOnlyModelViewSet):
         return Reunion.objects.order_by('-date_reunion')
     
     def get_serializer_class(self):
-        from .sidebar_serializers import MeetingSidebarSerializer
         return MeetingSidebarSerializer
     
     @action(detail=False, methods=['post'])
@@ -278,7 +275,6 @@ class BudgetSidebarViewSet(viewsets.ReadOnlyModelViewSet):
         return Cotisation.objects.order_by('-date_creation')
     
     def get_serializer_class(self):
-        from .sidebar_serializers import BudgetSidebarSerializer
         return BudgetSidebarSerializer
     
     @action(detail=False, methods=['post'])
@@ -376,9 +372,9 @@ class ExpertActionsViewSet(viewsets.ViewSet):
         try:
             expert = Expert.objects.get(id=expert_id)
             expert.status = 'ACTIVE'
+            expert.status_changed_at = None  # Si le champ existe
             expert.save()
             
-            from .sidebar_serializers import ExpertSidebarSerializer
             serializer = ExpertSidebarSerializer(expert)
             return Response(serializer.data)
         except Expert.DoesNotExist:

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digest de notifications</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f4f4f4; }
+        .header { background: #343a40; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background: white; padding: 20px; }
+        .footer { background: #333; color: white; padding: 10px; text-align: center; border-radius: 0 0 5px 5px; font-size: 12px; }
+        .notification-item { border-left: 3px solid #007bff; padding: 10px; margin: 10px 0; background: #f8f9fa; }
+        .notification-title { font-weight: bold; color: #007bff; }
+        .notification-body { margin-top: 5px; }
+        .button { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📬 Digest de notifications</h1>
+            <p>{% if frequency == 'DAILY' %}Quotidien{% else %}Hebdomadaire{% endif %}</p>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ user.get_full_name|default:user.email }},</p>
+            
+            <p>Voici un résumé de vos notifications récentes:</p>
+            
+            {% for notification in notifications %}
+            <div class="notification-item">
+                <div class="notification-title">
+                    {% if notification.priority == 'URGENT' %}🔴{% elif notification.priority == 'HIGH' %}🟠{% else %}🟢{% endif %}
+                    {{ notification.title }}
+                </div>
+                <div class="notification-body">{{ notification.body }}</div>
+                <small>{{ notification.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+            {% endfor %}
+            
+            <p style="text-align: center; margin: 20px 0;">
+                <a href="https://cnetp.app/notifications/" class="button">Voir toutes les notifications</a>
+            </p>
+            
+            <p>Vous recevrez un digest {% if frequency == 'DAILY' %}quotidien{% else %}hebdomadaire{% endif %} à la même heure chaque jour.</p>
+            
+            <p>Pour modifier vos préférences de notification, accédez aux paramètres de votre compte.</p>
+            
+            <p>Cordialement,<br>L'équipe CNETP</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 CNETP. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

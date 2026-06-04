@@ -113,13 +113,22 @@ class Notification(BaseModel):
     """Modèle pour les notifications"""
     
     TYPE_CHOICES = [
-        ('REUNION_INVITE', 'Invitation à réunion'),
-        ('VOTE_OPEN', 'Vote ouvert'),
-        ('AMENDMENT', 'Nouvel amendement'),
+        ('NORM_PUBLISHED', 'Norme publiée'),
         ('NORM_UPDATE', 'Mise à jour de norme'),
-        ('SYSTEM', 'Notification système'),
-        ('PAYMENT', 'Paiement'),
+        ('NORM_AMENDED', 'Norme modifiée'),
+        ('EXPERT_INVITE', 'Invitation expert'),
+        ('EXPERT_ADDED_TO_WG', 'Ajouté à un groupe de travail'),
+        ('REUNION_INVITE', 'Invitation à réunion'),
+        ('MEETING_REMINDER', 'Rappel de réunion'),
+        ('VOTE_OPEN', 'Vote ouvert'),
+        ('VOTE_REMINDER', 'Rappel de vote'),
+        ('AMENDMENT', 'Nouvel amendement'),
+        ('PAYMENT_DUE', 'Cotisation due'),
+        ('PAYMENT_RECEIVED', 'Paiement reçu'),
+        ('PAYMENT_OVERDUE', 'Cotisation en retard'),
+        ('MESSAGE', 'Nouveau message'),
         ('JETON', 'Jeton de présence'),
+        ('SYSTEM', 'Notification système'),
     ]
     
     PRIORITY_CHOICES = [
