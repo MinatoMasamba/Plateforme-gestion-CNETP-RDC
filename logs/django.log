@@ -5337,3 +5337,11 @@ INFO 2026-06-04 11:04:35,979 autoreload 27727 132875300126848 /home/minato/proje
 INFO 2026-06-04 11:04:36,454 autoreload 28344 126367250477184 /home/minato/project/api/v1/norms_serializers.py changed, reloading.
 INFO 2026-06-04 11:04:41,118 autoreload 29490 129030275743872 Watching for file changes with StatReloader
 INFO 2026-06-04 11:04:41,543 autoreload 29482 135586979729536 Watching for file changes with StatReloader
+INFO 2026-06-04 18:15:33,275 autoreload 6105 129895961669760 Watching for file changes with StatReloader
+INFO 2026-06-04 18:16:06,725 autoreload 6117 138446102069376 Watching for file changes with StatReloader
+INFO 2026-06-04 18:16:30,298 autoreload 6117 138446102069376 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-04 18:16:39,096 autoreload 6312 139585449504896 Watching for file changes with StatReloader
+WARNING 2026-06-04 20:09:16,513 log 6312 139584952329920 Not Found: /favicon.ico
+INFO 2026-06-04 21:37:09,594 autoreload 6312 139585449504896 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-04 21:37:12,577 autoreload 10192 130727383085184 Watching for file changes with StatReloader
+INFO 2026-06-04 22:08:55,406 autoreload 10192 130727383085184 /home/minato/project/config/settings.py changed, reloading.
