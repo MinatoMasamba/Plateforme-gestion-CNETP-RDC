@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace de Travail - CNETP</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <script>
         // Restore dark mode preference before page renders
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -16,7 +16,7 @@
         } else {
             document.documentElement.classList.add('dark');
         }
-        
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -31,7 +31,7 @@
             }
         }
     </script>
-    
+
     <style>
         /* ========================================== */
         /* THEME SYSTEM + CUSTOM SCROLLBAR             */
@@ -45,7 +45,7 @@
         ::-webkit-scrollbar-thumb {
             background-color: rgba(148, 163, 184, 0.3);
             border-radius: 20px;
-            border: 2px solid transparent; 
+            border: 2px solid transparent;
             background-clip: padding-box;
         }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.5); }
@@ -201,7 +201,7 @@
     </div>
 
     <aside id="sidebar-container" class="w-80 h-full flex flex-col border-r border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#06060c]/90 backdrop-blur-md z-20 shrink-0 transition-colors duration-250 text-slate-800 dark:text-slate-300">
-        
+
         <div class="p-4 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black/15">
             <div class="flex items-center gap-2 shrink-0 select-none">
                 <svg width="46" height="46" viewBox="0 0 100 100" class="shrink-0 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.2)]">
@@ -264,12 +264,12 @@
             <div class="flex items-center justify-between pt-1.5 border-t border-slate-200 dark:border-white/5">
                 <span class="text-[9px] uppercase text-slate-500 dark:text-slate-400">Poste Actif :</span>
                 <span id="footer-active-role" class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase text-blue-600 bg-blue-50 border border-blue-200 dark:text-amber-400 dark:bg-amber-400/10 dark:border-amber-400/25">
-                    Administrateur
+                    {{ active_role|default:"Utilisateur" }}
                 </span>
             </div>
             <div class="pt-1.5">
                 <button onclick="openProfileModal()" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-[9.5px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm focus:outline-none border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:border-blue-400 dark:border-amber-500/20 dark:bg-amber-500/5 dark:hover:bg-amber-500/15 dark:text-amber-400 dark:hover:border-amber-400" title="Configurer Profil Test">
-                    <span>👤 Configurer Profil Test</span>
+                    <span>👤 Configurer  total du Profil </span>
                     <span class="text-blue-500 dark:text-amber-300">&rarr;</span>
                 </button>
             </div>
@@ -277,11 +277,11 @@
     </aside>
 
     <main class="flex-1 flex flex-col h-full min-w-0 relative transition-colors duration-250 bg-[#06060c]/20">
-        
+
         <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none z-0"></div>
 
         <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/40 backdrop-blur-md">
-            
+
             <div class="flex items-center gap-1 flex-row flex-nowrap shrink-0" id="nav-tabs">
                 <button onclick="loadModule('editor')" id="btn-editor" class="tab-btn active h-14 px-3 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 border-b-2 border-blue-500 text-blue-400 bg-blue-500/10">
                     <i data-lucide="file-text" class="h-4 w-4"></i> Éditeur de Normes
@@ -298,7 +298,7 @@
                 <button onclick="loadModule('meetings')" id="btn-meetings" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="vote" class="h-4 w-4"></i> Réunions & Votes
                 </button>
-                
+
                 <button onclick="loadModule('financial')" id="btn-financial" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="landmark" class="h-4 w-4"></i> Cotisations
                 </button>
@@ -317,11 +317,12 @@
                     <i data-lucide="user" class="h-3.5 w-3.5"></i>
                     <span class="text-white" id="user-display-name">Chargement...</span>
                 </button>
+
             </div>
         </nav>
 
         <div id="workspace-viewport" class="flex-1 min-h-0 relative z-10 flex flex-col p-6 overflow-y-auto">
-            
+
             <div id="module-editor" class="module-container active flex-col flex-1 h-full w-full"></div>
             <div id="module-history" class="module-container flex-col flex-1 h-full w-full"></div>
             <div id="module-experts" class="module-container flex-col flex-1 h-full w-full"></div>
@@ -336,13 +337,16 @@
     <div id="modals-container">
         {% include 'app/composants/create_norm_modal.html' %}
     </div>
+    <div id="modals-profil">
+        {% include 'app/composants/profil_expert.html' %}
+    </div>
 
 
-<script>
+    <script>
         // =========================================================================
         // 1. UTILITAIRES API ET ÉTAT GLOBAL
         // =========================================================================
-        
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -365,8 +369,8 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 }
             };
-            const response = await fetch(url, { 
-                ...defaults, 
+            const response = await fetch(url, {
+                ...defaults,
                 ...options,
                 headers: { ...defaults.headers, ...options.headers }
             });
@@ -377,21 +381,79 @@
             return response.json();
         }
 
+        // Afficher le modal de profil quand on clique sur le bouton profil
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('profile-btn');
+            if (!btn) return;
+
+            btn.addEventListener('click', async function() {
+                try {
+                    // Essayer de récupérer le profil utilisateur depuis l'API si disponible
+                    let profileData = null;
+                    if (typeof window.apiFetch === 'function') {
+                        try {
+                            const res = await window.apiFetch('/api/v1/profile/');
+                            if (res && (res.data || res)) {
+                                const d = res.data || res;
+                                profileData = {
+                                    name: (d.first_name || '') + (d.last_name ? ' ' + d.last_name : ''),
+                                    email: d.email || '',
+                                    structure: d.structure_name || d.structure || '',
+                                    payoutMethod: d.bank_name || '',
+                                    accountDetails: d.bank_account || '',
+                                    dailyRate: d.daily_rate || d.dailyRate || '',
+                                    monthlyResearchAllowance: d.monthly_research_allowance || d.monthlyResearchAllowance || '',
+                                    presenceCount: d.presence_count || d.presenceCount || '',
+                                    roleId: d.role_id || d.roleId || '',
+                                };
+
+                                // si l'API renvoie un expert lié, définir currentExpertId
+                                if (d.expert && (d.expert.id || d.expert)) {
+                                    window.currentExpertId = d.expert.id || d.expert;
+                                } else if (d.expert_id) {
+                                    window.currentExpertId = d.expert_id;
+                                }
+                            }
+                        } catch (err) {
+                            // ignore, on ouvrira le modal sans données
+                            console.warn('Impossible de charger le profil:', err);
+                        }
+                    }
+
+                    // Ouvrir le modal fourni dans profil_expert.html
+                    if (typeof openProfileModal === 'function') {
+                        openProfileModal(profileData);
+                    } else {
+                        // fallback: simplement enlever la class hidden si présent
+                        const modal = document.getElementById('profile-modal');
+                        if (modal) modal.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+        });
+
         const sidebarState = {
             activeTab: 'editor',
             searchQuery: '',
             selectedDocId: null,
             selectedWgId: null,
+            selectedExpertId: null,
+            expertSelectionType: 'wg',
             documents: [],
             workingGroups: [],
             ctms: [],
             experts: [],
             collaborators: [],
+            currentCtmId: null,
+            currentCtmName: "",
             historyEditors: [],
             meetings: [],
             budgets: [],
             validationSteps: []
         };
+        window.sidebarState = sidebarState;
 
         window.showAppToast = function(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -432,10 +494,14 @@
                     apiFetch('/api/v1/wg/'),
                     apiFetch('/api/v1/experts/'),
                     apiFetch('/api/v1/reunions/upcoming/'),
-                    apiFetch('/api/v1/ctm/')
+                    apiFetch('/api/v1/ctm/'),
+                    apiFetch('/api/v1/experts/me/')
                 ]);
 
-                const [norms, wgs, experts, meetings, ctms] = results.map(r => r.status === 'fulfilled' ? r.value : null);
+                const [norms, wgs, experts, meetings, ctms, myProfile] = results.map(r => r.status === 'fulfilled' ? r.value : null);
+                const primaryAff = myProfile?.affectations?.find(aff => aff.is_primary_ctm || aff.is_primary_wg) || myProfile?.affectations?.[0] || null;
+                sidebarState.currentCtmId = primaryAff?.ctm || null;
+                sidebarState.currentCtmName = primaryAff?.ctm_name || "";
 
                 if (ctms) {
                     sidebarState.ctms = (ctms.results || ctms).map(c => ({
@@ -456,24 +522,46 @@
                 }
 
                 if (wgs) {
-                    sidebarState.workingGroups = (wgs.results || wgs).map(w => ({
+                    const mappedWgs = (wgs.results || wgs).map(w => ({
                         id: w.id,
-                        code: w.number || `WG ${w.id}`,
+                        code: w.ctm && w.ctm.number ? `WG ${w.ctm.number}.${w.number}` : (w.number || `WG ${w.id}`),
                         title: w.name,
                         tag: "Actif",
-                        ctm: w.ctm
+                        ctm: w.ctm?.id || w.ctm,
+                        ctmName: w.ctm?.name || w.ctm_name || ""
                     }));
+                    sidebarState.workingGroups = sidebarState.currentCtmId
+                        ? mappedWgs.filter(wg => String(wg.ctm) === String(sidebarState.currentCtmId))
+                        : mappedWgs;
                 }
 
                 if (experts) {
-                    sidebarState.experts = (experts.results || experts).map(e => ({
-                        id: e.id,
-                        name: e.user_name,
-                        role: "Expert",
-                        structure: e.structure_name,
-                        avatarColor: "#3b82f6"
-                    }));
+                    const mappedExperts = (experts.results || experts).map(e => {
+                        const ctmAff = sidebarState.currentCtmId
+                            ? e.affectations?.find(aff => String(aff.ctm) === String(sidebarState.currentCtmId))
+                            : e.affectations?.[0];
+                        return {
+                            id: e.id,
+                            name: e.user_name || `${e.user?.first_name || ''} ${e.user?.last_name || ''}`.trim() || 'Expert',
+                            role: ctmAff?.role || e.affectations?.[0]?.role || "Expert",
+                            structure: e.structure_name || e.structure?.name || "",
+                            ctm: ctmAff?.ctm || e.affectations?.[0]?.ctm || e.ctm,
+                            wg: ctmAff?.wg || e.affectations?.[0]?.wg || null,
+                            isApproved: e.status === 'ACTIVE',
+                            avatarColor: "#3b82f6"
+                        };
+                    });
+                    sidebarState.experts = sidebarState.currentCtmId
+                        ? mappedExperts.filter(expert => String(expert.ctm) === String(sidebarState.currentCtmId))
+                        : mappedExperts;
                     sidebarState.collaborators = sidebarState.experts;
+                }
+
+                if (!sidebarState.selectedWgId || !sidebarState.workingGroups.some(wg => String(wg.id) === String(sidebarState.selectedWgId))) {
+                    sidebarState.selectedWgId = sidebarState.workingGroups[0]?.id || null;
+                }
+                if (!sidebarState.selectedExpertId || !sidebarState.experts.some(expert => String(expert.id) === String(sidebarState.selectedExpertId))) {
+                    sidebarState.selectedExpertId = sidebarState.experts[0]?.id || null;
                 }
 
                 if (meetings) {
@@ -486,7 +574,7 @@
                 }
 
                 renderSidebarContent();
-                
+
                 if (!sidebarState.selectedDocId && sidebarState.documents.length > 0) {
                     sidebarSelect('doc', sidebarState.documents[0].id);
                 }
@@ -499,11 +587,15 @@
         async function loadDocumentDetails(id) {
             try {
                 const doc = await apiFetch(`/api/v1/norms/${id}/`);
-                
+
                 // Mettre à jour l'état global de l'éditeur (si disponible)
                 if (typeof editorState !== 'undefined') {
                     editorState.document = doc;
                     editorState.text = doc.latest_version ? doc.latest_version.content : "";
+                    if (typeof loadNormeVotes === 'function') {
+                        await loadNormeVotes();
+                        if (typeof renderVotes === 'function') renderVotes();
+                    }
                 }
 
                 // Notification pour le module historique s'il est actif
@@ -538,7 +630,7 @@
                     editorContent.classList.remove('hidden');
                     editorPlaceholder.classList.add('hidden');
                 }
-                
+
                 if (window.showAppToast) window.showAppToast(`Norme chargée : ${doc.reference_number}`);
             } catch (error) {
                 console.error("Error loading document details:", error);
@@ -576,19 +668,30 @@
             } else if (sidebarState.activeTab === 'history') {
                 topHtml = `<div class="px-2 mb-3 relative"><i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i><input type="text" placeholder="Rechercher norme..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-white border-white/10 focus:outline-hidden"></div>`;
             } else if (sidebarState.activeTab === 'experts') {
-                topHtml = `<div class="space-y-1.5">${sidebarState.workingGroups.length ? sidebarState.workingGroups.map(wg => `<button class="w-full text-left p-3 rounded-lg border dark:bg-white/[0.02] dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"><span class="font-mono text-[9.5px] bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 rounded font-bold">${wg.code}</span><p class="text-xs font-semibold mt-1.5 text-slate-800 dark:text-slate-200">${wg.title}</p></button>`).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun groupe trouvé.</p>'}</div>`;
+                const ctmLabel = sidebarState.currentCtmName ? `<p class="text-[10px] text-slate-500 px-2 mb-2 truncate">CTM : ${sidebarState.currentCtmName}</p>` : '';
+                topHtml = `${ctmLabel}<div class="space-y-1.5">${sidebarState.workingGroups.length ? sidebarState.workingGroups.map(wg => {
+                    const isSel = sidebarState.expertSelectionType === 'wg' && String(sidebarState.selectedWgId) === String(wg.id);
+                    const cls = isSel ? 'bg-blue-50 border-blue-300 text-blue-800 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700 dark:bg-white/[0.02] dark:border-white/5 dark:hover:bg-white/5 dark:text-slate-300';
+                    return `<button type="button" onclick="sidebarSelect('wg', '${wg.id}')" class="w-full text-left p-3 rounded-lg border transition-all ${cls}"><span class="font-mono text-[9.5px] bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 rounded font-bold">${wg.code}</span><p class="text-xs font-semibold mt-1.5 truncate">${wg.title}</p></button>`;
+                }).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun groupe trouvé.</p>'}</div>`;
             } else if (sidebarState.activeTab === 'meetings') {
                 topHtml = `<div class="space-y-1.5">${sidebarState.meetings.length ? sidebarState.meetings.map(m => `<div class="p-3 bg-white border-slate-200 dark:bg-white/[0.02] dark:border-white/5 rounded-lg"><span class="text-[10px] font-mono text-slate-500 font-bold">${m.date}</span><p class="text-xs font-bold text-slate-800 dark:text-white mt-1.5">${m.title}</p></div>`).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucune réunion prévue.</p>'}</div>`;
             }
 
             let listData = sidebarState.activeTab === 'experts' ? sidebarState.experts : sidebarState.collaborators;
-            let bottomHtml = `<div class="mb-3 px-2 flex justify-between pt-4 border-t border-slate-200 dark:border-white/5"><h2 class="text-xs font-semibold text-slate-500 uppercase"><i data-lucide="users" class="h-3.5 w-3.5 inline"></i> Collaborateurs</h2></div><div class="space-y-2">
-                ${listData.length ? listData.map(c => `
-                    <button class="w-full text-left p-2.5 rounded-lg border border-transparent hover:bg-slate-100 dark:hover:bg-white/10 bg-black/5 dark:bg-black/10 flex items-center gap-3 transition-all">
+            const bottomTitle = sidebarState.activeTab === 'experts' ? 'Experts du même CTM' : 'Collaborateurs';
+            let bottomHtml = `<div class="mb-3 px-2 flex justify-between pt-4 border-t border-slate-200 dark:border-white/5"><h2 class="text-xs font-semibold text-slate-500 uppercase"><i data-lucide="users" class="h-3.5 w-3.5 inline"></i> ${bottomTitle}</h2></div><div class="space-y-2">
+                ${listData.length ? listData.map(c => {
+                    const isExpertRow = sidebarState.activeTab === 'experts';
+                    const isSel = isExpertRow && sidebarState.expertSelectionType === 'expert' && String(sidebarState.selectedExpertId) === String(c.id);
+                    const click = isExpertRow ? `onclick="sidebarSelect('expert', '${c.id}')"` : '';
+                    const cls = isSel ? 'bg-blue-50 border-blue-300 dark:bg-blue-500/15 dark:border-blue-500/30' : 'border-transparent hover:bg-slate-100 dark:hover:bg-white/10 bg-black/5 dark:bg-black/10';
+                    return `
+                    <button type="button" ${click} class="w-full text-left p-2.5 rounded-lg border ${cls} flex items-center gap-3 transition-all">
                         <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style="background-color: ${c.avatarColor || '#3b82f6'}">${c.name ? c.name.substring(0,2).toUpperCase() : 'EX'}</div>
                         <div class="flex-1 min-w-0"><p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${c.name}</p><p class="text-[10px] text-slate-500 truncate mt-0.5">${c.role}</p></div>
                     </button>
-                `).join('') : '<p class="text-[10px] text-center py-2 text-slate-500">Chargement...</p>'}</div>`;
+                `;}).join('') : '<p class="text-[10px] text-center py-2 text-slate-500">Chargement...</p>'}</div>`;
 
             topSection.innerHTML = topHtml;
             bottomSection.innerHTML = bottomHtml;
@@ -601,8 +704,19 @@
                 sidebarState.selectedDocId = id;
                 loadDocumentDetails(id);
             }
-            if (type === 'wg') sidebarState.selectedWgId = id;
+            if (type === 'wg') {
+                sidebarState.selectedWgId = id;
+                sidebarState.expertSelectionType = 'wg';
+            }
+            if (type === 'expert') {
+                sidebarState.selectedExpertId = id;
+                sidebarState.expertSelectionType = 'expert';
+            }
             renderSidebarContent();
+            window.dispatchEvent(new CustomEvent('sidebar:select', { detail: { type, id, state: sidebarState } }));
+            if (typeof window.switchExpertViewMode === 'function' && (type === 'wg' || type === 'expert')) {
+                window.switchExpertViewMode(type, id);
+            }
         }
 
         // =========================================================================
@@ -692,10 +806,10 @@
 
             const timeStr = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
             if(!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
-            
+
             chatState.messages[chatState.activeContactId].push({ id: `msg-${Date.now()}`, senderId: "me", senderName: chatState.myProfile.name, text: text, timestamp: timeStr });
             input.value = ""; document.getElementById('send-msg-btn').disabled = true; renderMessages();
-            
+
             setTimeout(() => {
                 chatState.messages[chatState.activeContactId].push({ id: `rep-${Date.now()}`, senderId: chatState.activeContactId, text: "Bien reçu.", timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) });
                 if (chatState.isOpen) renderMessages();
@@ -710,32 +824,86 @@
 
         async function showMyProfile() {
             try {
-                if (typeof openProfileModal !== 'function') {
-                    if (window.showAppToast) window.showAppToast('Le panneau de profil est en cours de chargement...', 'info');
-                    return;
-                }
-                const expertData = await apiFetch('/api/v1/users/me/');
-                const userData = expertData.user;
-                currentExpertId = expertData.id;
+                const currentUserId = "{{ user.id|default:'' }}";
+                const profileUrl = currentUserId ? `/api/v1/users/${currentUserId}/` : '/api/v1/auth/me/';
+                const expertData = await apiFetch(profileUrl);
+                const userData = expertData.user || expertData;
+                currentExpertId = expertData.id || userData.id;
 
                 const profileData = {
-                    name: `${userData.first_name} ${userData.last_name}`,
-                    email: userData.email,
+                    name: `${userData.first_name || userData.firstName || ''} ${userData.last_name || userData.lastName || ''}`.trim() || userData.username || 'Utilisateur',
+                    email: userData.email || '',
                     structure: expertData.structure ? expertData.structure.name : '',
                     payoutMethod: expertData.bank_name || 'Equity BCDC',
                     accountDetails: expertData.bank_account || expertData.mobile_money_number || '',
-                    // Champs de simulation non présents dans le modèle Expert pour le moment
                     dailyRate: 0,
                     monthlyResearchAllowance: 0,
                     presenceCount: 0,
                     roleId: 'MEMBRE_P'
                 };
 
-                openProfileModal(profileData);
+                if (typeof openProfileModal === 'function') {
+                    openProfileModal(profileData);
+                } else {
+                    openFallbackProfileModal(profileData);
+                }
             } catch (error) {
                 console.error('Erreur de chargement du profil:', error);
                 if (window.showAppToast) window.showAppToast('Erreur de chargement du profil expert.', 'error');
             }
+        }
+
+        function buildFallbackProfileModal() {
+            const container = document.getElementById('modals-container');
+            if (!container) return null;
+            let modal = document.getElementById('fallback-profile-modal');
+            if (modal) return modal;
+
+            modal = document.createElement('div');
+            modal.id = 'fallback-profile-modal';
+            modal.className = 'fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4';
+            modal.innerHTML = `
+                <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+                    <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Profil expert</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Informations du compte connecté</p>
+                        </div>
+                        <button type="button" onclick="closeFallbackProfileModal()" class="text-slate-500 hover:text-slate-900 dark:hover:text-white text-xl leading-none">×</button>
+                    </div>
+                    <div class="px-6 py-5 space-y-3 text-slate-700 dark:text-slate-200 text-sm">
+                        <div><span class="font-semibold">Nom :</span> <span id="fallback-profile-name"></span></div>
+                        <div><span class="font-semibold">Email :</span> <span id="fallback-profile-email"></span></div>
+                        <div><span class="font-semibold">Structure :</span> <span id="fallback-profile-structure"></span></div>
+                        <div><span class="font-semibold">Méthode de paiement :</span> <span id="fallback-profile-payout"></span></div>
+                        <div><span class="font-semibold">Détails compte :</span> <span id="fallback-profile-account"></span></div>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 text-right">
+                        <button type="button" onclick="closeFallbackProfileModal()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Fermer</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(modal);
+            return modal;
+        }
+
+        function openFallbackProfileModal(profileData) {
+            const modal = buildFallbackProfileModal();
+            if (!modal) {
+                if (window.showAppToast) window.showAppToast('Impossible d\'afficher le profil.', 'error');
+                return;
+            }
+            modal.querySelector('#fallback-profile-name').textContent = profileData.name || 'N/A';
+            modal.querySelector('#fallback-profile-email').textContent = profileData.email || 'N/A';
+            modal.querySelector('#fallback-profile-structure').textContent = profileData.structure || 'N/A';
+            modal.querySelector('#fallback-profile-payout').textContent = profileData.payoutMethod || 'N/A';
+            modal.querySelector('#fallback-profile-account').textContent = profileData.accountDetails || 'N/A';
+            modal.classList.remove('hidden');
+        }
+
+        function closeFallbackProfileModal() {
+            const modal = document.getElementById('fallback-profile-modal');
+            if (modal) modal.classList.add('hidden');
         }
 
         // =========================================================================
@@ -779,12 +947,12 @@
 
                 const response = await fetch(`/api/components/${moduleId}/`);
                 if (!response.ok) throw new Error("Erreur réseau");
-                
+
                 const html = await response.text();
                 actC.innerHTML = html;
-                
+
                 safeCreateIcons();
-                executeScripts(actC); 
+                executeScripts(actC);
                 loadedModules.add(moduleId);
 
                 if (moduleId === 'editor' && sidebarState.selectedDocId) {
@@ -812,7 +980,7 @@
             const scripts = [];
             if (el.tagName === 'SCRIPT') scripts.push(el);
             scripts.push(...Array.from(el.querySelectorAll('script')));
-            
+
             scripts.forEach(oldScript => {
                 const newS = document.createElement('script');
                 Array.from(oldScript.attributes).forEach(attr => newS.setAttribute(attr.name, attr.value));
@@ -825,7 +993,7 @@
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
             localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
-            
+
             if(isDark) {
                 document.body.classList.add('bg-[#020204]', 'text-slate-300');
                 document.body.classList.remove('bg-slate-50', 'text-slate-800');
@@ -840,7 +1008,7 @@
             safeCreateIcons();
             document.getElementById('user-display-name').textContent = "{{ user|default:'Expert Connecté' }}";
             fetchSidebarData();
-            loadModule('editor'); 
+            loadModule('editor');
 
             // Charger le composant de messagerie
             (async () => {
@@ -863,7 +1031,7 @@
         });
 
     </script>
-    
+
 
 </body>
 </html>

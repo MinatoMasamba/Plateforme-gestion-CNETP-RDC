@@ -5,11 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from apps.norms.models import Norme, NormeVersion, ChangementVersion
+from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote
+from apps.experts.models import Expert
 from .norms_serializers import (
     NormeBasicSerializer, NormeDetailSerializer, NormeCreateUpdateSerializer,
     NormeStatusUpdateSerializer, NormeVersionSerializer, NormeVersionCreateSerializer,
-    NormeFullHistorySerializer, ChangementVersionSerializer
+    NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer
 )
 from .permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
 
@@ -95,6 +96,37 @@ class NormeViewSet(viewsets.ModelViewSet):
         norme = self.get_object()
         serializer = NormeFullHistorySerializer(norme)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def votes(self, request, pk=None):
+        """Récupérer les votes de la norme ouverte."""
+        votes = self.get_object().votes.select_related('voter__user', 'voter__structure')
+        return Response(NormeVoteSerializer(votes, many=True).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsExpert])
+    def vote(self, request, pk=None):
+        """Créer ou modifier le vote de l'expert connecté sur cette norme."""
+        norme = self.get_object()
+        if norme.status in ['PUBLISHED', 'ARCHIVED']:
+            return Response({'detail': 'Le vote est clos pour cette norme.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        expert = Expert.objects.filter(user=request.user).first()
+        if not expert:
+            return Response({'detail': 'Seul un expert peut voter.'}, status=status.HTTP_403_FORBIDDEN)
+
+        choice = request.data.get('vote')
+        if choice not in dict(NormeVote.VOTE_CHOICES):
+            return Response({'vote': 'Choix invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        vote, created = NormeVote.objects.update_or_create(
+            norme=norme,
+            voter=expert,
+            defaults={
+                'vote': choice,
+                'justification': request.data.get('justification', ''),
+            }
+        )
+        return Response(NormeVoteSerializer(vote).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
     
     @action(detail=True, methods=['get'])
     def versions(self, request, pk=None):

@@ -75,12 +75,12 @@
     // =========================================================================
     // 1. ÉTAT GLOBAL DE LA SIDEBAR (Simulation API)
     // =========================================================================
-    const sidebarState = {
+    window.sidebarState = window.sidebarState || {
         activeTab: 'experts', // Défini par défaut sur experts pour voir le résultat
         searchQuery: '',
         selectedDocId: null,
-        selectedWgId: 'wg-8.1',
-        selectedExpertId: 'exp-1',
+        selectedWgId: null,
+        selectedExpertId: null,
         expertSelectionType: 'wg', // 'wg' ou 'expert' ou 'pending'
         historyAuthorFilter: null,
         userRole: 'ADMIN',
@@ -105,6 +105,8 @@
             { id: "exp-2", name: "Ir. Chantal Mwamba", role: "Secrétaire", structure: "OVD", email: "chantal@cnetp.cd", ctm: "CTM 5", wg: "WG 5.1", isApproved: true },
             { id: "exp-3", name: "Arch. Sylvain Lukusa", role: "Rapporteur", structure: "ONA", email: "sylvain@cnetp.cd", ctm: "CTM 3", wg: "WG 3.2", isApproved: false }
         ],
+        currentCtmId: null,
+        currentCtmName: "",
         collaborators: [
             { id: "col-1", name: "Prof. Masamba Édouard", role: "Expert Rédacteur", email: "masamba@cnetp.cd", avatarColor: "#3b82f6", isActive: true },
             { id: "col-2", name: "Marie Laurent", role: "Coordinateur CTC", email: "marie@cnetp.cd", avatarColor: "#ec4899", isActive: false }
@@ -217,6 +219,7 @@
                     <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
                     <input type="text" placeholder="Rechercher groupe ou expert..." oninput="updateSearch(this.value)" value="${sidebarState.searchQuery}" class="w-full pl-9 pr-4 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-black/55 text-white placeholder-slate-500' : 'border-slate-300 bg-white text-slate-800 placeholder-slate-400'} text-xs focus:outline-hidden font-semibold" />
                 </div>
+                ${sidebarState.currentCtmName ? `<p class="text-[10px] text-slate-500 px-2 mb-2 truncate">CTM : ${sidebarState.currentCtmName}</p>` : ''}
                 
                 <div class="flex items-center justify-between mb-3 px-2">
                     <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
@@ -286,8 +289,8 @@
         let bottomSubtitle = "Membres du Groupe de Travail (WG) affectés :";
         
         if (sidebarState.activeTab === 'experts') { 
-            bottomTitle = "Experts du CNETP"; 
-            bottomSubtitle = "Experts actifs du comité d'évaluation :"; 
+            bottomTitle = "Experts du même CTM";
+            bottomSubtitle = "Experts affectés au comité de l'utilisateur connecté :";
         }
 
         bottomHtml = `
@@ -417,14 +420,93 @@
         
         renderSidebarContent();
         
-        // Simuler un appel vers la vue principale (si ExpertsModule est monté)
-        if(typeof switchExpertViewMode === 'function') {
-            switchExpertViewMode(sidebarState.expertSelectionType);
+        window.dispatchEvent(new CustomEvent('sidebar:select', { detail: { type, id, state: sidebarState } }));
+
+        if(typeof window.switchExpertViewMode === 'function') {
+            window.switchExpertViewMode(sidebarState.expertSelectionType, id);
+        }
+    }
+
+    async function hydrateSidebarFromApi() {
+        try {
+            const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+            const [wgsResponse, expertsResponse, ctmsResponse, profileResponse] = await Promise.all([
+                fetch('/api/v1/wg/', { headers }),
+                fetch('/api/v1/experts/', { headers }),
+                fetch('/api/v1/ctm/', { headers }),
+                fetch('/api/v1/experts/me/', { headers }),
+            ]);
+
+            if (profileResponse.ok) {
+                const profile = await profileResponse.json();
+                const primaryAff = profile.affectations?.find(aff => aff.is_primary_ctm || aff.is_primary_wg) || profile.affectations?.[0] || null;
+                sidebarState.currentCtmId = primaryAff?.ctm || null;
+                sidebarState.currentCtmName = primaryAff?.ctm_name || "";
+            }
+
+            if (ctmsResponse.ok) {
+                const data = await ctmsResponse.json();
+                sidebarState.ctms = (data.results || data).map(c => ({
+                    id: c.id,
+                    number: c.number,
+                    name: c.name,
+                }));
+            }
+
+            if (wgsResponse.ok) {
+                const data = await wgsResponse.json();
+                const mappedWgs = (data.results || data).map(wg => ({
+                    id: wg.id,
+                    code: wg.ctm && wg.ctm.number ? `WG ${wg.ctm.number}.${wg.number}` : (wg.number || `WG ${wg.id}`),
+                    title: wg.name || wg.title || '',
+                    tag: wg.status || 'Actif',
+                    ctm: wg.ctm?.id || wg.ctm,
+                }));
+                sidebarState.workingGroups = sidebarState.currentCtmId
+                    ? mappedWgs.filter(wg => String(wg.ctm) === String(sidebarState.currentCtmId))
+                    : mappedWgs;
+                if (!sidebarState.selectedWgId && sidebarState.workingGroups.length) {
+                    sidebarState.selectedWgId = sidebarState.workingGroups[0].id;
+                }
+            }
+
+            if (expertsResponse.ok) {
+                const data = await expertsResponse.json();
+                const mappedExperts = (data.results || data).map(expert => {
+                    const aff = sidebarState.currentCtmId
+                        ? expert.affectations?.find(item => String(item.ctm) === String(sidebarState.currentCtmId))
+                        : expert.affectations?.[0] || null;
+                    const name = expert.user_name || `${expert.user?.first_name || ''} ${expert.user?.last_name || ''}`.trim() || 'Expert';
+                    return {
+                        id: expert.id,
+                        name,
+                        role: aff?.role || 'Expert',
+                        structure: expert.structure_name || expert.structure?.name || '',
+                        email: expert.user?.email || '',
+                        ctm: aff?.ctm_name || '',
+                        wg: aff?.wg_name || '',
+                        isApproved: expert.status === 'ACTIVE',
+                    };
+                });
+                sidebarState.experts = sidebarState.currentCtmId
+                    ? mappedExperts.filter(expert => String(expert.ctm) === String(sidebarState.currentCtmId))
+                    : mappedExperts;
+                sidebarState.collaborators = sidebarState.experts;
+                if (!sidebarState.selectedExpertId && sidebarState.experts.length) {
+                    sidebarState.selectedExpertId = sidebarState.experts[0].id;
+                }
+            }
+
+            renderSidebarContent();
+        } catch (error) {
+            console.error('Erreur hydratation sidebar:', error);
+            renderSidebarContent();
         }
     }
 
     // Premier rendu au chargement
     document.addEventListener('DOMContentLoaded', () => {
         renderSidebarContent();
+        hydrateSidebarFromApi();
     });
 </script>

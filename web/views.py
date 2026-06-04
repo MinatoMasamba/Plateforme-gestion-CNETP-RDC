@@ -34,28 +34,67 @@ class App(View):
     
 
     def get(self, request):
-
         if not request.user.is_authenticated:
-            return redirect('web:expert_registration')
-        
-            
             return redirect('web:home')
+        
         # Récupérer les structures et CTM pour le dashboard
         user = request.user
-        data_expert =  Expert.objects.filter(user=user).first()
+        data_expert = Expert.objects.filter(user=user).first()
+        
         if not data_expert:
             print("User is authenticated but not an expert:", request.user.username)
             messages.warning(request, "Votre compte n'est pas encore validé en tant qu'expert. Veuillez patienter ou contacter l'administrateur.")
-        structure = data_expert.structure if data_expert else None
-        ctms = [data_expert.ctm] if data_expert and data_expert.ctm else []
+            return redirect('web:home')
+        
+        structure = data_expert.structure
+        
+        # Récupérer les affectations (CTM et WG)
+        from apps.governance.models import Affectation
+        affectations = Affectation.objects.filter(expert=data_expert).select_related('ctm', 'wg')
+        
+        # Construire la liste des affectations avec rôles
+        affectations_list = []
+        for aff in affectations:
+            affectations_list.append({
+                'ctm': aff.ctm,
+                'wg': aff.wg,
+                'ctm_role': aff.ctm_role,
+                'wg_role': aff.wg_role,
+                'role': aff.role,
+                'is_primary_ctm': aff.is_primary_ctm,
+                'is_primary_wg': aff.is_primary_wg,
+            })
+        
+        # Récupérer les rôles dans les comités
+        from apps.governance.models import PilotageMembreship, CTCMembership
+        pilotage_roles = [
+            membership.get_role_display()
+            for membership in PilotageMembreship.objects.filter(expert=data_expert)
+        ]
+        ctc_roles = [
+            membership.get_role_display()
+            for membership in CTCMembership.objects.filter(expert=data_expert)
+        ]
+        active_role = 'Utilisateur'
+        if pilotage_roles:
+            active_role = pilotage_roles[0]
+        elif ctc_roles:
+            active_role = ctc_roles[0]
+        elif affectations_list:
+            active_role = affectations_list[0]['role']
+        elif user.is_superuser:
+            active_role = 'Administrateur'
+        
         context = {
             'user': user.username,
-            'structure' : structure,
-            'ctms' : ctms,
-
+            'expert': data_expert,
+            'structure': structure,
+            'affectations': affectations_list,
+            'pilotage_roles': list(pilotage_roles),
+            'ctc_roles': list(ctc_roles),
+            'active_role': active_role,
         }
         
-
         return render(request, self.template_name, context)
 
 class AboutView(View):

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from apps.core.models import BaseModel
 from apps.experts.models import Expert
+from apps.governance.models import CTM, WG
 
 
 class Reunion(BaseModel):
@@ -25,6 +26,9 @@ class Reunion(BaseModel):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     titre = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    ctm = models.ForeignKey(CTM, on_delete=models.SET_NULL, null=True, blank=True, related_name='reunions')
+    wg = models.ForeignKey(WG, on_delete=models.SET_NULL, null=True, blank=True, related_name='reunions')
+    document_reglementaire = models.CharField(max_length=255, blank=True)
     date = models.DateTimeField()
     lieu = models.CharField(max_length=255, blank=True, null=True)
     lien_reunion_virtuelle = models.URLField(blank=True, null=True)
@@ -42,6 +46,32 @@ class Reunion(BaseModel):
     
     def __str__(self):
         return f"{self.titre} ({self.date.strftime('%Y-%m-%d')})"
+
+
+class ReunionVote(BaseModel):
+    """Vote électronique lié à une réunion."""
+
+    CHOIX_CHOICES = [
+        ('POUR', 'Pour'),
+        ('CONTRE', 'Contre'),
+        ('ABSTENTION', 'Abstention'),
+    ]
+
+    reunion = models.ForeignKey(Reunion, on_delete=models.CASCADE, related_name='votes')
+    expert = models.ForeignKey(Expert, on_delete=models.CASCADE, related_name='reunion_votes')
+    choix = models.CharField(max_length=20, choices=CHOIX_CHOICES)
+    justification = models.TextField(blank=True)
+    voted_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'meetings_reunionvote'
+        unique_together = ('reunion', 'expert')
+        indexes = [
+            models.Index(fields=['reunion', 'choix'], name='meetings_re_reunion_581dc1_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.expert.user.get_full_name()} - {self.reunion.titre} - {self.choix}"
 
 
 class Presence(BaseModel):

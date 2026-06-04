@@ -1,19 +1,30 @@
 from rest_framework import serializers
-from apps.meetings.models import Reunion, Presence, ProcessusVerbaux
+from apps.meetings.models import Reunion, Presence, ProcessusVerbaux, ReunionVote
 from .experts_serializers import ExpertBasicSerializer
 
 
 class PresenceSerializer(serializers.ModelSerializer):
     """Serializer pour les présences"""
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
+    expert_structure = serializers.CharField(source='expert.structure.name', read_only=True)
     
     class Meta:
         model = Presence
         fields = [
-            'id', 'reunion', 'expert', 'expert_name', 'status',
+            'id', 'reunion', 'expert', 'expert_name', 'expert_structure', 'status',
             'marked_at', 'marked_by'
         ]
-        read_only_fields = ['id', 'expert_name', 'marked_at']
+        read_only_fields = ['id', 'expert_name', 'expert_structure', 'marked_at']
+
+
+class ReunionVoteSerializer(serializers.ModelSerializer):
+    """Serializer pour les votes électroniques de réunion."""
+    expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
+
+    class Meta:
+        model = ReunionVote
+        fields = ['id', 'reunion', 'expert', 'expert_name', 'choix', 'justification', 'voted_at']
+        read_only_fields = ['id', 'expert', 'expert_name', 'voted_at']
 
 
 class ProcessusVerbauxSerializer(serializers.ModelSerializer):
@@ -42,12 +53,15 @@ class ProcessusVerbauxSerializer(serializers.ModelSerializer):
 class ReunionBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les réunions"""
     presences_count = serializers.SerializerMethodField()
+    ctm_name = serializers.CharField(source='ctm.name', read_only=True)
+    wg_name = serializers.CharField(source='wg.name', read_only=True)
     
     class Meta:
         model = Reunion
         fields = [
-            'id', 'type', 'titre', 'date', 'lieu', 'ordre_jour',
-            'status', 'presences_count', 'created_at'
+            'id', 'type', 'titre', 'description', 'ctm', 'ctm_name', 'wg', 'wg_name',
+            'document_reglementaire', 'date', 'lieu', 'lien_reunion_virtuelle',
+            'ordre_jour', 'status', 'presences_count', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
     
@@ -58,7 +72,10 @@ class ReunionBasicSerializer(serializers.ModelSerializer):
 class ReunionDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour les réunions"""
     presences = PresenceSerializer(many=True, read_only=True)
+    votes = ReunionVoteSerializer(many=True, read_only=True)
     pv = ProcessusVerbauxSerializer(read_only=True)
+    ctm_name = serializers.CharField(source='ctm.name', read_only=True)
+    wg_name = serializers.CharField(source='wg.name', read_only=True)
     organisateur_name = serializers.CharField(
         source='organisateur.user.get_full_name',
         read_only=True
@@ -67,13 +84,14 @@ class ReunionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reunion
         fields = [
-            'id', 'type', 'titre', 'description', 'date', 'lieu',
+            'id', 'type', 'titre', 'description', 'ctm', 'ctm_name', 'wg', 'wg_name',
+            'document_reglementaire', 'date', 'lieu',
             'lien_reunion_virtuelle', 'ordre_jour', 'status',
             'organisateur', 'organisateur_name', 'presences',
-            'pv', 'created_at', 'updated_at'
+            'votes', 'pv', 'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'organisateur_name', 'presences', 'pv',
+            'id', 'organisateur_name', 'presences', 'votes', 'pv',
             'created_at', 'updated_at'
         ]
 
@@ -83,14 +101,14 @@ class ReunionCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reunion
         fields = [
-            'type', 'titre', 'description', 'date', 'lieu',
+            'type', 'titre', 'description', 'ctm', 'wg', 'document_reglementaire', 'date', 'lieu',
             'lien_reunion_virtuelle', 'ordre_jour'
         ]
     
     def validate_date(self, value):
         """Vérifier que la date n'est pas dans le passé"""
         from django.utils import timezone
-        if value < timezone.now().date():
+        if value < timezone.now():
             raise serializers.ValidationError(
                 "La date de la réunion ne peut pas être dans le passé."
             )

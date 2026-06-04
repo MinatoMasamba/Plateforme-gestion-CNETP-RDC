@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from apps.core.models import BaseModel, User
 from apps.governance.models import CTM, WG
+from apps.experts.models import Expert
 
 
 class Norme(BaseModel):
@@ -145,3 +146,31 @@ class ChangementVersion(BaseModel):
     
     def __str__(self):
         return f"{self.version} - Section {self.section} ({self.change_type})"
+
+
+class NormeVote(BaseModel):
+    """Vote d'un expert sur la norme ouverte en édition."""
+
+    VOTE_CHOICES = [
+        ('FOR', 'Pour'),
+        ('AGAINST', 'Contre'),
+        ('ABSTAIN', 'Abstention'),
+    ]
+
+    norme = models.ForeignKey(Norme, on_delete=models.CASCADE, related_name='votes')
+    voter = models.ForeignKey(Expert, on_delete=models.PROTECT, related_name='norme_votes')
+    vote = models.CharField(max_length=10, choices=VOTE_CHOICES)
+    justification = models.TextField(blank=True)
+    vote_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Vote Norme"
+        verbose_name_plural = "Votes Normes"
+        unique_together = ('norme', 'voter')
+        ordering = ['-vote_date']
+        indexes = [
+            models.Index(fields=['norme', 'vote'], name='norms_norme_vote_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.voter.user.get_full_name()} - {self.norme.reference_number} ({self.vote})"

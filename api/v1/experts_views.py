@@ -2,8 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db import models
 
 from apps.experts.models import Expert, Structure
 from .experts_serializers import (
@@ -43,13 +45,37 @@ class ExpertViewSet(viewsets.ModelViewSet):
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
     ordering_fields = ['inscription_date', 'status', 'user__last_name']
     ordering = ['-inscription_date']
+
+    def _user_has_ctm_role(self, user, ctm_id):
+        """Un role CTM est un poste de leadership CTM, pas une simple affectation membre."""
+        if user.is_superuser or getattr(user, 'is_ctc_staff', False):
+            return True
+
+        try:
+            requester = Expert.objects.get(user=user)
+        except Expert.DoesNotExist:
+            return False
+
+        return requester.governance_affectations.filter(
+            ctm_id=ctm_id,
+        ).filter(
+            models.Q(ctm__scientific_president=requester) |
+            models.Q(ctm__rapporteur=requester) |
+            models.Q(ctm__secretary=requester)
+        ).exists()
+
+    def _target_ctm_id(self, expert):
+        affectation = expert.governance_affectations.order_by('-is_primary_ctm', '-is_primary_wg').first()
+        if affectation:
+            return affectation.ctm_id
+        return expert.ctm_id
     
     def get_serializer_class(self):
         """Retourner le serializer approprié selon l'action"""
         if self.action == 'retrieve':
             return ExpertDetailSerializer
         elif self.action == 'list':
-            return ExpertBasicSerializer
+            return ExpertDetailSerializer
         elif self.action == 'create':
             return ExpertCreateUpdateSerializer
         elif self.action == 'update' or self.action == 'partial_update':
@@ -70,6 +96,15 @@ class ExpertViewSet(viewsets.ModelViewSet):
             # Seul CTC peut activer
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
+
+    def partial_update(self, request, *args, **kwargs):
+        expert = self.get_object()
+        requested_status = request.data.get('status')
+        if requested_status == 'ACTIVE':
+            ctm_id = request.data.get('ctm_id') or self._target_ctm_id(expert)
+            if not ctm_id or not self._user_has_ctm_role(request.user, ctm_id):
+                raise PermissionDenied("Un rôle CTM est requis pour accepter l'adhésion de cet expert.")
+        return super().partial_update(request, *args, **kwargs)
     
     @action(detail=False, methods=['post'], permission_classes=[])
     def inscription(self, request):
@@ -97,6 +132,35 @@ class ExpertViewSet(viewsets.ModelViewSet):
         
         serializer = ExpertDetailSerializer(expert)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_path='admit-to-ctm')
+    def admit_to_ctm(self, request, pk=None):
+        """Accepter l'adhésion CTM et préparer l'affectation WG."""
+        from apps.governance.models import Affectation
+
+        expert = self.get_object()
+        ctm_id = request.data.get('ctm_id') or self._target_ctm_id(expert)
+        wg_id = request.data.get('wg_id')
+
+        if not ctm_id:
+            return Response({'detail': 'ctm_id est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not self._user_has_ctm_role(request.user, ctm_id):
+            raise PermissionDenied("Un rôle CTM est requis pour accepter l'adhésion de cet expert.")
+
+        expert.ctm_id = ctm_id
+        expert.status = 'ACTIVE'
+        expert.save(update_fields=['ctm', 'status'])
+
+        if wg_id:
+            Affectation.objects.update_or_create(
+                expert=expert,
+                ctm_id=ctm_id,
+                wg_id=wg_id,
+                defaults={'is_primary_ctm': True, 'is_primary_wg': True},
+            )
+
+        serializer = ExpertDetailSerializer(expert)
+        return Response(serializer.data)
     
     @action(detail=True, methods=['post'], permission_classes=[IsCTCCoordinator])
     def deactivate(self, request, pk=None):
@@ -114,6 +178,11 @@ class ExpertViewSet(viewsets.ModelViewSet):
         serializer = ExpertDetailSerializer(expert)
         return Response(serializer.data)
     
+    @action(detail=False, methods=['get'], url_path='me')
+    def me(self, request):
+        """Récupérer le profil de l'utilisateur connecté."""
+        return self.my_profile(request)
+
     @action(detail=False, methods=['get'])
     def my_profile(self, request):
         """Récupérer le profil de l'utilisateur connecté"""
