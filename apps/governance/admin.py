@@ -4,6 +4,12 @@ from django.utils.safestring import mark_safe
 from django.db.models import Count
 from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, TechnicalCell, CTCMembership, OriginStructure, ExecutiveLevel
 
+# Ensure ComitePilotage objects expose a 'role' attribute to avoid errors
+# when other admin modules assume a membership-like object is returned.
+# This provides a safe default display.
+if not hasattr(ComitePilotage, 'role'):
+    setattr(ComitePilotage, 'role', property(lambda self: '—'))
+
 
 class WGInline(admin.TabularInline):
     model = WG
@@ -44,6 +50,11 @@ class CTMAdmin(admin.ModelAdmin):
     )
     
     inlines = [WGInline]
+    
+    def get_member_count(self, obj):
+        """Nombre de membres (override pour éviter d'appeler la méthode modèle incorrecte)"""
+        return obj.affectations.filter(is_primary_ctm=True).values('expert').distinct().count()
+    get_member_count.short_description = "Nombre de membres"
     
     def get_members_list(self, obj):
         """Afficher la liste des experts"""

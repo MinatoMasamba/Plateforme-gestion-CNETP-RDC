@@ -1,6 +1,6 @@
 <div class="w-full h-full flex flex-col overflow-hidden bg-slate-50/15 dark:bg-transparent">
     <div class="p-6 space-y-8 overflow-y-auto h-full transition-colors duration-250 text-slate-800 dark:text-slate-300">
-    
+
     <div class="border-b pb-5 border-slate-200 dark:border-white/10">
         <div class="flex items-center justify-between gap-4 flex-wrap">
             <div class="flex items-center gap-3">
@@ -9,7 +9,7 @@
                     Gestion de la Co-Gouvernance CNETP
                 </h2>
             </div>
-            
+
         </div>
         <p class="text-xs max-w-3xl leading-relaxed mt-2 text-slate-600 dark:text-slate-400">
             Sélectionnez un Groupe de Travail (WG) ou un Expert dans la barre de navigation gauche pour consulter ses attributions, f'iches de conformités et d'accréditations au sein de la République Démocratique du Congo.
@@ -19,9 +19,9 @@
     <div id="expert-access-alert" class="hidden mb-4.5 p-3 rounded-lg border border-red-500/35 bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-350 text-xs font-semibold leading-relaxed animate-slideIn"></div>
 
     <div id="view-wg" class="w-full space-y-6 animate-fadeIn">
-        
+
     <div class="space-y-6">
-            
+
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/10 rounded-xl p-5 relative overflow-hidden backdrop-blur-md border shadow-sm">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none"></div>
                 <div class="flex items-center gap-2 mb-2 font-mono text-[10.5px]">
@@ -87,7 +87,7 @@
         </div>
 
         <div class="space-y-6">
-            
+
             <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 border shadow-sm">
                 <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-2">
                     <i data-lucide="users" class="h-4 w-4 text-slate-400"></i>
@@ -116,12 +116,12 @@
     </div>
 
     <div id="view-expert" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn hidden">
-        
+
         <div class="lg:col-span-2 space-y-6">
-            
+
             <div class="bg-white border-slate-200 dark:bg-black/30 dark:border-white/10 rounded-xl p-5 relative overflow-hidden backdrop-blur-md border shadow-sm">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none"></div>
-                
+
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <div id="exp-avatar" class="h-14 w-14 rounded-full bg-blue-500 text-white dark:text-black flex items-center justify-center font-extrabold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:shadow-[0_0_20px_rgba(16,185,129,0.3)] border-2 border-blue-400"></div>
@@ -174,6 +174,8 @@
                 <div class="space-y-4">
                     <p id="exp-approval-desc" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></p>
 
+                    <div id="ctm-admission-panel" class="rounded-lg border p-4 bg-white border-slate-200 dark:bg-black/30 dark:border-white/10"></div>
+
                     <div class="flex items-center gap-3 pt-2">
                         <div id="exp-approve-btn-container" class="w-full"></div>
                         <button onclick="triggerExpertDelete()" class="px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ml-auto" title="Supprimer définitivement la fiche expert">
@@ -185,7 +187,7 @@
         </div>
 
         <div class="space-y-6">
-            
+
             <div class="bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/10 rounded-xl p-5 space-y-4.5 border">
                 <h4 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-200 dark:border-white/5">
                     Canal Direct Sécurisé
@@ -284,31 +286,104 @@
         activeExpId: null,
         selectedNormFilter: 'ALL',
         activeCtmId: 'all', // Initialiser à 'all' pour tous les CTM
-        
+
         myProfile: {
             roleId: "{{ request.user.expert_profile.role|default:'OBSERVATEUR' }}",
-            wg: "", 
-            ctm: "", 
+            wg: "",
+            ctm: "",
             ctmId: null,
+            ctmRole: "",
+            affectations: [],
         },
 
         workingGroups: [],
         experts: [],
         ctms: [], // Nouvelle variable pour stocker les CTMs
-        wgTasks: [] 
+        wgTasks: []
     };
+
+    function asArray(data) {
+        if (!data) return [];
+        return Array.isArray(data) ? data : (data.results || []);
+    }
+
+    function sameId(left, right) {
+        return String(left) === String(right);
+    }
+
+    function stripSidebarPrefix(id, prefix) {
+        return String(id || '').replace(new RegExp(`^${prefix}-`), '');
+    }
+
+    function findWgBySelection(selectionId) {
+        const normalizedId = stripSidebarPrefix(selectionId, 'wg');
+        return expState.workingGroups.find(wg =>
+            sameId(wg.id, selectionId) ||
+            sameId(wg.id, normalizedId) ||
+            sameId(wg.code, selectionId) ||
+            sameId(wg.code, `WG ${normalizedId}`)
+        );
+    }
+
+    function findExpertBySelection(selectionId) {
+        const normalizedId = stripSidebarPrefix(selectionId, 'exp');
+        return expState.experts.find(expert =>
+            sameId(expert.id, selectionId) ||
+            sameId(expert.id, normalizedId)
+        );
+    }
+
+    function normalizeWg(wg) {
+        return {
+            ...wg,
+            code: wg.code || (wg.ctm && wg.number ? `WG ${wg.ctm.number}.${wg.number}` : `WG ${wg.number || ''}`),
+            title: wg.title || wg.name || '',
+            ctmId: wg.ctmId || wg.ctm?.id || wg.ctm,
+            expert_list: wg.expert_list || [],
+        };
+    }
+
+    function getExpertPrimaryAffectation(expert) {
+        const affectations = expert?.affectations || [];
+        return affectations.find(aff => aff.is_primary_ctm || aff.is_primary_wg) || affectations[0] || null;
+    }
+
+    function getCurrentCtmId() {
+        if (expState.activeCtmId && expState.activeCtmId !== 'all') return expState.activeCtmId;
+        if (expState.myProfile.ctmId) return expState.myProfile.ctmId;
+        const activeWg = expState.workingGroups.find(wg => sameId(wg.id, expState.activeWgId));
+        if (activeWg?.ctmId) return activeWg.ctmId;
+        const activeExpert = expState.experts.find(expert => sameId(expert.id, expState.activeExpId));
+        return getExpertPrimaryAffectation(activeExpert)?.ctm || null;
+    }
+
+    function getVisibleWgs() {
+        const ctmId = getCurrentCtmId();
+        if (!ctmId) return expState.workingGroups;
+        return expState.workingGroups.filter(wg => sameId(wg.ctmId, ctmId));
+    }
+
+    function getVisibleExperts() {
+        const ctmId = getCurrentCtmId();
+        if (!ctmId) return expState.experts;
+        return expState.experts.filter(expert => (expert.affectations || []).some(aff => sameId(aff.ctm, ctmId)));
+    }
+
+    function hasCtmRoleAccess(ctmId = getCurrentCtmId()) {
+        const privilegedRoles = ['ADMIN', 'COORD_CTC', 'CTC_COORDINATOR'];
+        if (privilegedRoles.includes(expState.myProfile.roleId)) return true;
+        return (expState.myProfile.affectations || []).some(aff => {
+            const role = aff.ctm_role || '';
+            return sameId(aff.ctm, ctmId) && role && role !== 'Membre CTM';
+        });
+    }
 
     async function loadWorkingGroups() {
         try {
-            // Check if sidebarState.workingGroups is already populated
-            if (typeof sidebarState !== 'undefined' && sidebarState.workingGroups && sidebarState.workingGroups.length > 0) {
-                expState.workingGroups = sidebarState.workingGroups;
-            } else {
-                const response = await fetch('/api/v1/wg/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-                if (!response.ok) throw new Error('Impossible de charger les groupes de travail');
-                const data = await response.json();
-                expState.workingGroups = data.results;
-            }
+            const response = await fetch('/api/v1/wg/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les groupes de travail');
+            const data = await response.json();
+            expState.workingGroups = asArray(data).map(normalizeWg);
         } catch (error) {
             console.error("Erreur de chargement des WGs:", error);
             if(window.showAppToast) window.showAppToast("Erreur de chargement des groupes de travail.", "error");
@@ -318,15 +393,10 @@
 
     async function loadExperts() {
         try {
-            // Check if sidebarState.experts is already populated
-            if (typeof sidebarState !== 'undefined' && sidebarState.experts && sidebarState.experts.length > 0) {
-                expState.experts = sidebarState.experts;
-            } else {
-                const response = await fetch('/api/v1/experts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-                if (!response.ok) throw new Error('Impossible de charger les experts');
-                const data = await response.json();
-                expState.experts = data.results;
-            }
+            const response = await fetch('/api/v1/experts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Impossible de charger les experts');
+            const data = await response.json();
+            expState.experts = asArray(data);
         } catch (error) {
             console.error("Erreur de chargement des experts:", error);
             if(window.showAppToast) window.showAppToast("Erreur de chargement des experts.", "error");
@@ -343,13 +413,13 @@
                 const response = await fetch('/api/v1/ctm/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
                 if (!response.ok) throw new Error('Impossible de charger les CTMs');
                 const data = await response.json();
-                expState.ctms = data.results;
+                expState.ctms = asArray(data);
             }
 
             // Populate CTM filter dropdown
             const selectEl = document.getElementById('ctm-filter-select');
             if (selectEl) {
-                selectEl.innerHTML = '<option value="all">Tous les CTM</option>' + 
+                selectEl.innerHTML = '<option value="all">Tous les CTM</option>' +
                                      expState.ctms.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
                 if (expState.myProfile.ctmId) {
                     selectEl.value = expState.myProfile.ctmId;
@@ -367,10 +437,13 @@
             const profileResponse = await fetch('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (profileResponse.ok) {
                 const profileData = await profileResponse.json();
-                expState.myProfile.roleId = profileData.role_id; 
-                expState.myProfile.wg = profileData.wg_details?.title || ""; 
-                expState.myProfile.ctm = profileData.ctm_details?.title || ""; 
-                expState.myProfile.ctmId = profileData.ctm_details?.id || null; // Capture CTM ID
+                const primaryAff = getExpertPrimaryAffectation(profileData);
+                expState.myProfile.roleId = profileData.role_id || expState.myProfile.roleId;
+                expState.myProfile.affectations = profileData.affectations || [];
+                expState.myProfile.wg = primaryAff?.wg_name || "";
+                expState.myProfile.ctm = primaryAff?.ctm_name || "";
+                expState.myProfile.ctmId = primaryAff?.ctm || null;
+                expState.myProfile.ctmRole = primaryAff?.ctm_role || "";
             }
         } catch (error) {
             console.error("Erreur de chargement du profil utilisateur:", error);
@@ -382,29 +455,83 @@
             loadCtms(), // Load CTMs at init
         ]);
 
-        // Check if a WG was selected from sidebar
-        const selectedWgId = sessionStorage.getItem('selectedWgId');
-        if (selectedWgId) {
-            expState.activeWgId = selectedWgId;
-            sessionStorage.removeItem('selectedWgId');
-        } else if (!expState.activeWgId && expState.workingGroups.length > 0) {
-            expState.activeWgId = expState.workingGroups[0].id;
+        syncExpertsModuleSelection(false);
+
+        if (!expState.activeWgId) {
+            const firstWg = getVisibleWgs()[0] || expState.workingGroups[0];
+            if (firstWg) expState.activeWgId = firstWg.id;
         }
 
-        if (!expState.activeExpId && expState.experts.length > 0) {
-            expState.activeExpId = expState.experts[0].id;
+        if (!expState.activeExpId) {
+            const firstExpert = getVisibleExperts()[0] || expState.experts[0];
+            if (firstExpert) expState.activeExpId = firstExpert.id;
         }
 
         renderView();
         renderFooterStats();
         renderCtmIndicators(); // Call new indicator function
-        renderWGSidebar(); // Render sidebar WG list
+        renderAdmissionPanel();
     }
+
+    function syncExpertsModuleSelection(render = true) {
+        const state = window.sidebarState || (typeof sidebarState !== 'undefined' ? sidebarState : null);
+        if (!state) return;
+        if (state.expertSelectionType === 'wg' && state.selectedWgId) {
+            const selectedWg = findWgBySelection(state.selectedWgId);
+            if (selectedWg) expState.activeWgId = selectedWg.id;
+            if (selectedWg?.ctmId) expState.activeCtmId = selectedWg.ctmId;
+            expState.viewMode = 'wg';
+        }
+        if (state.expertSelectionType === 'expert' && state.selectedExpertId) {
+            const selectedExpert = findExpertBySelection(state.selectedExpertId);
+            if (selectedExpert) expState.activeExpId = selectedExpert.id;
+            const selectedAff = getExpertPrimaryAffectation(selectedExpert);
+            if (selectedAff?.ctm) expState.activeCtmId = selectedAff.ctm;
+            expState.viewMode = 'expert';
+        }
+        if (state.expertSelectionType === 'pending') {
+            expState.viewMode = 'expert';
+        }
+        if (render) {
+            renderView();
+            renderAdmissionPanel();
+        }
+    }
+
+    window.switchExpertViewMode = function(mode, selectedId = null) {
+        const state = window.sidebarState || (typeof sidebarState !== 'undefined' ? sidebarState : null);
+        if (state && selectedId !== null) {
+            if (mode === 'wg') {
+                state.selectedWgId = selectedId;
+                state.expertSelectionType = 'wg';
+            }
+            if (mode === 'expert') {
+                state.selectedExpertId = selectedId;
+                state.expertSelectionType = 'expert';
+            }
+        }
+        if (mode === 'wg' || mode === 'expert') {
+            syncExpertsModuleSelection(true);
+        }
+    };
+
+    window.addEventListener('sidebar:select', function(event) {
+        const detail = event.detail || {};
+        if (detail.type === 'wg' || detail.type === 'expert') {
+            window.switchExpertViewMode(detail.type, detail.id);
+        }
+    });
 
     function setCtmFilter(ctmId) {
         expState.activeCtmId = ctmId;
+        const firstWg = getVisibleWgs()[0];
+        const firstExpert = getVisibleExperts()[0];
+        if (firstWg) expState.activeWgId = firstWg.id;
+        if (firstExpert) expState.activeExpId = firstExpert.id;
         const ctmName = ctmId === 'all' ? 'de la Commission CNETP RDC' : expState.ctms.find(c => c.id == ctmId)?.name || 'Inconnu';
         document.getElementById('ctm-indicators-title').textContent = ctmName ? `de ${ctmName}` : `de la Commission CNETP RDC`;
+        renderView();
+        renderAdmissionPanel();
         renderCtmIndicators();
     }
 
@@ -434,8 +561,7 @@
 
         // --- Meetings Count ---
         try {
-            const meetingsUrl = ctmId ? `/api/v1/reunions/upcoming/?organisateur__ctm_choices__id=${ctmId}` : '/api/v1/reunions/upcoming/';
-            const meetingsResponse = await fetch(meetingsUrl, { headers: baseHeaders });
+            const meetingsResponse = await fetch('/api/v1/reunions/upcoming/', { headers: baseHeaders });
             const meetingsData = await meetingsResponse.json();
             const plannedMeetings = (meetingsData.results || meetingsData).filter(m => m.status === 'PLANNED' || m.status === 'ACTIVE').length;
             document.getElementById('indicator-meetings-count').textContent = `${plannedMeetings} Réunions`;
@@ -449,17 +575,15 @@
         }
 
         // --- Votes Count (Placeholder - requires specific API or logic) ---
-        document.getElementById('indicator-votes-count').textContent = `0 Vote(s)`; 
+        document.getElementById('indicator-votes-count').textContent = `0 Vote(s)`;
         document.getElementById('indicator-votes-bar').style.width = `0%`;
 
         // --- Experts Count (by CTM) ---
         try {
-            const expertsUrl = ctmId ? `/api/v1/experts/?ctm_choices__id=${ctmId}` : '/api/v1/experts/';
-            const expertsResponse = await fetch(expertsUrl, { headers: baseHeaders });
-            const expertsData = await expertsResponse.json();
-            const approvedExperts = (expertsData.results || expertsData).filter(e => e.status === 'APPROVED').length;
+            const experts = ctmId ? getVisibleExperts() : expState.experts;
+            const approvedExperts = experts.filter(e => e.status === 'ACTIVE').length;
             document.getElementById('indicator-experts-count').textContent = `${approvedExperts} Experts`;
-            const totalExpertsInDb = expertsData.count || (expertsData.results || expertsData).length;
+            const totalExpertsInDb = experts.length;
             document.getElementById('indicator-experts-bar').style.width = `${totalExpertsInDb > 0 ? (approvedExperts / totalExpertsInDb) * 100 : 0}%`;
         } catch (error) {
             console.error("Erreur de chargement des experts pour les indicateurs:", error);
@@ -476,29 +600,12 @@
 
     function switchExpertView(mode, render = true) {
         expState.viewMode = mode;
-        const btnWg = document.getElementById('btn-view-wg');
-        const btnExp = document.getElementById('btn-view-expert');
         const viewWg = document.getElementById('view-wg');
         const viewExp = document.getElementById('view-expert');
-        const isDark = document.documentElement.classList.contains('dark');
 
         if(mode === 'wg') {
-            if(isDark) {
-                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20";
-                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-400 hover:text-white";
-            } else {
-                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-white text-blue-800 font-bold shadow-xs border border-slate-300";
-                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-600 hover:text-slate-900";
-            }
             viewWg.classList.remove('hidden'); viewExp.classList.add('hidden');
         } else {
-            if(isDark) {
-                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20";
-                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-400 hover:text-white";
-            } else {
-                btnExp.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer bg-white text-blue-800 font-bold shadow-xs border border-slate-300";
-                btnWg.className = "px-3 py-1.5 rounded-md transition-all cursor-pointer text-slate-600 hover:text-slate-900";
-            }
             viewWg.classList.add('hidden'); viewExp.classList.remove('hidden');
         }
         if(render) renderView();
@@ -507,6 +614,7 @@
     function renderView() {
         if(expState.viewMode === 'wg') renderWgView();
         else renderExpertView();
+        renderAdmissionPanel();
         lucide.createIcons();
     }
 
@@ -514,26 +622,26 @@
     // 3. RENDU DE LA VUE WG
     // =========================================================================
     async function renderWgView() {
-        const wg = expState.workingGroups.find(w => w.id === expState.activeWgId) || expState.workingGroups[0];
+        const wg = expState.workingGroups.find(w => sameId(w.id, expState.activeWgId)) || getVisibleWgs()[0] || expState.workingGroups[0];
         if (!wg) {
             document.getElementById('view-wg').innerHTML = '<p class="text-center text-slate-500 py-10">Aucun groupe de travail disponible.</p>';
             return;
         }
 
-        document.getElementById('wg-code-badge').textContent = wg.number; 
-        document.getElementById('wg-title-text').textContent = wg.name; 
+        document.getElementById('wg-code-badge').textContent = wg.code || wg.number;
+        document.getElementById('wg-title-text').textContent = wg.name || wg.title;
 
-        const isMyWg = expState.myProfile.wg.includes(wg.name);
-        const isSameCmt = expState.myProfile.ctm.includes(wg.ctm.name); 
+        const isMyWg = sameId(getExpertPrimaryAffectation({ affectations: expState.myProfile.affectations })?.wg, wg.id);
+        const isSameCmt = sameId(expState.myProfile.ctmId, wg.ctmId);
         const isAdmin = expState.myProfile.roleId === "ADMIN" || expState.myProfile.roleId === "COORD_CTC";
         const hasWriteAccess = isMyWg || isAdmin;
 
         const badgeContainer = document.getElementById('wg-access-badge');
         const descContainer = document.getElementById('wg-access-desc');
-        
+
         if (hasWriteAccess) {
             badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/25 uppercase tracking-wide">✍️ Droits d'écriture accordés</span>`;
-            descContainer.innerHTML = `<span class="text-blue-700 dark:text-blue-300">Vous êtes affecté à <strong>${wg.name}</strong>. Vous avez le droit statutaire de modifier l'avancement des livrables.</span>`;
+            descContainer.innerHTML = `<span class="text-blue-700 dark:text-blue-300">Vous êtes affecté à <strong>${wg.name || wg.title}</strong>. Vous avez le droit statutaire de modifier l'avancement des livrables.</span>`;
         } else if (isSameCmt) {
             badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/25 uppercase tracking-wide">👁️ Lecture Seule (Même CTM)</span>`;
             descContainer.innerHTML = `<span class="text-blue-700 dark:text-blue-300">En tant que membre permanent du même comité, vous pouvez suivre l'atelier en lecture seule.</span>`;
@@ -541,7 +649,7 @@
             badgeContainer.innerHTML = `<span class="text-[9.5px] px-2 py-0.5 rounded font-extrabold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-500/80 dark:border-amber-500/20 uppercase tracking-wide">🔒 Observateur (Hors CTM)</span>`;
             descContainer.innerHTML = `<span class="text-slate-500 dark:text-slate-400 italic">Les travaux appartiennent à un autre comité. Consultation autorisée, édition interdite.</span>`;
         }
-        document.getElementById('wg-status-badge').textContent = wg.status || "Actif"; 
+        document.getElementById('wg-status-badge').textContent = wg.status || "Actif";
 
         // Load and render norms for this WG
         loadAndRenderWGNorms(wg.id);
@@ -550,15 +658,14 @@
         document.getElementById('wg-tasks-list').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucun livrable planifié pour la sélection.</p>`;
 
         // Render WG members
-        const wgMembers = wg.expert_list || []; 
+        const wgMembers = wg.expert_list || [];
         document.getElementById('wg-members-count').textContent = wgMembers.length;
         document.getElementById('wg-members-list').innerHTML = wgMembers.length === 0 ? `<div class="text-center py-6 text-slate-500 text-xs italic">Aucun membre rattaché à ce bureau.</div>` : wgMembers.map(m => {
             const expertId = m.expert;
-            const expertName = m.expert_name; 
+            const expertName = m.expert_name;
             const expertRole = m.role;
-            const expertStructure = expState.experts.find(e => e.id === expertId)?.structure.name || ""; 
-            const expertProvince = expState.experts.find(e => e.id === expertId)?.user.province || ""; 
-            
+            const expertProvince = expState.experts.find(e => sameId(e.id, expertId))?.user?.province || "";
+
             const isDark = document.documentElement.classList.contains('dark');
             return `
             <div onclick="expState.activeExpId='${expertId}'; switchExpertView('expert');" class="p-3 rounded-lg transition-all cursor-pointer flex items-center gap-3.5 group border ${isDark?'bg-black/45 border-white/5 hover:border-blue-500/30':'bg-white border-slate-200 hover:border-blue-300 shadow-sm'}">
@@ -570,16 +677,14 @@
             </div>
         `;
         }).join('');
-        
-        // Render WG sidebar
-        renderWGSidebar();
+
     }
 
     // =========================================================================
     // 4. RENDU DE LA VUE EXPERT
     // =========================================================================
     function renderExpertView() {
-        const exp = expState.experts.find(e => e.id === expState.activeExpId);
+        const exp = expState.experts.find(e => sameId(e.id, expState.activeExpId));
         if (!exp) {
             document.getElementById('view-expert').innerHTML = '<p class="text-center text-slate-500 py-10">Aucun expert sélectionné ou disponible.</p>';
             return;
@@ -587,25 +692,29 @@
 
         const isDark = document.documentElement.classList.contains('dark');
 
-        document.getElementById('exp-avatar').textContent = exp.user.first_name.substring(0,2).toUpperCase();
-        document.getElementById('exp-name').textContent = `${exp.user.first_name} ${exp.user.last_name}`;
-        
+        const firstName = exp.user?.first_name || '';
+        const lastName = exp.user?.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim() || exp.user_name || 'Expert';
+
+        document.getElementById('exp-avatar').textContent = fullName.substring(0,2).toUpperCase();
+        document.getElementById('exp-name').textContent = fullName;
+
         const rBadge = document.getElementById('exp-role-badge');
         const mainAffectation = exp.affectations && exp.affectations.length > 0 ? exp.affectations[0] : null;
-        const roleName = mainAffectation ? mainAffectation.role : 'Expert'; 
+        const roleName = mainAffectation ? mainAffectation.role : 'Expert';
         rBadge.textContent = roleName;
 
         if(roleName.includes("Président")) rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-purple-500/20 text-purple-400 border-purple-500/30':'bg-purple-100 text-purple-700 border-purple-200'}`;
         else if(roleName.includes("Secrétaire")) rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-blue-500/20 text-blue-400 border-blue-500/30':'bg-blue-100 text-blue-700 border-blue-200'}`;
         else rBadge.className = `text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase border ${isDark?'bg-blue-500/10 text-blue-400 border-blue-500/20':'bg-slate-100 text-slate-700 border-slate-200'}`;
 
-        document.getElementById('exp-struct').textContent = exp.structure.name;
-        document.getElementById('exp-detail-struct').textContent = exp.structure.name;
-        document.getElementById('exp-detail-prov').textContent = exp.user.province;
+        document.getElementById('exp-struct').textContent = exp.structure?.name || exp.structure_name || "N/A";
+        document.getElementById('exp-detail-struct').textContent = exp.structure?.name || exp.structure_name || "N/A";
+        document.getElementById('exp-detail-prov').textContent = exp.user?.province || "N/A";
         document.getElementById('exp-detail-ctm').textContent = mainAffectation ? mainAffectation.ctm_name : "N/A";
         document.getElementById('exp-detail-wg').textContent = mainAffectation ? mainAffectation.wg_name : "N/A";
-        document.getElementById('exp-contact-email').textContent = exp.user.email;
-        document.getElementById('exp-contact-phone').textContent = exp.user.phone;
+        document.getElementById('exp-contact-email').textContent = exp.user?.email || "";
+        document.getElementById('exp-contact-phone').textContent = exp.user?.phone || "";
         document.getElementById('exp-ctm-head').textContent = mainAffectation ? mainAffectation.ctm_name.split("–")[0] : "N/A";
         document.getElementById('exp-ctm-sub').textContent = mainAffectation ? (mainAffectation.ctm_name.split("–")[1] || mainAffectation.ctm_name) : "N/A";
 
@@ -613,7 +722,8 @@
         const appContainer = document.getElementById('exp-approval-container');
         const descContainer = document.getElementById('exp-approval-desc');
         const btnContainer = document.getElementById('exp-approve-btn-container');
-        const isApproved = exp.status === 'APPROVED'; 
+        const isApproved = exp.status === 'ACTIVE';
+        const canApprove = mainAffectation && hasCtmRoleAccess(mainAffectation.ctm);
 
         if(isApproved) {
             appContainer.innerHTML = `<span class="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 uppercase border ${isDark?'bg-blue-500/10 text-blue-400 border-blue-500/20':'bg-blue-50 text-blue-700 border-blue-200'}"><i data-lucide="check-circle" class="h-3.5 w-3.5"></i> Agréé CTC RDC</span>`;
@@ -621,15 +731,22 @@
             btnContainer.innerHTML = `<div class="p-3.5 rounded-lg flex items-center gap-2 w-full text-xs font-bold border ${isDark?'bg-blue-500/10 border-blue-500/20 text-blue-400':'bg-blue-50 border-blue-200 text-blue-700'}"><i data-lucide="check-circle" class="h-4 w-4"></i> Titre accrédité d'expert pour la RDC validé.</div>`;
         } else {
             appContainer.innerHTML = `<span class="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 uppercase animate-pulse border ${isDark?'bg-amber-500/15 text-amber-500 border-amber-500/25':'bg-amber-100 text-amber-700 border-amber-200'}"><i data-lucide="alert-triangle" class="h-3.5 w-3.5 animate-spin"></i> Accréditation en attente</span>`;
-            descContainer.innerHTML = `Avant de pouvoir valider ou amender un écrit au sein des comités CTC, la présence légale et technique des experts doit être validée par arrêté ministériel conjoint. Cet expert possède des droits <strong>temporaires en lecture seule.</strong>`;
-            btnContainer.innerHTML = `<button onclick="approveExpert('${exp.id}')" class="px-4.5 py-2.5 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${isDark?'bg-blue-500 hover:bg-blue-400 text-black':'bg-blue-600 hover:bg-blue-700 text-white'}"><i data-lucide="shield-check" class="h-4 w-4"></i> Valider et Accréditer l'Expert</button>`;
+            descContainer.innerHTML = canApprove
+                ? `Votre rôle CTM permet de préparer l'admission de cet expert et son affectation WG. L'interface détaillée sera ajoutée ensuite.`
+                : `Cet expert est consultable, mais seuls les membres ayant un rôle dans ce CTM peuvent accepter son adhésion et préparer son affectation WG.`;
+            btnContainer.innerHTML = canApprove
+                ? `<button onclick="approveExpert('${exp.id}')" class="px-4.5 py-2.5 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${isDark?'bg-blue-500 hover:bg-blue-400 text-black':'bg-blue-600 hover:bg-blue-700 text-white'}"><i data-lucide="shield-check" class="h-4 w-4"></i> Accepter l'adhésion CTM</button>`
+                : `<div class="p-3.5 rounded-lg flex items-center gap-2 w-full text-xs font-bold border ${isDark?'bg-white/5 border-white/10 text-slate-400':'bg-slate-100 border-slate-200 text-slate-600'}"><i data-lucide="lock" class="h-4 w-4"></i> Accès réservé aux rôles CTM.</div>`;
         }
     }
 
     function renderFooterStats() {
-        const approvedCount = expState.experts.filter(e => e.status === 'APPROVED').length;
-        document.getElementById('footer-experts-count').textContent = `${approvedCount} Experts`;
-        document.getElementById('footer-experts-bar').style.width = `${(approvedCount / expState.experts.length) * 100}%`;
+        const countEl = document.getElementById('footer-experts-count');
+        const barEl = document.getElementById('footer-experts-bar');
+        if (!countEl || !barEl) return;
+        const approvedCount = expState.experts.filter(e => e.status === 'ACTIVE').length;
+        countEl.textContent = `${approvedCount} Experts`;
+        barEl.style.width = `${expState.experts.length ? (approvedCount / expState.experts.length) * 100 : 0}%`;
     }
 
     // =========================================================================
@@ -660,6 +777,13 @@
     }
 
     async function approveExpert(id) {
+        const expert = expState.experts.find(e => sameId(e.id, id));
+        const affectation = getExpertPrimaryAffectation(expert);
+        if (!affectation || !hasCtmRoleAccess(affectation.ctm)) {
+            if(window.showAppToast) window.showAppToast("Accès réservé aux membres ayant un rôle dans ce CTM.", "error");
+            return;
+        }
+
         if(window.showAppToast) window.showAppToast(`Accréditation de l'expert ${id} en cours...`, "info");
         try {
             const response = await fetch(`/api/v1/experts/${id}/`, {
@@ -669,7 +793,7 @@
                     'X-CSRFToken': getCookie('csrftoken'),
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ status: 'APPROVED' })
+                body: JSON.stringify({ status: 'ACTIVE' })
             });
 
             if (!response.ok) {
@@ -678,13 +802,13 @@
             }
 
             const updatedExpert = await response.json();
-            const index = expState.experts.findIndex(e => e.id === id);
+            const index = expState.experts.findIndex(e => sameId(e.id, id));
             if (index > -1) {
-                expState.experts[index] = updatedExpert; // Mettre à jour l'expert dans l'état
+                expState.experts[index] = { ...expState.experts[index], ...updatedExpert, status: 'ACTIVE' };
             }
             renderExpertView();
             renderFooterStats();
-            if(window.showAppToast) window.showAppToast(`L'expert ${updatedExpert.user.first_name} ${updatedExpert.user.last_name} est désormais accrédité !`, "success");
+            if(window.showAppToast) window.showAppToast(`L'expert est désormais actif dans le CTM.`, "success");
 
         } catch (error) {
             console.error("Erreur lors de l'accréditation de l'expert:", error);
@@ -722,21 +846,21 @@
     // =========================================================================
     async function loadAndRenderWGNorms(wgId) {
         try {
-            const response = await fetch(`/api/v1/wg/${wgId}/`, { 
+            const response = await fetch(`/api/v1/wg/${wgId}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Failed to load WG details');
-            
+
             const wgData = await response.json();
             const norms = wgData.latest_norms || [];
-            
+
             document.getElementById('wg-norms-count').textContent = `${norms.length} Projet(s) de Norme`;
-            
+
             if (norms.length === 0) {
                 document.getElementById('wg-norms-grid').innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">Aucune norme associée à ce groupe.</p>`;
                 return;
             }
-            
+
             const isDark = document.documentElement.classList.contains('dark');
             document.getElementById('wg-norms-grid').innerHTML = norms.map(norm => `
                 <div class="p-3.5 rounded-lg border ${isDark?'bg-black/30 border-white/5':'bg-slate-50 border-slate-200'} text-xs">
@@ -755,33 +879,31 @@
         }
     }
 
-    function renderWGSidebar() {
-        const container = document.getElementById('wg-sidebar-list');
-        if(!container) return;
+    function renderAdmissionPanel() {
+        const panel = document.getElementById('ctm-admission-panel');
+        if (!panel) return;
 
-        if(expState.workingGroups.length === 0) {
-            container.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs italic">Aucun groupe disponible.</div>';
-            return;
-        }
-
+        const ctmId = getCurrentCtmId();
+        const canEnter = hasCtmRoleAccess(ctmId);
+        const selectedExpert = expState.experts.find(e => sameId(e.id, expState.activeExpId));
+        const selectedAff = getExpertPrimaryAffectation(selectedExpert);
+        const ctmName = expState.ctms.find(ctm => sameId(ctm.id, ctmId))?.name || selectedAff?.ctm_name || 'CTM sélectionné';
         const isDark = document.documentElement.classList.contains('dark');
-        container.innerHTML = expState.workingGroups.map(wg => {
-            const isActive = wg.id === expState.activeWgId;
-            const bgClass = isActive 
-                ? (isDark ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-800 shadow-sm')
-                : (isDark ? 'bg-transparent border-white/5 hover:bg-white/5 text-slate-300' : 'bg-transparent border-slate-200 hover:bg-slate-50 text-slate-700');
-            
-            return `
-            <button onclick="expState.activeWgId='${wg.id}'; renderView();" class="w-full text-left p-3 rounded-lg border transition-all ${bgClass}">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded ${isActive ? (isDark ? 'bg-blue-400/30 text-blue-200' : 'bg-blue-100 text-blue-700') : (isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-600')}">${wg.number}</span>
-                    <span class="text-[9px] font-bold px-2 py-0.5 rounded ${isActive ? (isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-50 text-green-700') : (isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-600')}">${wg.expert_list ? wg.expert_list.length : 0} Membres</span>
-                </div>
-                <p class="text-xs font-bold truncate mb-1">${wg.name}</p>
-                <p class="text-[10px] text-slate-500 line-clamp-2 h-6">${wg.description || 'Aucune description'}</p>
-            </button>
-            `;
-        }).join('');
+
+        panel.innerHTML = `
+            <h3 class="text-[10.5px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5 mb-2">
+                <i data-lucide="${canEnter ? 'shield-check' : 'lock'}" class="h-3.5 w-3.5 text-blue-500"></i>
+                Admission CTM
+            </h3>
+            <p class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 mb-3">
+                ${canEnter
+                    ? `Accès logique ouvert pour <strong>${ctmName}</strong>. L'interface d'acceptation et d'affectation WG sera branchée ici.`
+                    : `Zone réservée aux membres avec rôle dans <strong>${ctmName}</strong>.`}
+            </p>
+            <div class="rounded-lg border p-3 text-[10.5px] font-semibold ${canEnter ? (isDark?'bg-blue-500/10 border-blue-500/20 text-blue-300':'bg-blue-50 border-blue-200 text-blue-700') : (isDark?'bg-white/5 border-white/10 text-slate-400':'bg-slate-100 border-slate-200 text-slate-600')}">
+                ${canEnter ? 'LOGIQUE ACTIVE : accepter adhesion CTM puis affecter dans un WG.' : 'ACCES BLOQUE : rôle CTM requis.'}
+            </div>
+        `;
     }
 
     // Auto-init for component loaded via AJAX

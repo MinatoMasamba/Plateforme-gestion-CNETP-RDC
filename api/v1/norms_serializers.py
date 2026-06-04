@@ -1,7 +1,7 @@
 import difflib
 from django.db import transaction
 from rest_framework import serializers
-from apps.norms.models import Norme, NormeVersion, ChangementVersion
+from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote
 from .experts_serializers import ExpertBasicSerializer
 
 
@@ -14,6 +14,17 @@ class ChangementVersionSerializer(serializers.ModelSerializer):
             'change_type', 'change_reason', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class NormeVoteSerializer(serializers.ModelSerializer):
+    """Serializer pour les votes liés directement à une norme."""
+    voter_name = serializers.CharField(source='voter.user.get_full_name', read_only=True)
+    voter_structure = serializers.CharField(source='voter.structure.acronym', read_only=True)
+
+    class Meta:
+        model = NormeVote
+        fields = ['id', 'norme', 'voter', 'voter_name', 'voter_structure', 'vote', 'justification', 'vote_date']
+        read_only_fields = ['id', 'norme', 'voter', 'voter_name', 'voter_structure', 'vote_date']
 
 
 class NormeVersionSerializer(serializers.ModelSerializer):

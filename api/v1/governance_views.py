@@ -86,7 +86,7 @@ class WGViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return WGDetailSerializer
         elif self.action == 'list':
-            return WGBasicSerializer
+            return WGDetailSerializer
         else:
             return WGCreateUpdateSerializer
     
@@ -115,9 +115,9 @@ class AffectationViewSet(viewsets.ModelViewSet):
     )
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ['expert__user__username', 'ctm__number', 'wg__number', 'role']
-    ordering_fields = ['affectation_date', 'role']
-    ordering = ['-affectation_date']
+    filterset_fields = ['expert', 'expert__user__username', 'ctm', 'ctm__number', 'wg', 'wg__number']
+    ordering_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
     
     def get_serializer_class(self):
         """Retourner le serializer approprié"""

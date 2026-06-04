@@ -12,7 +12,7 @@ from .hierarchy_views import (
 )
 from .norms_views import NormeViewSet, NormeVersionViewSet, ChangementVersionViewSet
 from .amendments_views import AmendementViewSet, VoteViewSet, ResultatVoteViewSet
-from .meetings_views import ReunionViewSet, PresenceViewSet, ProcessusVerbauxViewSet
+from .meetings_views import ReunionViewSet, PresenceViewSet, ProcessusVerbauxViewSet, ReunionVoteViewSet
 from .payments_views import CotisationViewSet, PaiementViewSet, JetonPresenceViewSet
 from .mobile_views import (
     MobileAuthViewSet, PushTokenViewSet, NotificationPreferenceViewSet,
@@ -35,7 +35,7 @@ router = DefaultRouter()
 # Auth routes
 router.register(r'auth', AuthViewSet, basename='auth')
 router.register(r'users', UserListViewSet, basename='users')
-router.register(r'users/me', UserProfileViewSet, basename='user-profile')
+router.register(r'profile', UserProfileViewSet, basename='user-profile')
 
 # Experts routes
 router.register(r'structures', StructureViewSet, basename='structures')
@@ -69,6 +69,7 @@ router.register(r'vote-results', ResultatVoteViewSet, basename='vote-results')
 # Meetings routes
 router.register(r'reunions', ReunionViewSet, basename='reunions')
 router.register(r'presences', PresenceViewSet, basename='presences')
+router.register(r'reunion-votes', ReunionVoteViewSet, basename='reunion-votes')
 router.register(r'pv', ProcessusVerbauxViewSet, basename='pv')
 
 # Payments routes

@@ -433,7 +433,8 @@
         document: null,
         activeCollab: null,
         experts: [],
-        votes: {},
+        votes: [],
+        myExpertId: null,
         references: [],
         
         isNavOpen: true,
@@ -469,11 +470,11 @@
 
     async function initEditor() {
         if (editorState.document) {
-            editorState.text = editorState.document.content;
+            editorState.text = getDocumentContent(editorState.document);
             document.getElementById('ed-main-textarea').value = editorState.text;
         }
 
-        await loadShareContacts();
+        await Promise.all([loadShareContacts(), loadCurrentExpert(), loadNormeVotes()]);
         
         // Populate Chat Select
         const chatSelect = document.getElementById('ed-share-recipient');
@@ -486,6 +487,34 @@
         renderVotes();
         renderReferences();
         lucide.createIcons();
+    }
+
+    function getDocumentContent(doc) {
+        return doc?.latest_version?.content || doc?.content || "";
+    }
+
+    async function loadCurrentExpert() {
+        try {
+            const response = await fetch('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (response.ok) editorState.myExpertId = (await response.json()).id;
+        } catch (error) {
+            console.warn(error);
+        }
+    }
+
+    async function loadNormeVotes() {
+        if (!editorState.document?.id) {
+            editorState.votes = [];
+            return;
+        }
+        try {
+            const response = await fetch(`/api/v1/norms/${editorState.document.id}/votes/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Votes norme indisponibles');
+            editorState.votes = await response.json();
+        } catch (error) {
+            console.error(error);
+            editorState.votes = [];
+        }
     }
 
     // ==========================================
@@ -513,7 +542,7 @@
     }
 
     function validateSaveBtn() {
-        const isModified = editorState.document && editorState.text !== editorState.document.content;
+        const isModified = editorState.document && editorState.text !== getDocumentContent(editorState.document);
         const commentEl = document.getElementById('ed-edit-comment');
         const comment = commentEl ? commentEl.value.trim() : "";
         const saveBtn = document.getElementById('ed-save-btn');
@@ -525,7 +554,7 @@
 
     function resetEditor() {
         if (!editorState.document) return;
-        editorState.text = editorState.document.content;
+        editorState.text = getDocumentContent(editorState.document);
         document.getElementById('ed-main-textarea').value = editorState.text;
         document.getElementById('ed-edit-comment').value = "";
         updateCounts();
@@ -541,6 +570,7 @@
 
         const btn = document.getElementById('ed-save-btn');
         const icon = document.getElementById('ed-save-icon');
+        const textEl = document.getElementById('ed-save-text');
         const commentEl = document.getElementById('ed-edit-comment');
         const comment = commentEl ? commentEl.value.trim() : "";
 
@@ -553,6 +583,7 @@
             icon.setAttribute('data-lucide', 'loader-2');
             icon.classList.add('animate-spin');
         }
+        if (textEl) textEl.textContent = "Sauvegarde...";
         if (btn) btn.disabled = true;
         lucide.createIcons();
 
@@ -579,7 +610,8 @@
             }
 
             const newVersion = await response.json();
-            editorState.document.content = editorState.text; // Mettre à jour le contenu de la norme principale
+            editorState.document.latest_version = newVersion;
+            editorState.document.content = editorState.text;
             if (commentEl) commentEl.value = ""; // Vider le commentaire
             
             if(window.showAppToast) window.showAppToast("Nouvelle version sauvegardée avec succès !", "success");
@@ -599,10 +631,9 @@
             if (icon) {
                 icon.classList.remove('animate-spin');
                 icon.setAttribute('data-lucide', 'save');
-                // Force recréation de l'icône avec un délai minimal
-                await new Promise(resolve => setTimeout(resolve, 50));
-                lucide.createIcons();
             }
+            if (textEl) textEl.textContent = "Sauvegarder la version";
+            lucide.createIcons();
             if (btn) btn.disabled = false;
             validateSaveBtn();
         }
@@ -689,10 +720,10 @@
     // VOTE (SCRUTIN)
     // ==========================================
     function renderVotes() {
-        const total = Object.keys(editorState.votes).length;
-        const pour = Object.values(editorState.votes).filter(v => v === "pour").length;
-        const contre = Object.values(editorState.votes).filter(v => v === "contre").length;
-        const abs = Object.values(editorState.votes).filter(v => v === "abstention").length;
+        const total = editorState.votes.length;
+        const pour = editorState.votes.filter(v => v.vote === "FOR").length;
+        const contre = editorState.votes.filter(v => v.vote === "AGAINST").length;
+        const abs = editorState.votes.filter(v => v.vote === "ABSTAIN").length;
         const rate = total > 0 ? Math.round((pour / total) * 100) : 0;
 
         document.getElementById('ed-vote-count-pour').textContent = `POUR (${pour})`;
@@ -721,13 +752,17 @@
         }
 
         // Render My Vote buttons
-        const myVote = editorState.votes["exp-1"];
+        const myVoteObj = editorState.votes.find(v => String(v.voter) === String(editorState.myExpertId));
+        const myVote = myVoteObj ? ({ FOR: 'pour', AGAINST: 'contre', ABSTAIN: 'abstention' }[myVoteObj.vote]) : null;
         const myBadge = document.getElementById('ed-my-vote-badge');
         if(myVote) {
             myBadge.className = `text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${
                 myVote === 'pour' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : myVote === 'contre' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/10'
             }`;
             myBadge.textContent = `VOTÉ : ${myVote}`;
+        } else {
+            myBadge.className = "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse";
+            myBadge.textContent = "Non voté";
         }
 
         const isDark = document.documentElement.classList.contains('dark');
@@ -736,8 +771,15 @@
         document.getElementById('btn-vote-abs').className = `py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all outline-hidden border cursor-pointer ${myVote === 'abstention' ? 'bg-slate-500 border-slate-400 text-white' : (isDark ? 'bg-white/5 text-slate-300 border-white/5' : 'bg-slate-100 text-slate-700 border-slate-200')}`;
 
         // Render List
-        document.getElementById('ed-voters-list').innerHTML = editorState.experts.map(exp => {
-            const v = editorState.votes[exp.id];
+        const voterRows = editorState.votes.length ? editorState.votes.map(vote => ({
+            id: vote.voter,
+            name: vote.voter_name || 'Expert',
+            structure: vote.voter_structure || '',
+            vote: ({ FOR: 'pour', AGAINST: 'contre', ABSTAIN: 'abstention' }[vote.vote])
+        })) : editorState.experts.map(exp => ({ ...exp, vote: null }));
+
+        document.getElementById('ed-voters-list').innerHTML = voterRows.map(exp => {
+            const v = exp.vote;
             let badgeHtml = `<span class="text-slate-500 font-medium italic">En attente</span>`;
             if(v==='pour') badgeHtml = `<span class="text-blue-500 font-bold bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded">POUR</span>`;
             else if(v==='contre') badgeHtml = `<span class="text-rose-500 font-bold bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">CONTRE</span>`;
@@ -746,9 +788,9 @@
             return `
             <div class="p-2 flex items-center justify-between text-[11px] hover:bg-black/5 dark:hover:bg-blue-500/[0.03]">
                 <div class="flex items-center gap-2 min-w-0">
-                    <div class="h-5 w-5 rounded-full flex items-center justify-center font-bold text-[9px] shrink-0 ${exp.id==='exp-1' ? 'bg-blue-500 text-white dark:text-black' : 'bg-slate-200 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400'}">${exp.name.substring(0,2).toUpperCase()}</div>
+                    <div class="h-5 w-5 rounded-full flex items-center justify-center font-bold text-[9px] shrink-0 ${String(exp.id) === String(editorState.myExpertId) ? 'bg-blue-500 text-white dark:text-black' : 'bg-slate-200 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400'}">${exp.name.substring(0,2).toUpperCase()}</div>
                     <div class="min-w-0">
-                        <p class="font-semibold truncate max-w-[170px] text-slate-800 dark:text-slate-200">${exp.name} ${exp.id==='exp-1' ? '<span class="text-[10px] text-slate-500 font-normal">(Vous)</span>' : ''}</p>
+                        <p class="font-semibold truncate max-w-[170px] text-slate-800 dark:text-slate-200">${exp.name} ${String(exp.id) === String(editorState.myExpertId) ? '<span class="text-[10px] text-slate-500 font-normal">(Vous)</span>' : ''}</p>
                         <p class="text-[9px] text-slate-500 truncate text-left">${exp.structure || exp.role}</p>
                     </div>
                 </div>
@@ -759,10 +801,22 @@
         lucide.createIcons();
     }
 
-    function castVote(choice) {
-        editorState.votes["exp-1"] = choice;
+    async function castVote(choice) {
+        if (!editorState.document?.id) return window.showAppToast?.("Aucune norme ouverte pour voter.", "error");
+        const voteMap = { pour: 'FOR', contre: 'AGAINST', abstention: 'ABSTAIN' };
+        const response = await fetch(`/api/v1/norms/${editorState.document.id}/vote/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ vote: voteMap[choice] })
+        });
+        if (!response.ok) return window.showAppToast?.((await response.json()).detail || "Vote impossible.", "error");
+        await loadNormeVotes();
         renderVotes();
-        if(window.showAppToast) window.showAppToast(`Vote (${choice.toUpperCase()}) enregistré !`);
+        window.showAppToast?.(`Vote (${choice.toUpperCase()}) enregistré pour cette norme.`, "success");
     }
 
     // ==========================================

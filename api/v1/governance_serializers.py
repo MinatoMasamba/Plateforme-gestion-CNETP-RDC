@@ -26,14 +26,21 @@ class AffectationSerializer(serializers.ModelSerializer):
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
     ctm_name = serializers.CharField(source='ctm.name', read_only=True)
     wg_name = serializers.CharField(source='wg.name', read_only=True)
+    ctm_role = serializers.CharField(read_only=True)
+    wg_role = serializers.CharField(read_only=True)
+    role = serializers.CharField(read_only=True)
     
     class Meta:
         model = Affectation
         fields = [
             'id', 'expert', 'expert_name', 'ctm', 'ctm_name',
-            'wg', 'wg_name', 'affectation_date', 'created_at'
+            'wg', 'wg_name', 'ctm_role', 'wg_role', 'role',
+            'is_primary_ctm', 'is_primary_wg', 'created_at'
         ]
-        read_only_fields = ['id', 'expert_name', 'ctm_name', 'wg_name', 'created_at']
+        read_only_fields = [
+            'id', 'expert_name', 'ctm_name', 'wg_name',
+            'ctm_role', 'wg_role', 'role', 'created_at'
+        ]
 
 
 class AffectationCreateSerializer(serializers.ModelSerializer):

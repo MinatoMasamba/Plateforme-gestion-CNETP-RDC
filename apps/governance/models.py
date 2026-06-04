@@ -105,6 +105,37 @@ class Affectation(BaseModel):
     def __str__(self):
         return f"{self.expert.full_name} → {self.ctm} / {self.wg}"
 
+    @property
+    def ctm_role(self):
+        """Role de l'expert dans le CTM affecte."""
+        roles = (
+            ('scientific_president_id', 'Président scientifique CTM'),
+            ('rapporteur_id', 'Rapporteur CTM'),
+            ('secretary_id', 'Secrétaire CTM'),
+        )
+        for field_name, label in roles:
+            if getattr(self.ctm, field_name, None) == self.expert_id:
+                return label
+        return 'Membre CTM' if self.is_primary_ctm else ''
+
+    @property
+    def wg_role(self):
+        """Role de l'expert dans le WG affecte."""
+        roles = (
+            ('president_id', 'Président WG'),
+            ('rapporteur_id', 'Rapporteur WG'),
+            ('secretary_id', 'Secrétaire WG'),
+        )
+        for field_name, label in roles:
+            if getattr(self.wg, field_name, None) == self.expert_id:
+                return label
+        return 'Membre WG' if self.is_primary_wg else ''
+
+    @property
+    def role(self):
+        roles = [role for role in (self.ctm_role, self.wg_role) if role]
+        return ' / '.join(roles) if roles else 'Membre'
+
 
 class ComitePilotage(BaseModel):
     """Comité de Pilotage Stratégique (24 membres)"""
