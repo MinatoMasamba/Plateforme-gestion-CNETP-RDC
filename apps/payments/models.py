@@ -91,7 +91,7 @@ class Paiement(BaseModel):
     def save(self, *args, **kwargs):
         # Générer le numéro de reçu si absent
         if not self.numero_recu:
-            last_paiement = Paiement.objects.latest('id')
+            last_paiement = Paiement.objects.order_by('-id').first()
             next_id = (last_paiement.id if last_paiement else 0) + 1
             self.numero_recu = f"REC-{timezone.now().strftime('%Y%m%d')}-{next_id:05d}"
         super().save(*args, **kwargs)
