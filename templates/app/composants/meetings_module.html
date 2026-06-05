@@ -212,6 +212,7 @@
         ctms: [],
         wgs: [],
         currentMeetingDetails: { presences: [], votes: [], pv: null },
+        normVotesByMeeting: {},
         myExpertId: null,
     };
 
@@ -268,7 +269,37 @@
         appState.currentMeetingDetails = { presences: detail.presences || [], votes: detail.votes || [], pv: detail.pv || null, detail };
         const index = appState.meetings.findIndex(m => sameId(m.id, detail.id));
         if (index > -1) appState.meetings[index] = { ...appState.meetings[index], ...detail };
+        await fetchNormVotesForMeeting(detail);
         renderActiveMeeting();
+    }
+
+    function normalizeMeetingVote(vote) {
+        const choice = vote.choix || vote.vote;
+        const mapped = { FOR: 'POUR', AGAINST: 'CONTRE', ABSTAIN: 'ABSTENTION' }[choice] || choice;
+        return {
+            ...vote,
+            choix: mapped,
+            expert: vote.expert || vote.voter,
+            expert_name: vote.expert_name || vote.voter_name || 'Expert',
+            source: vote.source || (vote.vote ? 'norme' : 'reunion')
+        };
+    }
+
+    async function fetchNormVotesForMeeting(meeting) {
+        const label = (meeting.document_reglementaire || '').trim();
+        if (!meeting.id || !label || (meeting.votes || []).length) return;
+        try {
+            const normsResponse = await fetch(`/api/v1/norms/?search=${encodeURIComponent(label)}`, { headers: apiHeaders() });
+            if (!normsResponse.ok) return;
+            const norms = asArray(await normsResponse.json());
+            const norm = norms.find(n => label.includes(n.reference_number) || n.reference_number?.includes(label) || label.toLowerCase().includes((n.title || '').toLowerCase())) || norms[0];
+            if (!norm?.id) return;
+            const votesResponse = await fetch(`/api/v1/norms/${norm.id}/votes/`, { headers: apiHeaders() });
+            if (!votesResponse.ok) return;
+            appState.normVotesByMeeting[meeting.id] = (await votesResponse.json()).map(v => normalizeMeetingVote({ ...v, source: 'norme' }));
+        } catch (error) {
+            console.warn('Votes de norme indisponibles pour cette réunion', error);
+        }
     }
 
     async function initMeetingsModule() {
@@ -371,7 +402,9 @@
             return;
         }
         const presences = appState.currentMeetingDetails.presences || [];
-        const votes = appState.currentMeetingDetails.votes || [];
+        const ownVotes = (appState.currentMeetingDetails.votes || []).map(normalizeMeetingVote);
+        const normVotes = appState.normVotesByMeeting[m.id] || [];
+        const votes = ownVotes.length ? ownVotes : normVotes;
         const present = presences.filter(p => p.status === 'PRESENT').length;
         const total = presences.length;
         const quorumPct = total ? Math.round((present / total) * 100) : 0;
@@ -390,7 +423,7 @@
         document.getElementById('meet-role-missions-card').innerHTML = `<div><strong>Session ${typeLabel(m.type)}</strong> - ${parts.date} à ${parts.time}</div><div>CTM : ${m.ctm_name || detail?.ctm_name || 'N/A'} - WG : ${m.wg_name || detail?.wg_name || 'N/A'}</div>`;
         document.getElementById('meet-live-container').innerHTML = `<div class="md:col-span-2 rounded-xl border border-slate-200 dark:border-white/10 bg-black text-white p-6 min-h-[180px] flex flex-col items-center justify-center text-center"><i data-lucide="video" class="h-8 w-8 text-blue-400 mb-2"></i><p class="text-xs font-bold">${m.lien_reunion_virtuelle ? 'Visioconférence générée' : 'Visioconférence non activée'}</p><p class="text-[10px] text-slate-400 break-all mt-2">${m.lien_reunion_virtuelle || 'Aucun lien'}</p></div><div class="rounded-xl border border-slate-200 dark:border-white/10 p-4 text-xs"><p class="font-bold uppercase mb-2">Ordre du jour</p><p class="text-slate-500">${m.ordre_jour || 'Non renseigné'}</p></div>`;
         renderAttendance(presences, m);
-        renderVotes(presences, votes, m, quorumOk);
+        renderVotes(presences, votes, m, quorumOk, !ownVotes.length && normVotes.length);
         renderPv(m);
         window.safeCreateIcons?.();
     }
@@ -405,7 +438,7 @@
         document.getElementById('meet-quorum-verdict').innerHTML = `<i data-lucide="${document.getElementById('meet-quorum-badge').textContent === 'Quorum atteint' ? 'check-circle' : 'alert-triangle'}" class="h-5 w-5 text-blue-500"></i><div class="text-xs"><strong>Verdict quorum :</strong> ${document.getElementById('meet-quorum-badge').textContent}</div>`;
     }
 
-    function renderVotes(presences, votes, meeting, quorumOk) {
+    function renderVotes(presences, votes, meeting, quorumOk, fromNorme = false) {
         const presentIds = new Set(presences.filter(p => p.status === 'PRESENT').map(p => String(p.expert)));
         const myPresenceOk = appState.myExpertId && presentIds.has(String(appState.myExpertId));
         const pour = votes.filter(v => v.choix === 'POUR').length;
@@ -417,11 +450,11 @@
         document.getElementById('stat-exxprimes').textContent = cast;
         document.getElementById('stat-abs').textContent = abs;
         document.getElementById('stat-taux').textContent = `${rate}%`;
-        document.getElementById('stat-req-pct').textContent = 'Consensus requis : 50%';
+        document.getElementById('stat-req-pct').textContent = fromNorme ? 'Votes repris du scrutin de norme lié à ce document.' : 'Consensus requis : 50%';
         document.getElementById('vote-bars-container').innerHTML = `<div>Pour (${pour})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-500" style="width:${cast ? (pour/cast)*100 : 0}%"></div></div></div><div>Contre (${contre})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-red-500" style="width:${cast ? (contre/cast)*100 : 0}%"></div></div></div><div>Abstention (${abs})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-slate-500" style="width:${cast ? (abs/cast)*100 : 0}%"></div></div></div>`;
         document.getElementById('vote-verdict-box').textContent = quorumOk && rate >= 50 ? 'Résolution adoptable' : 'Résolution non adoptable à ce stade';
         document.getElementById('vote-verdict-box').className = `p-3 rounded-lg text-[11px] font-mono text-center font-bold ${quorumOk && rate >= 50 ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'}`;
-        document.getElementById('vote-expert-block').innerHTML = meeting.status === 'COMPLETED' ? '<div class="p-4 rounded-xl border text-xs text-slate-500">Scrutin clos.</div>' : `<div class="p-4 rounded-xl border bg-slate-50 dark:bg-black/35 border-slate-200 dark:border-white/5 text-xs space-y-3"><p class="font-bold uppercase">Votre vote</p><div class="flex flex-wrap gap-2"><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('POUR')" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold disabled:opacity-40">Pour</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('CONTRE')" class="px-4 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-40">Contre</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('ABSTENTION')" class="px-4 py-2 rounded-lg bg-slate-600 text-white font-bold disabled:opacity-40">Abstention</button></div><p class="text-[10px] text-slate-500">${myPresenceOk ? 'Présence confirmée : vote autorisé.' : 'Vous devez être marqué présent pour voter.'}</p></div>`;
+        document.getElementById('vote-expert-block').innerHTML = fromNorme ? '<div class="p-4 rounded-xl border text-xs text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300">Ce résultat provient du vote effectué dans l’éditeur de norme.</div>' : (meeting.status === 'COMPLETED' ? '<div class="p-4 rounded-xl border text-xs text-slate-500">Scrutin clos.</div>' : `<div class="p-4 rounded-xl border bg-slate-50 dark:bg-black/35 border-slate-200 dark:border-white/5 text-xs space-y-3"><p class="font-bold uppercase">Votre vote</p><div class="flex flex-wrap gap-2"><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('POUR')" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold disabled:opacity-40">Pour</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('CONTRE')" class="px-4 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-40">Contre</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('ABSTENTION')" class="px-4 py-2 rounded-lg bg-slate-600 text-white font-bold disabled:opacity-40">Abstention</button></div><p class="text-[10px] text-slate-500">${myPresenceOk ? 'Présence confirmée : vote autorisé.' : 'Vous devez être marqué présent pour voter.'}</p></div>`);
         document.getElementById('vote-close-action').innerHTML = canManageMeeting() && meeting.status !== 'COMPLETED' ? '<button onclick="closeScrutin()" class="px-4 py-2.5 rounded-lg bg-blue-600 text-white font-extrabold text-xs">Clore le scrutin et générer le PV</button>' : '';
     }
 

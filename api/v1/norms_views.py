@@ -1,3 +1,11 @@
+import os
+import re
+import subprocess
+import tempfile
+import zipfile
+from html import unescape
+from xml.etree import ElementTree
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,6 +34,9 @@ class NormeViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'reference_number', 'description', 'tags']
     ordering_fields = ['created_at', 'publication_date', 'reference_number']
     ordering = ['-created_at']
+
+    TEXT_EXTENSIONS = {'.txt', '.md', '.json'}
+    WORD_XML_NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
     
     def perform_create(self, serializer):
         """Associer l'utilisateur actuel à la création"""
@@ -56,6 +67,143 @@ class NormeViewSet(viewsets.ModelViewSet):
         elif self.action in ['update_status']:
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
+
+    def _decode_text_bytes(self, raw):
+        for encoding in ('utf-8-sig', 'utf-8', 'cp1252', 'latin-1'):
+            try:
+                return raw.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+        return raw.decode('utf-8', errors='replace')
+
+    def _normalize_extracted_text(self, text):
+        text = unescape(text or '')
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        text = text.replace('\x00', '')
+        text = re.sub(r'[\t ]+\n', '\n', text)
+        text = re.sub(r'\n{4,}', '\n\n\n', text)
+        return text.strip()
+
+    def _extract_docx_text(self, path):
+        paragraphs = []
+        with zipfile.ZipFile(path) as archive:
+            xml = archive.read('word/document.xml')
+        root = ElementTree.fromstring(xml)
+        for paragraph in root.findall('.//w:body/w:p', self.WORD_XML_NS):
+            chunks = []
+            for node in paragraph.iter():
+                tag = node.tag.rsplit('}', 1)[-1]
+                if tag == 't':
+                    chunks.append(node.text or '')
+                elif tag == 'tab':
+                    chunks.append('\t')
+                elif tag == 'br':
+                    chunks.append('\n')
+            line = ''.join(chunks).rstrip()
+            if line:
+                paragraphs.append(line)
+            elif paragraphs and paragraphs[-1] != '':
+                paragraphs.append('')
+        return '\n\n'.join(paragraphs)
+
+    def _run_pdftotext(self, path):
+        with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as output:
+            output_path = output.name
+        try:
+            subprocess.run(
+                ['pdftotext', '-layout', '-enc', 'UTF-8', path, output_path],
+                check=True,
+                capture_output=True,
+                timeout=30,
+            )
+            with open(output_path, 'rb') as extracted:
+                return self._decode_text_bytes(extracted.read())
+        finally:
+            if os.path.exists(output_path):
+                os.remove(output_path)
+
+    def _run_libreoffice_to_text(self, path):
+        with tempfile.TemporaryDirectory() as outdir:
+            subprocess.run(
+                ['libreoffice', '--headless', '--convert-to', 'txt:Text', '--outdir', outdir, path],
+                check=True,
+                capture_output=True,
+                timeout=45,
+            )
+            candidates = [name for name in os.listdir(outdir) if name.lower().endswith('.txt')]
+            if not candidates:
+                raise ValueError('Conversion LibreOffice sans fichier texte de sortie.')
+            with open(os.path.join(outdir, candidates[0]), 'rb') as extracted:
+                return self._decode_text_bytes(extracted.read())
+
+    def _extract_uploaded_document(self, uploaded_file):
+        suffix = os.path.splitext(uploaded_file.name)[1].lower()
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            for chunk in uploaded_file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        try:
+            if suffix in self.TEXT_EXTENSIONS:
+                with open(tmp_path, 'rb') as source:
+                    text = self._decode_text_bytes(source.read())
+                method = 'text'
+            elif suffix == '.docx':
+                text = self._extract_docx_text(tmp_path)
+                method = 'docx-xml'
+            elif suffix == '.pdf':
+                text = self._run_pdftotext(tmp_path)
+                method = 'pdftotext-layout'
+            elif suffix == '.doc':
+                text = self._run_libreoffice_to_text(tmp_path)
+                method = 'libreoffice'
+            else:
+                raise ValueError('Format non pris en charge.')
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+        return self._normalize_extracted_text(text), method
+
+    @action(detail=False, methods=['post'], url_path='extract_document')
+    def extract_document(self, request):
+        """Extraire le texte d'un document importé sans lire les binaires comme texte brut."""
+        uploaded_file = request.FILES.get('document')
+        if not uploaded_file:
+            return Response({'detail': 'Aucun fichier fourni.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        suffix = os.path.splitext(uploaded_file.name)[1].lower()
+        if suffix not in self.TEXT_EXTENSIONS | {'.pdf', '.doc', '.docx'}:
+            return Response({'detail': 'Format non pris en charge.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            text, method = self._extract_uploaded_document(uploaded_file)
+        except Exception as exc:
+            return Response(
+                {
+                    'detail': "Extraction impossible pour ce fichier. Le fichier original pourra être joint à la norme.",
+                    'error': str(exc),
+                },
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
+        if not text:
+            return Response(
+                {
+                    'detail': "Aucun texte exploitable n'a été extrait. Vérifiez que le document n'est pas scanné sans OCR.",
+                    'method': method,
+                },
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
+        return Response({
+            'filename': uploaded_file.name,
+            'extension': suffix.lstrip('.'),
+            'method': method,
+            'content': text,
+            'characters': len(text),
+            'lines': text.count('\n') + 1,
+        })
     
     @action(detail=True, methods=['post'], permission_classes=[IsCTCCoordinator])
     def update_status(self, request, pk=None):

@@ -5,8 +5,8 @@
 >
     <div class="relative">
         <i data-lucide="message-square" class="h-5 w-5 fill-blue-100 dark:fill-blue-500/10 group-hover:animate-pulse"></i>
-        <span id="unread-badge" class="absolute -top-2.5 -right-2.5 h-4.5 w-4.5 rounded-full bg-red-500 text-white font-extrabold text-[9px] flex items-center justify-center animate-bounce shadow-md">
-            3
+        <span id="unread-badge" class="hidden absolute -top-2.5 -right-2.5 min-h-4.5 min-w-4.5 px-1 rounded-full bg-red-500 text-white font-extrabold text-[9px] items-center justify-center animate-bounce shadow-md">
+            0
         </span>
     </div>
     <span class="font-sans font-bold select-none">Messagerie CNETP</span>
@@ -123,7 +123,9 @@
             activeContactId: null,
             myProfile: { id: '{{ user.id }}', name: "{{ user.get_full_name|escapejs }}" },
             contacts: [],
-            messages: {} 
+            messages: {},
+            unreadCount: 0,
+            pollTimer: null,
         };
         window.chatState = chatState;
     }
@@ -131,6 +133,20 @@
     // =========================================================================
     // FONCTIONS D'APPEL API
     // =========================================================================
+    function getMessagingCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            for (const rawCookie of document.cookie.split(';')) {
+                const cookie = rawCookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     async function loadContacts() {
         try {
             const response = await fetch('/api/v1/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
@@ -138,13 +154,14 @@
             const contactsData = await response.json();
             
             chatState.contacts = contactsData.map(expert => ({
-                id: expert.user.id,
-                name: expert.user.full_name,
-                role: expert.ctm_details.length > 0 ? expert.ctm_details[0].role : 'Expert',
-                structure: expert.structure.acronym,
-                isOnline: expert.user.is_online || false,
+                id: expert.user_id || expert.user?.id,
+                expertId: expert.id,
+                name: expert.user_name || expert.user?.full_name || 'Expert',
+                role: expert.role || 'Expert CTM',
+                structure: expert.structure?.acronym || expert.structure_name || '',
+                isOnline: expert.user?.is_online || false,
                 avatarColor: '#'+(Math.floor(Math.random()*16777215)).toString(16),
-            }));
+            })).filter(contact => contact.id);
             renderContacts();
 
         } catch (error) {
@@ -156,17 +173,59 @@
     async function loadMessages(contactId) {
         if (!contactId) return;
         try {
-            const response = await fetch(`/api/v1/messaging/messages/?participant_id=${contactId}`, { 
+            const response = await fetch(`/api/v1/messages/?participant_id=${contactId}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Impossible de charger les messages');
             const messagesData = await response.json();
-            chatState.messages[contactId] = messagesData.results;
+            chatState.messages[contactId] = Array.isArray(messagesData) ? messagesData : (messagesData.results || []);
+            await markConversationAsRead(contactId);
+            await loadUnreadCount();
         } catch(error) {
             console.error(error);
             chatState.messages[contactId] = [];
         } finally {
             renderMessages();
+        }
+    }
+
+    async function loadUnreadCount() {
+        try {
+            const response = await fetch('/api/v1/messages/unread_count/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            if (!response.ok) throw new Error('Compteur indisponible');
+            const data = await response.json();
+            chatState.unreadCount = data.unread_count || 0;
+        } catch (error) {
+            chatState.unreadCount = 0;
+        } finally {
+            renderUnreadBadge();
+        }
+    }
+
+    async function markConversationAsRead(contactId) {
+        if (!contactId) return;
+        try {
+            await fetch('/api/v1/messages/mark_conversation_as_read/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ participant_id: contactId })
+            });
+        } catch (error) {
+            console.warn('Marquage lecture indisponible', error);
+        }
+    }
+
+    function renderUnreadBadge() {
+        const badge = document.getElementById('unread-badge');
+        if (!badge) return;
+        if (chatState.unreadCount > 0) {
+            badge.textContent = chatState.unreadCount > 99 ? '99+' : chatState.unreadCount;
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+        } else {
+            badge.textContent = '0';
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
         }
     }
 
@@ -182,9 +241,9 @@
         };
 
         try {
-            const response = await fetch('/api/v1/messaging/messages/', {
+            const response = await fetch('/api/v1/messages/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
                 body: JSON.stringify(payload)
             });
 
@@ -197,6 +256,7 @@
             input.value = "";
             document.getElementById('send-msg-btn').disabled = true;
             renderMessages();
+            await loadUnreadCount();
 
         } catch (error) {
             console.error(error);
@@ -224,6 +284,7 @@
         document.getElementById('minimize-icon').classList.remove('rotate-180');
 
         await loadContacts();
+        await loadUnreadCount();
 
         if (chatState.contacts.length > 0 && !chatState.activeContactId) {
             await setActiveContact(chatState.contacts[0].id);
@@ -235,8 +296,35 @@
         }
     }
 
-    function closeMessagingWidget() { /* ... */ }
-    function minimizeMessagingWidget() { /* ... */ }
+    function closeMessagingWidget() {
+        chatState.isOpen = false;
+        chatState.isMinimized = false;
+        document.getElementById('messaging-window').classList.add('hidden');
+        document.getElementById('messaging-window').classList.remove('flex');
+        document.getElementById('toggle-messaging-floating').classList.remove('hidden');
+        loadUnreadCount();
+    }
+
+    function minimizeMessagingWidget() {
+        chatState.isMinimized = !chatState.isMinimized;
+        const windowEl = document.getElementById('messaging-window');
+        if (chatState.isMinimized) {
+            windowEl.classList.replace("w-[700px]", "w-80");
+            windowEl.classList.replace("h-[500px]", "h-14");
+            document.getElementById('messaging-content').classList.add('hidden');
+            document.getElementById('encryption-badge').classList.add('hidden');
+            document.getElementById('messaging-minimized-title').classList.remove('hidden');
+            document.getElementById('minimize-icon').classList.add('rotate-180');
+        } else {
+            windowEl.classList.replace("w-80", "w-[700px]");
+            windowEl.classList.replace("h-14", "h-[500px]");
+            document.getElementById('messaging-content').classList.remove('hidden');
+            document.getElementById('encryption-badge').classList.remove('hidden');
+            document.getElementById('messaging-minimized-title').classList.add('hidden');
+            document.getElementById('minimize-icon').classList.remove('rotate-180');
+            scrollToBottom();
+        }
+    }
 
     async function setActiveContact(contactId) {
         chatState.activeContactId = contactId;
@@ -261,9 +349,9 @@
         const lowerCaseQuery = query.toLowerCase();
         
         const filtered = chatState.contacts.filter(c => 
-            c.name.toLowerCase().includes(lowerCaseQuery) || 
+            c.name.toLowerCase().includes(lowerCaseQuery) ||
             c.role.toLowerCase().includes(lowerCaseQuery) ||
-            c.structure.toLowerCase().includes(lowerCaseQuery)
+            (c.structure || '').toLowerCase().includes(lowerCaseQuery)
         );
 
         if (filtered.length === 0) {
@@ -302,7 +390,7 @@
         }
 
         container.innerHTML = msgs.map(m => {
-            const isMe = m.sender == chatState.myProfile.id;
+            const isMe = String(m.sender) === String(chatState.myProfile.id);
             const wrapperClass = isMe ? "justify-end" : "justify-start";
             
             const bubbleClass = isMe 
@@ -311,7 +399,7 @@
 
             const timeColor = isMe ? "text-blue-100 dark:text-white/40" : "text-slate-400 dark:text-white/40";
             const checkColor = isMe ? "text-blue-300 dark:text-blue-400" : "";
-            const timeStr = new Date(m.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+            const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : '';
 
             return `
             <div class="flex ${wrapperClass} animate-fadeIn">
@@ -329,7 +417,10 @@
         scrollToBottom();
     }
 
-    function scrollToBottom() { /* ... */ }
+    function scrollToBottom() {
+        const container = document.getElementById('messages-container');
+        if (container) container.scrollTop = container.scrollHeight;
+    }
     function filterContacts(val) { renderContacts(val); }
 
     // =========================================================================
@@ -338,19 +429,31 @@
     window.shareClauseToChat = async function(recipientId, code, excerpt) {
         const payload = {
             recipient: recipientId,
-            content: `📢 J'ai partagé cette clause pour examen.`,
+            content: `Clause partagée pour examen.`,
             is_clause_share: true,
             clause_code: code,
             clause_excerpt: excerpt
         };
 
-        // Logique d'envoi API similaire à handleSendMessage
-        // ...
+        await fetch('/api/v1/messages/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify(payload)
+        });
         
         await openMessagingWidget();
         await setActiveContact(recipientId);
     };
 
     // Initialisation
-    setTimeout(() => { lucide.createIcons(); }, 100);
+    setTimeout(() => {
+        lucide.createIcons();
+        loadUnreadCount();
+        if (!chatState.pollTimer) {
+            chatState.pollTimer = setInterval(async () => {
+                await loadUnreadCount();
+                if (chatState.isOpen && chatState.activeContactId) await loadMessages(chatState.activeContactId);
+            }, 15000);
+        }
+    }, 100);
 </script>

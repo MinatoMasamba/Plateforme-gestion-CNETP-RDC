@@ -260,7 +260,9 @@ def component_api_view(request, module_id):
         'financial': 'app/composants/financial_module.html',
         'sidebar': 'app/composants/sidebar.html',
         'messaging': 'app/composants/messaging_widget.html',
-        'groupe_expert': 'app/composants/groupes_experts.html'
+        'groupe_expert': 'app/composants/groupes_experts.html',
+        'legistique': 'app/composants/legistique_module.html',
+        'validation': 'app/composants/validation_module.html',
     }
     
     template_name = templates_map.get(module_id)

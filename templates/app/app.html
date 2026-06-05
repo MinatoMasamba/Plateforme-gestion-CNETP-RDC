@@ -288,23 +288,26 @@
                 </button>
 
                 <button onclick="loadModule('history')" id="btn-history" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
-                    <i data-lucide="history" class="h-4 w-4"></i> Historique
+                    <i data-lucide="history" class="h-4 w-4"></i> HISTORIQUE
                 </button>
 
                 <button onclick="loadModule('experts')" id="btn-experts" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
-                    <i data-lucide="users" class="h-4 w-4"></i> Experts & Groupes
+                    <i data-lucide="users" class="h-4 w-4"></i> EXPERTS & GROUPS
                 </button>
 
                 <button onclick="loadModule('meetings')" id="btn-meetings" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
-                    <i data-lucide="vote" class="h-4 w-4"></i> Réunions & Votes
+                    <i data-lucide="vote" class="h-4 w-4"></i> RÉNIONS & VOTES
                 </button>
 
                 <button onclick="loadModule('financial')" id="btn-financial" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
-                    <i data-lucide="landmark" class="h-4 w-4"></i> Cotisations
+                    <i data-lucide="landmark" class="h-4 w-4"></i> COTISATIONS & INDENMITÉS
                 </button>
 
                 <button onclick="loadModule('validation')" id="btn-validation" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="check-square" class="h-4 w-4"></i> Processus ISO
+                </button>
+                <button onclick="loadModule('legistique')" id="btn-legistique" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="briefcase" class="h-4 w-4"></i> BUREAU LEGISTIQUE
                 </button>
             </div>
 
@@ -329,6 +332,7 @@
             <div id="module-meetings" class="module-container flex-col flex-1 h-full w-full"></div>
             <div id="module-financial" class="module-container flex-col flex-1 h-full w-full"></div>
             <div id="module-validation" class="module-container flex-col flex-1 h-full w-full"></div>
+            <div id="module-legistique" class="module-container flex-col flex-1 h-full w-full"></div>
 
         </div>
     </main>
@@ -935,6 +939,12 @@
                 }
                 if (moduleId === 'history' && sidebarState.selectedDocId && typeof initHistoryModule === 'function') {
                     initHistoryModule(sidebarState.selectedDocId);
+                }
+                if (moduleId === 'validation' && typeof loadValidationWorkspace === 'function') {
+                    loadValidationWorkspace();
+                }
+                if (moduleId === 'legistique' && typeof loadLegistiqueWorkspace === 'function') {
+                    loadLegistiqueWorkspace();
                 }
                 return;
             }

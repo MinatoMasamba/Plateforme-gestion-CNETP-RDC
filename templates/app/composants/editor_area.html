@@ -457,10 +457,10 @@
             const contactsData = await response.json();
             
             editorState.experts = contactsData.map(expert => ({
-                id: expert.user.id,
-                name: expert.user.full_name,
-                structure: expert.structure.acronym,
-            }));
+                id: expert.user_id || expert.user?.id,
+                name: expert.user_name || expert.user?.full_name || 'Expert',
+                structure: expert.structure?.acronym || expert.structure_name || '',
+            })).filter(expert => expert.id);
 
         } catch (error) {
             console.error(error);

@@ -1,0 +1,290 @@
+<!-- components/legistique_module.html -->
+
+<div class="flex-1 flex flex-col h-full relative z-0 overflow-hidden bg-white text-slate-800 dark:bg-[#06060c] dark:text-slate-300 transition-colors duration-300">
+    <div class="absolute inset-0 pointer-events-none bg-slate-50/50 dark:bg-gradient-to-br dark:from-teal-900/10 dark:via-black dark:to-slate-900/20"></div>
+    
+    <div class="flex-1 flex flex-col lg:flex-row h-full relative z-10 overflow-hidden px-6 py-6 gap-6">
+        
+        <!-- Left List -->
+        <div class="w-full lg:w-1/3 flex flex-col border rounded-xl overflow-hidden shadow-md backdrop-blur-xl bg-slate-50 border-slate-200 dark:bg-black/40 dark:border-white/10">
+            <div class="p-4 border-b border-slate-200 bg-slate-100/50 dark:border-white/10 dark:bg-white/5">
+                <h2 class="text-sm font-bold text-teal-600 flex items-center gap-2">
+                    <i data-lucide="file-signature" class="h-4.5 w-4.5 animate-pulse"></i>
+                    Toilettage Légistique
+                </h2>
+                <p class="text-[11px] text-slate-500 mt-1">Normes en attente de conformité juridique (CTC)</p>
+                
+                <div class="mt-4 relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400"></i>
+                    <input
+                        type="text"
+                        id="legistique-search"
+                        oninput="filterLegistiqueDocs()"
+                        placeholder="Rechercher une norme..."
+                        class="w-full border rounded-lg pl-9 pr-4 py-2 text-xs font-semibold focus:outline-hidden bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-teal-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:placeholder-slate-600 dark:focus:border-teal-500/50 transition-colors"
+                    />
+                </div>
+            </div>
+
+            <div id="legistique-doc-list" class="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </div>
+
+        <!-- Right Editor Work Area -->
+        <div class="w-full lg:w-2/3 flex flex-col border rounded-xl overflow-hidden shadow-md backdrop-blur-xl bg-white border-slate-200 dark:bg-black/40 dark:border-white/10">
+            
+            <!-- Empty State -->
+            <div id="legistique-empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
+                <i data-lucide="book-open" class="h-12 w-12 mb-4 opacity-50"></i>
+                <p class="text-sm">Sélectionnez une norme pour le toilettage légistique</p>
+            </div>
+
+            <!-- Active Document State (Hidden by default) -->
+            <div id="legistique-active-state" class="hidden flex-col h-full">
+                <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 border-slate-200 dark:bg-white/5 dark:border-white/10">
+                    <div>
+                        <h3 id="legistique-doc-title" class="text-sm font-bold text-slate-900 dark:text-slate-200"></h3>
+                        <p id="legistique-doc-subtitle" class="text-xs text-slate-500 mt-1"></p>
+                    </div>
+                    <div id="legistique-actions-container" class="flex items-center gap-2">
+                        <!-- Action buttons injected via JS -->
+                    </div>
+                </div>
+
+                <div class="flex-1 p-6 overflow-y-auto flex flex-col">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Édition restreinte (forme juridique)</span>
+                        <span class="text-[10px] text-teal-600 font-mono bg-teal-500/10 px-2 py-0.5 rounded uppercase font-bold dark:text-teal-400">RÉVISION ACTIVE</span>
+                    </div>
+                    <textarea
+                        id="legistique-editor"
+                        oninput="updateEditedContent()"
+                        class="w-full flex-1 min-h-[300px] border rounded-lg p-4 text-sm font-mono leading-relaxed focus:outline-hidden resize-none disabled:opacity-75 bg-slate-50 border-slate-300 text-slate-800 focus:border-teal-500 dark:bg-black/50 dark:border-white/10 dark:text-slate-300 dark:focus:border-teal-500/50 transition-colors"
+                    ></textarea>
+                    <p class="text-[11px] text-slate-500 mt-2">
+                        Les modifications apportées ici ne doivent concerner que la structure légistique et la numérotation (sans altérer le fond technique).
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const legistiqueState = {
+        searchQuery: "",
+        activeDocId: null,
+        editedContent: "",
+        docs: [],
+        canAccess: false
+    };
+
+    function hasLegistiqueRights() {
+        return legistiqueState.canAccess;
+    }
+
+    async function initLegistiqueModule() {
+        await loadLegistiqueWorkspace();
+    }
+
+    async function loadLegistiqueWorkspace() {
+        const listContainer = document.getElementById('legistique-doc-list');
+        if (listContainer) listContainer.innerHTML = '<div class="p-4 text-center text-xs text-slate-500">Chargement serveur...</div>';
+
+        try {
+            const data = await apiFetch('/api/v1/legistic-reviews/legistique-workspace/');
+            legistiqueState.canAccess = true;
+            legistiqueState.docs = data.reviews || [];
+            if (legistiqueState.activeDocId && !legistiqueState.docs.some(d => String(d.review_id) === String(legistiqueState.activeDocId))) {
+                legistiqueState.activeDocId = null;
+                legistiqueState.editedContent = "";
+            }
+            renderLegistiqueList();
+            renderActiveLegistiqueDoc();
+        } catch (error) {
+            console.error(error);
+            legistiqueState.canAccess = false;
+            renderLegistiqueDenied();
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function renderLegistiqueDenied() {
+        const root = document.querySelector('#legistique-doc-list')?.closest('.flex-1.flex.flex-col.h-full');
+        if (!root) return;
+        root.innerHTML = `
+            <div class="flex-1 flex items-center justify-center p-8">
+                <div class="max-w-md border rounded-xl p-6 text-center bg-slate-50 border-slate-200 dark:bg-black/40 dark:border-white/10">
+                    <i data-lucide="lock" class="h-10 w-10 mx-auto mb-4 text-amber-500"></i>
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Accès non autorisé</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Vous n'êtes pas autorisé à consulter le bureau légistique. Les normes en attente de conformité juridique sont visibles uniquement par les membres du CTC.</p>
+                </div>
+            </div>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function renderLegistiqueList() {
+        const listContainer = document.getElementById('legistique-doc-list');
+        if (!listContainer) return;
+        const query = legistiqueState.searchQuery.toLowerCase();
+        const filteredDocs = legistiqueState.docs.filter(d => 
+            d.title.toLowerCase().includes(query) || d.code.toLowerCase().includes(query)
+        );
+
+        if (filteredDocs.length === 0) {
+            listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 italic">Aucune norme trouvée.</div>`;
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        listContainer.innerHTML = filteredDocs.map(doc => {
+            const isActive = String(doc.review_id) === String(legistiqueState.activeDocId);
+            
+            // Classes conditionnelles basées sur le mode (clair/sombre)
+            const activeClass = isDark 
+                ? "bg-teal-500/10 border-teal-500/30 shadow-[0_4px_15px_rgba(20,184,166,0.1)]" 
+                : "bg-teal-50 border-teal-300 shadow-xs text-teal-900";
+            const inactiveClass = isDark 
+                ? "bg-white/5 border-transparent hover:bg-white/10" 
+                : "bg-transparent border-transparent hover:bg-slate-200";
+
+            let statusClass = "bg-slate-500/15 text-slate-500";
+            if (doc.review_status === "REVIEW_COMPLETED") statusClass = "bg-blue-500/15 text-blue-600 font-extrabold";
+            else if (doc.review_status === "IN_REVIEW" || doc.review_status === "ASSIGNED") statusClass = "bg-amber-500/15 text-amber-600 font-extrabold";
+
+            return `
+            <div onclick="selectLegistiqueDoc('${doc.review_id}')" class="p-3 rounded-lg cursor-pointer transition-all border ${isActive ? activeClass : inactiveClass}">
+                <div class="flex justify-between items-start mb-1">
+                    <span class="text-[10px] font-bold text-teal-600 bg-teal-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider">${doc.code}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${statusClass}">${doc.review_status_label}</span>
+                </div>
+                <h3 class="text-xs font-bold leading-relaxed ${isDark ? (isActive ? 'text-white' : 'text-slate-200') : (isActive ? 'text-teal-900' : 'text-slate-800')}">${doc.title}</h3>
+                <div class="flex items-center gap-3 mt-3 text-[10px] text-slate-500 dark:text-slate-400">
+                    <span class="flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i> ${doc.updated_at || ''}</span>
+                    ${doc.assigned_to ? `<span class="flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> ${doc.assigned_to}</span>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function renderActiveLegistiqueDoc() {
+        const emptyState = document.getElementById('legistique-empty-state');
+        const activeState = document.getElementById('legistique-active-state');
+        
+        if (!legistiqueState.activeDocId) {
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+            activeState.classList.remove('flex');
+            activeState.classList.add('hidden');
+            return;
+        }
+
+        const doc = legistiqueState.docs.find(d => String(d.review_id) === String(legistiqueState.activeDocId));
+        if (!doc) return;
+
+        emptyState.classList.remove('flex');
+        emptyState.classList.add('hidden');
+        activeState.classList.remove('hidden');
+        activeState.classList.add('flex');
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        // Mettre à jour les textes du header
+        document.getElementById('legistique-doc-title').textContent = doc.title;
+        document.getElementById('legistique-doc-subtitle').textContent = `${doc.code} - ${doc.ctm}`;
+
+        // Configurer l'éditeur de texte
+        const editor = document.getElementById('legistique-editor');
+        editor.value = legistiqueState.editedContent;
+        // Désactiver l'édition si Validé ou si l'utilisateur n'a pas les droits
+        editor.disabled = (doc.review_status === "REVIEW_COMPLETED" || !hasLegistiqueRights());
+
+        // Rendu des boutons d'action
+        const actionsContainer = document.getElementById('legistique-actions-container');
+        actionsContainer.innerHTML = ''; // Clear previous
+
+        if (hasLegistiqueRights()) {
+            if (doc.review_status === "PENDING") {
+                const btnClass = isDark 
+                    ? "bg-white/5 hover:bg-white/10 border border-white/10 text-white" 
+                    : "bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200";
+                
+                actionsContainer.innerHTML = `
+                    <button onclick="handleLegistiqueAssign('${doc.review_id}')" class="px-3 py-1.5 border rounded-lg text-xs font-semibold transition-all cursor-pointer ${btnClass}">
+                        M'assigner la relecture
+                    </button>
+                `;
+            } else if (doc.review_status === "IN_REVIEW" || doc.review_status === "ASSIGNED") {
+                actionsContainer.innerHTML = `
+                    <button onclick="handleLegistiqueValidate('${doc.review_id}')" class="px-3 py-1.5 bg-teal-500 text-black hover:bg-teal-400 rounded-lg text-xs font-black transition-all shadow-[0_0_12px_rgba(20,184,166,0.25)] flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                        Prêt pour l'enquête publique
+                    </button>
+                `;
+            }
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // ==========================================
+    // ACTIONS & ÉVÉNEMENTS
+    // ==========================================
+
+    function filterLegistiqueDocs() {
+        const searchInput = document.getElementById('legistique-search');
+        legistiqueState.searchQuery = searchInput.value;
+        renderLegistiqueList();
+    }
+
+    function selectLegistiqueDoc(id) {
+        const doc = legistiqueState.docs.find(d => String(d.review_id) === String(id));
+        if (doc) {
+            legistiqueState.activeDocId = id;
+            legistiqueState.editedContent = doc.content || "";
+            renderLegistiqueList();
+            renderActiveLegistiqueDoc();
+        }
+    }
+
+    function updateEditedContent() {
+        const editor = document.getElementById('legistique-editor');
+        legistiqueState.editedContent = editor.value;
+    }
+
+    async function handleLegistiqueAssign(id) {
+        try {
+            await apiFetch(`/api/v1/legistic-reviews/${id}/assign-self/`, { method: 'POST' });
+            await loadLegistiqueWorkspace();
+            if (window.showAppToast) window.showAppToast("Le document vous a été assigné pour révision.", "success");
+        } catch (error) {
+            console.error(error);
+            if (window.showAppToast) window.showAppToast("Assignation refusée par le serveur.", "error");
+        }
+    }
+
+    async function handleLegistiqueValidate(id) {
+        try {
+            await apiFetch(`/api/v1/legistic-reviews/${id}/validate-ctc/`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    content: legistiqueState.editedContent,
+                    comments: "Validation CTC depuis le bureau légistique"
+                })
+            });
+            legistiqueState.activeDocId = null;
+            legistiqueState.editedContent = "";
+            await loadLegistiqueWorkspace();
+            if (window.showAppToast) window.showAppToast("Norme validée par le CTC et ouverte au portail public.", "success");
+        } catch (error) {
+            console.error(error);
+            if (window.showAppToast) window.showAppToast("Validation refusée par le serveur.", "error");
+        }
+    }
+
+    setTimeout(initLegistiqueModule, 100);
+</script>

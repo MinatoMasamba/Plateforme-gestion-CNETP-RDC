@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import models
 from apps.payments.models import Cotisation, Paiement, JetonPresence
 from .experts_serializers import ExpertBasicSerializer, StructureSerializer
 
@@ -6,14 +7,22 @@ from .experts_serializers import ExpertBasicSerializer, StructureSerializer
 class CotisationBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les cotisations"""
     structure_name = serializers.CharField(source='structure.name', read_only=True)
+    montant_paye = serializers.SerializerMethodField()
+    reste_payer = serializers.SerializerMethodField()
     
     class Meta:
         model = Cotisation
         fields = [
             'id', 'structure', 'structure_name', 'annee', 'montant',
-            'status', 'due_date', 'created_at'
+            'status', 'due_date', 'montant_paye', 'reste_payer', 'created_at'
         ]
-        read_only_fields = ['id', 'structure_name', 'created_at']
+        read_only_fields = ['id', 'structure_name', 'montant_paye', 'reste_payer', 'created_at']
+
+    def get_montant_paye(self, obj):
+        return obj.montant_paye
+
+    def get_reste_payer(self, obj):
+        return obj.reste_payer
 
 
 class CotisationDetailSerializer(serializers.ModelSerializer):
@@ -114,7 +123,7 @@ class PaiementCreateSerializer(serializers.ModelSerializer):
         model = Paiement
         fields = [
             'cotisation', 'montant', 'methode_paiement',
-            'numero_transaction', 'proof_file'
+            'numero_transaction', 'proof_file', 'payment_date'
         ]
     
     def validate_montant(self, value):

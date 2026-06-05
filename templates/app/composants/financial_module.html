@@ -145,7 +145,7 @@
 
 <script>
     // =========================================================================
-    // ETAT ET DONNÉES SIMULÉES (Identiques au React)
+    // ETAT ET DONNÉES SERVEUR
     // =========================================================================
     const finState = {
         userRole: typeof window.sidebarState !== 'undefined' && window.sidebarState.userRole ? window.sidebarState.userRole : "ADMIN",
@@ -153,25 +153,121 @@
         searchFeeText: "",
         filterCategory: "TOUS",
         searchExpertText: "",
+        loadedFromServer: false,
 
-        fees: [
-            { id: "fee-1", name: "Office des Routes (OR)", category: "Établissements / Offices", annualFee: 25000, paidAmount: 25000, status: "Payé", expertsQuota: 18 },
-            { id: "fee-2", name: "Bureau Technique de Contrôle (BTC)", category: "Établissements / Offices", annualFee: 15000, paidAmount: 5000, status: "Partiellement payé", expertsQuota: 10 },
-            { id: "fee-3", name: "Ordre National des Ing. Civils (ONIC)", category: "Ordres", annualFee: 10000, paidAmount: 0, status: "Non payé", expertsQuota: 8 },
-            { id: "fee-4", name: "Fédération des Entreprises (FEC)", category: "Société Civile / Privé", annualFee: 30000, paidAmount: 30000, status: "Payé", expertsQuota: 15 },
-            { id: "fee-5", name: "Office des Voiries et Drainage (OVD)", category: "Établissements / Offices", annualFee: 25000, paidAmount: 12500, status: "Partiellement payé", expertsQuota: 14 },
-            { id: "fee-6", name: "Secrétariat Général ITP (SG-ITP)", category: "Administration", annualFee: 40000, paidAmount: 40000, status: "Payé", expertsQuota: 30 }
-        ],
-        payroll: [
-            { id: "exp-1", name: "Prof. Masamba Édouard", role: "Président scientifique", structure: "UNIKIN/Académiques", presenceCount: 8, dailyRate: 180, monthlyResearchAllowance: 800, payoutMethod: "Equity BCDC", accountDetails: "00018-9923812-71", status: "En attente" },
-            { id: "exp-2", name: "Ir. Chantal Mwamba", role: "Secrétaire du CTM", structure: "OVD", presenceCount: 11, dailyRate: 150, monthlyResearchAllowance: 500, payoutMethod: "M-Pesa", accountDetails: "+243 812 345 678", status: "En attente" },
-            { id: "exp-3", name: "Arch. Sylvain Lukusa", role: "Rapporteur CTM", structure: "ONA", presenceCount: 10, dailyRate: 150, monthlyResearchAllowance: 600, payoutMethod: "Orange Money", accountDetails: "+243 898 765 432", status: "Traité" },
-            { id: "exp-4", name: "Ir. Godefroid Munongo", role: "Membre Permanent", structure: "OR", presenceCount: 7, dailyRate: 120, monthlyResearchAllowance: 300, payoutMethod: "Airtel Money", accountDetails: "+243 821 112 233", status: "En attente" }
-        ],
-        simulatedProfile: {
-            id: "exp-1", name: "Prof. Masamba Édouard", role: "Administrateur technique", structure: "UNIKIN", presenceCount: 8, dailyRate: 180, monthlyResearchAllowance: 800, payoutMethod: "Equity BCDC", accountDetails: "00018-9923812-70", status: "En attente"
-        }
+        fees: [],
+        payroll: [],
+        currentProfile: null,
     };
+
+    function getFinCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            for (const rawCookie of document.cookie.split(';')) {
+                const cookie = rawCookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function finApiHeaders(json = false) {
+        const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+        if (json) {
+            headers['Content-Type'] = 'application/json';
+            headers['X-CSRFToken'] = getFinCookie('csrftoken');
+        }
+        return headers;
+    }
+
+    const finAsArray = data => Array.isArray(data) ? data : (data.results || []);
+    const statusFinLabel = status => ({ PAID: 'Payé', PARTIAL: 'Partiellement payé', PENDING: 'Non payé', OVERDUE: 'En retard' }[status] || status || 'Non payé');
+    const parseMoney = value => Number.parseFloat(value || 0) || 0;
+
+    function inferStructureCategory(name) {
+        const upper = (name || '').toUpperCase();
+        if (upper.includes('MINIST') || upper.includes('SECR')) return 'Administration';
+        if (upper.includes('ORDRE')) return 'Ordres';
+        if (upper.includes('FEC') || upper.includes('FÉDÉRATION')) return 'Société Civile / Privé';
+        return 'Établissements / Offices';
+    }
+
+    async function loadFinancialData() {
+        try {
+            const [cotisationsResponse, jetonsResponse, profileResponse] = await Promise.all([
+                fetch('/api/v1/cotisations/?ordering=-annee', { headers: finApiHeaders() }),
+                fetch('/api/v1/jetons/', { headers: finApiHeaders() }),
+                fetch('/api/v1/experts/me/', { headers: finApiHeaders() }),
+            ]);
+
+            if (cotisationsResponse.ok) {
+                const cotisations = finAsArray(await cotisationsResponse.json());
+                finState.loadedFromServer = true;
+                finState.fees = cotisations.map(c => {
+                    const name = c.structure?.name || c.structure_name || `Structure ${c.structure || ''}`;
+                    return {
+                        id: c.id,
+                        structureId: c.structure?.id || c.structure,
+                        name,
+                        category: inferStructureCategory(name),
+                        annualFee: parseMoney(c.montant),
+                        paidAmount: parseMoney(c.montant_paye),
+                        status: statusFinLabel(c.status),
+                        dueDate: c.due_date,
+                        expertsQuota: c.structure?.experts_count || 0,
+                        fromServer: true,
+                    };
+                });
+            }
+
+            if (jetonsResponse.ok) {
+                const jetons = finAsArray(await jetonsResponse.json());
+                const grouped = {};
+                jetons.forEach(j => {
+                    const key = j.expert;
+                    if (!grouped[key]) grouped[key] = {
+                        id: `expert-${key}`,
+                        expertId: key,
+                        name: j.expert_name || 'Expert',
+                        role: 'Membre CNETP',
+                        structure: '',
+                        presenceCount: 0,
+                        dailyRate: parseMoney(j.montant),
+                        monthlyResearchAllowance: 0,
+                        payoutMethod: 'À renseigner',
+                        accountDetails: '',
+                        status: 'En attente',
+                        fromServer: true,
+                    };
+                    grouped[key].presenceCount += 1;
+                    grouped[key].dailyRate = Math.max(grouped[key].dailyRate, parseMoney(j.montant));
+                    if (j.status === 'PAID') grouped[key].status = 'Traité';
+                });
+                finState.payroll = Object.values(grouped);
+            }
+
+            if (profileResponse.ok) {
+                const profile = await profileResponse.json();
+                finState.currentProfile = {
+                    id: profile.id || '',
+                    name: profile.user?.full_name || profile.full_name || 'Expert connecté',
+                    role: profile.role || 'Membre CNETP',
+                    structure: profile.structure?.acronym || profile.structure?.name || '',
+                    presenceCount: 0,
+                    dailyRate: 0,
+                    monthlyResearchAllowance: 0,
+                    payoutMethod: 'À renseigner',
+                    accountDetails: '',
+                    status: 'En attente'
+                };
+            }
+        } catch (error) {
+            console.warn('Données financières serveur indisponibles.', error);
+        }
+    }
 
     function computeTotals() {
         const totalDues = finState.fees.reduce((acc, f) => acc + f.annualFee, 0);
@@ -184,7 +280,8 @@
     // =========================================================================
     // INITIALISATION ET RENDU GLOBAL
     // =========================================================================
-    function initFinancialModule() {
+    async function initFinancialModule() {
+        await loadFinancialData();
         // MAJ Role depuis la Sidebar si existante
         if(typeof window.sidebarState !== 'undefined') finState.userRole = window.sidebarState.userRole || "ADMIN";
         document.getElementById('fin-role-badge').textContent = finState.userRole;
@@ -270,10 +367,10 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                ${filtered.length === 0 ? `<div class="col-span-2 p-8 text-center rounded-2xl border bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/5"><p class="text-sm text-slate-500 italic">Aucune structure ne correspond.</p></div>` : 
+                ${filtered.length === 0 ? `<div class="col-span-2 p-8 text-center rounded-2xl border bg-slate-50 border-slate-200 dark:bg-black/25 dark:border-white/5"><p class="text-sm text-slate-500 italic">${finState.loadedFromServer ? 'Aucune cotisation enregistrée sur le serveur.' : 'Impossible de charger les cotisations serveur.'}</p></div>` :
                 filtered.map(f => {
                     const rest = f.annualFee - f.paidAmount;
-                    const pct = (f.paidAmount / f.annualFee) * 100;
+                    const pct = f.annualFee ? (f.paidAmount / f.annualFee) * 100 : 0;
                     const statusClass = f.status === 'Payé' ? (isDark?'bg-blue-500/10 text-blue-400 border-blue-500/20':'bg-blue-50 text-blue-700 border-blue-300 font-extrabold') : f.status === 'Partiellement payé' ? (isDark?'bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse':'bg-amber-50 text-amber-700 border-amber-300 font-extrabold animate-pulse') : (isDark?'bg-red-500/10 text-red-400 border-red-500/20':'bg-red-50 text-red-700 border-red-300 font-extrabold');
                     const barColor = f.status === 'Payé' ? 'bg-blue-500' : f.status === 'Partiellement payé' ? 'bg-amber-400' : 'bg-red-500';
 
@@ -385,7 +482,7 @@
 
     function renderTabKpis(container, isDark) {
         const t = computeTotals();
-        const pct = (t.totalPaid / t.totalDues) * 100;
+        const pct = t.totalDues ? (t.totalPaid / t.totalDues) * 100 : 0;
         
         let html = `
         <div class="space-y-6 animate-fadeIn">
@@ -447,11 +544,17 @@
     // VUE EXPERT SIMPLE
     // =========================================================================
     function renderExpertSpace() {
-        const simExp = finState.simulatedProfile;
+        const simExp = finState.currentProfile;
+        if (!simExp) {
+            const container = document.getElementById('fin-expert-details');
+            if (container) container.innerHTML = '<div class="p-4 rounded-xl border text-xs text-slate-500 bg-white border-slate-200 dark:bg-black/30 dark:border-white/10">Profil expert serveur indisponible.</div>';
+            return;
+        }
         const tot = (simExp.presenceCount * simExp.dailyRate) + simExp.monthlyResearchAllowance;
         const isDark = document.documentElement.classList.contains('dark');
         
-        const container = document.getElementById('fin-user-dashboard');
+        const container = document.getElementById('fin-expert-details');
+        if (!container) return;
         container.innerHTML = `
         <div class="p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs border shadow-xs bg-white border-slate-200 dark:bg-white/[0.03] dark:border-white/5 dark:shadow-none">
             <div>
@@ -509,16 +612,33 @@
     // =========================================================================
     // ACTIONS ET MODALES
     // =========================================================================
-    function handlePayFee(id, amt) {
-        const fee = finState.fees.find(f => f.id === id);
-        fee.paidAmount = Math.min(fee.paidAmount + amt, fee.annualFee);
-        fee.status = fee.paidAmount >= fee.annualFee ? "Payé" : "Partiellement payé";
+    async function handlePayFee(id, amt) {
+        const fee = finState.fees.find(f => String(f.id) === String(id));
+        if (!fee) return;
+        if (fee.fromServer) {
+            const response = await fetch('/api/v1/paiements/', {
+                method: 'POST',
+                headers: finApiHeaders(true),
+                body: JSON.stringify({
+                    cotisation: fee.id,
+                    montant: amt,
+                    methode_paiement: 'VIREMENT',
+                    numero_transaction: `CNETP-${Date.now()}`,
+                    payment_date: new Date().toISOString().slice(0, 10),
+                })
+            });
+            if (!response.ok) return notifyFin("Enregistrement serveur refusé. Vérifiez vos droits ou les champs paiement.", "info");
+        } else {
+            fee.paidAmount = Math.min(fee.paidAmount + amt, fee.annualFee);
+            fee.status = fee.paidAmount >= fee.annualFee ? "Payé" : "Partiellement payé";
+        }
+        await loadFinancialData();
         renderAdminKpis(); setFinAdminTab('structure');
         notifyFin(`Contribution de ${fee.name} enregistrée !`, "success");
     }
 
     function processExpertPayment(id) {
-        finState.payroll.find(p => p.id === id).status = "Traité";
+        finState.payroll.find(p => String(p.id) === String(id)).status = "Traité";
         renderAdminKpis(); setFinAdminTab('perdiem');
         notifyFin("Ordre d'indemnité liquidé avec succès !", "success");
     }
@@ -528,13 +648,13 @@
         if(pending.length === 0) { notifyFin("Aucun ordre en attente.", "info"); return; }
         
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">\n  <CstmrCdtTrfInitn>\n    <GrpHdr>\n      <MsgId>CNETP-RDC-${Date.now()}</MsgId>\n      <CtrlSum>${computeTotals().totalPayrollPending}</CtrlSum>\n    </GrpHdr>\n    \n  </CstmrCdtTrfInitn>\n</Document>`;
-        document.getElementById('fin-xml-content').textContent = xml;
+        document.getElementById('xml-output').textContent = xml;
         document.getElementById('modal-xml-iso').classList.remove('hidden');
         notifyFin("Fichier ISO-20022 généré !", "success");
     }
 
     function openInvoiceModal(feeId) {
-        const fee = finState.fees.find(f => f.id === feeId);
+        const fee = finState.fees.find(f => String(f.id) === String(feeId));
         document.getElementById('invoice-content').innerHTML = `
             <div class="flex justify-between items-start">
                 <div><span class="text-[10px] text-slate-500 block">DÉBITEUR :</span><strong class="text-slate-900 dark:text-white text-xs">${fee.name}</strong></div>
@@ -557,7 +677,8 @@
     }
 
     function openReceiptModal(id) {
-        const p = id === 'simulated' ? finState.simulatedProfile : finState.payroll.find(x => x.id === id);
+        const p = id === 'simulated' ? finState.currentProfile : finState.payroll.find(x => String(x.id) === String(id));
+        if (!p) return;
         const tot = (p.presenceCount * p.dailyRate) + p.monthlyResearchAllowance;
         document.getElementById('receipt-content').innerHTML = `
             <div class="flex justify-between items-start text-xs border-b pb-2 border-slate-200 dark:border-white/5">
