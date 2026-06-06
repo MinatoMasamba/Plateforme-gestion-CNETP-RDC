@@ -274,7 +274,10 @@ def send_activation_email(self, expert_id):
 
     except Exception as exc:
         logger.exception(f'Erreur envoi email activation expert {expert_id}: {exc}')
-        raise self.retry(exc=exc, countdown=60)
+        try:
+            raise self.retry(exc=exc, countdown=60)
+        except Exception:
+            return False
 
 
 @shared_task

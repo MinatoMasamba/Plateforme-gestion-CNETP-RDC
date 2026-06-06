@@ -347,6 +347,94 @@ class MobileProfileViewSet(viewsets.ViewSet):
             'last_login': request.user.last_login
         })
 
+    @action(detail=False, methods=['get'], url_path='edit-data')
+    def edit_data(self, request):
+        """Données complètes pour l'édition du profil — GET /mobile/profile/edit-data/"""
+        user = request.user
+        data = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'phone': user.phone or '',
+            'province': user.province or '',
+            'bio': user.bio or '',
+        }
+        if user.is_expert and hasattr(user, 'expert_profile'):
+            expert = user.expert_profile
+            cv_url = request.build_absolute_uri(expert.cv.url) if expert.cv else ''
+            data.update({
+                'specialties': expert.specialties or '',
+                'mobile_money_number': expert.mobile_money_number or '',
+                'whatsapp_number': expert.whatsapp_number or '',
+                'bank_account': expert.bank_account or '',
+                'bank_name': expert.bank_name or '',
+                'structure_name': expert.structure.name if expert.structure else '',
+                'appointment_date': str(expert.appointment_date) if expert.appointment_date else '',
+                'appointment_decree_number': expert.appointment_decree_number or '',
+                'cv_url': cv_url,
+                'cv_filename': expert.cv.name.split('/')[-1] if expert.cv else '',
+            })
+        return Response(data)
+
+    @action(detail=False, methods=['patch'], url_path='update')
+    def update_profile(self, request):
+        """Mettre à jour le profil — PATCH /mobile/profile/update/"""
+        user = request.user
+
+        # Champs User
+        user_fields = []
+        for field in ('first_name', 'last_name', 'phone', 'province', 'bio'):
+            value = request.data.get(field)
+            if value is not None:
+                setattr(user, field, value.strip() if isinstance(value, str) else value)
+                user_fields.append(field)
+
+        if user_fields:
+            user.save(update_fields=user_fields)
+
+        # Champs Expert
+        if user.is_expert and hasattr(user, 'expert_profile'):
+            expert = user.expert_profile
+            expert_fields = []
+            for field in ('specialties', 'mobile_money_number', 'whatsapp_number',
+                          'bank_account', 'bank_name'):
+                value = request.data.get(field)
+                if value is not None:
+                    setattr(expert, field, value.strip() if isinstance(value, str) else value)
+                    expert_fields.append(field)
+            # Fichier CV
+            cv_file = request.FILES.get('cv')
+            if cv_file:
+                expert.cv = cv_file
+                expert_fields.append('cv')
+            if expert_fields:
+                expert.save(update_fields=expert_fields)
+
+        # Retourner les données de edit-data pour synchroniser le client
+        data = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'full_name': user.get_full_name(),
+            'email': user.email,
+            'phone': user.phone or '',
+            'province': user.province or '',
+            'bio': user.bio or '',
+            'user_type': 'expert' if user.is_expert else 'public',
+        }
+        if user.is_expert and hasattr(user, 'expert_profile'):
+            expert = user.expert_profile
+            cv_url = request.build_absolute_uri(expert.cv.url) if expert.cv else ''
+            data.update({
+                'specialties': expert.specialties or '',
+                'mobile_money_number': expert.mobile_money_number or '',
+                'whatsapp_number': expert.whatsapp_number or '',
+                'bank_account': expert.bank_account or '',
+                'bank_name': expert.bank_name or '',
+                'cv_url': cv_url,
+                'cv_filename': expert.cv.name.split('/')[-1] if expert.cv else '',
+            })
+        return Response(data)
+
 
 class MobilePublicViewSet(viewsets.ViewSet):
     """Données publiques accessibles sur mobile"""

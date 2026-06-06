@@ -5837,3 +5837,103 @@ INFO 2026-06-06 13:25:29,776 forms 8838 138984850192064 [ExpertLoginForm]-[clean
 INFO 2026-06-06 13:25:29,781 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - Profil expert trouvé: ID=8, statut=ACTIVE
 INFO 2026-06-06 13:25:29,783 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - ✅ AUTHENTIFICATION EXPERT RÉUSSIE - tefalaexaucee@gmail.com
 INFO 2026-06-06 13:25:29,784 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - FIN validation - SUCCÈS
+INFO 2026-06-06 13:58:19,990 autoreload 17340 125566088708224 Watching for file changes with StatReloader
+WARNING 2026-06-06 15:11:53,492 log 17340 125565945243328 Forbidden: /api/v1/reunions/
+WARNING 2026-06-06 15:11:53,544 log 17340 125565717706432 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 15:11:53,547 log 17340 125565954684608 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 15:13:47,685 log 17340 125565717706432 Bad Request: /api/v1/messages/
+WARNING 2026-06-06 15:14:00,989 log 17340 125565717706432 Bad Request: /api/v1/messages/
+INFO 2026-06-06 15:29:06,584 autoreload 17340 125566088708224 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 15:29:15,185 autoreload 20289 138445435392128 Watching for file changes with StatReloader
+WARNING 2026-06-06 15:36:53,365 log 20289 138444898555584 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 15:36:53,386 log 20289 138444890162880 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 15:36:53,387 log 20289 138444906948288 Forbidden: /api/v1/mobile/profile/dashboard/
+ERROR 2026-06-06 15:42:14,949 log 20289 138444898555584 Internal Server Error: /api/components/messaging/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/web/views.py", line 279, in component_api_view
+    return render(request, template_name, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/engine.py", line 186, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 556, in parse
+    raise self.error(token, e)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 554, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 676, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/template/base.py", line 776, in __init__
+    raise TemplateSyntaxError(
+django.template.exceptions.TemplateSyntaxError: Template: /home/minato/project/templates/app/composants/messaging_widget.html, Could not parse the remainder: '/* Widget Messagerie CNETP — fenêtre empilée AU-DESSUS du bouton via flex-col */' from '/* Widget Messagerie CNETP — fenêtre empilée AU-DESSUS du bouton via flex-col */'
+INFO 2026-06-06 15:42:50,243 autoreload 20289 138445435392128 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 15:42:53,990 autoreload 20762 133781669675136 Watching for file changes with StatReloader
+WARNING 2026-06-06 16:02:50,604 log 20762 133781535061696 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 16:02:50,606 log 20762 133781444880064 Forbidden: /api/v1/mobile/profile/profile/
+INFO 2026-06-06 16:09:11,296 autoreload 20762 133781669675136 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 16:09:14,827 autoreload 21567 137501164163200 Watching for file changes with StatReloader
+INFO 2026-06-06 16:09:24,761 autoreload 21567 137501164163200 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 16:09:27,548 autoreload 21617 123844170678400 Watching for file changes with StatReloader
+INFO 2026-06-06 16:09:40,360 autoreload 21617 123844170678400 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 16:09:43,492 autoreload 21667 125251078013056 Watching for file changes with StatReloader
+WARNING 2026-06-06 16:19:42,737 log 21667 125250925745856 Forbidden: /api/v1/mobile/profile/dashboard/
+WARNING 2026-06-06 16:19:42,757 log 21667 125250934138560 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 16:19:42,775 log 21667 125250934138560 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 16:50:24,652 log 21667 125250925745856 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 16:50:24,797 log 21667 125250925745856 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 16:50:24,812 log 21667 125250683520704 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 16:50:29,273 log 21667 125250683520704 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 17:03:03,999 connection 21667 125250691913408 No hostname was supplied. Reverting to default 'localhost'
+WARNING 2026-06-06 17:03:04,699 signals 21667 125250691913408 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.dispatch_notification
+WARNING 2026-06-06 17:03:04,775 tasks 21667 125250691913408 Could not check notification preferences: User has no notification_preferences.
+INFO 2026-06-06 17:03:11,588 tasks 21667 125250691913408 Email sent to sourceacademique@gmail.com for notification d3d9d723-2db8-40a5-b64c-a2f0259a2ce7
+INFO 2026-06-06 17:03:11,589 trace 21667 125250691913408 Task apps.mobileapp.tasks.dispatch_notification[2e3c91f5-da4c-49a9-93f8-3031033bf851] succeeded in 6.823621651001304s: True
+INFO 2026-06-06 17:03:11,590 signals 21667 125250691913408 Created notification d3d9d723-2db8-40a5-b64c-a2f0259a2ce7 for user sourceacademique@gmail.com
+WARNING 2026-06-06 17:03:12,199 signals 21667 125250691913408 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.dispatch_notification
+WARNING 2026-06-06 17:03:12,211 tasks 21667 125250691913408 Could not check notification preferences: User has no notification_preferences.
+INFO 2026-06-06 17:03:18,347 tasks 21667 125250691913408 Email sent to sourceacademique@gmail.com for notification 92045a9b-be2c-4795-842c-3b35eccc0068
+INFO 2026-06-06 17:03:18,348 trace 21667 125250691913408 Task apps.mobileapp.tasks.dispatch_notification[7e395835-847f-41b0-ac43-57b91bcc9dff] succeeded in 6.146595628000796s: True
+INFO 2026-06-06 17:03:18,350 signals 21667 125250691913408 Created notification 92045a9b-be2c-4795-842c-3b35eccc0068 for user sourceacademique@gmail.com
+WARNING 2026-06-06 17:03:18,960 signals 21667 125250691913408 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.dispatch_notification
+WARNING 2026-06-06 17:03:18,971 tasks 21667 125250691913408 Could not check notification preferences: User has no notification_preferences.
+INFO 2026-06-06 17:03:26,949 tasks 21667 125250691913408 Email sent to sourceacademique@gmail.com for notification 49ca1a41-075f-4471-bd3d-3c1cb3e501cf
+INFO 2026-06-06 17:03:26,950 trace 21667 125250691913408 Task apps.mobileapp.tasks.dispatch_notification[6c417589-84eb-41ee-a35c-8abc96ae7d78] succeeded in 7.989474068999698s: True
+INFO 2026-06-06 17:03:26,952 signals 21667 125250691913408 Created notification 49ca1a41-075f-4471-bd3d-3c1cb3e501cf for user sourceacademique@gmail.com
+INFO 2026-06-06 17:19:33,642 autoreload 21667 125251078013056 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 17:19:38,438 autoreload 25592 124873933004928 Watching for file changes with StatReloader
+INFO 2026-06-06 17:20:00,099 autoreload 25592 124873933004928 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 17:20:03,113 autoreload 25623 133446292676736 Watching for file changes with StatReloader

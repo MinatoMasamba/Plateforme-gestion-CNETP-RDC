@@ -1,204 +1,188 @@
-<button
-    id="toggle-messaging-floating"
-    onclick="openMessagingWidget()"
-    class="font-bold px-4 py-3 rounded-full flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer group hover:scale-105 transition-all text-xs tracking-wider uppercase backdrop-blur-md bg-white border hover:border-blue-400 border-blue-300 text-blue-600 hover:text-blue-700 dark:bg-[#020204] dark:border-blue-500/30 dark:hover:border-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
->
-    <div class="relative">
-        <i data-lucide="message-square" class="h-5 w-5 fill-blue-100 dark:fill-blue-500/10 group-hover:animate-pulse"></i>
-        <span id="unread-badge" class="hidden absolute -top-2.5 -right-2.5 min-h-4.5 min-w-4.5 px-1 rounded-full bg-red-500 text-white font-extrabold text-[9px] items-center justify-center animate-bounce shadow-md">
-            0
-        </span>
-    </div>
-    <span class="font-sans font-bold select-none">Messagerie CNETP</span>
-    <span class="h-2 w-2 rounded-full animate-pulse inline-block bg-blue-500"></span>
-</button>
-
-<div 
-    id="messaging-window"
-    class="hidden border rounded-2xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex-col backdrop-blur-xl transition-all duration-300 w-[700px] h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] bg-white/95 border-blue-200 text-blue-900 dark:bg-[#020204]/95 dark:border-white/10 dark:text-slate-300"
->
-    <div class="h-14 border-b px-4.5 flex items-center justify-between shrink-0 rounded-t-2xl border-blue-200 bg-blue-50/80 dark:border-white/10 dark:bg-black/40">
-        <div class="flex items-center gap-2.5">
-            <div class="h-8 w-8 rounded-lg flex items-center justify-center border bg-blue-100 text-blue-600 border-blue-300 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400">
-                <i data-lucide="message-square" class="h-4 w-4"></i>
-            </div>
-            <div>
-                <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 text-slate-800 dark:text-white">
-                    Messagerie Sécurisée CNETP
-                    <span id="encryption-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full font-mono bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
-                        SÉCURISÉ (AES-256)
-                    </span>
-                </h3>
-                <p id="messaging-minimized-title" class="hidden text-[10px] text-slate-500 font-medium">Discuter avec ...</p>
-            </div>
+<div id="messaging-widget-container" class="fixed bottom-6 right-6 z-50">
+    
+    <button 
+        id="toggle-messaging-floating" 
+        onclick="openMessagingWidget()" 
+        class="font-bold px-4 py-3 rounded-full flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer group hover:scale-105 transition-all text-xs tracking-wider uppercase backdrop-blur-md bg-white border border-blue-300 text-blue-600 hover:border-blue-400 hover:text-blue-700 dark:bg-[#020204] dark:border-blue-500/30 dark:text-blue-400 dark:hover:border-blue-400 dark:hover:text-blue-300"
+    >
+        <div class="relative">
+            <i data-lucide="message-square" class="h-5 w-5 fill-blue-100 dark:fill-blue-500/10 group-hover:animate-pulse"></i>
+            <span id="unread-badge" class="hidden absolute -top-2.5 -right-2.5 min-h-4.5 min-w-4.5 px-1 rounded-full bg-red-500 text-white font-extrabold text-[9px] items-center justify-center animate-bounce shadow-md">
+                0
+            </span>
         </div>
+        <span class="font-sans font-bold select-none">Messagerie CNETP</span>
+        <span class="h-2 w-2 rounded-full animate-pulse inline-block bg-blue-500"></span>
+    </button>
 
-        <div class="flex items-center gap-1.5">
-            <button 
-                onclick="minimizeMessagingWidget()" 
-                class="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer"
-                title="Réduire"
-            >
-                <i id="minimize-icon" data-lucide="chevron-down" class="h-4 w-4 transition-transform"></i>
-            </button>
-            <button 
-                onclick="closeMessagingWidget()" 
-                class="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer"
-                title="Fermer"
-            >
-                <i data-lucide="x" class="h-4 w-4"></i>
-            </button>
-        </div>
-    </div>
-
-    <div id="messaging-content" class="flex-1 min-h-0 flex bg-transparent">
-        
-        <div class="w-64 border-r border-slate-200 dark:border-white/10 flex flex-col h-full bg-slate-50/50 dark:bg-black/25 shrink-0">
-            <div class="p-3 border-b border-slate-200 dark:border-white/10">
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-2.5 top-2.5 h-3 w-3 text-slate-500"></i>
-                    <input
-                        type="text"
-                        placeholder="Chercher un interlocuteur..."
-                        oninput="filterContacts(this.value)"
-                        class="w-full pl-8 pr-3 py-1.5 rounded-lg border focus:outline-hidden focus:ring-1 transition-all bg-white border-slate-300 text-slate-800 focus:border-blue-400 focus:ring-blue-100 dark:border-white/5 dark:bg-black/45 text-[11px] dark:text-white font-medium dark:focus:border-blue-500/30"
-                    />
+    <div 
+        id="messaging-window" 
+        class="hidden border rounded-2xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex-col backdrop-blur-xl transition-all duration-300 fixed bottom-6 right-6 w-[700px] h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] bg-white/95 border-blue-200 text-blue-900 dark:bg-[#020204]/95 dark:border-white/10 dark:text-slate-300 z-50"
+    >
+        <div class="h-14 border-b px-4.5 flex items-center justify-between shrink-0 rounded-t-2xl border-blue-200 bg-blue-50/80 dark:border-white/10 dark:bg-black/40">
+            <div class="flex items-center gap-2.5">
+                <div class="h-8 w-8 rounded-lg flex items-center justify-center border bg-blue-100 text-blue-600 border-blue-300 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400">
+                    <i data-lucide="message-square" class="h-4 w-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 text-slate-800 dark:text-white">
+                        Messagerie Sécurisée CNETP
+                        <span id="encryption-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full font-mono bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                            SÉCURISÉ (AES-256)
+                        </span>
+                    </h3>
+                    <p id="messaging-minimized-title" class="hidden text-[10px] text-slate-500 font-medium">Discuter avec ...</p>
                 </div>
             </div>
-
-            <div id="contacts-list" class="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-white/5 scrollbar-none">
-                </div>
+            <div class="flex items-center gap-1.5">
+                <button onclick="minimizeMessagingWidget()" class="p-1.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-200 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer" title="Réduire">
+                    <i id="minimize-icon" data-lucide="chevron-down" class="h-4 w-4 transition-transform"></i>
+                </button>
+                <button onclick="closeMessagingWidget()" class="p-1.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-200 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer" title="Fermer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="flex-1 flex flex-col h-full bg-white dark:bg-black/10">
+        <div id="messaging-content" class="flex-1 min-h-0 flex bg-transparent">
             
-            <div class="px-4.5 py-3 border-b border-blue-100 bg-white/50 dark:bg-black/15 dark:border-white/5 flex items-center justify-between shrink-0">
-                <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <h4 id="active-contact-name" class="text-xs font-extrabold truncate text-slate-900 dark:text-white">Sélectionnez un contact</h4>
-                        <span id="active-contact-status-dot" class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
-                        <span id="active-contact-status-text" class="text-[9px] font-mono font-bold uppercase text-slate-500">Hors ligne</span>
+            <div class="w-64 border-r border-slate-200 dark:border-white/10 flex flex-col h-full bg-slate-50/50 dark:bg-black/25 shrink-0">
+                <div class="p-3 border-b border-slate-200 dark:border-white/10">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-2.5 top-2.5 h-3 w-3 text-slate-500"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Chercher un interlocuteur..." 
+                            oninput="filterContacts(this.value)" 
+                            class="w-full pl-8 pr-3 py-1.5 rounded-lg border focus:outline-hidden focus:ring-1 transition-all bg-white border-slate-300 text-slate-800 focus:border-blue-400 focus:ring-blue-100 dark:border-white/5 dark:bg-black/45 text-[11px] dark:text-white font-medium dark:focus:border-blue-500/30"
+                        />
                     </div>
-                    <p class="text-[10px] truncate mt-0.5 font-medium text-slate-600 dark:text-slate-400">
-                        <span id="active-contact-role"></span> • <span id="active-contact-struct" class="font-semibold text-blue-700 dark:text-blue-400"></span>
-                    </p>
                 </div>
+                <div id="contacts-list" class="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-white/5 scrollbar-none">
+                    </div>
             </div>
 
-            <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none bg-slate-50/50 dark:bg-[#020204]/30">
-                <p class="text-[10.5px] text-slate-500 italic py-12 text-center">Début de l'historique sécurisé des messages.</p>
-            </div>
-
-            <form onsubmit="handleSendMessage(event)" class="p-3 border-t shrink-0 bg-slate-50 border-blue-200 dark:border-white/10 dark:bg-black/30">
-                <div class="flex items-center gap-2">
-                    <input
-                        type="text"
-                        id="chat-input-text"
-                        placeholder="Écrire un message..."
-                        oninput="document.getElementById('send-msg-btn').disabled = !this.value.trim()"
-                        class="flex-1 text-xs px-3.5 py-2.5 rounded-lg border focus:outline-hidden focus:ring-2 font-medium transition-colors bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-400 focus:ring-blue-100 dark:border-white/5 dark:bg-black/50 dark:text-white dark:placeholder-slate-600 dark:focus:border-blue-500/40 dark:focus:ring-blue-500/5"
-                    />
-                    <button
-                        type="submit"
-                        id="send-msg-btn"
-                        disabled
-                        class="h-9.5 w-9.5 rounded-lg flex items-center justify-center shrink-0 disabled:opacity-40 transition-all cursor-pointer shadow-md bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black"
-                    >
-                        <i data-lucide="send" class="h-3.5 w-3.5"></i>
-                    </button>
+            <div class="flex-1 flex flex-col h-full bg-white dark:bg-black/10">
+                
+                <div class="px-4.5 py-3 border-b border-blue-100 bg-white/50 dark:bg-black/15 dark:border-white/5 flex items-center justify-between shrink-0">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h4 id="active-contact-name" class="text-xs font-extrabold truncate text-slate-900 dark:text-white">...</h4>
+                            <span id="active-contact-status-dot" class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+                            <span id="active-contact-status-text" class="text-[9px] font-mono font-bold uppercase text-slate-500">Hors ligne</span>
+                        </div>
+                        <p class="text-[10px] truncate mt-0.5 font-medium text-slate-600 dark:text-slate-400">
+                            <span id="active-contact-role"></span> • <span id="active-contact-struct" class="font-semibold text-blue-700 dark:text-blue-400"></span>
+                        </p>
+                    </div>
                 </div>
-            </form>
+
+                <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none bg-slate-50/50 dark:bg-[#020204]/30">
+                    </div>
+
+                <form onsubmit="handleSendMessage(event)" class="p-3 border-t shrink-0 bg-slate-50 border-blue-200 dark:border-white/10 dark:bg-black/30">
+                    <div class="flex items-center gap-2">
+                        <input 
+                            type="text" 
+                            id="chat-input-text" 
+                            placeholder="Écrire un message..." 
+                            oninput="document.getElementById('send-msg-btn').disabled = !this.value.trim()" 
+                            class="flex-1 text-xs px-3.5 py-2.5 rounded-lg border focus:outline-hidden focus:ring-2 font-medium transition-colors bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-400 focus:ring-blue-100 dark:border-white/5 dark:bg-black/50 dark:text-white dark:placeholder-slate-600 dark:focus:border-blue-500/40 dark:focus:ring-blue-500/5"
+                        />
+                        <button 
+                            type="submit" 
+                            id="send-msg-btn" 
+                            disabled 
+                            class="h-9.5 w-9.5 rounded-lg flex items-center justify-center shrink-0 disabled:opacity-40 transition-all cursor-pointer shadow-md bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-black"
+                        >
+                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+(function () {
     // =========================================================================
-    // ETAT DE LA MESSAGERIE (CONNECTÉ À L'API)
+    // ÉTAT — connecté à l'API CNETP
     // =========================================================================
-    if (typeof chatState === 'undefined') {
-        const chatState = {
+    if (typeof window.chatState === 'undefined') {
+        window.chatState = {
             isOpen: false,
             isMinimized: false,
             activeContactId: null,
-            myProfile: { id: '{{ user.id }}', name: "{{ user.get_full_name|escapejs }}" },
+            myId: '{{ user.id }}',
+            searchQuery: '',
             contacts: [],
             messages: {},
             unreadCount: 0,
             pollTimer: null,
         };
-        window.chatState = chatState;
+    }
+    var chatState = window.chatState;
+
+    // =========================================================================
+    // UTILITAIRES
+    // =========================================================================
+    function getCsrfToken() {
+        var match = document.cookie.split(';')
+            .map(function(c) { return c.trim(); })
+            .find(function(c) { return c.startsWith('csrftoken='); });
+        return match ? decodeURIComponent(match.split('=')[1]) : '';
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     // =========================================================================
-    // FONCTIONS D'APPEL API
+    // APPELS API
     // =========================================================================
-    function getMessagingCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            for (const rawCookie of document.cookie.split(';')) {
-                const cookie = rawCookie.trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     async function loadContacts() {
         try {
-            const response = await fetch('/api/v1/messages/contacts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-            if (!response.ok) throw new Error('Impossible de charger les contacts');
-            const contactsData = await response.json();
-            
-            chatState.contacts = contactsData.map(expert => ({
-                id: expert.user_id || expert.user?.id,
-                expertId: expert.id,
-                name: expert.user_name || expert.user?.full_name || 'Expert',
-                role: expert.role || 'Expert CTM',
-                structure: expert.structure?.acronym || expert.structure_name || '',
-                isOnline: expert.user?.is_online || false,
-                avatarColor: '#'+(Math.floor(Math.random()*16777215)).toString(16),
-            })).filter(contact => contact.id);
+            var r = await fetch('/api/v1/messages/contacts/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!r.ok) return;
+            var data = await r.json();
+            chatState.contacts = data.map(function(e) {
+                return {
+                    id: e.user_id || (e.user && e.user.id),
+                    name: e.user_name || (e.user && e.user.full_name) || 'Expert',
+                    role: e.role || 'Expert CTM',
+                    structure: (e.structure && e.structure.acronym) || e.structure_name || '',
+                    isOnline: (e.user && e.user.is_online) || false,
+                    avatarColor: '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'),
+                };
+            }).filter(function(c) { return c.id; });
             renderContacts();
-
-        } catch (error) {
-            console.error(error);
-            if(window.showAppToast) window.showAppToast("Erreur de chargement des contacts.", "error");
-        }
+        } catch(e) { console.error('loadContacts:', e); }
     }
 
     async function loadMessages(contactId) {
         if (!contactId) return;
         try {
-            const response = await fetch(`/api/v1/messages/?participant_id=${contactId}`, {
+            var r = await fetch('/api/v1/messages/?participant_id=' + contactId, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-            if (!response.ok) throw new Error('Impossible de charger les messages');
-            const messagesData = await response.json();
-            chatState.messages[contactId] = Array.isArray(messagesData) ? messagesData : (messagesData.results || []);
+            if (!r.ok) return;
+            var data = await r.json();
+            chatState.messages[contactId] = Array.isArray(data) ? data : (data.results || []);
             await markConversationAsRead(contactId);
             await loadUnreadCount();
-        } catch(error) {
-            console.error(error);
+        } catch(e) {
+            console.error('loadMessages:', e);
             chatState.messages[contactId] = [];
         } finally {
             renderMessages();
-        }
-    }
-
-    async function loadUnreadCount() {
-        try {
-            const response = await fetch('/api/v1/messages/unread_count/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-            if (!response.ok) throw new Error('Compteur indisponible');
-            const data = await response.json();
-            chatState.unreadCount = data.unread_count || 0;
-        } catch (error) {
-            chatState.unreadCount = 0;
-        } finally {
-            renderUnreadBadge();
         }
     }
 
@@ -207,77 +191,161 @@
         try {
             await fetch('/api/v1/messages/mark_conversation_as_read/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify({ participant_id: contactId })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ participant_id: contactId }),
             });
-        } catch (error) {
-            console.warn('Marquage lecture indisponible', error);
+        } catch(e) { /* silencieux */ }
+    }
+
+    async function loadUnreadCount() {
+        try {
+            var r = await fetch('/api/v1/messages/unread_count/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            var data = r.ok ? await r.json() : {};
+            chatState.unreadCount = data.unread_count || 0;
+        } catch(e) {
+            chatState.unreadCount = 0;
+        } finally {
+            renderUnreadBadge();
         }
     }
 
+    // =========================================================================
+    // RENDU
+    // =========================================================================
     function renderUnreadBadge() {
-        const badge = document.getElementById('unread-badge');
+        var badge = document.getElementById('unread-badge');
         if (!badge) return;
         if (chatState.unreadCount > 0) {
             badge.textContent = chatState.unreadCount > 99 ? '99+' : chatState.unreadCount;
             badge.classList.remove('hidden');
             badge.classList.add('flex');
         } else {
-            badge.textContent = '0';
             badge.classList.add('hidden');
             badge.classList.remove('flex');
         }
     }
 
-    async function handleSendMessage(e) {
-        e.preventDefault();
-        const input = document.getElementById('chat-input-text');
-        const text = input.value.trim();
-        if (!text || !chatState.activeContactId) return;
+    function renderContacts(query) {
+        var el = document.getElementById('contacts-list');
+        if (!el) return;
+        var q = (query !== undefined ? query : chatState.searchQuery || '').toLowerCase();
+        var filtered = chatState.contacts.filter(function(c) {
+            return c.name.toLowerCase().includes(q) ||
+                   c.role.toLowerCase().includes(q) ||
+                   (c.structure || '').toLowerCase().includes(q);
+        });
 
-        const payload = {
-            recipient: chatState.activeContactId,
-            content: text,
-        };
-
-        try {
-            const response = await fetch('/api/v1/messages/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) throw new Error('Échec de l\'envoi du message');
-            const newMessage = await response.json();
-            
-            if (!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
-            chatState.messages[chatState.activeContactId].push(newMessage);
-
-            input.value = "";
-            document.getElementById('send-msg-btn').disabled = true;
-            renderMessages();
-            await loadUnreadCount();
-
-        } catch (error) {
-            console.error(error);
-            if(window.showAppToast) window.showAppToast("Erreur d'envoi.", "error");
+        if (!filtered.length) {
+            el.innerHTML = '<p class="p-4 text-[10.5px] text-slate-500 italic text-center">Aucun contact trouvé.</p>';
+            return;
         }
+
+        el.innerHTML = filtered.map(function(c) {
+            var isSelected = String(c.id) === String(chatState.activeContactId);
+            var bgClass = isSelected ? 'bg-white/5 dark:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-white/[0.02]';
+            var nameColor = isSelected ? 'text-blue-700 dark:text-white' : 'text-slate-800 dark:text-slate-200';
+            var initials = c.name.split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2).toUpperCase();
+            var onlineDot = c.isOnline ? '<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border border-slate-200 dark:border-slate-900 rounded-full"></span>' : '';
+
+            return '<button onclick="setActiveContact(\'' + c.id + '\')" class="w-full p-3 text-left transition-all duration-150 flex items-start gap-2.5 cursor-pointer relative group ' + bgClass + '">' +
+                '<div class="h-8.5 w-8.5 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold shrink-0 relative border border-white/10" style="background-color:' + escHtml(c.avatarColor) + '">' +
+                    initials + onlineDot +
+                '</div>' +
+                '<div class="min-w-0 flex-1">' +
+                    '<span class="text-[11.5px] font-bold truncate block leading-snug ' + nameColor + '">' + escHtml(c.name) + '</span>' +
+                    '<p class="text-[9.5px] mt-0.5 truncate font-semibold text-slate-500 dark:text-slate-400">' + escHtml(c.role) + '</p>' +
+                    (c.structure ? '<p class="text-[8px] mt-0.5 font-mono text-slate-400 dark:text-slate-500">' + escHtml(c.structure) + '</p>' : '') +
+                '</div>' +
+            '</button>';
+        }).join('');
+    }
+
+    function renderMessages() {
+        var container = document.getElementById('messages-container');
+        if (!container) return;
+        var msgs = chatState.messages[chatState.activeContactId] || [];
+
+        if (!msgs.length) {
+            container.innerHTML = '<p class="text-[10.5px] text-slate-500 italic py-12 text-center">Début de l\'historique sécurisé avec ce contact.</p>';
+            return;
+        }
+
+        container.innerHTML = msgs.map(function(m) {
+            var senderId = m.sender || m.senderId || '';
+            var isMe = String(senderId) === String(chatState.myId) || senderId === 'me';
+            var wrapperClass = isMe ? 'justify-end' : 'justify-start';
+            var bubbleClass = isMe
+                ? 'bg-blue-600 text-white dark:bg-blue-500/10 dark:border dark:border-blue-500/25 dark:text-slate-100'
+                : 'bg-slate-100 border border-slate-200 text-slate-800 dark:bg-white/[0.03] dark:border-white/5 dark:text-slate-200';
+            var timeColor = isMe ? 'text-blue-100 dark:text-white/40' : 'text-slate-400 dark:text-white/40';
+            var checkIcon = isMe ? '<i data-lucide="check-check" class="h-3 w-3 text-blue-300 dark:text-blue-400"></i>' : '';
+
+            var rawTime = m.timestamp || '';
+            var timeStr = rawTime;
+            if (rawTime && rawTime.includes('T')) {
+                try { timeStr = new Date(rawTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); } catch(e) {}
+            }
+
+            var isClause = m.is_clause_share || m.isClauseShare;
+            var clauseCode = escHtml(m.clause_code || m.clauseCode || '');
+            var clauseExcerpt = escHtml(m.clause_excerpt || m.clauseExcerpt || '');
+            var content = escHtml(m.content || m.text || '');
+
+            var clauseHtml = '';
+            if (isClause) {
+                clauseHtml = '<div class="mb-2 pb-2 border-b text-[11px] p-2.5 rounded-lg space-y-1.5 border-l-2 bg-white/60 border-slate-200 border-l-yellow-600 dark:bg-black/40 dark:border-white/10 dark:border-l-yellow-500">' +
+                    '<div class="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400 font-bold font-mono text-[9px] uppercase tracking-wider">' +
+                        '<i data-lucide="share-2" class="h-3 w-3"></i> Clause : ' + clauseCode +
+                    '</div>' +
+                    (clauseExcerpt ? '<blockquote class="text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-3 leading-normal border-l border-slate-300 dark:border-white/10 pl-2">&ldquo;' + clauseExcerpt + '&rdquo;</blockquote>' : '') +
+                '</div>';
+            }
+
+            return '<div class="flex ' + wrapperClass + ' animate-fadeIn w-full">' +
+                '<div class="max-w-[85%] rounded-xl px-3.5 py-2.5 text-xs shadow-sm leading-relaxed ' + bubbleClass + '">' +
+                    clauseHtml +
+                    '<p class="whitespace-pre-wrap">' + content + '</p>' +
+                    '<div class="mt-1 flex items-center justify-end gap-1.5 text-[8.5px] ' + timeColor + '">' +
+                        '<span>' + escHtml(String(timeStr)) + '</span>' +
+                        checkIcon +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+
+        lucide.createIcons();
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        var el = document.getElementById('messages-container');
+        if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    function filterContacts(val) {
+        chatState.searchQuery = val;
+        renderContacts(val);
     }
 
     // =========================================================================
-    // LOGIQUE UI
+    // ACTIONS UI
     // =========================================================================
     async function openMessagingWidget() {
         chatState.isOpen = true;
         chatState.isMinimized = false;
-        
+
         document.getElementById('toggle-messaging-floating').classList.add('hidden');
-        const windowEl = document.getElementById('messaging-window');
+        var windowEl = document.getElementById('messaging-window');
         windowEl.classList.remove('hidden');
         windowEl.classList.add('flex');
-        
-        windowEl.classList.replace("w-80", "w-[700px]");
-        windowEl.classList.replace("h-14", "h-[500px]");
+        windowEl.classList.replace('w-80', 'w-[700px]');
+        windowEl.classList.replace('h-14', 'h-[500px]');
         document.getElementById('messaging-content').classList.remove('hidden');
         document.getElementById('encryption-badge').classList.remove('hidden');
         document.getElementById('messaging-minimized-title').classList.add('hidden');
@@ -286,10 +354,10 @@
         await loadContacts();
         await loadUnreadCount();
 
-        if (chatState.contacts.length > 0 && !chatState.activeContactId) {
-            await setActiveContact(chatState.contacts[0].id);
-        } else if (chatState.activeContactId) {
+        if (chatState.activeContactId) {
             await setActiveContact(chatState.activeContactId);
+        } else if (chatState.contacts.length > 0) {
+            await setActiveContact(chatState.contacts[0].id);
         } else {
             renderContacts();
             renderMessages();
@@ -299,8 +367,9 @@
     function closeMessagingWidget() {
         chatState.isOpen = false;
         chatState.isMinimized = false;
-        document.getElementById('messaging-window').classList.add('hidden');
-        document.getElementById('messaging-window').classList.remove('flex');
+        var windowEl = document.getElementById('messaging-window');
+        windowEl.classList.add('hidden');
+        windowEl.classList.remove('flex');
         document.getElementById('toggle-messaging-floating').classList.remove('hidden');
         loadUnreadCount();
     }
@@ -308,6 +377,7 @@
     function minimizeMessagingWidget() {
         chatState.isMinimized = !chatState.isMinimized;
         const windowEl = document.getElementById('messaging-window');
+        
         if (chatState.isMinimized) {
             windowEl.classList.replace("w-[700px]", "w-80");
             windowEl.classList.replace("h-[500px]", "h-14");
@@ -327,137 +397,121 @@
     }
 
     async function setActiveContact(contactId) {
-        chatState.activeContactId = contactId;
-        const contact = chatState.contacts.find(c => c.id == contactId);
-        
+        chatState.activeContactId = String(contactId);
+        var contact = chatState.contacts.find(function(c) { return String(c.id) === String(contactId); });
+
         if (contact) {
             document.getElementById('active-contact-name').textContent = contact.name;
             document.getElementById('active-contact-role').textContent = contact.role;
-            document.getElementById('active-contact-struct').textContent = contact.structure || "";
-            // ... (logique pour le statut en ligne)
+            document.getElementById('active-contact-struct').textContent = contact.structure || '';
+            var dot = document.getElementById('active-contact-status-dot');
+            var txt = document.getElementById('active-contact-status-text');
+            if (contact.isOnline) {
+                dot.className = 'h-1.5 w-1.5 rounded-full bg-blue-500';
+                txt.textContent = 'EN LIGNE';
+            } else {
+                dot.className = 'h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600';
+                txt.textContent = 'HORS LIGNE';
+            }
+            if (chatState.isMinimized) {
+                document.getElementById('messaging-minimized-title').textContent = 'Discuter avec ' + contact.name.split(' ')[0];
+            }
         }
-        
+
         renderContacts();
         await loadMessages(contactId);
     }
-    
-    // =========================================================================
-    // RENDU
-    // =========================================================================
-    function renderContacts(query = "") {
-        const listContainer = document.getElementById('contacts-list');
-        const lowerCaseQuery = query.toLowerCase();
-        
-        const filtered = chatState.contacts.filter(c => 
-            c.name.toLowerCase().includes(lowerCaseQuery) ||
-            c.role.toLowerCase().includes(lowerCaseQuery) ||
-            (c.structure || '').toLowerCase().includes(lowerCaseQuery)
-        );
 
-        if (filtered.length === 0) {
-            listContainer.innerHTML = `<p class="p-4 text-[10.5px] text-slate-500 italic text-center">Aucun contact trouvé.</p>`;
-            return;
+    async function handleSendMessage(e) {
+        e.preventDefault();
+        var input = document.getElementById('chat-input-text');
+        var text = input.value.trim();
+        if (!text || !chatState.activeContactId) return;
+
+        var btn = document.getElementById('send-msg-btn');
+        btn.disabled = true;
+
+        try {
+            var r = await fetch('/api/v1/messages/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    recipient: chatState.activeContactId,
+                    content: text,
+                }),
+            });
+            if (!r.ok) throw new Error('Échec envoi');
+            var msg = await r.json();
+            if (!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
+            chatState.messages[chatState.activeContactId].push(msg);
+            input.value = '';
+            renderMessages();
+            await loadUnreadCount();
+        } catch(err) {
+            console.error(err);
+            if (window.showAppToast) window.showAppToast("Erreur d'envoi.", 'error');
+            btn.disabled = false;
         }
-
-        listContainer.innerHTML = filtered.map(c => {
-            const isSelected = c.id === chatState.activeContactId;
-            const bgClass = isSelected ? "bg-white/5 dark:bg-white/10" : "hover:bg-slate-200 dark:hover:bg-white/[0.02]";
-            const nameColor = isSelected ? "text-blue-700 dark:text-white" : "text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white";
-            
-            return `
-            <button onclick="setActiveContact('${c.id}')" class="w-full p-3 text-left transition-all duration-150 flex items-start gap-2.5 cursor-pointer relative group ${bgClass}">
-                <div class="h-8.5 w-8.5 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold shrink-0 relative border border-white/10" style="background-color: ${c.avatarColor}">
-                    ${c.name.substring(0,2).toUpperCase()}
-                    ${c.isOnline ? '<span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-blue-500 border border-slate-200 dark:border-slate-900 rounded-full"></span>' : ''}
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-1.5">
-                        <span class="text-[11.5px] font-bold truncate leading-snug ${nameColor}">${c.name}</span>
-                    </div>
-                    <p class="text-[9.5px] mt-0.5 truncate font-semibold text-slate-500 dark:text-slate-400">${c.role}</p>
-                </div>
-            </button>`;
-        }).join('');
     }
-
-    function renderMessages() {
-        const container = document.getElementById('messages-container');
-        const msgs = chatState.messages[chatState.activeContactId] || [];
-
-        if (msgs.length === 0) {
-            container.innerHTML = `<p class="text-[10.5px] text-slate-500 italic py-12 text-center">Début de l'historique sécurisé avec ce contact.</p>`;
-            return;
-        }
-
-        container.innerHTML = msgs.map(m => {
-            const isMe = String(m.sender) === String(chatState.myProfile.id);
-            const wrapperClass = isMe ? "justify-end" : "justify-start";
-            
-            const bubbleClass = isMe 
-                ? "bg-blue-600 text-white dark:bg-blue-500/10 dark:border dark:border-blue-500/25 dark:text-slate-100" 
-                : "bg-slate-100 border border-slate-200 text-slate-800 dark:bg-white/[0.03] dark:border-white/5 dark:text-slate-200";
-
-            const timeColor = isMe ? "text-blue-100 dark:text-white/40" : "text-slate-400 dark:text-white/40";
-            const checkColor = isMe ? "text-blue-300 dark:text-blue-400" : "";
-            const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : '';
-
-            return `
-            <div class="flex ${wrapperClass} animate-fadeIn">
-                <div class="max-w-[85%] rounded-xl px-3.5 py-2.5 text-xs shadow-sm leading-relaxed ${bubbleClass}">
-                    <p class="whitespace-pre-wrap">${m.content}</p>
-                    <div class="mt-1 flex items-center justify-end gap-1.5 text-[8.5px] ${timeColor}">
-                        <span>${timeStr}</span>
-                        ${isMe ? `<i data-lucide="check-check" class="h-3 w-3 ${checkColor}"></i>` : ''}
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-        
-        lucide.createIcons();
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        const container = document.getElementById('messages-container');
-        if (container) container.scrollTop = container.scrollHeight;
-    }
-    function filterContacts(val) { renderContacts(val); }
 
     // =========================================================================
-    // PARTAGE DE CLAUSE
+    // EXPORTS pour editor_area.html
     // =========================================================================
+    window.openMessagingWidget = openMessagingWidget;
+
     window.shareClauseToChat = async function(recipientId, code, excerpt) {
-        const contentParts = [`📋 Clause partagée [${code}]`];
-        if (excerpt && excerpt.trim()) {
-            contentParts.push(`\n« ${excerpt.trim()} »`);
-        }
-        const payload = {
-            recipient: recipientId,
-            content: contentParts.join(''),
-            is_clause_share: true,
-            clause_code: code,
-            clause_excerpt: excerpt
-        };
+        var parts = ['📋 Clause partagée [' + code + ']'];
+        if (excerpt && excerpt.trim()) parts.push('\n« ' + excerpt.trim() + ' »');
 
-        await fetch('/api/v1/messages/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getMessagingCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify(payload)
-        });
-        
-        await openMessagingWidget();
+        try {
+            var r = await fetch('/api/v1/messages/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    recipient: recipientId,
+                    content: parts.join(''),
+                    is_clause_share: true,
+                    clause_code: code,
+                    clause_excerpt: excerpt || '',
+                }),
+            });
+            if (r.ok) {
+                var msg = await r.json();
+                var rid = String(recipientId);
+                if (!chatState.messages[rid]) chatState.messages[rid] = [];
+                chatState.messages[rid].push(msg);
+            }
+        } catch(err) {
+            console.error('shareClauseToChat:', err);
+        }
+
+        if (!chatState.isOpen) await openMessagingWidget();
         await setActiveContact(recipientId);
     };
 
-    // Initialisation
-    setTimeout(() => {
+    // =========================================================================
+    // INITIALISATION & POLLING
+    // =========================================================================
+    setTimeout(function() {
         lucide.createIcons();
         loadUnreadCount();
         if (!chatState.pollTimer) {
-            chatState.pollTimer = setInterval(async () => {
+            chatState.pollTimer = setInterval(async function() {
                 await loadUnreadCount();
-                if (chatState.isOpen && chatState.activeContactId) await loadMessages(chatState.activeContactId);
+                if (chatState.isOpen && !chatState.isMinimized && chatState.activeContactId) {
+                    await loadMessages(chatState.activeContactId);
+                }
             }, 15000);
         }
     }, 100);
+
+})();
 </script>

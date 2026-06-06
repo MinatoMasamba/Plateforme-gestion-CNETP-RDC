@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 import logging
+import time
 
 from apps.mobileapp.models import Notification, NotificationPreference, ActivationToken
 from apps.mobileapp.tasks import dispatch_notification
@@ -13,12 +14,22 @@ logger = logging.getLogger(__name__)
 
 
 def _fire_task(task, *args):
-    """Envoie la task en async ; si le broker est absent, exécution synchrone."""
+    """Envoie la task en async ; si le broker est absent, exécution synchrone avec retry."""
     try:
         task.delay(*args)
     except Exception as exc:
         logger.warning('Broker indisponible (%s) — exécution synchrone de %s', exc.__class__.__name__, task.name)
-        task.apply(args=args)
+        for attempt in range(3):
+            try:
+                task.apply(args=args)
+                return
+            except Exception as e:
+                if attempt < 2:
+                    wait = 10 * (attempt + 1)
+                    logger.warning('Tentative synchrone %d/3 échouée pour %s: %s — retry dans %ds', attempt + 1, task.name, e, wait)
+                    time.sleep(wait)
+                else:
+                    logger.exception('_fire_task: 3 tentatives synchrones échouées pour %s: %s', task.name, e)
 
 
 def create_notification_for_user(user, title, body, notification_type, priority='NORMAL', data=None):
