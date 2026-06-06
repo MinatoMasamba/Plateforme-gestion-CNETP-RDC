@@ -17,5 +17,6 @@ urlpatterns = [
     path('se-connecter-user/', UserLoginView.as_view(), name='user_login'),
     path('api/components/<str:module_id>/', component_api_view, name='api_components'),
     # Redirections depuis les liens email vers l'application
+    path('wgs/', wg_redirect, name='wg_redirect_index'),
     path('wgs/<int:wg_id>/', wg_redirect, name='wg_redirect'),
 ]
