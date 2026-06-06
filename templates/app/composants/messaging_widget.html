@@ -461,7 +461,13 @@
     // =========================================================================
     // EXPORTS pour editor_area.html
     // =========================================================================
-    window.openMessagingWidget = openMessagingWidget;
+    // Exports globaux — écrasent les éventuelles définitions précédentes de app.html
+    window.openMessagingWidget    = openMessagingWidget;
+    window.closeMessagingWidget   = closeMessagingWidget;
+    window.minimizeMessagingWidget = minimizeMessagingWidget;
+    window.setActiveContact       = setActiveContact;
+    window.filterContacts         = filterContacts;
+    window.handleSendMessage      = handleSendMessage;
 
     window.shareClauseToChat = async function(recipientId, code, excerpt) {
         var parts = ['📋 Clause partagée [' + code + ']'];
