@@ -440,7 +440,7 @@
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
-                    recipient: chatState.activeContactId,
+                    receiver_id: chatState.activeContactId,
                     content: text,
                 }),
             });
@@ -476,7 +476,7 @@
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
-                    recipient: recipientId,
+                    receiver_id: recipientId,
                     content: parts.join(''),
                     is_clause_share: true,
                     clause_code: code,
