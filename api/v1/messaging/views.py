@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .serializers import MessageSerializer
 from apps.messaging.models import Message
 from apps.experts.models import Expert
@@ -67,6 +69,33 @@ class MessageViewSet(viewsets.ModelViewSet):
         message = serializer.save(sender=sender)
 
         if recipient:
+            # ── Diffusion WebSocket temps réel ────────────────────────────────
+            # Envoie le message à TOUS les participants connectés dans la room,
+            # qu'ils aient envoyé via REST ou WS. Cela garantit que le
+            # destinataire voit le message immédiatement dans ChatScreen.
+            try:
+                channel_layer = get_channel_layer()
+                ids       = sorted([sender.id, recipient.id])
+                room_name = f"chat_{ids[0]}_{ids[1]}"
+                async_to_sync(channel_layer.group_send)(room_name, {
+                    'type':          'chat_message',
+                    'id':            message.id,
+                    'subject':       message.subject,
+                    'content':       message.content,
+                    'sender':        sender.id,
+                    'sender_name':   sender.get_full_name(),
+                    'sender_email':  sender.email,
+                    'receiver':      recipient.id,
+                    'receiver_name': recipient.get_full_name(),
+                    'status':        Message.STATUS_DELIVERED,
+                    'is_read':       False,
+                    'timestamp':     message.timestamp.isoformat(),
+                })
+            except Exception:
+                # Redis absent ou room vide → le message est quand même en DB
+                pass
+
+            # ── Notification push ─────────────────────────────────────────────
             try:
                 from apps.mobileapp.models import Notification
                 Notification.objects.create(
