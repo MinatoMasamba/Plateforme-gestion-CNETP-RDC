@@ -5937,3 +5937,24 @@ INFO 2026-06-06 17:19:33,642 autoreload 21667 125251078013056 /home/minato/proje
 INFO 2026-06-06 17:19:38,438 autoreload 25592 124873933004928 Watching for file changes with StatReloader
 INFO 2026-06-06 17:20:00,099 autoreload 25592 124873933004928 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
 INFO 2026-06-06 17:20:03,113 autoreload 25623 133446292676736 Watching for file changes with StatReloader
+INFO 2026-06-06 17:27:57,629 autoreload 25933 138392303337600 Watching for file changes with StatReloader
+INFO 2026-06-06 17:29:19,202 forms 25933 138392100665024 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 17:31:13,630 forms 25933 138392100665024 [ExpertLoginForm] - Initialisation du formulaire expert
+WARNING 2026-06-06 17:35:01,461 connection 25933 138392100665024 No hostname was supplied. Reverting to default 'localhost'
+WARNING 2026-06-06 17:35:02,183 signals 25933 138392100665024 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.send_activation_email
+INFO 2026-06-06 17:35:08,100 tasks 25933 138392100665024 Email d'activation envoyé à dicongubi@gmail.com (expert 10)
+INFO 2026-06-06 17:35:08,104 trace 25933 138392100665024 Task apps.mobileapp.tasks.send_activation_email[67263016-2f78-4923-9b54-12a72a6d00fc] succeeded in 5.898555675998068s: True
+INFO 2026-06-06 17:35:08,105 signals 25933 138392100665024 Task send_activation_email déclenchée pour expert 10
+WARNING 2026-06-06 17:35:08,930 signals 25933 138392100665024 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.dispatch_notification
+WARNING 2026-06-06 17:35:08,944 tasks 25933 138392100665024 Could not check notification preferences: User has no notification_preferences.
+INFO 2026-06-06 17:35:14,244 tasks 25933 138392100665024 Email sent to dicongubi@gmail.com for notification 3065b857-2236-4f7b-a38f-e58b225032b1
+INFO 2026-06-06 17:35:14,249 trace 25933 138392100665024 Task apps.mobileapp.tasks.dispatch_notification[cfb56417-5ac7-4a90-bdf9-8f8a4486678d] succeeded in 5.318588473001s: True
+INFO 2026-06-06 17:35:14,251 signals 25933 138392100665024 Created notification 3065b857-2236-4f7b-a38f-e58b225032b1 for user dicongubi@gmail.com
+INFO 2026-06-06 17:45:53,780 autoreload 25933 138392303337600 /home/minato/project/apps/mobileapp/tasks.py changed, reloading.
+INFO 2026-06-06 17:45:55,971 autoreload 26575 128017954381952 Watching for file changes with StatReloader
+INFO 2026-06-06 17:46:02,540 autoreload 26575 128017954381952 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-06 17:46:07,088 autoreload 26629 136939551334528 Watching for file changes with StatReloader
+INFO 2026-06-06 17:46:21,542 autoreload 26629 136939551334528 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-06-06 17:46:23,582 autoreload 26682 129340148572288 Watching for file changes with StatReloader
+WARNING 2026-06-06 17:48:39,876 log 26682 129340014589632 Not Found: /wsg/
+WARNING 2026-06-06 17:48:52,363 log 26682 129340014589632 Not Found: /wgs/

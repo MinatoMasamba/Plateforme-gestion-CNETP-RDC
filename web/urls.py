@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AboutView, App, ContactView, ExpertLoginView, HomeView, ExpertRegistrationView, User_RegistrationView, UserLoginView, component_api_view
+from .views import AboutView, App, ContactView, ExpertLoginView, HomeView, ExpertRegistrationView, User_RegistrationView, UserLoginView, component_api_view, wg_redirect
 
 app_name = 'web'
 
@@ -14,6 +14,8 @@ urlpatterns = [
     path('inscription-expert', ExpertRegistrationView.as_view(), name='expert_registration-no-slash'),
     path('se-connecter/', ExpertLoginView.as_view(), name='expert_login'),
     path('se-connecter/', ExpertLoginView.as_view(), name='expert_login-no-slash'),
-    path('se-connecter-user/',UserLoginView.as_view(), name='user_login'),
+    path('se-connecter-user/', UserLoginView.as_view(), name='user_login'),
     path('api/components/<str:module_id>/', component_api_view, name='api_components'),
+    # Redirections depuis les liens email vers l'application
+    path('wgs/<int:wg_id>/', wg_redirect, name='wg_redirect'),
 ]

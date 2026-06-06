@@ -57,6 +57,7 @@ def send_email_notification(notification):
             'body': notification.body,
             'data': notification.data,
             'priority': notification.priority,
+            'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
         }
         
         try:

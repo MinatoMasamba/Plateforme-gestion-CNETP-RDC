@@ -9,6 +9,13 @@ from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLog
 from django.contrib.auth import login as auth_login
 
 
+def wg_redirect(request, wg_id):
+    """Redirige /wgs/<id>/ vers l'application principale."""
+    if not request.user.is_authenticated:
+        return redirect('web:expert_login')
+    return redirect('web:app')
+
+
 class HomeView(View):
     """
     Vue d'accueil principale
