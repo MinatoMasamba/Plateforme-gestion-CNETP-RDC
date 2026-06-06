@@ -1,12 +1,19 @@
+import json
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM
 from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import login as auth_login, get_user_model
 
 
 def wg_redirect(request, wg_id=None):
@@ -284,3 +291,110 @@ def component_api_view(request, module_id):
     
     # render() renvoie le HTML pur généré
     return render(request, template_name, context)
+
+
+# ========== RÉINITIALISATION MOT DE PASSE ==========
+
+@require_POST
+@csrf_protect
+def password_reset_request(request):
+    """Étape 1 : reçoit un email, génère un code et l'envoie."""
+    User = get_user_model()
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'Requête invalide.'}, status=400)
+
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return JsonResponse({'ok': False, 'error': 'Email requis.'}, status=400)
+
+    try:
+        user = User.objects.get(email__iexact=email)
+    except User.DoesNotExist:
+        # Réponse neutre pour ne pas révéler l'existence du compte
+        return JsonResponse({'ok': True})
+
+    from apps.core.models import PasswordResetCode
+    reset = PasswordResetCode.generate_for(user)
+
+    context = {
+        'user': user,
+        'code': reset.code,
+        'expires_minutes': 15,
+        'site_name': 'CNETP',
+    }
+    try:
+        html_message = render_to_string('emails/password_reset_code.html', context)
+    except Exception:
+        html_message = (
+            f"<p>Bonjour {user.get_full_name()},</p>"
+            f"<p>Votre code de réinitialisation : <strong>{reset.code}</strong></p>"
+            f"<p>Il expire dans 15 minutes.</p>"
+        )
+
+    try:
+        send_mail(
+            subject='[CNETP] Code de réinitialisation de mot de passe',
+            message=f"Votre code : {reset.code} (valable 15 min)",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).exception('Erreur envoi code reset: %s', exc)
+        return JsonResponse({'ok': False, 'error': 'Impossible d\'envoyer l\'email. Réessayez.'}, status=500)
+
+    return JsonResponse({'ok': True})
+
+
+@require_POST
+@csrf_protect
+def password_reset_confirm(request):
+    """Étape 2 : vérifie le code et met à jour le mot de passe."""
+    User = get_user_model()
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'Requête invalide.'}, status=400)
+
+    email = (data.get('email') or '').strip().lower()
+    code = (data.get('code') or '').strip()
+    password = data.get('password', '')
+    password2 = data.get('password2', '')
+
+    if not all([email, code, password, password2]):
+        return JsonResponse({'ok': False, 'error': 'Tous les champs sont requis.'}, status=400)
+    if password != password2:
+        return JsonResponse({'ok': False, 'error': 'Les mots de passe ne correspondent pas.'}, status=400)
+    if len(password) < 8:
+        return JsonResponse({'ok': False, 'error': 'Le mot de passe doit contenir au moins 8 caractères.'}, status=400)
+
+    try:
+        user = User.objects.get(email__iexact=email)
+    except User.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Code invalide ou expiré.'}, status=400)
+
+    from apps.core.models import PasswordResetCode
+    reset = PasswordResetCode.objects.filter(user=user, is_used=False).order_by('-created_at').first()
+
+    if not reset or not reset.is_valid:
+        return JsonResponse({'ok': False, 'error': 'Code expiré. Faites une nouvelle demande.'}, status=400)
+
+    if reset.code != code:
+        reset.attempts += 1
+        reset.save(update_fields=['attempts'])
+        remaining = max(0, 3 - reset.attempts)
+        return JsonResponse({
+            'ok': False,
+            'error': f'Code incorrect. {remaining} tentative(s) restante(s).'
+        }, status=400)
+
+    reset.is_used = True
+    reset.save(update_fields=['is_used'])
+    user.set_password(password)
+    user.save(update_fields=['password'])
+
+    return JsonResponse({'ok': True})

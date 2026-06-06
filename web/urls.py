@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import AboutView, App, ContactView, ExpertLoginView, HomeView, ExpertRegistrationView, User_RegistrationView, UserLoginView, component_api_view, wg_redirect
+from .views import (AboutView, App, ContactView, ExpertLoginView, HomeView,
+                    ExpertRegistrationView, User_RegistrationView, UserLoginView,
+                    component_api_view, wg_redirect,
+                    password_reset_request, password_reset_confirm)
 
 app_name = 'web'
 
@@ -16,6 +19,9 @@ urlpatterns = [
     path('se-connecter/', ExpertLoginView.as_view(), name='expert_login-no-slash'),
     path('se-connecter-user/', UserLoginView.as_view(), name='user_login'),
     path('api/components/<str:module_id>/', component_api_view, name='api_components'),
+    # Réinitialisation mot de passe
+    path('mot-de-passe-oublie/demander/', password_reset_request, name='password_reset_request'),
+    path('mot-de-passe-oublie/reinitialiser/', password_reset_confirm, name='password_reset_confirm'),
     # Redirections depuis les liens email vers l'application
     path('wgs/', wg_redirect, name='wg_redirect_index'),
     path('wgs/<int:wg_id>/', wg_redirect, name='wg_redirect'),

@@ -1,3 +1,5 @@
+import random
+import string
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -82,3 +84,37 @@ class AuditLog(models.Model):
     
     def __str__(self):
         return f"{self.action} {self.object_repr} par {self.user} le {self.timestamp}"
+
+
+class PasswordResetCode(models.Model):
+    """Code à 6 chiffres pour réinitialisation de mot de passe."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reset_codes')
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempts = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Code de réinitialisation"
+        verbose_name_plural = "Codes de réinitialisation"
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at and self.attempts < 3
+
+    @classmethod
+    def generate_for(cls, user):
+        cls.objects.filter(user=user, is_used=False).update(is_used=True)
+        code = ''.join(random.choices(string.digits, k=6))
+        return cls.objects.create(
+            user=user,
+            code=code,
+            expires_at=timezone.now() + timezone.timedelta(minutes=15),
+        )

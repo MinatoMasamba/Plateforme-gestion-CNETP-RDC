@@ -113,7 +113,7 @@
                             <label for="remember-me" class="ml-2 block text-xs text-slate-400 cursor-pointer">Se souvenir de moi</label>
                         </div>
                         <div class="text-xs">
-                            <a href="#" class="font-medium text-blue-400 hover:text-blue-300 transition-colors">Mot de passe oublié ?</a>
+                            <button type="button" onclick="openResetModal()" class="font-medium text-blue-400 hover:text-blue-300 transition-colors">Mot de passe oublié ?</button>
                         </div>
                     </div>
 
@@ -132,9 +132,244 @@
         </div>
     </main>
 
+    <!-- ===== MODAL RÉINITIALISATION MOT DE PASSE ===== -->
+    <div id="reset-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeResetModal()"></div>
+        <div class="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0f1021] shadow-2xl overflow-hidden animate-slideIn">
+            <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent"></div>
+
+            <!-- Étape 1 : Email -->
+            <div id="step-email" class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Mot de passe oublié</h2>
+                        <p class="text-xs text-slate-400 mt-1">Entrez votre email pour recevoir un code</p>
+                    </div>
+                    <button onclick="closeResetModal()" class="text-slate-500 hover:text-white transition-colors p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Adresse email</label>
+                        <div class="relative">
+                            <input id="reset-email" type="email" placeholder="votre@email.com" autocomplete="email"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all">
+                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-500"><i data-lucide="mail" class="w-4 h-4"></i></span>
+                        </div>
+                    </div>
+                    <div id="reset-step1-error" class="hidden rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span id="reset-step1-msg"></span>
+                    </div>
+                    <button onclick="submitResetEmail()" id="btn-send-code"
+                        class="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-400 active:scale-[0.98] transition-all">
+                        Envoyer le code <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Étape 2 : Code + Nouveau mot de passe -->
+            <div id="step-code" class="p-8 hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Vérification</h2>
+                        <p class="text-xs text-slate-400 mt-1">Code envoyé à <span id="reset-email-display" class="text-blue-400 font-medium"></span></p>
+                    </div>
+                    <button onclick="closeResetModal()" class="text-slate-500 hover:text-white transition-colors p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Indicateur d'étapes -->
+                <div class="flex items-center gap-2 mb-6 mt-4">
+                    <div class="h-1 flex-1 rounded-full bg-blue-500"></div>
+                    <div class="h-1 flex-1 rounded-full bg-blue-500"></div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Code à 6 chiffres</label>
+                        <input id="reset-code" type="text" inputmode="numeric" maxlength="6" placeholder="• • • • • •"
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold tracking-[0.5em] text-blue-400 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nouveau mot de passe</label>
+                        <div class="relative">
+                            <input id="reset-password" type="password" placeholder="Min. 8 caractères"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all">
+                            <button type="button" onclick="togglePwd('reset-password', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Confirmer le mot de passe</label>
+                        <div class="relative">
+                            <input id="reset-password2" type="password" placeholder="Répétez le mot de passe"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all">
+                            <button type="button" onclick="togglePwd('reset-password2', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="reset-step2-error" class="hidden rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span id="reset-step2-msg"></span>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="goBackToEmail()" class="flex-1 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-slate-300 hover:bg-white/10 active:scale-[0.98] transition-all">
+                            Retour
+                        </button>
+                        <button onclick="submitResetConfirm()" id="btn-confirm"
+                            class="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-400 active:scale-[0.98] transition-all">
+                            Réinitialiser <i data-lucide="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <button onclick="submitResetEmail()" class="w-full text-xs text-slate-500 hover:text-blue-400 transition-colors">
+                        Renvoyer le code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Étape 3 : Succès -->
+            <div id="step-success" class="p-8 text-center hidden">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-5">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white mb-2">Mot de passe mis à jour</h2>
+                <p class="text-sm text-slate-400 mb-6">Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.</p>
+                <button onclick="closeResetModal()" class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-400 active:scale-[0.98] transition-all">
+                    Se connecter
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Initialisation des icônes Lucide
         lucide.createIcons();
+
+        var _resetEmail = '';
+
+        function getCsrfToken() {
+            var v = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+            return v ? v.pop() : '';
+        }
+
+        function openResetModal() {
+            showStep('step-email');
+            document.getElementById('reset-modal').classList.remove('hidden');
+            document.getElementById('reset-email').focus();
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+            document.getElementById('reset-email').value = '';
+            document.getElementById('reset-code').value = '';
+            document.getElementById('reset-password').value = '';
+            document.getElementById('reset-password2').value = '';
+            hideError('reset-step1-error');
+            hideError('reset-step2-error');
+        }
+
+        function showStep(id) {
+            ['step-email','step-code','step-success'].forEach(function(s) {
+                document.getElementById(s).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function showError(elId, msg) {
+            var el = document.getElementById(elId);
+            el.classList.remove('hidden');
+            el.querySelector('span').textContent = msg;
+        }
+
+        function hideError(elId) {
+            document.getElementById(elId).classList.add('hidden');
+        }
+
+        function setLoading(btnId, loading) {
+            var btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            btn.style.opacity = loading ? '0.6' : '';
+        }
+
+        function togglePwd(inputId, btn) {
+            var inp = document.getElementById(inputId);
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                btn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+            } else {
+                inp.type = 'password';
+                btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>';
+            }
+            lucide.createIcons();
+        }
+
+        function goBackToEmail() {
+            hideError('reset-step2-error');
+            showStep('step-email');
+        }
+
+        async function submitResetEmail() {
+            hideError('reset-step1-error');
+            var email = document.getElementById('reset-email').value.trim();
+            if (!email) { showError('reset-step1-error', 'Veuillez entrer votre adresse email.'); return; }
+            setLoading('btn-send-code', true);
+            try {
+                var res = await fetch('{% url "web:password_reset_request" %}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+                    body: JSON.stringify({email: email})
+                });
+                var data = await res.json();
+                if (data.ok) {
+                    _resetEmail = email;
+                    document.getElementById('reset-email-display').textContent = email;
+                    showStep('step-code');
+                    document.getElementById('reset-code').focus();
+                } else {
+                    showError('reset-step1-error', data.error || 'Une erreur est survenue.');
+                }
+            } catch(e) {
+                showError('reset-step1-error', 'Erreur réseau. Vérifiez votre connexion.');
+            } finally {
+                setLoading('btn-send-code', false);
+            }
+        }
+
+        async function submitResetConfirm() {
+            hideError('reset-step2-error');
+            var code = document.getElementById('reset-code').value.trim();
+            var pwd = document.getElementById('reset-password').value;
+            var pwd2 = document.getElementById('reset-password2').value;
+            if (!code || !pwd || !pwd2) { showError('reset-step2-error', 'Tous les champs sont requis.'); return; }
+            if (pwd !== pwd2) { showError('reset-step2-error', 'Les mots de passe ne correspondent pas.'); return; }
+            if (pwd.length < 8) { showError('reset-step2-error', 'Mot de passe trop court (min. 8 caractères).'); return; }
+            setLoading('btn-confirm', true);
+            try {
+                var res = await fetch('{% url "web:password_reset_confirm" %}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+                    body: JSON.stringify({email: _resetEmail, code: code, password: pwd, password2: pwd2})
+                });
+                var data = await res.json();
+                if (data.ok) {
+                    showStep('step-success');
+                } else {
+                    showError('reset-step2-error', data.error || 'Une erreur est survenue.');
+                }
+            } catch(e) {
+                showError('reset-step2-error', 'Erreur réseau. Vérifiez votre connexion.');
+            } finally {
+                setLoading('btn-confirm', false);
+            }
+        }
+
+        // Fermer avec Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeResetModal();
+        });
     </script>
 </body>
 </html>
