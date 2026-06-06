@@ -120,11 +120,12 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsMemberOfAnySharedCTM])
     def mark_as_read(self, request, pk=None):
-        """Marque un message comme lu."""
+        """Marque un message comme lu (is_read=True, status='read')."""
         try:
             message = self.get_queryset().get(pk=pk, recipient=request.user)
             message.is_read = True
-            message.save()
+            message.status = Message.STATUS_READ
+            message.save(update_fields=['is_read', 'status', 'updated_at'])
             return Response({'status': 'message marked as read'}, status=status.HTTP_200_OK)
         except Message.DoesNotExist:
             return Response({'detail': 'Message non trouvé ou non autorisé.'}, status=status.HTTP_404_NOT_FOUND)

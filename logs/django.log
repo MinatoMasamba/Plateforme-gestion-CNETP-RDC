@@ -5958,3 +5958,131 @@ INFO 2026-06-06 17:46:21,542 autoreload 26629 136939551334528 /home/minato/proje
 INFO 2026-06-06 17:46:23,582 autoreload 26682 129340148572288 Watching for file changes with StatReloader
 WARNING 2026-06-06 17:48:39,876 log 26682 129340014589632 Not Found: /wsg/
 WARNING 2026-06-06 17:48:52,363 log 26682 129340014589632 Not Found: /wgs/
+INFO 2026-06-06 18:44:41,635 autoreload 27927 130965197381760 Watching for file changes with StatReloader
+WARNING 2026-06-06 18:44:54,781 log 27927 130965063071424 Not Found: /wgs/
+INFO 2026-06-06 18:45:37,185 autoreload 27927 130965197381760 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-06-06 18:45:40,524 autoreload 28079 136948977533056 Watching for file changes with StatReloader
+INFO 2026-06-06 18:45:43,351 autoreload 28079 136948977533056 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-06 18:45:48,291 autoreload 28081 133252266680448 Watching for file changes with StatReloader
+WARNING 2026-06-06 18:47:36,242 log 28081 133251880441536 Not Found: /wsg/
+WARNING 2026-06-06 18:47:38,425 log 28081 133251880441536 Not Found: /wsg/
+WARNING 2026-06-06 18:56:39,862 log 28081 133251888834240 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 18:56:39,864 log 28081 133252112176832 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 18:56:39,866 log 28081 133251880441536 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 18:56:42,825 log 28081 133251880441536 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 18:59:39,136 log 28081 133252122666688 Not Found: /wsg/
+INFO 2026-06-06 18:59:44,867 forms 28081 133252122666688 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 19:04:00,472 autoreload 28081 133252266680448 /home/minato/project/apps/core/models.py changed, reloading.
+INFO 2026-06-06 19:04:05,504 autoreload 29048 130577394421888 Watching for file changes with StatReloader
+INFO 2026-06-06 19:04:13,356 autoreload 29048 130577394421888 /home/minato/project/apps/core/models.py changed, reloading.
+INFO 2026-06-06 19:04:19,359 autoreload 29088 136013849677952 Watching for file changes with StatReloader
+INFO 2026-06-06 19:05:01,949 autoreload 29088 136013849677952 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-06 19:05:07,541 autoreload 29694 134923067334784 Watching for file changes with StatReloader
+INFO 2026-06-06 19:05:30,845 autoreload 29694 134923067334784 /home/minato/project/web/views.py changed, reloading.
+INFO 2026-06-06 19:05:36,581 autoreload 29740 135823537561728 Watching for file changes with StatReloader
+INFO 2026-06-06 19:05:40,205 autoreload 29740 135823537561728 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-06-06 19:05:42,571 autoreload 29742 136224682279040 Watching for file changes with StatReloader
+INFO 2026-06-06 19:05:49,317 autoreload 29742 136224682279040 /home/minato/project/web/urls.py changed, reloading.
+INFO 2026-06-06 19:05:52,364 autoreload 29744 133704159617152 Watching for file changes with StatReloader
+INFO 2026-06-06 19:55:31,684 autoreload 29744 133704159617152 /home/minato/project/apps/messaging/models.py changed, reloading.
+INFO 2026-06-06 19:55:34,196 autoreload 31321 137889265229952 Watching for file changes with StatReloader
+INFO 2026-06-06 19:55:59,434 autoreload 31321 137889265229952 /home/minato/project/api/v1/messaging/serializers.py changed, reloading.
+INFO 2026-06-06 19:56:01,981 autoreload 31326 139589504295040 Watching for file changes with StatReloader
+INFO 2026-06-06 19:58:36,072 autoreload 31326 139589504295040 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 19:58:41,258 autoreload 31448 138767369175168 Watching for file changes with StatReloader
+WARNING 2026-06-06 19:58:48,784 log 31448 138767151126208 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 19:58:48,789 log 31448 138767167911616 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 19:58:48,790 log 31448 138767159518912 Forbidden: /api/v1/mobile/notifications/unread_count/
+INFO 2026-06-06 19:58:50,675 autoreload 31448 138767369175168 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 19:58:53,901 autoreload 31459 126343612735616 Watching for file changes with StatReloader
+WARNING 2026-06-06 19:58:56,432 log 31459 126343479031488 Forbidden: /api/v1/messages/
+ERROR 2026-06-06 19:59:34,452 log 31459 126343479031488 Internal Server Error: /api/v1/messages/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: messaging_message.subject
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/mixins.py", line 40, in list
+    page = self.paginate_queryset(queryset)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/generics.py", line 175, in paginate_queryset
+    return self.paginator.paginate_queryset(queryset, self.request, view=self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/pagination.py", line 213, in paginate_queryset
+    return list(self.page)
+           ^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/paginator.py", line 319, in __len__
+    return len(self.object_list)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 372, in __len__
+    self._fetch_all()
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 2000, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/query.py", line 95, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1624, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: messaging_message.subject
+INFO 2026-06-06 20:01:02,133 autoreload 31459 126343612735616 /home/minato/project/api/v1/messaging/serializers.py changed, reloading.
+INFO 2026-06-06 20:01:04,293 autoreload 31540 134707850240128 Watching for file changes with StatReloader
+INFO 2026-06-06 20:01:17,561 autoreload 31540 134707850240128 /home/minato/project/api/v1/messaging/views.py changed, reloading.
+INFO 2026-06-06 20:01:21,932 autoreload 31551 136891349344384 Watching for file changes with StatReloader
+INFO 2026-06-06 20:04:49,765 cli 31626 129667566231680 Starting server at tcp:port=8000:interface=0.0.0.0
+INFO 2026-06-06 20:04:49,766 server 31626 129667566231680 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-06-06 20:04:49,766 server 31626 129667566231680 Configuring endpoint tcp:port=8000:interface=0.0.0.0
+CRITICAL 2026-06-06 20:04:49,767 server 31626 129667566231680 Listen failure: Couldn't listen on 0.0.0.0:8000: [Errno 98] Address already in use.
+INFO 2026-06-06 20:06:57,588 cli 32045 138444623208576 Starting server at tcp:port=8000:interface=0.0.0.0
+INFO 2026-06-06 20:06:57,589 server 32045 138444623208576 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-06-06 20:06:57,590 server 32045 138444623208576 Configuring endpoint tcp:port=8000:interface=0.0.0.0
+INFO 2026-06-06 20:06:57,592 server 32045 138444623208576 Listening on TCP address 0.0.0.0:8000
+WARNING 2026-06-06 20:14:40,790 log 32045 138444500104896 Forbidden: /api/v1/messages/contacts/
