@@ -2,3 +2,26 @@
 .env
 vendor/magic-mcp/
 vendor/ui-ux-pro-max-skill/
+
+# Python compilé
+__pycache__/
+*.pyc
+*.pyo
+
+# Base de données locale
+db.sqlite3
+
+# Logs
+logs/*.log
+
+# Virtualenv
+mon_env/
+venv/
+env/
+
+# Fichiers IDE
+.vscode/
+.idea/
+
+# Médias uploadées
+media/
