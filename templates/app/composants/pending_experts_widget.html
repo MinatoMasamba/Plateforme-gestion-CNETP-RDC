@@ -1,0 +1,380 @@
+<div id="pending-experts-btn-container" class="fixed bottom-6 left-6 z-40" style="display: none;">
+    <button 
+        onclick="togglePendingExpertsPanel()"
+        class="font-bold px-4 py-3 rounded-full flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer group hover:scale-105 transition-all text-xs tracking-wider uppercase backdrop-blur-md bg-white border border-amber-300 text-amber-700 hover:border-amber-400 hover:text-amber-800 dark:bg-[#020204] dark:border-amber-500/30 dark:hover:border-amber-400 dark:text-amber-500 dark:hover:text-amber-400"
+        title="Demandes d'adhésion en attente"
+    >
+        <div class="relative">
+            <i data-lucide="user-plus" class="h-5 w-5 text-amber-500 group-hover:animate-pulse"></i>
+            <span id="pending-experts-badge" class="absolute -top-2.5 -left-2.5 h-4.5 w-4.5 rounded-full bg-red-500 text-white font-extrabold text-[9px] flex items-center justify-center animate-bounce shadow-md" style="display: none;">
+                0
+            </span>
+        </div>
+        <span class="font-sans font-bold select-none hidden sm:inline-block">Adhésions CTM</span>
+        <span class="h-2 w-2 rounded-full animate-pulse inline-block bg-amber-500"></span>
+    </button>
+</div>
+
+<div id="pending-experts-panel" class="hidden flex-col fixed bottom-24 left-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] max-h-[70vh] border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all duration-300 bg-white/95 border-amber-200 text-slate-800 dark:bg-[#020204]/95 dark:border-white/10 dark:text-slate-200 overflow-hidden">
+    
+    <div class="h-14 border-b px-4.5 flex items-center justify-between shrink-0 bg-amber-50/80 border-amber-200 dark:bg-black/40 dark:border-white/10">
+        <div class="flex items-center gap-2.5">
+            <div class="h-8 w-8 rounded-lg flex items-center justify-center border bg-amber-100 text-amber-600 border-amber-300 dark:bg-amber-500/15 dark:text-amber-500 dark:border-amber-500/30">
+                <i data-lucide="users" class="h-4 w-4"></i>
+            </div>
+            <div>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 text-slate-900 dark:text-white">
+                    Adhésions CTM
+                    <span id="pending-experts-panel-count" class="bg-red-500 text-white text-[9px] font-black rounded-full px-1.5 py-0.5 shadow-sm"></span>
+                </h3>
+                <p class="text-[10px] text-slate-500 font-medium">Demandes en attente d'approbation</p>
+            </div>
+        </div>
+        <button onclick="closePendingExpertsPanel()" class="p-1.5 rounded-md text-slate-500 hover:bg-slate-200 dark:hover:bg-white/5 transition-all cursor-pointer">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+
+    <div id="pending-experts-list" class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-none bg-slate-50/50 dark:bg-transparent">
+        <div id="pending-experts-loading" class="flex flex-col items-center justify-center py-10 text-amber-500">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i>
+            <span class="text-xs font-semibold">Chargement...</span>
+        </div>
+        <div id="pending-experts-empty" class="hidden flex-col items-center justify-center py-10 text-slate-400 dark:text-slate-500">
+            <i data-lucide="check-circle-2" class="w-10 h-10 mb-3 opacity-50"></i>
+            <span class="text-xs font-medium">Aucune demande en attente.</span>
+        </div>
+    </div>
+</div>
+
+<template id="pending-expert-card-tpl">
+    <div class="pending-expert-card p-4 rounded-xl border transition-all duration-200 shadow-sm bg-white border-slate-200 hover:border-amber-400 dark:bg-[#0b0c14] dark:border-white/10 dark:hover:border-amber-500/50">
+        <div class="flex items-start justify-between gap-2 mb-3">
+            <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg flex items-center justify-center font-extrabold text-xs bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0 expert-avatar">
+                    </div>
+                <div class="min-w-0">
+                    <p class="font-bold text-xs truncate text-slate-900 dark:text-white expert-name"></p>
+                    <p class="text-[10px] text-slate-500 truncate expert-email font-mono"></p>
+                </div>
+            </div>
+            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 whitespace-nowrap animate-pulse shrink-0">
+                En attente
+            </span>
+        </div>
+        
+        <div class="space-y-1 mb-4 text-[11px]">
+            <p class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                <i data-lucide="building" class="h-3 w-3 text-slate-400"></i>
+                <span class="font-semibold expert-structure truncate"></span>
+            </p>
+            <p class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                <i data-lucide="layers" class="h-3 w-3"></i>
+                <span class="font-bold expert-ctm truncate"></span>
+            </p>
+            <p class="text-[10px] text-slate-500 italic mt-1.5 expert-specialties line-clamp-2"></p>
+        </div>
+
+        <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-white/5">
+            <div class="space-y-1">
+                <label class="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Affectation WG <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <select class="wg-select w-full text-xs font-semibold px-2.5 py-2 rounded-lg border appearance-none focus:outline-hidden transition-colors bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-400 dark:bg-black/40 dark:border-white/10 dark:text-slate-200 dark:focus:border-amber-500/50">
+                        <option value="" disabled selected>Choisir un WG...</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
+                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="rejectExpert(this)" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20">
+                    <i data-lucide="x" class="h-3.5 w-3.5"></i> Rejeter
+                </button>
+                <button onclick="admitExpert(this)" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-amber-500 hover:bg-amber-400 text-black border border-amber-400">
+                    <i data-lucide="check" class="h-3.5 w-3.5"></i> Accepter
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+(function() {
+    let _ctmWgs = {};
+
+    // ── Visibilité : disparaît au clic extérieur, réapparaît après inactivité ──
+    const IDLE_MS = 5000;
+    let _idleTimer   = null;
+    let _btnVisible  = false;
+    let _isCtmLeader = false;
+
+    function _getCsrf() {
+        return document.cookie.split(';').map(c => c.trim())
+            .find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+    }
+
+    function _getHeaders(json) {
+        const token = localStorage.getItem('auth_token') || '';
+        const csrf  = _getCsrf();
+        const h = { ...(json ? { 'Content-Type': 'application/json' } : {}) };
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        if (csrf)  h['X-CSRFToken']   = csrf;
+        return h;
+    }
+
+    function _toast(msg, type) {
+        if (window.showAppToast) { window.showAppToast(msg, type); return; }
+        console.log('[widget]', type, msg);
+    }
+
+    function _showBtn() {
+        if (!_isCtmLeader) return;
+        const btn = document.getElementById('pending-experts-btn-container');
+        if (btn) { btn.style.display = 'block'; btn.classList.add('animate-slideIn'); }
+        _btnVisible = true;
+    }
+
+    function _hideBtn() {
+        const btn   = document.getElementById('pending-experts-btn-container');
+        const panel = document.getElementById('pending-experts-panel');
+        if (btn) btn.style.display = 'none';
+        if (panel) { panel.classList.add('hidden'); panel.classList.remove('flex'); }
+        _btnVisible = false;
+    }
+
+    function _scheduleIdleShow() {
+        clearTimeout(_idleTimer);
+        _idleTimer = setTimeout(() => { if (!_btnVisible) _showBtn(); }, IDLE_MS);
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!_isCtmLeader) return;
+        const btn   = document.getElementById('pending-experts-btn-container');
+        const panel = document.getElementById('pending-experts-panel');
+        const inside = (btn && btn.contains(e.target)) || (panel && panel.contains(e.target));
+        if (!inside && _btnVisible) { _hideBtn(); _scheduleIdleShow(); }
+    }, true);
+
+    ['mousemove', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, function() {
+            if (_isCtmLeader && !_btnVisible) _scheduleIdleShow();
+        }, { passive: true });
+    });
+
+    // ── Badge ──
+    function _updateBadge(count) {
+        const badge      = document.getElementById('pending-experts-badge');
+        const panelCount = document.getElementById('pending-experts-panel-count');
+        if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+        if (panelCount) {
+            panelCount.textContent    = count > 0 ? count : '';
+            panelCount.style.display  = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // ── Init : vérifie si l'utilisateur est leader CTM ──
+    function initPendingExpertsWidget() {
+        fetch('/api/v1/experts/pending-count-for-my-ctm/', {
+            headers: _getHeaders(), credentials: 'include'
+        })
+        .then(r => {
+            if (!r.ok) {
+                console.warn('[PendingExperts] Erreur API pending-count (' + r.status + '). ' +
+                    'Vérifiez que l\'utilisateur est connecté (session ou JWT dans localStorage.auth_token).');
+                return null;
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (!data) return;
+            console.log('[PendingExperts] Réponse API :', data);
+            if (!data.is_ctm_leader) {
+                console.info('[PendingExperts] Bouton masqué : cet utilisateur n\'est pas ' +
+                    'Président, Rapporteur ou Secrétaire d\'un CTM. ' +
+                    'Affectez-le via CTM.scientific_president / rapporteur / secretary en admin.');
+                return;
+            }
+            _isCtmLeader = true;
+            _updateBadge(data.count);
+            _showBtn();
+        })
+        .catch(err => {
+            console.error('[PendingExperts] Fetch échoué :', err);
+        });
+    }
+
+    // ── Chargement des experts PENDING ──
+    function loadPendingExperts() {
+        const list    = document.getElementById('pending-experts-list');
+        const loading = document.getElementById('pending-experts-loading');
+        const empty   = document.getElementById('pending-experts-empty');
+        if (!list) return;
+
+        loading.style.display = 'flex';
+        empty.style.display   = 'none';
+        list.querySelectorAll('.pending-expert-card').forEach(c => c.remove());
+
+        fetch('/api/v1/experts/pending-for-my-ctm/', {
+            headers: _getHeaders(), credentials: 'include'
+        })
+        .then(r => r.ok ? r.json() : [])
+        .then(experts => {
+            loading.style.display = 'none';
+            if (!experts.length) { empty.style.display = 'flex'; _updateBadge(0); return; }
+            _updateBadge(experts.length);
+            experts.forEach(expert => _renderExpertCard(expert, list));
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        })
+        .catch(() => { loading.style.display = 'none'; empty.style.display = 'flex'; });
+    }
+
+    // ── Rendu d'une carte expert ──
+    function _renderExpertCard(expert, container) {
+        const tpl = document.getElementById('pending-expert-card-tpl');
+        if (!tpl) return;
+        const card = tpl.content.cloneNode(true).querySelector('.pending-expert-card');
+
+        card.dataset.expertId = expert.id;
+        card.dataset.ctmId    = expert.ctm || '';
+
+        const initials = ((expert.user?.first_name?.[0] || '') + (expert.user?.last_name?.[0] || '')).toUpperCase() || 'EX';
+        card.querySelector('.expert-avatar').textContent     = initials;
+        card.querySelector('.expert-name').textContent       = `${expert.user?.first_name || ''} ${expert.user?.last_name || ''}`.trim();
+        card.querySelector('.expert-email').textContent      = expert.user?.email || '';
+        card.querySelector('.expert-structure').textContent  = expert.structure?.name || '';
+        card.querySelector('.expert-ctm').textContent        = expert.ctm_name || '';
+        card.querySelector('.expert-specialties').textContent = expert.specialties ? `"${expert.specialties}"` : '';
+
+        // Charger les vrais WGs du CTM (avec cache)
+        const ctmId = expert.ctm;
+        if (ctmId) {
+            const select = card.querySelector('.wg-select');
+            if (_ctmWgs[ctmId]) {
+                _populateWgSelect(select, _ctmWgs[ctmId]);
+            } else {
+                fetch(`/api/v1/wg/?ctm=${ctmId}`, {
+                    headers: _getHeaders(), credentials: 'include'
+                })
+                .then(r => r.ok ? r.json() : { results: [] })
+                .then(data => {
+                    const wgs = data.results || data;
+                    _ctmWgs[ctmId] = wgs;
+                    _populateWgSelect(select, wgs);
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                })
+                .catch(() => {});
+            }
+        }
+
+        container.appendChild(card);
+    }
+
+    function _populateWgSelect(select, wgs) {
+        if (!select) return;
+        wgs.forEach(wg => {
+            const opt = document.createElement('option');
+            opt.value       = wg.id;
+            opt.textContent = wg.name || wg.titre || `WG ${wg.ctm_number || ''}.${wg.number}`;
+            opt.className   = 'dark:bg-slate-900';
+            select.appendChild(opt);
+        });
+    }
+
+    // ── Panneau toggle / close ──
+    window.togglePendingExpertsPanel = function() {
+        const panel = document.getElementById('pending-experts-panel');
+        if (!panel) return;
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            panel.classList.add('flex');
+            loadPendingExperts();
+        } else {
+            panel.classList.add('hidden');
+            panel.classList.remove('flex');
+        }
+    };
+
+    window.closePendingExpertsPanel = function() {
+        const panel = document.getElementById('pending-experts-panel');
+        if (panel) { panel.classList.add('hidden'); panel.classList.remove('flex'); }
+    };
+
+    // ── Accepter un expert ──
+    window.admitExpert = function(btn) {
+        const card    = btn.closest('.pending-expert-card');
+        const expertId = card.dataset.expertId;
+        const ctmId   = card.dataset.ctmId;
+        const wgId    = card.querySelector('.wg-select')?.value;
+
+        if (!wgId) {
+            _toast('Veuillez affecter l\'expert à un groupe de travail (WG).', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        const icon = btn.querySelector('i');
+        if (icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); lucide.createIcons(); }
+
+        fetch(`/api/v1/experts/${expertId}/admit-to-ctm/`, {
+            method: 'POST',
+            headers: _getHeaders(true),
+            credentials: 'include',
+            body: JSON.stringify({ ctm_id: ctmId ? parseInt(ctmId) : undefined, wg_id: parseInt(wgId) }),
+        })
+        .then(r => r.ok ? r.json() : r.json().then(e => { throw e; }))
+        .then(() => {
+            card.remove();
+            const remaining = document.querySelectorAll('.pending-expert-card').length;
+            _updateBadge(remaining);
+            if (remaining === 0) document.getElementById('pending-experts-empty').style.display = 'flex';
+            _toast('Expert approuvé et rattaché avec succès !', 'success');
+        })
+        .catch(err => {
+            btn.disabled = false;
+            if (icon) { icon.setAttribute('data-lucide', 'check'); icon.classList.remove('animate-spin'); lucide.createIcons(); }
+            _toast(err?.detail || 'Erreur lors de l\'approbation.', 'error');
+        });
+    };
+
+    // ── Rejeter un expert ──
+    window.rejectExpert = function(btn) {
+        const reason = prompt('Motif du rejet (optionnel) :');
+        if (reason === null) return;
+
+        const card     = btn.closest('.pending-expert-card');
+        const expertId = card.dataset.expertId;
+
+        btn.disabled = true;
+        const icon = btn.querySelector('i');
+        if (icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); lucide.createIcons(); }
+
+        fetch(`/api/v1/experts/${expertId}/reject/`, {
+            method: 'POST',
+            headers: _getHeaders(true),
+            credentials: 'include',
+            body: JSON.stringify({ reason }),
+        })
+        .then(r => r.ok ? r.json() : r.json().then(e => { throw e; }))
+        .then(() => {
+            card.remove();
+            const remaining = document.querySelectorAll('.pending-expert-card').length;
+            _updateBadge(remaining);
+            if (remaining === 0) document.getElementById('pending-experts-empty').style.display = 'flex';
+            _toast('Demande d\'adhésion rejetée.', 'info');
+        })
+        .catch(err => {
+            btn.disabled = false;
+            if (icon) { icon.setAttribute('data-lucide', 'x'); icon.classList.remove('animate-spin'); lucide.createIcons(); }
+            _toast(err?.detail || 'Erreur lors du rejet.', 'error');
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPendingExpertsWidget);
+    } else {
+        initPendingExpertsWidget();
+    }
+})();
+</script>

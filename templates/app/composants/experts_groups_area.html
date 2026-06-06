@@ -178,9 +178,7 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <div id="exp-approve-btn-container" class="w-full"></div>
-                        <button onclick="triggerExpertDelete()" class="px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ml-auto" title="Supprimer définitivement la fiche expert">
-                            <i data-lucide="trash-2" class="h-4 w-4"></i> Détacher du CNETP
-                        </button>
+                        <div id="exp-delete-btn-container"></div>
                     </div>
                 </div>
             </div>
@@ -375,6 +373,16 @@
         return (expState.myProfile.affectations || []).some(aff => {
             const role = aff.ctm_role || '';
             return sameId(aff.ctm, ctmId) && role && role !== 'Membre CTM';
+        });
+    }
+
+    function canDeleteExpert() {
+        const deleteRoles = ['ADMIN', 'PRES_CTM', 'SEC_PERM'];
+        if (deleteRoles.includes(expState.myProfile.roleId)) return true;
+        return (expState.myProfile.affectations || []).some(aff => {
+            const role = (aff.ctm_role || aff.role || '').toLowerCase();
+            return role.includes('président') || role.includes('president') ||
+                   role.includes('secrétaire') || role.includes('secretaire');
         });
     }
 
@@ -717,6 +725,16 @@
         document.getElementById('exp-contact-phone').textContent = exp.user?.phone || "";
         document.getElementById('exp-ctm-head').textContent = mainAffectation ? mainAffectation.ctm_name.split("–")[0] : "N/A";
         document.getElementById('exp-ctm-sub').textContent = mainAffectation ? (mainAffectation.ctm_name.split("–")[1] || mainAffectation.ctm_name) : "N/A";
+
+        // Bouton suppression : uniquement pour Président ou Secrétaire CTM
+        const deleteContainer = document.getElementById('exp-delete-btn-container');
+        if (deleteContainer) {
+            if (canDeleteExpert()) {
+                deleteContainer.innerHTML = `<button onclick="triggerExpertDelete()" class="px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ml-auto" title="Supprimer définitivement la fiche expert"><i data-lucide="trash-2" class="h-4 w-4"></i> Détacher du CNETP</button>`;
+            } else {
+                deleteContainer.innerHTML = '';
+            }
+        }
 
         // Approval rendering
         const appContainer = document.getElementById('exp-approval-container');

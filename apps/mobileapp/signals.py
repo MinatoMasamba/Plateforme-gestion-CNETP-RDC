@@ -6,10 +6,19 @@ from django.dispatch import receiver
 from django.utils import timezone
 import logging
 
-from apps.mobileapp.models import Notification, NotificationPreference
+from apps.mobileapp.models import Notification, NotificationPreference, ActivationToken
 from apps.mobileapp.tasks import dispatch_notification
 
 logger = logging.getLogger(__name__)
+
+
+def _fire_task(task, *args):
+    """Envoie la task en async ; si le broker est absent, exécution synchrone."""
+    try:
+        task.delay(*args)
+    except Exception as exc:
+        logger.warning('Broker indisponible (%s) — exécution synchrone de %s', exc.__class__.__name__, task.name)
+        task.apply(args=args)
 
 
 def create_notification_for_user(user, title, body, notification_type, priority='NORMAL', data=None):
@@ -23,9 +32,9 @@ def create_notification_for_user(user, title, body, notification_type, priority=
             priority=priority,
             data=data or {}
         )
-        
+
         # Dispatcher la notification de façon asynchrone
-        dispatch_notification.delay(str(notification.id))
+        _fire_task(dispatch_notification, str(notification.id))
         
         logger.info(f'Created notification {notification.id} for user {user.email}')
         return notification
@@ -268,6 +277,79 @@ def notify_votes_open(sender, instance, **kwargs):
                 )
     except Exception as e:
         logger.exception(f'Error notifying vote open: {e}')
+
+
+# ========== SIGNAL INSCRIPTION EXPERT → NOTIFICATION LEADERS CTM ==========
+
+@receiver(post_save, sender='experts.Expert', dispatch_uid='notify_ctm_leaders_new_expert')
+def notify_ctm_leaders_on_registration(sender, instance, created, **kwargs):
+    """Quand un expert s'inscrit (PENDING), notifier le Président, Rapporteur
+    et Secrétaire du CTM choisi — sur mobile ET web."""
+    if not created or instance.status != 'PENDING' or not instance.ctm:
+        return
+    try:
+        ctm = instance.ctm
+        leaders = [ctm.scientific_president, ctm.rapporteur, ctm.secretary]
+        full_name = instance.user.get_full_name() or instance.user.email
+        structure_acronym = instance.structure.acronym if instance.structure else ''
+        for leader in leaders:
+            if leader and leader.user_id:
+                create_notification_for_user(
+                    user=leader.user,
+                    title=f'Nouvelle demande CTM {ctm.number}',
+                    body=f'{full_name} ({structure_acronym}) demande à rejoindre votre CTM.',
+                    notification_type='EXPERT_INVITE',
+                    priority='HIGH',
+                    data={
+                        'expert_id': instance.id,
+                        'ctm_id': ctm.id,
+                        'ctm_number': ctm.number,
+                        'expert_name': full_name,
+                    },
+                )
+    except Exception as e:
+        logger.exception(f'Erreur notification leaders CTM inscription: {e}')
+
+
+# ========== SIGNAL TOKEN D'ACTIVATION EXPERT ==========
+
+@receiver(post_save, sender=ActivationToken, dispatch_uid='send_expert_activation_email')
+def on_activation_token_created(sender, instance, created, **kwargs):
+    """Quand un token d'activation est créé pour un expert :
+    1. Envoyer l'email d'invitation avec le lien de confirmation + deep link Flutter
+    2. Créer une notification in-app si l'expert a déjà un compte User actif
+    """
+    if not created:
+        return
+
+    try:
+        from apps.mobileapp.tasks import send_activation_email
+        _fire_task(send_activation_email, instance.expert.id)
+        logger.info(f'Task send_activation_email déclenchée pour expert {instance.expert.id}')
+    except Exception as e:
+        logger.exception(f'Erreur déclenchement send_activation_email: {e}')
+
+    # Notification in-app (si l'expert a déjà un compte connecté)
+    try:
+        user = instance.expert.user
+        if user and user.is_active:
+            create_notification_for_user(
+                user=user,
+                title='Votre compte CNETP a été activé',
+                body=(
+                    'Bienvenue ! Votre invitation a été envoyée par email. '
+                    'Confirmez votre adresse et activez votre compte.'
+                ),
+                notification_type='EXPERT_INVITE',
+                priority='HIGH',
+                data={
+                    'expert_id': instance.expert.id,
+                    'token': instance.token,
+                    'expires_at': instance.expires_at.isoformat(),
+                }
+            )
+    except Exception as e:
+        logger.exception(f'Erreur notification in-app activation expert: {e}')
 
 
 # Enregistrer les signaux (à appeler depuis apps.py)

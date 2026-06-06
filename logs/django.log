@@ -5361,3 +5361,479 @@ INFO 2026-06-05 07:40:34,208 autoreload 23378 125494777229440 Watching for file 
 INFO 2026-06-05 07:44:31,313 autoreload 3 137051824631936 Watching for file changes with StatReloader
 INFO 2026-06-05 07:55:02,443 autoreload 24497 139057010315392 Watching for file changes with StatReloader
 INFO 2026-06-05 08:15:52,179 autoreload 25898 127526484258944 Watching for file changes with StatReloader
+INFO 2026-06-06 04:02:25,627 autoreload 67814 133505539256448 Watching for file changes with StatReloader
+INFO 2026-06-06 04:14:46,801 autoreload 67814 133505539256448 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-06-06 04:14:55,034 autoreload 69451 138552897302656 Watching for file changes with StatReloader
+INFO 2026-06-06 04:14:59,778 autoreload 69451 138552897302656 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-06-06 04:15:07,243 autoreload 69483 138652353278080 Watching for file changes with StatReloader
+INFO 2026-06-06 04:15:23,611 autoreload 69483 138652353278080 /home/minato/project/api/v1/meetings_views.py changed, reloading.
+INFO 2026-06-06 04:15:27,199 autoreload 69568 133201458933888 Watching for file changes with StatReloader
+INFO 2026-06-06 04:15:36,045 autoreload 69568 133201458933888 /home/minato/project/api/v1/meetings_views.py changed, reloading.
+INFO 2026-06-06 04:15:40,250 autoreload 69628 126566493737088 Watching for file changes with StatReloader
+INFO 2026-06-06 04:37:11,083 autoreload 69628 126566493737088 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 04:37:17,173 autoreload 70529 124791205531776 Watching for file changes with StatReloader
+INFO 2026-06-06 04:37:22,792 autoreload 70529 124791205531776 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 04:37:27,224 autoreload 70581 131124567625856 Watching for file changes with StatReloader
+INFO 2026-06-06 04:37:37,152 autoreload 70581 131124567625856 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 04:37:42,012 autoreload 70583 128646122836096 Watching for file changes with StatReloader
+INFO 2026-06-06 04:38:23,615 autoreload 70583 128646122836096 /home/minato/project/api/v1/mobile_views.py changed, reloading.
+INFO 2026-06-06 04:38:31,968 autoreload 70595 128105502003328 Watching for file changes with StatReloader
+INFO 2026-06-06 04:38:37,758 autoreload 70595 128105502003328 /home/minato/project/api/v1/mobile_views.py changed, reloading.
+INFO 2026-06-06 04:38:40,751 autoreload 70598 138761736900736 Watching for file changes with StatReloader
+INFO 2026-06-06 04:38:43,411 autoreload 70598 138761736900736 /home/minato/project/api/v1/mobile_views.py changed, reloading.
+INFO 2026-06-06 04:38:45,897 autoreload 70600 129105880141952 Watching for file changes with StatReloader
+INFO 2026-06-06 04:38:58,734 autoreload 70600 129105880141952 /home/minato/project/api/v1/mobile_views.py changed, reloading.
+INFO 2026-06-06 04:39:01,800 autoreload 70608 132460917092480 Watching for file changes with StatReloader
+INFO 2026-06-06 04:39:22,055 autoreload 70608 132460917092480 /home/minato/project/apps/mobileapp/tasks.py changed, reloading.
+INFO 2026-06-06 04:39:27,491 autoreload 70617 125595415138432 Watching for file changes with StatReloader
+INFO 2026-06-06 04:39:36,478 autoreload 70617 125595415138432 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 04:39:39,859 autoreload 70621 126635791700096 Watching for file changes with StatReloader
+INFO 2026-06-06 04:39:50,109 autoreload 70621 126635791700096 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 04:39:54,179 autoreload 70626 125841959571584 Watching for file changes with StatReloader
+INFO 2026-06-06 04:57:32,167 autoreload 70626 125841959571584 /home/minato/project/apps/experts/models.py changed, reloading.
+INFO 2026-06-06 04:57:39,072 autoreload 71061 127888373756032 Watching for file changes with StatReloader
+INFO 2026-06-06 05:14:24,109 autoreload 71061 127888373756032 /home/minato/project/api/v1/experts_views.py changed, reloading.
+INFO 2026-06-06 05:14:37,467 autoreload 72106 127577267122304 Watching for file changes with StatReloader
+INFO 2026-06-06 05:14:51,235 autoreload 72106 127577267122304 /home/minato/project/api/v1/experts_views.py changed, reloading.
+INFO 2026-06-06 05:15:02,433 autoreload 72215 128033965801600 Watching for file changes with StatReloader
+INFO 2026-06-06 05:15:09,818 autoreload 72215 128033965801600 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-06-06 05:15:19,205 autoreload 72251 131946491752576 Watching for file changes with StatReloader
+INFO 2026-06-06 05:15:36,366 autoreload 72251 131946491752576 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 05:15:43,328 autoreload 72322 123796763512960 Watching for file changes with StatReloader
+INFO 2026-06-06 05:27:22,396 autoreload 72322 123796763512960 /home/minato/project/api/v1/norms_views.py changed, reloading.
+INFO 2026-06-06 05:27:32,923 autoreload 73013 133921507168384 Watching for file changes with StatReloader
+INFO 2026-06-06 05:43:05,552 autoreload 74208 130321039708288 Watching for file changes with StatReloader
+INFO 2026-06-06 05:46:50,287 autoreload 74208 130321039708288 /home/minato/project/api/v1/experts_serializers.py changed, reloading.
+INFO 2026-06-06 05:47:00,153 autoreload 74491 132880334946432 Watching for file changes with StatReloader
+INFO 2026-06-06 05:48:27,369 autoreload 74491 132880334946432 /home/minato/project/api/v1/urls.py changed, reloading.
+INFO 2026-06-06 05:48:42,419 autoreload 74672 139778985775232 Watching for file changes with StatReloader
+WARNING 2026-06-06 05:49:05,869 log 74672 139778851862208 Not Found: /api/v1/experts/pending-count-for-my-ctm/
+WARNING 2026-06-06 05:49:30,039 log 74672 139778745943744 Not Found: /api/v1/experts/pending-count-for-my-ctm/
+WARNING 2026-06-06 06:00:37,296 log 74672 139778754336448 Not Found: /api/v1/experts/pending-count-for-my-ctm/
+INFO 2026-06-06 06:04:13,427 autoreload 74672 139778985775232 /home/minato/project/api/v1/experts/views.py changed, reloading.
+INFO 2026-06-06 06:04:22,371 autoreload 75730 132166655398016 Watching for file changes with StatReloader
+INFO 2026-06-06 06:04:37,548 autoreload 75730 132166655398016 /home/minato/project/api/v1/experts/views.py changed, reloading.
+INFO 2026-06-06 06:04:43,167 autoreload 75736 138143949934720 Watching for file changes with StatReloader
+INFO 2026-06-06 06:04:52,334 autoreload 75736 138143949934720 /home/minato/project/api/v1/experts/serializers.py changed, reloading.
+INFO 2026-06-06 06:04:57,902 autoreload 75741 124930766147712 Watching for file changes with StatReloader
+WARNING 2026-06-06 06:14:03,969 log 75741 124930398090944 Forbidden: /api/v1/experts/8/admit-to-ctm/
+INFO 2026-06-06 06:15:04,864 autoreload 75741 124930766147712 /home/minato/project/api/v1/experts/views.py changed, reloading.
+INFO 2026-06-06 06:15:11,030 autoreload 77693 136393550909568 Watching for file changes with StatReloader
+WARNING 2026-06-06 06:17:24,698 log 77693 136393416242880 Forbidden: /api/v1/experts/8/admit-to-ctm/
+WARNING 2026-06-06 06:28:43,477 connection 77693 136393187649216 No hostname was supplied. Reverting to default 'localhost'
+ERROR 2026-06-06 06:28:44,264 signals 77693 136393187649216 Erreur déclenchement send_activation_email: [Errno 111] Connection refused
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 32, in __call__
+    return self.__value__
+           ^^^^^^^^^^^^^^
+AttributeError: 'ChannelPromise' object has no attribute '__value__'. Did you mean: '__call__'?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 474, in _reraise_as_library_errors
+    yield
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 461, in _ensure_connection
+    return retry_over_time(
+           ^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 941, in _connection_factory
+    self._connection = self._establish_connection()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 863, in _establish_connection
+    conn = self.transport.establish_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/transport/pyamqp.py", line 203, in establish_connection
+    conn.connect()
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/connection.py", line 324, in connect
+    self.transport.connect()
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/transport.py", line 132, in connect
+    self._connect(self.host, self.port, self.connect_timeout)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/transport.py", line 187, in _connect
+    self.sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/minato/project/apps/mobileapp/signals.py", line 318, in on_activation_token_created
+    send_activation_email.delay(instance.expert.id)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/task.py", line 463, in delay
+    return self.apply_async(args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/task.py", line 627, in apply_async
+    return app.send_task(
+           ^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/base.py", line 969, in send_task
+    amqp.send_task_message(P, name, message, **options)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/amqp.py", line 559, in send_task_message
+    ret = producer.publish(
+          ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 190, in publish
+    return _publish(
+           ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 558, in _ensured
+    return fun(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 200, in _publish
+    channel = self.channel
+              ^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 224, in _get_channel
+    channel = self._channel = channel()
+                              ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 34, in __call__
+    value = self.__value__ = self.__contract__()
+                             ^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 240, in <lambda>
+    channel = ChannelPromise(lambda: connection.default_channel)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 960, in default_channel
+    self._ensure_connection(**conn_opts)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 460, in _ensure_connection
+    with ctx():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 478, in _reraise_as_library_errors
+    raise ConnectionError(str(exc)) from exc
+kombu.exceptions.OperationalError: [Errno 111] Connection refused
+ERROR 2026-06-06 06:28:45,080 signals 77693 136393187649216 Error creating notification: [Errno 111] Connection refused
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 32, in __call__
+    return self.__value__
+           ^^^^^^^^^^^^^^
+AttributeError: 'ChannelPromise' object has no attribute '__value__'. Did you mean: '__call__'?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 474, in _reraise_as_library_errors
+    yield
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 461, in _ensure_connection
+    return retry_over_time(
+           ^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 941, in _connection_factory
+    self._connection = self._establish_connection()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 863, in _establish_connection
+    conn = self.transport.establish_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/transport/pyamqp.py", line 203, in establish_connection
+    conn.connect()
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/connection.py", line 324, in connect
+    self.transport.connect()
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/transport.py", line 132, in connect
+    self._connect(self.host, self.port, self.connect_timeout)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/amqp/transport.py", line 187, in _connect
+    self.sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/minato/project/apps/mobileapp/signals.py", line 28, in create_notification_for_user
+    dispatch_notification.delay(str(notification.id))
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/task.py", line 463, in delay
+    return self.apply_async(args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/task.py", line 627, in apply_async
+    return app.send_task(
+           ^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/base.py", line 969, in send_task
+    amqp.send_task_message(P, name, message, **options)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/celery/app/amqp.py", line 559, in send_task_message
+    ret = producer.publish(
+          ^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 190, in publish
+    return _publish(
+           ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 558, in _ensured
+    return fun(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 200, in _publish
+    channel = self.channel
+              ^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 224, in _get_channel
+    channel = self._channel = channel()
+                              ^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/utils/functional.py", line 34, in __call__
+    value = self.__value__ = self.__contract__()
+                             ^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/messaging.py", line 240, in <lambda>
+    channel = ChannelPromise(lambda: connection.default_channel)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 960, in default_channel
+    self._ensure_connection(**conn_opts)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 460, in _ensure_connection
+    with ctx():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/kombu/connection.py", line 478, in _reraise_as_library_errors
+    raise ConnectionError(str(exc)) from exc
+kombu.exceptions.OperationalError: [Errno 111] Connection refused
+INFO 2026-06-06 06:32:15,099 autoreload 77693 136393550909568 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 06:32:19,925 autoreload 79017 139900586684544 Watching for file changes with StatReloader
+INFO 2026-06-06 06:32:24,121 autoreload 79017 139900586684544 /home/minato/project/apps/mobileapp/signals.py changed, reloading.
+INFO 2026-06-06 06:32:27,835 autoreload 79022 123223280595072 Watching for file changes with StatReloader
+WARNING 2026-06-06 06:37:11,865 connection 79022 123223061550784 No hostname was supplied. Reverting to default 'localhost'
+WARNING 2026-06-06 06:37:12,526 signals 79022 123223061550784 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.send_activation_email
+INFO 2026-06-06 06:37:12,773 tasks 79022 123223061550784 Email d'activation envoyé à tefalaexaucee@gmail.com (expert 8)
+INFO 2026-06-06 06:37:12,775 trace 79022 123223061550784 Task apps.mobileapp.tasks.send_activation_email[67a5814a-15af-45d1-93ba-2c866f5d0eac] succeeded in 0.08251979999477044s: True
+INFO 2026-06-06 06:37:12,776 signals 79022 123223061550784 Task send_activation_email déclenchée pour expert 8
+WARNING 2026-06-06 06:37:13,494 signals 79022 123223061550784 Broker indisponible (OperationalError) — exécution synchrone de apps.mobileapp.tasks.dispatch_notification
+WARNING 2026-06-06 06:37:13,519 tasks 79022 123223061550784 Could not check notification preferences: User has no notification_preferences.
+INFO 2026-06-06 06:37:13,561 tasks 79022 123223061550784 Email sent to tefalaexaucee@gmail.com for notification 391aedf2-abc8-4420-bef9-95484931510b
+INFO 2026-06-06 06:37:13,562 trace 79022 123223061550784 Task apps.mobileapp.tasks.dispatch_notification[de2fb0b4-b4c9-454b-b516-bddae10b80ad] succeeded in 0.06454608399508288s: True
+INFO 2026-06-06 06:37:13,563 signals 79022 123223061550784 Created notification 391aedf2-abc8-4420-bef9-95484931510b for user tefalaexaucee@gmail.com
+INFO 2026-06-06 09:09:01,777 autoreload 79022 123223280595072 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 09:09:36,569 autoreload 83991 137467660849280 Watching for file changes with StatReloader
+WARNING 2026-06-06 09:28:36,566 log 83991 137467517724352 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 09:31:58,804 log 83991 137467517724352 Bad Request: /api/v1/mobile/auth/login/
+INFO 2026-06-06 09:32:30,183 autoreload 83991 137467660849280 /home/minato/project/api/v1/mobile/serializers.py changed, reloading.
+INFO 2026-06-06 09:32:43,760 autoreload 85181 130531433762944 Watching for file changes with StatReloader
+INFO 2026-06-06 09:38:40,588 autoreload 85181 130531433762944 /home/minato/project/api/v1/mobile/serializers.py changed, reloading.
+INFO 2026-06-06 09:38:59,823 autoreload 85395 132670229737600 Watching for file changes with StatReloader
+WARNING 2026-06-06 09:52:27,275 log 85395 132670076999360 Method Not Allowed: /api/v1/mobile/auth/login/
+INFO 2026-06-06 10:12:53,393 autoreload 4173 138733557661824 Watching for file changes with StatReloader
+INFO 2026-06-06 10:12:53,598 autoreload 4172 134765514334336 Watching for file changes with StatReloader
+WARNING 2026-06-06 10:13:54,728 log 4173 138733349238464 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 10:14:05,431 log 4173 138733349238464 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 10:14:15,707 log 4173 138733349238464 Bad Request: /api/v1/mobile/auth/login/
+INFO 2026-06-06 10:15:32,581 autoreload 4173 138733557661824 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 10:15:35,389 autoreload 4310 128403571646592 Watching for file changes with StatReloader
+INFO 2026-06-06 10:18:16,500 autoreload 4510 124652340879488 Watching for file changes with StatReloader
+INFO 2026-06-06 10:23:00,092 autoreload 5649 124660520943744 Watching for file changes with StatReloader
+WARNING 2026-06-06 10:24:47,874 log 5649 124660150695616 Not Found: /favicon.ico
+INFO 2026-06-06 10:26:09,290 autoreload 5649 124660520943744 /home/minato/project/config/settings.py changed, reloading.
+INFO 2026-06-06 10:26:11,760 autoreload 6059 138396092555392 Watching for file changes with StatReloader
+INFO 2026-06-06 10:31:18,433 forms 6059 138395958376128 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 10:31:47,155 forms 6059 138395958376128 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 10:31:47,286 forms 6059 138395958376128 [ExpertLoginForm]-[clean_email] - Validation email: tefalaexaucee@gmail.com
+INFO 2026-06-06 10:31:47,298 forms 6059 138395958376128 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-06 10:31:47,306 forms 6059 138395958376128 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-06 10:31:47,307 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+INFO 2026-06-06 10:31:47,307 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - Utilisateur trouvé: ID=13, is_active=True
+INFO 2026-06-06 10:31:48,731 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - Mot de passe valide: True
+INFO 2026-06-06 10:31:48,736 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - Profil expert trouvé: ID=8, statut=ACTIVE
+INFO 2026-06-06 10:31:48,737 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - ✅ AUTHENTIFICATION EXPERT RÉUSSIE - tefalaexaucee@gmail.com
+INFO 2026-06-06 10:31:48,737 forms 6059 138395958376128 [ExpertLoginForm]-[clean] - FIN validation - SUCCÈS
+ERROR 2026-06-06 10:41:50,329 log 6059 138395690972864 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 322, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+WARNING 2026-06-06 10:42:26,542 log 6059 138395690972864 Method Not Allowed: /api/v1/mobile/notification-preferences/list/
+INFO 2026-06-06 10:43:04,876 autoreload 6993 139500317401216 Watching for file changes with StatReloader
+INFO 2026-06-06 10:44:54,444 autoreload 6993 139500317401216 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 10:44:58,030 autoreload 7099 138348860145792 Watching for file changes with StatReloader
+WARNING 2026-06-06 10:45:23,372 log 7099 138348725270208 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 10:45:32,905 log 7099 138348725270208 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 10:45:33,697 log 7099 138348725270208 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 10:45:46,249 log 7099 138348725270208 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 10:45:46,500 log 7099 138348725270208 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 10:46:01,229 log 7099 138348715828928 Bad Request: /api/v1/mobile/auth/login/
+WARNING 2026-06-06 11:04:23,230 log 7099 138348715828928 Forbidden: /api/v1/norms/
+WARNING 2026-06-06 11:04:23,262 log 7099 138348707436224 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 11:04:23,292 log 7099 138348715828928 Forbidden: /api/v1/mobile/profile/profile/
+ERROR 2026-06-06 11:05:10,378 log 7099 138348715828928 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 323, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+ERROR 2026-06-06 11:06:27,412 log 7099 138348715828928 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 323, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+ERROR 2026-06-06 11:06:53,132 log 7099 138348715828928 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 323, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+ERROR 2026-06-06 11:07:49,203 log 7099 138348715828928 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 323, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+ERROR 2026-06-06 11:08:09,583 log 7099 138348715828928 Internal Server Error: /api/v1/mobile/profile/dashboard/
+Traceback (most recent call last):
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/minato/project/mon_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/minato/project/api/v1/mobile/views.py", line 323, in dashboard
+    pending_jetons = expert.jetons.filter(status='PENDING').aggregate(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'total'
+INFO 2026-06-06 11:11:04,330 autoreload 7099 138348860145792 /home/minato/project/api/v1/mobile/views.py changed, reloading.
+INFO 2026-06-06 11:11:14,462 autoreload 8838 138984983904384 Watching for file changes with StatReloader
+INFO 2026-06-06 11:13:10,331 signals 8838 138984840750784 Notification preferences created for user tefalaexaucee@gmail.com
+WARNING 2026-06-06 11:18:06,523 log 8838 138984470607552 Not Found: /api/v1/norms/6/export-pdf/
+WARNING 2026-06-06 11:18:07,387 log 8838 138984470607552 Not Found: /favicon.ico
+WARNING 2026-06-06 11:22:45,186 log 8838 138984840750784 Forbidden: /api/v1/reunions/
+WARNING 2026-06-06 11:22:45,319 log 8838 138984840750784 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 11:22:45,361 log 8838 138984823965376 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 12:04:07,102 log 8838 138984823965376 Forbidden: /api/v1/mobile/profile/dashboard/
+WARNING 2026-06-06 12:04:07,105 log 8838 138984840750784 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 12:04:07,130 log 8838 138984470607552 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 12:31:39,166 log 8838 138984840750784 Forbidden: /api/v1/reunions/
+WARNING 2026-06-06 12:31:42,523 log 8838 138984840750784 Forbidden: /api/v1/norms/
+WARNING 2026-06-06 12:35:55,003 log 8838 138984840750784 Forbidden: /api/v1/messages/
+WARNING 2026-06-06 12:36:21,525 log 8838 138984840750784 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 12:51:53,173 log 8838 138984840750784 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 12:51:53,195 log 8838 138984840750784 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 13:08:08,645 log 8838 138984470607552 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 13:08:21,842 log 8838 138984840750784 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 13:08:30,841 log 8838 138984840750784 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 13:16:21,532 log 8838 138984840750784 Forbidden: /api/v1/mobile/notification-preferences/list/
+WARNING 2026-06-06 13:16:41,120 log 8838 138984840750784 Forbidden: /api/v1/mobile/notifications/unread_count/
+WARNING 2026-06-06 13:16:41,196 log 8838 138984470607552 Forbidden: /api/v1/mobile/profile/profile/
+WARNING 2026-06-06 13:19:29,662 log 8838 138984470607552 Forbidden: /api/v1/messages/
+INFO 2026-06-06 13:25:24,767 forms 8838 138984850192064 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 13:25:28,315 forms 8838 138984850192064 [ExpertLoginForm] - Initialisation du formulaire expert
+INFO 2026-06-06 13:25:28,319 forms 8838 138984850192064 [ExpertLoginForm]-[clean_email] - Validation email: tefalaexaucee@gmail.com
+INFO 2026-06-06 13:25:28,334 forms 8838 138984850192064 [ExpertLoginForm]-[clean_email] - Utilisateur existe: True
+INFO 2026-06-06 13:25:28,339 forms 8838 138984850192064 [ExpertLoginForm]-[clean_password] - Validation mot de passe
+INFO 2026-06-06 13:25:28,340 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - DÉBUT validation globale
+INFO 2026-06-06 13:25:28,342 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - Utilisateur trouvé: ID=13, is_active=True
+INFO 2026-06-06 13:25:29,776 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - Mot de passe valide: True
+INFO 2026-06-06 13:25:29,781 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - Profil expert trouvé: ID=8, statut=ACTIVE
+INFO 2026-06-06 13:25:29,783 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - ✅ AUTHENTIFICATION EXPERT RÉUSSIE - tefalaexaucee@gmail.com
+INFO 2026-06-06 13:25:29,784 forms 8838 138984850192064 [ExpertLoginForm]-[clean] - FIN validation - SUCCÈS

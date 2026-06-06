@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitation CNETP — Confirmez votre email</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; color: #1a1a2e; }
+    .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .header { background: #1a3a5c; padding: 32px 40px; text-align: center; }
+    .header-title { color: #c8a84b; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 8px 0; }
+    .header h1 { color: #ffffff; font-size: 22px; margin: 0; font-weight: 700; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 16px; font-weight: 600; color: #1a3a5c; margin-bottom: 16px; }
+    .text { font-size: 15px; line-height: 1.7; color: #374151; margin-bottom: 16px; }
+    .highlight-box { background: #f0f4ff; border-left: 4px solid #1a3a5c; border-radius: 4px; padding: 16px 20px; margin: 24px 0; }
+    .highlight-box p { margin: 0 0 6px 0; font-size: 14px; color: #374151; }
+    .highlight-box strong { color: #1a3a5c; }
+    .btn-container { text-align: center; margin: 32px 0; }
+    .btn { display: inline-block; background: #1a3a5c; color: #ffffff !important; text-decoration: none; padding: 14px 36px; border-radius: 6px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+    .btn:hover { background: #14305a; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .flutter-section { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 18px 20px; margin: 24px 0; }
+    .flutter-section h3 { margin: 0 0 10px 0; font-size: 14px; color: #92400e; font-weight: 600; }
+    .flutter-link { font-size: 13px; color: #1a3a5c; word-break: break-all; font-family: 'Courier New', monospace; background: #f9fafb; padding: 8px 12px; border-radius: 4px; display: block; margin-top: 8px; }
+    .expiry { font-size: 13px; color: #6b7280; margin-top: 20px; text-align: center; }
+    .footer { background: #f9fafb; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer a { color: #1a3a5c; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- En-tête -->
+    <div class="header">
+      <p class="header-title">République Démocratique du Congo — Ministère ITP</p>
+      <h1>Commission Nationale d'Élaboration des Normes Techniques (CNETP)</h1>
+    </div>
+
+    <!-- Corps -->
+    <div class="body">
+      <p class="greeting">Bonjour {{ user.get_full_name }},</p>
+
+      <p class="text">
+        Nous avons le plaisir de vous informer que votre compte expert au sein de la
+        <strong>Plateforme CNETP</strong> a été créé avec succès.
+      </p>
+
+      <p class="text">
+        Pour finaliser votre inscription et accéder à la plateforme, vous devez confirmer
+        votre adresse email en cliquant sur le bouton ci-dessous.
+      </p>
+
+      <!-- Informations expert -->
+      <div class="highlight-box">
+        <p><strong>Nom :</strong> {{ user.get_full_name }}</p>
+        <p><strong>Email :</strong> {{ user.email }}</p>
+        {% if expert.structure %}<p><strong>Structure :</strong> {{ expert.structure.name }}</p>{% endif %}
+        {% if expert.ctm %}<p><strong>CTM :</strong> {{ expert.ctm.titre }}</p>{% endif %}
+      </div>
+
+      <!-- Bouton de confirmation -->
+      <div class="btn-container">
+        <a href="{{ confirm_url }}" class="btn">Confirmer mon email</a>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Section Flutter -->
+      <div class="flutter-section">
+        <h3>Application mobile Flutter</h3>
+        <p style="font-size: 13px; color: #78350f; margin: 0 0 6px 0;">
+          Si vous avez installé l'application CNETP sur votre téléphone, utilisez ce lien pour
+          l'activer directement :
+        </p>
+        <a href="{{ flutter_deep_link }}" class="flutter-link">{{ flutter_deep_link }}</a>
+      </div>
+
+      <p class="text">
+        Si vous n'avez pas demandé ce compte, veuillez ignorer cet email ou contacter
+        l'administrateur CNETP.
+      </p>
+
+      <p class="expiry">
+        Ce lien expire le {{ expires_at|date:"d/m/Y à H:i" }}.
+      </p>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="footer">
+      <p><strong>CNETP</strong> — Plateforme de gestion des normes de construction</p>
+      <p>Ministère des Infrastructures et Travaux Publics — RDC</p>
+      <p style="margin-top: 8px;">
+        <a href="mailto:support@cnetp.cd">support@cnetp.cd</a>
+      </p>
+      <p>Ne répondez pas directement à cet email.</p>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -209,6 +209,74 @@ def dispatch_notification(self, notification_id):
     return True
 
 
+@shared_task(bind=True, max_retries=3)
+def send_activation_email(self, expert_id):
+    """Envoyer l'email d'invitation/activation à un expert nouvellement créé.
+    Déclenché par le signal post_save sur ActivationToken.
+    """
+    try:
+        from apps.experts.models import Expert
+        from apps.mobileapp.models import ActivationToken
+
+        expert = Expert.objects.select_related('user', 'structure').get(id=expert_id)
+        token = ActivationToken.objects.filter(
+            expert=expert, is_used=False
+        ).order_by('-expires_at').first()
+
+        if not token:
+            logger.warning(f'Pas de token actif pour expert {expert_id}')
+            return False
+
+        user = expert.user
+        confirm_url = (
+            f"{getattr(settings, 'SITE_URL', 'http://localhost:8000')}"
+            f"/api/v1/mobile/auth/confirm-email/?token={token.token}"
+        )
+        flutter_link = f"cnetp://activate-expert?token={token.token}"
+
+        context = {
+            'expert': expert,
+            'user': user,
+            'token': token.token,
+            'confirm_url': confirm_url,
+            'flutter_deep_link': flutter_link,
+            'expires_at': token.expires_at,
+            'site_name': 'CNETP',
+        }
+
+        try:
+            html_message = render_to_string('mobileapp/emails/expert_activation.html', context)
+        except Exception:
+            html_message = (
+                f"<h2>Bienvenue au CNETP, {user.get_full_name()}</h2>"
+                f"<p>Votre compte expert a été créé.</p>"
+                f"<p>Confirmez votre email : <a href='{confirm_url}'>{confirm_url}</a></p>"
+                f"<p>Activez votre compte Flutter : <a href='{flutter_link}'>{flutter_link}</a></p>"
+                f"<p>Ce lien expire le {token.expires_at.strftime('%d/%m/%Y à %H:%M')}.</p>"
+            )
+
+        send_mail(
+            subject=f'[CNETP] Votre invitation — confirmez votre email',
+            message=(
+                f"Bonjour {user.get_full_name()},\n\n"
+                f"Votre compte expert CNETP a été créé.\n"
+                f"Confirmez votre email : {confirm_url}\n"
+                f"Activez via Flutter : {flutter_link}\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        logger.info(f'Email d\'activation envoyé à {user.email} (expert {expert_id})')
+        return True
+
+    except Exception as exc:
+        logger.exception(f'Erreur envoi email activation expert {expert_id}: {exc}')
+        raise self.retry(exc=exc, countdown=60)
+
+
 @shared_task
 def send_notification_digest(user_id):
     """Envoyer un digest de notifications (quotidien/hebdomadaire)"""

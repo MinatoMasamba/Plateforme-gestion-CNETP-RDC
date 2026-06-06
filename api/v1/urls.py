@@ -1,28 +1,28 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from .auth_views import AuthViewSet, UserListViewSet
-from .experts_views import ExpertViewSet, StructureViewSet
-from .api_bridge_views import DocumentsAPIView, CollaboratorsAPIView
-from .expert_registration_views import ExpertPublicRegistrationViewSet
-from .governance_views import CTMViewSet, WGViewSet, AffectationViewSet, RoleCTMViewSet, ComitePilotageViewSet
-from .hierarchy_views import (
+from .auth.views import AuthViewSet, UserListViewSet
+from .experts.views import ExpertViewSet, StructureViewSet
+from .documents.bridge_views import DocumentsAPIView, CollaboratorsAPIView
+from .experts.registration_views import ExpertPublicRegistrationViewSet
+from .governance.views import CTMViewSet, WGViewSet, AffectationViewSet, RoleCTMViewSet, ComitePilotageViewSet
+from .hierarchy.views import (
     ExecutiveLevelViewSet, SteeringCommitteeViewSet, TechnicalCellViewSet,
     OriginStructureViewSet, HierarchyViewSet
 )
-from .norms_views import NormeViewSet, NormeVersionViewSet, ChangementVersionViewSet
-from .amendments_views import AmendementViewSet, VoteViewSet, ResultatVoteViewSet
-from .meetings_views import ReunionViewSet, PresenceViewSet, ProcessusVerbauxViewSet, ReunionVoteViewSet
-from .payments_views import CotisationViewSet, PaiementViewSet, JetonPresenceViewSet
-from .mobile_views import (
+from .norms.views import NormeViewSet, NormeVersionViewSet, ChangementVersionViewSet
+from .amendments.views import AmendementViewSet, VoteViewSet, ResultatVoteViewSet
+from .meetings.views import ReunionViewSet, PresenceViewSet, ProcessusVerbauxViewSet, ReunionVoteViewSet
+from .payments.views import CotisationViewSet, PaiementViewSet, JetonPresenceViewSet
+from .mobile.views import (
     MobileAuthViewSet, PushTokenViewSet, NotificationPreferenceViewSet,
     NotificationViewSet, MobileProfileViewSet, MobilePublicViewSet
 )
-from .validation_views import LegisticReviewViewSet
-from .documents_views import DocumentFileViewSet
-from .public_views import PublicAmendementViewSet
-from .messaging_views import MessageViewSet
-from .sidebar_views import (
+from .validation.views import LegisticReviewViewSet
+from .documents.views import DocumentFileViewSet
+from .public.views import PublicAmendementViewSet
+from .messaging.views import MessageViewSet
+from .sidebar.views import (
     UserProfileViewSet, WorkingGroupSidebarViewSet, ExpertSidebarViewSet,
     TaskDetailViewSet, DocumentSidebarViewSet, MeetingSidebarViewSet,
     BudgetSidebarViewSet, DocumentHistoryViewSet, DashboardKPIsViewSet,
@@ -112,7 +112,7 @@ router.register(r'mobile/public', MobilePublicViewSet, basename='mobile-public')
 urlpatterns = [
     # Routes principales
     path('', include(router.urls)),
-    
+
     # Documentation API
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

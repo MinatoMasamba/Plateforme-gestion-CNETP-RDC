@@ -68,8 +68,22 @@ class Expert(BaseModel):
         ('ACTIVE', 'Actif'),
         ('INACTIVE', 'Inactif'),
         ('SUSPENDED', 'Suspendu'),
+        ('REJECTED', 'Rejeté'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+    # Audit acceptation / rejet par le leader CTM
+    accepted_by = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='experts_accepted', verbose_name="Accepté par"
+    )
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='experts_rejected', verbose_name="Rejeté par"
+    )
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
     
     # Informations bancaires (pour jetons)
     bank_account = models.CharField(max_length=100, blank=True)

@@ -427,9 +427,13 @@
     // PARTAGE DE CLAUSE
     // =========================================================================
     window.shareClauseToChat = async function(recipientId, code, excerpt) {
+        const contentParts = [`📋 Clause partagée [${code}]`];
+        if (excerpt && excerpt.trim()) {
+            contentParts.push(`\n« ${excerpt.trim()} »`);
+        }
         const payload = {
             recipient: recipientId,
-            content: `Clause partagée pour examen.`,
+            content: contentParts.join(''),
             is_clause_share: true,
             clause_code: code,
             clause_excerpt: excerpt
