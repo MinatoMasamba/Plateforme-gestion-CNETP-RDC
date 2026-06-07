@@ -149,18 +149,41 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
         }
 
     def _sync_vote_progression(self):
-        candidates = Norme.objects.filter(status__in=['INTERNAL_REVIEW', 'CTM_REVIEW']).prefetch_related('votes')
+        """Fait progresser CTM_REVIEW -> LEGISTIC_REVIEW une fois le vote CTM acquis.
+
+        La transition INTERNAL_REVIEW -> CTM_REVIEW est désormais déclenchée par le
+        signal NormeVote (voir apps.norms.signals.check_wg_vote_majority), qui
+        convoque automatiquement la réunion CTM dès que le WG porteur atteint la
+        majorité.
+        """
+        from apps.meetings.models import Reunion
+        from apps.norms.tasks import send_norme_to_ctc
+
         promoted = []
         with transaction.atomic():
+            candidates = Norme.objects.filter(status='CTM_REVIEW').select_related('ctm', 'wg')
             for norme in candidates:
-                summary = self._vote_summary(norme)
-                if not summary['passes_threshold']:
+                reunion = Reunion.objects.filter(
+                    type='CTM',
+                    ctm=norme.ctm,
+                    ordre_jour__icontains=f'norme:{norme.id}',
+                    status='COMPLETED',
+                ).first()
+                if not reunion:
                     continue
+
+                votes = reunion.votes.all()
+                total = votes.count()
+                for_votes = votes.filter(choix='POUR').count()
+                if total == 0 or (for_votes / total) <= 0.5:
+                    continue
+
                 norme.status = 'LEGISTIC_REVIEW'
                 norme.legistic_review_date = date.today()
                 norme.is_public = False
                 norme.save(update_fields=['status', 'legistic_review_date', 'is_public', 'updated_at'])
                 LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
+                send_norme_to_ctc.delay(norme.id, reunion.id)
                 promoted.append(norme.id)
         return promoted
 
