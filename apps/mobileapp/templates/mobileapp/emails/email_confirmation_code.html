@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNETP — Code de confirmation</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; color: #1a1a2e; }
+    .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .header { background: #1a3a5c; padding: 32px 40px; text-align: center; }
+    .header-title { color: #c8a84b; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 8px 0; }
+    .header h1 { color: #ffffff; font-size: 22px; margin: 0; font-weight: 700; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 16px; font-weight: 600; color: #1a3a5c; margin-bottom: 16px; }
+    .text { font-size: 15px; line-height: 1.7; color: #374151; margin-bottom: 16px; }
+    .code-box { text-align: center; margin: 32px 0; }
+    .code { display: inline-block; background: #f0f4ff; border: 2px dashed #1a3a5c; border-radius: 6px; padding: 16px 32px; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #1a3a5c; font-family: 'Courier New', monospace; }
+    .expiry { font-size: 13px; color: #6b7280; margin-top: 8px; text-align: center; }
+    .footer { background: #f9fafb; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <p class="header-title">République Démocratique du Congo — Ministère ITP</p>
+      <h1>Commission Nationale d'Élaboration des Normes Techniques (CNETP)</h1>
+    </div>
+
+    <div class="body">
+      <p class="greeting">Bonjour {{ user.get_full_name }},</p>
+
+      <p class="text">
+        Merci de vous être inscrit sur la <strong>Plateforme CNETP</strong>.
+        Pour confirmer votre adresse email, saisissez le code suivant dans l'application :
+      </p>
+
+      <div class="code-box">
+        <span class="code">{{ code }}</span>
+        <p class="expiry">Ce code expire le {{ expires_at|date:"d/m/Y à H:i" }}.</p>
+      </div>
+
+      <p class="text">
+        Si vous n'êtes pas à l'origine de cette inscription, vous pouvez ignorer cet email.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>&copy; CNETP — Plateforme officielle</p>
+    </div>
+  </div>
+</body>
+</html>

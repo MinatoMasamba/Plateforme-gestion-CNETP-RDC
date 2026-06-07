@@ -451,6 +451,28 @@ retournent des listes vides.
 
 ---
 
+## 11. Bokeseni ya ndenge nini na likambo ya kokonfirmisa adresi ya email (pour ba utilisateurs ya bato nioso)
+
+Esika oyo tokopesa ndimbola ya misala ya sika oyo esalemaki mpo na kokonfirmisa adresi ya email ya ba utilisateurs ya bato nioso. Bolingi na biso ezali ete mobola nyonso akoki kokonfirmisa adresi na ye ya email liboso ya kokokoma na lisalisi ya biso.
+
+1.  **Sima ya kokoma (register_public)**:
+    *   Sima ya ko `register_public`, utilisateur akopata ba tokens ya kokoma te. Akopata kaka confirmation ya compte na ye mpe notification ete code ya confirmation etindamaki na email na ye.
+    *   Flutter ekolakisa page ya ko saisir code, na esika ya kolakisa utilisateur ete akomi.
+
+2.  **Sima ya ko confirmer email (confirm_email_code)**:
+    *   Kokonfirmisa code ya email nde ezali nzela kaka moko oyo utilisateur akopata ba tokens na ye ya `access` mpe `refresh` ya JWT.
+    *   Sima ya kokonfirmisa code na ndenge ya solo, système ekokonfirmisa adresi ya email mpe ekopesa utilisateur ba tokens mpo akoki kokoma na application. Session ya `MobileSession` ekosalema mpe.
+
+3.  **Sima ya koluka kokoma (login) na email oyo ekonfirmami te**:
+    *   Soki utilisateur alingi ko `login` na email oyo ekonfirmami naino te, système ekoboya kokoma na ye.
+    *   Ekopesa message ya erreur mpe `error_code: 'EMAIL_NOT_CONFIRMED'`.
+    *   Code ya confirmation ya sika ekotindama automatiquement na adresi ya email ya utilisateur.
+
+4.  **Botekami ya likambo ya securite**:
+    *   Bokomi na application ezali kosalema kaka soki adresi ya email ekonfirmami na code. Tokoboya Authentification nionso liboso ya confirmation.
+
+---
+
 **Dernière mise à jour** : 06 juin 2026
 **Version** : 1.0.0 (Phase 5 — Production near-ready)
 **Auteur** : Equipe dev CNETP (Eddy Masamba et équipe)

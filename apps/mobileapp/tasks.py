@@ -281,6 +281,71 @@ def send_activation_email(self, expert_id):
             return False
 
 
+def _send_email_confirmation_code_now(user_id):
+    """Logique d'envoi du code de confirmation, indépendante de Celery.
+    Utilisée par la tâche `send_email_confirmation_code` ainsi qu'en repli
+    synchrone direct lorsque le broker Celery est indisponible (évite de
+    repasser par les rouages Celery — `Task.apply()` sollicite aussi le
+    backend de résultats, qui peut pointer vers le même broker injoignable).
+    """
+    from django.contrib.auth import get_user_model
+    from apps.mobileapp.models import EmailConfirmationCode
+
+    User = get_user_model()
+    user = User.objects.get(id=user_id)
+    confirmation = EmailConfirmationCode.create_for_user(user)
+
+    context = {
+        'user': user,
+        'code': confirmation.code,
+        'expires_at': confirmation.expires_at,
+        'site_name': 'CNETP',
+    }
+
+    try:
+        html_message = render_to_string('mobileapp/emails/email_confirmation_code.html', context)
+    except Exception:
+        html_message = (
+            f"<h2>Bienvenue au CNETP, {user.get_full_name()}</h2>"
+            f"<p>Votre code de confirmation est : <strong>{confirmation.code}</strong></p>"
+            f"<p>Saisissez ce code dans l'application pour confirmer votre adresse email.</p>"
+            f"<p>Ce code expire le {confirmation.expires_at.strftime('%d/%m/%Y à %H:%M')}.</p>"
+        )
+
+    send_mail(
+        subject='[CNETP] Votre code de confirmation',
+        message=(
+            f"Bonjour {user.get_full_name()},\n\n"
+            f"Votre code de confirmation CNETP est : {confirmation.code}\n"
+            f"Saisissez ce code dans l'application pour confirmer votre adresse email.\n"
+            f"Ce code expire le {confirmation.expires_at.strftime('%d/%m/%Y à %H:%M')}.\n"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
+    logger.info(f'Code de confirmation envoyé à {user.email}')
+    return True
+
+
+@shared_task(bind=True, max_retries=3)
+def send_email_confirmation_code(self, user_id):
+    """Envoyer un code de confirmation par email à un utilisateur simple/public
+    nouvellement inscrit. Le code doit être renvoyé par l'app Flutter pour
+    confirmer l'adresse email.
+    """
+    try:
+        return _send_email_confirmation_code_now(user_id)
+    except Exception as exc:
+        logger.exception(f'Erreur envoi code de confirmation user {user_id}: {exc}')
+        try:
+            raise self.retry(exc=exc, countdown=60)
+        except Exception:
+            return False
+
+
 @shared_task
 def send_notification_digest(user_id):
     """Envoyer un digest de notifications (quotidien/hebdomadaire)"""

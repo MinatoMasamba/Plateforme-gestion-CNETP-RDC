@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.mobileapp.models import (
-    ActivationToken, PublicUser, PushToken,
+    ActivationToken, EmailConfirmationCode, PublicUser, PushToken,
     Notification, NotificationLog, NotificationPreference, MobileSession
 )
 from apps.experts.models import Expert
@@ -54,7 +54,69 @@ class PublicUserRegistrationSerializer(serializers.Serializer):
 
         NotificationPreference.objects.create(user=user)
 
+        from apps.mobileapp.tasks import send_email_confirmation_code, _send_email_confirmation_code_now
+        try:
+            send_email_confirmation_code.delay(user.id)
+        except Exception:
+            # Broker indisponible : envoi synchrone en repli (sans passer par Celery)
+            _send_email_confirmation_code_now(user.id)
+
         return user
+
+
+class EmailConfirmationCodeSerializer(serializers.Serializer):
+    """Confirmation de l'email via le code reçu par email"""
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+
+    def validate(self, data):
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Utilisateur introuvable.")
+
+        if user.email_confirmed:
+            raise serializers.ValidationError("Cet email est déjà confirmé.")
+
+        try:
+            confirmation = EmailConfirmationCode.objects.filter(
+                user=user, is_used=False
+            ).latest('created_at')
+        except EmailConfirmationCode.DoesNotExist:
+            raise serializers.ValidationError("Aucun code de confirmation actif. Demandez un nouveau code.")
+
+        if not confirmation.is_valid():
+            raise serializers.ValidationError("Code expiré. Demandez un nouveau code.")
+
+        if confirmation.code != data['code']:
+            raise serializers.ValidationError("Code incorrect.")
+
+        self.user = user
+        self.confirmation = confirmation
+        return data
+
+    def save(self):
+        self.user.email_confirmed = True
+        self.user.save(update_fields=['email_confirmed'])
+        self.confirmation.use()
+        return self.user
+
+
+class ResendConfirmationCodeSerializer(serializers.Serializer):
+    """Renvoyer un nouveau code de confirmation par email"""
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Utilisateur introuvable.")
+
+        if user.email_confirmed:
+            raise serializers.ValidationError("Cet email est déjà confirmé.")
+
+        self.user = user
+        return data
 
 
 class ExpertActivationSerializer(serializers.Serializer):

@@ -65,6 +65,58 @@ class ActivationToken(BaseModel):
         self.save()
 
 
+class EmailConfirmationCode(BaseModel):
+    """Code de confirmation envoyé par email lors de l'inscription d'un utilisateur simple/public"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_confirmation_codes')
+    code = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(blank=True, null=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        db_table = 'mobileapp_emailconfirmationcode'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_used']),
+        ]
+
+    def __str__(self):
+        return f"Code {self.user.email}"
+
+    @staticmethod
+    def generate_code():
+        """Générer un code numérique à 6 chiffres"""
+        return f"{secrets.randbelow(1000000):06d}"
+
+    @staticmethod
+    def create_for_user(user, expires_in_minutes=15):
+        """Créer un nouveau code de confirmation pour un utilisateur"""
+        code_str = EmailConfirmationCode.generate_code()
+        expires_at = timezone.now() + timedelta(minutes=expires_in_minutes)
+
+        EmailConfirmationCode.objects.filter(user=user, is_used=False).delete()
+
+        return EmailConfirmationCode.objects.create(
+            user=user,
+            code=code_str,
+            expires_at=expires_at
+        )
+
+    def is_valid(self):
+        """Vérifier si le code est valide"""
+        return (
+            not self.is_used and
+            timezone.now() <= self.expires_at
+        )
+
+    def use(self):
+        """Marquer le code comme utilisé"""
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save()
+
+
 class PublicUser(BaseModel):
     """Utilisateur public (simple consultation)"""
     

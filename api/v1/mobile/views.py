@@ -13,12 +13,14 @@ from decimal import Decimal
 from datetime import timedelta
 
 from apps.mobileapp.models import (
-    ActivationToken, PublicUser, PushToken,
+    ActivationToken, EmailConfirmationCode, PublicUser, PushToken,
     Notification, NotificationPreference, MobileSession
 )
+from apps.mobileapp.tasks import send_email_confirmation_code, _send_email_confirmation_code_now
 from apps.experts.models import Expert
 from .serializers import (
-    PublicUserRegistrationSerializer, ExpertActivationSerializer,
+    PublicUserRegistrationSerializer, EmailConfirmationCodeSerializer,
+    ResendConfirmationCodeSerializer, ExpertActivationSerializer,
     MobileLoginSerializer, MobileUserDetailSerializer,
     PushTokenSerializer, NotificationPreferenceSerializer,
     NotificationBasicSerializer, NotificationDetailSerializer,
@@ -42,13 +44,11 @@ class MobileAuthViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        refresh = RefreshToken.for_user(user)
-
         return Response({
             'user': MobileUserDetailSerializer(user).data,
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'message': 'Inscription réussie. Bienvenue!'
+            'email': user.email,
+            'requires_email_confirmation': True,
+            'message': "Inscription réussie. Un code de confirmation vous a été envoyé par email."
         }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny],
@@ -90,6 +90,21 @@ class MobileAuthViewSet(viewsets.ViewSet):
         serializer = MobileLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+
+        # La confirmation par code ne concerne que les utilisateurs publics
+        # (register_public) ; les experts passent par leur propre flux
+        # d'activation par token (activate_expert / confirm_email).
+        if hasattr(user, 'public_profile') and not user.email_confirmed:
+            try:
+                send_email_confirmation_code.delay(user.id)
+            except Exception:
+                _send_email_confirmation_code_now(user.id)
+
+            return Response({
+                'error_code': 'EMAIL_NOT_CONFIRMED',
+                'message': "Votre email n'est pas confirmé. Un nouveau code de confirmation vous a été envoyé.",
+                'email': user.email,
+            }, status=status.HTTP_403_FORBIDDEN)
 
         refresh = RefreshToken.for_user(user)
 
@@ -199,6 +214,52 @@ class MobileAuthViewSet(viewsets.ViewSet):
             'email': user.email,
             'next_step': 'Activez votre compte via l\'application Flutter avec votre token.',
             'flutter_deep_link': f'cnetp://activate-expert?token={token_str}',
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny],
+            url_path='confirm-email-code', throttle_classes=[MobileAuthThrottle])
+    def confirm_email_code(self, request):
+        """Confirmer l'email d'un utilisateur simple/public via le code reçu par email."""
+        serializer = EmailConfirmationCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        refresh = RefreshToken.for_user(user)
+
+        device_id = request.data.get('device_id', 'unknown')
+        device_type = request.data.get('device_type', 'android')
+        ip_address = self._get_client_ip(request)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+        expires_at = timezone.now() + timedelta(days=30)
+        MobileSession.objects.create(
+            user=user, device_id=device_id, device_type=device_type,
+            ip_address=ip_address, user_agent=user_agent, expires_at=expires_at
+        )
+
+        return Response({
+            'message': 'Email confirmé avec succès. Bienvenue !',
+            'user': MobileUserDetailSerializer(user).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny],
+            url_path='resend-confirmation-code', throttle_classes=[MobileAuthThrottle])
+    def resend_confirmation_code(self, request):
+        """Renvoyer un nouveau code de confirmation par email."""
+        serializer = ResendConfirmationCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+
+        try:
+            send_email_confirmation_code.delay(user.id)
+        except Exception:
+            # Broker indisponible : envoi synchrone en repli (sans passer par Celery)
+            _send_email_confirmation_code_now(user.id)
+
+        return Response({
+            'message': 'Un nouveau code de confirmation a été envoyé par email.',
         }, status=status.HTTP_200_OK)
 
     @staticmethod
@@ -464,17 +525,17 @@ class MobilePublicViewSet(viewsets.ViewSet):
         """Composition des CTM"""
         from apps.governance.models import CTM, WG
 
-        ctms = CTM.objects.all().values('id', 'titre', 'description')
+        ctms = CTM.objects.all().values('id', 'name', 'description')
         result = []
 
         for ctm_data in ctms:
             ctm = CTM.objects.get(id=ctm_data['id'])
-            wgs = WG.objects.filter(ctm=ctm).values('id', 'titre')
+            wgs = WG.objects.filter(ctm=ctm).values('id', 'name')
 
             result.append({
                 'ctm': ctm_data,
                 'wgs': list(wgs),
-                'expert_count': ctm.experts.count()
+                'expert_count': ctm.member_experts.count()
             })
 
         return Response(result)
