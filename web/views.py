@@ -101,6 +101,7 @@ class App(View):
         
         context = {
             'user': user.username,
+            'user_id': user.id,
             'expert': data_expert,
             'structure': structure,
             'affectations': affectations_list,

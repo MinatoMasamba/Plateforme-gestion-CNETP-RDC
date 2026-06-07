@@ -337,7 +337,7 @@
         </div>
     </main>
 
-    <div id="messaging-widget-container" class="fixed bottom-0 right-10 z-40"></div>
+    {% include 'app/composants/messaging_widget.html' %}
     {% include 'app/composants/pending_experts_widget.html' %}
     <div id="modals-container">
         {% include 'app/composants/create_norm_modal.html' %}
@@ -480,15 +480,6 @@
             safeCreateIcons();
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
-        };
-
-        const chatState = {
-            isOpen: false,
-            isMinimized: false,
-            activeContactId: null,
-            myProfile: { id: 'me', name: "Expert CNETP" },
-            contacts: [],
-            messages: {}
         };
 
         // Hydratation de la Sidebar depuis l'API
@@ -922,22 +913,6 @@
             document.getElementById('user-display-name').textContent = "{{ user|default:'Expert Connecté' }}";
             fetchSidebarData();
             loadModule('editor');
-
-            // Charger le composant de messagerie
-            (async () => {
-                const messagingContainer = document.getElementById('messaging-widget-container');
-                if (!messagingContainer) return;
-                try {
-                    const res = await fetch('/api/components/messaging/');
-                    if (res.ok) {
-                        messagingContainer.innerHTML = await res.text();
-                        executeScripts(messagingContainer);
-                        safeCreateIcons();
-                    }
-                } catch (err) { console.error('Erreur fetch messaging component:', err); }
-            })();
-
-
 
             // Connecter les boutons de profil
             document.getElementById('profile-btn').addEventListener('click', showMyProfile);
