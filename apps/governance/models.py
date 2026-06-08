@@ -216,6 +216,72 @@ class PilotageMembreship(BaseModel):
         return f"{self.expert.full_name} - {self.role}"
 
 
+class PosteNominatif(BaseModel):
+    """
+    Poste nominatif d'un organe de direction tel que défini NOMMÉMENT dans le
+    Manuel Organisationnel CNETP 2026 (validé le 22/05/2026) : chaque poste y
+    est rattaché à une structure d'origine précise — référence "Quota Ligne X"
+    du Tableau 1 (ex: "Vice-Président — ONIC, Ligne 15").
+
+    Sert de grille de lecture / référentiel de nomination, distincte de
+    l'affectation réelle (`holder`) : un poste reste vacant (`holder=None`)
+    tant que l'expert visé n'a pas encore été inscrit puis nommé.
+    """
+    ROLE_CHOICES = [
+        ('PRESIDENT', 'Président (Bureau)'),
+        ('VICE_PRESIDENT', 'Vice-Président (Bureau)'),
+        ('SECRETARY', 'Secrétaire (Bureau)'),
+        ('RAPPORTEUR', 'Rapporteur Général (Bureau)'),
+        ('CONSEILLER_POLITIQUE', 'Conseiller Institutionnel et Politique'),
+        ('ADMIN_TECH_FIN', 'Administrateur Technique et Financier'),
+        ('PARTENAIRE_SOC_CIV', 'Partenaire Sectoriel et Société Civile'),
+    ]
+
+    comite = models.ForeignKey(
+        ComitePilotage,
+        on_delete=models.CASCADE,
+        related_name='postes_nominatifs'
+    )
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    title = models.CharField(
+        max_length=300,
+        help_text="Intitulé nominatif exact du poste, tel que rédigé dans le manuel organisationnel"
+    )
+    required_structure = models.ForeignKey(
+        'experts.Structure',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='postes_nominatifs',
+        help_text="Structure d'origine exigée pour ce poste (ex: Cabinet du Ministre = Quota Ligne 2)"
+    )
+    quota_line = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Référence « Ligne X » du Tableau 1 du manuel organisationnel"
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    holder = models.ForeignKey(
+        Expert,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='postes_nominatifs_occupes',
+        help_text="Expert nommé à ce poste — laisser vide tant que le poste est vacant"
+    )
+
+    class Meta:
+        verbose_name = "Poste Nominatif (Pilotage)"
+        verbose_name_plural = "Postes Nominatifs (Pilotage)"
+        ordering = ['comite', 'order']
+        unique_together = ('comite', 'title')
+
+    def __str__(self):
+        occupant = self.holder.full_name if self.holder else "vacant"
+        return f"{self.title} ({occupant})"
+
+    @property
+    def is_vacant(self):
+        return self.holder_id is None
+
+
 class OriginStructure(BaseModel):
     """Structure d'origine - Giron (16 structures, 200 experts)"""
     name = models.CharField(max_length=200, unique=True)
@@ -308,9 +374,84 @@ class CTCMembership(BaseModel):
     class Meta:
         verbose_name = "Membership CTC"
         unique_together = ('ctc', 'expert')
-    
+
     def __str__(self):
         return f"{self.expert.full_name} - {self.role}"
+
+
+class PosteNominatifCTC(BaseModel):
+    """
+    Poste nominatif de la Cellule Technique de Coordination tel que défini
+    NOMMÉMENT dans le Manuel Organisationnel CNETP 2026 (section 3.2) :
+    chaque poste y est rattaché à une structure d'origine précise — référence
+    "Quota Ligne X" du Tableau 1 (ex: "Coordonnateur Adjoint — Cabinet, Ligne 2").
+
+    Pendant exact, pour la Cellule Technique, de PosteNominatif (Comité de
+    Pilotage) : grille de lecture / référentiel de nomination, distincte de
+    l'affectation réelle (`holder`), qui reste vide tant que le poste est vacant.
+    """
+    ROLE_CHOICES = [
+        ('COORDINATOR', 'Coordonnateur'),
+        ('VICE_COORDINATOR', 'Vice-Coordonnateur'),
+        ('ISO_EXPERT', 'Expert Veille ISO'),
+        ('LEGAL', 'Légiste'),
+        ('ENVIRONMENTAL', 'Environnementaliste'),
+        ('PLANNER', 'Planificateur'),
+        ('ECONOMIST', 'Économiste'),
+        ('SCIENTIFIC', 'Conseiller Scientifique'),
+        ('ACCOUNTANT', 'Comptable'),
+        ('ENQUIRY_MANAGER', 'Responsable Enquêtes'),
+        ('INDUSTRIAL', 'Liaison Industrielle'),
+        ('COMMUNICATOR', 'Communicateur'),
+        ('EXECUTIVE', 'Assistant Exécutif'),
+        ('CARTOGRAPHER', 'Cartographe SIG'),
+        ('DATA_ENTRY', 'Opérateur de Saisie'),
+        ('IT_ADMIN', 'Administrateur IT'),
+    ]
+
+    ctc = models.ForeignKey(
+        TechnicalCell,
+        on_delete=models.CASCADE,
+        related_name='postes_nominatifs'
+    )
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    title = models.CharField(
+        max_length=300,
+        help_text="Intitulé nominatif exact du poste, tel que rédigé dans le manuel organisationnel"
+    )
+    required_structure = models.ForeignKey(
+        'experts.Structure',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='postes_nominatifs_ctc',
+        help_text="Structure d'origine exigée pour ce poste (ex: Cabinet du Ministre = Quota Ligne 2)"
+    )
+    quota_line = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Référence « Ligne X » du Tableau 1 du manuel organisationnel"
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    holder = models.ForeignKey(
+        Expert,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='postes_nominatifs_ctc_occupes',
+        help_text="Expert nommé à ce poste — laisser vide tant que le poste est vacant"
+    )
+
+    class Meta:
+        verbose_name = "Poste Nominatif (Cellule Technique)"
+        verbose_name_plural = "Postes Nominatifs (Cellule Technique)"
+        ordering = ['ctc', 'order']
+        unique_together = ('ctc', 'title')
+
+    def __str__(self):
+        occupant = self.holder.full_name if self.holder else "vacant"
+        return f"{self.title} ({occupant})"
+
+    @property
+    def is_vacant(self):
+        return self.holder_id is None
 
 
 class ExecutiveLevel(BaseModel):

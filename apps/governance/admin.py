@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Count
-from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, TechnicalCell, CTCMembership, OriginStructure, ExecutiveLevel
+from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC, OriginStructure, ExecutiveLevel
 
 # Ensure ComitePilotage objects expose a 'role' attribute to avoid errors
 # when other admin modules assume a membership-like object is returned.
@@ -95,12 +95,20 @@ class PilotageMembreshipInline(admin.TabularInline):
     autocomplete_fields = ('expert',)
 
 
+class PosteNominatifInline(admin.TabularInline):
+    model = PosteNominatif
+    extra = 0
+    fields = ('order', 'role', 'title', 'required_structure', 'quota_line', 'holder')
+    autocomplete_fields = ('required_structure', 'holder')
+    show_change_link = True
+
+
 @admin.register(ComitePilotage)
 class ComitePilotageAdmin(admin.ModelAdmin):
     list_display = ('name', 'president', 'vice_president', 'secretary', 'get_member_count')
     search_fields = ('name',)
     readonly_fields = ('get_member_count', 'get_members_list', 'get_role_distribution')
-    
+
     fieldsets = (
         ('Informations générales', {
             'fields': ('name',)
@@ -121,8 +129,8 @@ class ComitePilotageAdmin(admin.ModelAdmin):
             )
         }),
     )
-    
-    inlines = [PilotageMembreshipInline]
+
+    inlines = [PosteNominatifInline, PilotageMembreshipInline]
     autocomplete_fields = ('president', 'vice_president', 'secretary', 'rapporteur')
     
     def get_member_count(self, obj):
@@ -165,6 +173,21 @@ class ComitePilotageAdmin(admin.ModelAdmin):
     get_members_list.short_description = "Membres (aperçu)"
 
 
+@admin.register(PosteNominatif)
+class PosteNominatifAdmin(admin.ModelAdmin):
+    list_display = ('title', 'get_role_display', 'required_structure', 'quota_line', 'holder', 'get_statut')
+    list_filter = ('role', 'comite', 'required_structure')
+    search_fields = ('title', 'required_structure__name', 'holder__full_name')
+    autocomplete_fields = ('comite', 'required_structure', 'holder')
+    ordering = ('comite', 'order')
+
+    def get_statut(self, obj):
+        if obj.holder:
+            return format_html('<span style="color: green;">✓ Pourvu</span>')
+        return format_html('<span style="color: orange;">⏳ Vacant</span>')
+    get_statut.short_description = "Statut"
+
+
 @admin.register(PilotageMembreship)
 class PilotageMembershipsAdmin(admin.ModelAdmin):
     list_display = ('expert', 'comite', 'get_role_display', 'expert_structure')
@@ -181,6 +204,14 @@ class CTCMembershipInline(admin.TabularInline):
     model = CTCMembership
     extra = 0
     autocomplete_fields = ('expert',)
+
+
+class PosteNominatifCTCInline(admin.TabularInline):
+    model = PosteNominatifCTC
+    extra = 0
+    fields = ('order', 'role', 'title', 'required_structure', 'quota_line', 'holder')
+    autocomplete_fields = ('required_structure', 'holder')
+    show_change_link = True
 
 
 @admin.register(TechnicalCell)
@@ -208,7 +239,7 @@ class TechnicalCellAdmin(admin.ModelAdmin):
         }),
     )
     
-    inlines = [CTCMembershipInline]
+    inlines = [PosteNominatifCTCInline, CTCMembershipInline]
     autocomplete_fields = ('coordinator', 'vice_coordinator')
     
     def get_member_count(self, obj):
@@ -249,6 +280,21 @@ class TechnicalCellAdmin(admin.ModelAdmin):
         
         return mark_safe("<br/>".join(members))
     get_members_list.short_description = "Membres (aperçu)"
+
+
+@admin.register(PosteNominatifCTC)
+class PosteNominatifCTCAdmin(admin.ModelAdmin):
+    list_display = ('title', 'get_role_display', 'required_structure', 'quota_line', 'holder', 'get_statut')
+    list_filter = ('role', 'ctc', 'required_structure')
+    search_fields = ('title', 'required_structure__name', 'holder__full_name')
+    autocomplete_fields = ('ctc', 'required_structure', 'holder')
+    ordering = ('ctc', 'order')
+
+    def get_statut(self, obj):
+        if obj.holder:
+            return format_html('<span style="color: green;">✓ Pourvu</span>')
+        return format_html('<span style="color: orange;">⏳ Vacant</span>')
+    get_statut.short_description = "Statut"
 
 
 @admin.register(CTCMembership)
