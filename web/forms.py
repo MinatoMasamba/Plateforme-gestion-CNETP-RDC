@@ -161,6 +161,16 @@ class ExpertRegistrationForm(forms.ModelForm):
         })
     )
     
+    whatsapp_number = forms.CharField(
+        max_length=20,
+        required=False,
+        label="Numéro WhatsApp",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': '+243 81 234 5678'
+        })
+    )
+
     cv = forms.FileField(
         required=False,
         label="Curriculum Vitae (CV)",
@@ -169,7 +179,7 @@ class ExpertRegistrationForm(forms.ModelForm):
             'accept': '.pdf,.doc,.docx,.txt'
         })
     )
-    
+
     # CTM - Choix unique
     ctm = forms.ModelChoiceField(
         queryset=CTM.objects.all(),
@@ -244,7 +254,7 @@ class ExpertRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = Expert
-        fields = ['structure', 'specialties', 'cv']
+        fields = ['structure', 'specialties', 'cv', 'whatsapp_number']
     
     def clean_password_confirm(self):
         """Vérifier que les mots de passe correspondent"""
@@ -300,7 +310,8 @@ class ExpertRegistrationForm(forms.ModelForm):
         expert = super().save(commit=False)
         expert.user = user
         expert.status = 'PENDING'
-        
+        expert.whatsapp_number = self.cleaned_data.get('whatsapp_number', '')
+
         if commit:
             expert.save()
             
