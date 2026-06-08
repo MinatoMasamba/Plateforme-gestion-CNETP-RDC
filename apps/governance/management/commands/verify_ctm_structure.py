@@ -4,7 +4,8 @@ Checks that all required roles and functions are implemented
 """
 
 from django.core.management.base import BaseCommand
-from apps.governance.models import CTM, WG, ComitePilotage, TechnicalCell
+from apps.governance.models import CTM, WG, ComitePilotage, TechnicalCell, PosteNominatif, PosteNominatifCTC
+from apps.experts.models import Structure
 import sys
 
 
@@ -38,6 +39,9 @@ class Command(BaseCommand):
             ('Role Fields', self._check_role_fields),
             ('Pilotage Committee', self._check_pilotage),
             ('Technical Cell', self._check_technical_cell),
+            ('Official Structures (Lignes 1-17)', self._check_official_structures),
+            ('Pilotage Postes Nominatifs (27)', self._check_pilotage_postes),
+            ('CTC Postes Nominatifs (20)', self._check_ctc_postes),
         ]
         
         results = {}
@@ -207,6 +211,82 @@ class Command(BaseCommand):
                 return {'status': 'warn', 'message': 'Cellule Technique not yet populated'}
         except Exception as e:
             return {'status': 'warn', 'message': f'Cannot check Technical Cell: {e}'}
+
+    def _check_official_structures(self):
+        """Verify the 17 official origin structures (Tableau 1, Lignes 1-17) are seeded"""
+        self.stdout.write("\n  🏛️  Structures d'origine officielles (Tableau 1, Lignes 1-17) :")
+
+        key_lines = [
+            'Secrétariat Général aux ITP',
+            'Cabinet du Ministre des ITP',
+            'Office des Routes',
+            'Office des Voiries et Drainage',
+            'Agence Congolaise des Grands Travaux',
+            'Bureau Technique de Contrôle',
+            "Fonds National d'Entretien Routier",
+        ]
+
+        count = Structure.objects.count()
+        missing = [name for name in key_lines if not Structure.objects.filter(name=name).exists()]
+
+        for name in key_lines:
+            if name in missing:
+                self.stdout.write(f"    ❌ {name} : introuvable")
+            else:
+                self.stdout.write(f"    ✅ {name}")
+
+        if count >= 19 and not missing:
+            return {'status': 'pass', 'message': f"{count} structures en base (≥ 19 attendues), Lignes-clés présentes"}
+        elif not missing:
+            return {'status': 'warn', 'message': f"{count} structures en base (< 19 attendues), mais Lignes-clés présentes"}
+        else:
+            return {'status': 'warn', 'message': f"{count} structures en base — manquantes : {', '.join(missing)}"}
+
+    def _check_pilotage_postes(self):
+        """Verify the 27 nominative posts of the Comité de Pilotage Élargi (manuel, section 3.1)"""
+        try:
+            comite = ComitePilotage.objects.get(name="Comité de Pilotage Élargi CNETP")
+        except ComitePilotage.DoesNotExist:
+            return {'status': 'warn', 'message': "Comité de Pilotage Élargi CNETP introuvable — exécutez init_pilotage_and_ctc"}
+
+        postes = PosteNominatif.objects.filter(comite=comite)
+        count = postes.count()
+        sans_structure = postes.filter(required_structure__isnull=True).count()
+
+        self.stdout.write(
+            f"\n  🪑 Postes nominatifs — Comité de Pilotage Élargi : {count}/27, "
+            f"{sans_structure} sans structure d'origine rattachée"
+        )
+
+        if count == 27 and sans_structure == 0:
+            return {'status': 'pass', 'message': "27/27 postes créés, tous rattachés à une structure d'origine"}
+        elif count == 0:
+            return {'status': 'warn', 'message': "Aucun poste — exécutez : python manage.py seed_pilotage_postes"}
+        else:
+            return {'status': 'warn', 'message': f"{count}/27 postes, {sans_structure} sans structure d'origine (attendu : 27 et 0)"}
+
+    def _check_ctc_postes(self):
+        """Verify the 20 nominative posts of the Cellule Technique de Coordination (manuel, section 3.2)"""
+        try:
+            ctc = TechnicalCell.objects.get(name="Cellule Technique de Coordination CNETP")
+        except TechnicalCell.DoesNotExist:
+            return {'status': 'warn', 'message': "Cellule Technique de Coordination CNETP introuvable — exécutez init_pilotage_and_ctc"}
+
+        postes = PosteNominatifCTC.objects.filter(ctc=ctc)
+        count = postes.count()
+        sans_structure = postes.filter(required_structure__isnull=True).count()
+
+        self.stdout.write(
+            f"\n  🪑 Postes nominatifs — Cellule Technique de Coordination : {count}/20, "
+            f"{sans_structure} sans structure d'origine rattachée"
+        )
+
+        if count == 20 and sans_structure == 0:
+            return {'status': 'pass', 'message': "20/20 postes créés, tous rattachés à une structure d'origine"}
+        elif count == 0:
+            return {'status': 'warn', 'message': "Aucun poste — exécutez : python manage.py seed_ctc_postes"}
+        else:
+            return {'status': 'warn', 'message': f"{count}/20 postes, {sans_structure} sans structure d'origine (attendu : 20 et 0)"}
 
     def _print_summary(self, results):
         """Print verification summary"""

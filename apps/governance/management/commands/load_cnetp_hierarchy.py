@@ -72,10 +72,8 @@ class Command(BaseCommand):
             ('ORD-01', 'ONIC', 'ORDERS', 'Ordre National des Ingénieurs Civils', 16),
             ('ORD-02', 'ONA', 'ORDERS', 'Ordre National des Architectes', 14),
             
-            # Académiques (12)
-            ('ACAD-01', 'ISTA', 'ACADEMIA', 'Institut Supérieur des Techniques Appliquées', 4),
-            ('ACAD-02', 'UNIKIN', 'ACADEMIA', 'Université de Kinshasa', 4),
-            ('ACAD-03', 'INBTP', 'ACADEMIA', 'Institut National du Bâtiment et Travaux Publics', 4),
+            # Institutions Académiques et de Recherche (20)
+            ('ACAD-01', 'Institutions Académiques et de Recherche', 'ACADEMIA', '20 sièges dédiés à la caution scientifique et validation théorique.', 20),
         ]
         
         for code, name, giron, description, count in structures_data:
@@ -208,17 +206,28 @@ class Command(BaseCommand):
             )
 
     def create_ctm_and_wg(self, experts):
-        """Create 8 CTM with 24 WG (4-5 experts per WG)"""
+        """Create 8 CTM with WG names aligned to the official manual"""
         ctm_names = [
             "Géotechnique et Risques Naturels",
-            "Structures et Ouvrages d'Art",
+            "Ouvrages d'Art",
             "Bâtiment, Urbanisme et Transition Numérique",
-            "Infrastructures Aéroportuaires",
+            "Aéroports et Transport Aérien",
             "Infrastructures de Transport Linéaire et Maritimes",
-            "Ingénierie Hydraulique et Distribution",
-            "Génie Sanitaire, Économie Circulaire et Assainissement",
+            "Ressources en Eau et Hydraulique",
+            "Assainissement et Gestion des Déchets",
             "Sciences des Matériaux, Métrologie et Valorisation Locale",
         ]
+
+        CTM_WGS = {
+            1: ["Sols & Géomécanique", "Risques Naturels", "Stabilité & Érosions"],
+            2: ["Calcul Structural & Eurocodes", "Génie Parasismique", "Ouvrages Hydrauliques Lourds / Ponts-Cadres"],
+            3: ["Habitabilité & Sécurité", "BIM & Transition Numérique", "Performance Énergétique & Coûts"],
+            4: ["Infrastructure Aéroportuaire", "Terminaux et Équipements", "Conformité OACI"],
+            5: ["Ingénierie Routière", "Voies Ferrées", "Infrastructures Portuaires"],
+            6: ["Adduction d'Eau", "Irrigation et Drainage", "Forages et Captage"],
+            7: ["Macro-drainage & Eaux Pluviales", "Eaux Usées & Réseaux d'Égouts", "Déchets Solides & CET"],
+            8: ["Matériaux Géo-sourcés & Locaux", "Essais & Métrologie Légale", "Simulation, Recherche & Certification"],
+        }
         
         expert_idx = 0
         experts_list = list(experts)
@@ -236,14 +245,15 @@ class Command(BaseCommand):
             )
             expert_idx += 1
             
-            # Create 3 WG per CTM
-            for wg_num in range(1, 4):
+            # Use authoritative WG names when available
+            wg_names = CTM_WGS.get(ctm_num, [f"WG {ctm_num}.{i}" for i in range(1, 4)])
+            for wg_num, wg_name in enumerate(wg_names, 1):
                 wg, _ = WG.objects.get_or_create(
                     ctm=ctm,
                     number=wg_num,
                     defaults={
-                        'name': f"WG {ctm_num}.{wg_num}: {ctm_name}",
-                        'description': f"Working Group {ctm_num}.{wg_num}",
+                        'name': wg_name,
+                        'description': f"Working Group {ctm_num}.{wg_num} - {wg_name}",
                         'president': experts_list[expert_idx] if expert_idx < len(experts_list) else None,
                     }
                 )
