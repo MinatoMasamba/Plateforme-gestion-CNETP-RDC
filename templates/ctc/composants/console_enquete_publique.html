@@ -1,0 +1,102 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONSOLE MODÉRATION ENQUÊTE PUBLIQUE — Responsable Enquêtes (exclusif)
+     Hub de centralisation, tri et recevabilité des avis citoyens (Art. 12)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="lg:col-span-2 space-y-4">
+        <!-- Statistiques -->
+        <div class="grid grid-cols-4 gap-3">
+            <div class="rounded-xl border border-purple-400/20 bg-purple-400/5 p-3 text-center">
+                <p class="text-xl font-black text-purple-400">247</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Avis reçus</p>
+            </div>
+            <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-3 text-center">
+                <p class="text-xl font-black text-emerald-400">183</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Recevables</p>
+            </div>
+            <div class="rounded-xl border border-red-400/20 bg-red-400/5 p-3 text-center">
+                <p class="text-xl font-black text-red-400">41</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Irrecevables</p>
+            </div>
+            <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-center">
+                <p class="text-xl font-black text-amber-400">23</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">À examiner</p>
+            </div>
+        </div>
+
+        <!-- File de modération -->
+        <div class="rounded-2xl border border-purple-400/20 bg-white dark:bg-white/2 p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 flex items-center gap-2">
+                    <i data-lucide="inbox" class="w-3.5 h-3.5"></i> File de Modération
+                </h3>
+                <div class="flex gap-1.5">
+                    <button class="text-[9px] font-bold px-2 py-1 rounded-lg border
+                                   bg-purple-400/10 text-purple-400 border-purple-400/20
+                                   hover:bg-purple-400/20 transition-colors">Tous</button>
+                    <button class="text-[9px] font-bold px-2 py-1 rounded-lg border
+                                   bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10">Citoyens</button>
+                    <button class="text-[9px] font-bold px-2 py-1 rounded-lg border
+                                   bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10">Entreprises</button>
+                    <button class="text-[9px] font-bold px-2 py-1 rounded-lg border
+                                   bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10">OSC</button>
+                </div>
+            </div>
+            <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {% for i in "12345"|make_list %}
+                <div class="flex items-start gap-3 p-3 rounded-xl border
+                            border-slate-100 dark:border-white/5 hover:border-purple-400/20 transition-colors">
+                    <div class="w-7 h-7 rounded-lg bg-purple-400/10 flex items-center justify-center
+                                text-[9px] font-black text-purple-400 shrink-0">
+                        {{ i }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300 truncate">
+                            Avis #ENQ-2026-00{{ i }} — Citoyen / Kinshasa
+                        </p>
+                        <p class="text-[9.5px] text-slate-500 mt-0.5 line-clamp-1">
+                            Observation sur les normes de drainage CTM 7 — rue des Baobabs, Gombe…
+                        </p>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button class="px-2 py-1 rounded text-[9px] font-extrabold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/20">✓</button>
+                        <button class="px-2 py-1 rounded text-[9px] font-extrabold bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/20">✗</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 mb-3">
+                Responsable Enquêtes (Art. 12)
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Vous centralisez et modérez tous les avis de l'<strong>Enquête Publique Nationale</strong>
+                prescrite par l'Article 12 du décret CNETP, et établissez les critères de recevabilité.
+            </p>
+            <div class="mt-3 pt-3 border-t border-purple-400/15 text-[10px] text-slate-500">
+                <p><strong class="text-purple-400">Quota :</strong> Ligne 2 (Cabinet)</p>
+            </div>
+        </div>
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Hors périmètre</h4>
+            </div>
+            <ul class="space-y-1 text-[10.5px] text-slate-500">
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Textes de lois et calculs géotechniques (lecture seule)
+                </li>
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Comptabilité CTC (Grand Livre)
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

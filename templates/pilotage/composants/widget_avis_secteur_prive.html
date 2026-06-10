@@ -1,0 +1,109 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     WIDGET AVIS SECTEUR PRIVÉ — Représentant FEC (exclusif)
+     Interface pour émettre des réserves économiques ou industrielles
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <!-- Formulaire d'avis -->
+    <div class="rounded-2xl border border-purple-400/20 bg-white dark:bg-white/2 p-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 mb-4 flex items-center gap-2">
+            <i data-lucide="message-square-warning" class="w-3.5 h-3.5"></i>
+            Émettre une Réserve Économique / Industrielle
+        </h3>
+
+        <div class="space-y-3">
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Norme / CTM concerné(e)
+                </label>
+                <select class="w-full text-xs rounded-xl border px-3 py-2
+                               border-slate-200 dark:border-white/10 bg-transparent
+                               text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400">
+                    <option>Sélectionnez une norme ou un CTM…</option>
+                    {% for item in ctms_with_stats %}
+                    <option>CTM {{ item.ctm.number }} — {{ item.ctm.name }}</option>
+                    {% endfor %}
+                    <option>Pr-RDC 9001 — Gestion de la qualité</option>
+                    <option>Pr-RDC 45001 — Sécurité au travail</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Nature de la réserve
+                </label>
+                <select class="w-full text-xs rounded-xl border px-3 py-2
+                               border-slate-200 dark:border-white/10 bg-transparent
+                               text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400">
+                    <option>Réserve économique (coût application)</option>
+                    <option>Réserve industrielle (faisabilité technique locale)</option>
+                    <option>Réserve sur délai d'application</option>
+                    <option>Proposition d'amendement</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Contenu de la réserve
+                </label>
+                <textarea rows="5" placeholder="Décrivez la réserve économique ou industrielle que vous souhaitez soumettre au Comité de Pilotage…"
+                          class="w-full text-xs rounded-xl border px-3 py-2.5 resize-none
+                                 border-slate-200 dark:border-white/10 bg-transparent
+                                 text-slate-700 dark:text-slate-300 placeholder-slate-400
+                                 focus:outline-none focus:ring-1 focus:ring-purple-400"></textarea>
+            </div>
+            <button class="w-full py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                           bg-purple-500 hover:bg-purple-400 text-white transition-colors
+                           flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Soumettre la Réserve FEC
+            </button>
+        </div>
+    </div>
+
+    <!-- Mes réserves soumises + Rappel rôle -->
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 mb-3">Rôle FEC</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Le <strong>Représentant de la FEC</strong> est la voix du secteur privé BTP congolais.
+                Il soumet des réserves sur l'applicabilité économique et industrielle des normes
+                avant leur homologation finale.
+            </p>
+            <div class="mt-3 pt-3 border-t border-purple-400/15 text-[10px] text-slate-500 space-y-1">
+                <p><strong class="text-purple-400">Quota :</strong> Ligne 17</p>
+                <p><strong class="text-purple-400">Périmètre :</strong> Voix du marché privé BTP</p>
+            </div>
+        </div>
+
+        <!-- Historique réserves -->
+        <div class="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/2 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <i data-lucide="history" class="w-3.5 h-3.5"></i> Réserves Soumises
+            </h4>
+            <div class="space-y-2">
+                <div class="p-2.5 rounded-lg border border-slate-100 dark:border-white/5 flex items-center gap-3 text-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                    <span class="flex-1 truncate text-slate-600 dark:text-slate-400">CTM 5 — Réserve sur coût d'enrobé</span>
+                    <span class="text-[9px] font-bold text-amber-400 border border-amber-400/25 px-1.5 py-0.5 rounded-full">En examen</span>
+                </div>
+                <div class="p-2.5 rounded-lg border border-slate-100 dark:border-white/5 flex items-center gap-3 text-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                    <span class="flex-1 truncate text-slate-600 dark:text-slate-400">Pr-RDC 9001 — Délai d'application</span>
+                    <span class="text-[9px] font-bold text-emerald-400 border border-emerald-400/25 px-1.5 py-0.5 rounded-full">Acceptée</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restriction blocage décisions admin -->
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">
+                    Blocage Administratif
+                </h4>
+            </div>
+            <p class="text-[10.5px] text-slate-500 leading-relaxed">
+                Les membres du Collège des Partenaires sont <strong>totalement bloqués</strong> sur les
+                processus décisionnels internes de l'Administration Publique.
+            </p>
+        </div>
+    </div>
+</div>

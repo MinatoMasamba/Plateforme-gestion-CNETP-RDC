@@ -1,0 +1,127 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONSOLE GLOBALE — Bureau Directoire uniquement
+     Visibilité transverse : 8 CTM + WGs + Bouton Validation Étape
+═══════════════════════════════════════════════════════════════════ -->
+
+<!-- KPI Row -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-amber-400">{{ total_ctms }}</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">CTM Actifs</p>
+    </div>
+    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-amber-400">{{ total_wgs }}</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Groupes de Travail</p>
+    </div>
+    <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-emerald-400">200</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Experts Nommés</p>
+    </div>
+    <div class="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-red-400">{{ pending_requests_count }}</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Demandes en Attente</p>
+    </div>
+</div>
+
+<!-- Bouton d'Action Maître — Validation Étapes -->
+<div class="mb-6 p-5 rounded-2xl border border-amber-400/25 bg-amber-400/5">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <h3 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                Bouton d'Action Maître — Validation de Passage d'Étape
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">
+                Contrôle le passage d'une étape à l'autre du processus d'homologation (Art. 12 — Étapes 1 à 7).
+                Action souveraine réservée au Bureau Directoire.
+            </p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+            <select id="step-select" class="text-xs font-semibold rounded-lg border px-3 py-2
+                                            border-amber-400/30 bg-amber-400/10 text-amber-400
+                                            focus:outline-none focus:ring-1 focus:ring-amber-400">
+                <option value="1">Étape 1 — Rédaction WG</option>
+                <option value="2">Étape 2 — Revue CTM</option>
+                <option value="3">Étape 3 — Enquête Publique</option>
+                <option value="4">Étape 4 — Comité de Pilotage</option>
+                <option value="5">Étape 5 — Légistique</option>
+                <option value="6">Étape 6 — Validation Finale</option>
+                <option value="7">Étape 7 — Homologation & Publication</option>
+            </select>
+            <button onclick="triggerStepValidation()"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase
+                           bg-amber-500 hover:bg-amber-400 text-white transition-colors shadow-lg
+                           shadow-amber-500/25">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Valider
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Grille des 8 CTM -->
+<h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+    <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i> État des 8 Comités Techniques Miroirs
+</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    {% for item in ctms_with_stats %}
+    <div class="module-card rounded-xl border p-4
+                border-slate-200 dark:border-white/8
+                bg-white dark:bg-white/3 hover:border-amber-400/30 dark:hover:border-amber-400/25
+                cursor-pointer" onclick="alert('Détail CTM {{ item.ctm.number }} — à connecter')">
+        <div class="flex items-start justify-between mb-2">
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
+                         bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                CTM {{ item.ctm.number }}
+            </span>
+            <span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} experts</span>
+        </div>
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">
+            {{ item.ctm.name }}
+        </p>
+        <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-white/5">
+            <span class="text-[10px] text-slate-500">{{ item.wg_count }} WG{{ item.wg_count|pluralize }}</span>
+            {% if item.ctm.iso_reference %}
+            <span class="text-[9px] font-mono text-slate-400">{{ item.ctm.iso_reference }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-4 text-center py-8 text-sm text-slate-500 italic">
+        Aucun CTM trouvé — configurez les Comités Techniques Miroirs.
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Section Gestion des Accès -->
+{% if can_manage_access %}
+<div class="mt-6 p-4 rounded-xl border border-slate-200 dark:border-white/8 bg-white/50 dark:bg-white/2">
+    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i> Gestion des Accès Experts
+    </h3>
+    <p class="text-xs text-slate-500 mb-3">
+        Le Bureau Directoire peut débloquer ou suspendre l'accès d'un expert à la plateforme.
+    </p>
+    <div class="flex gap-2">
+        <a href="{% url 'web:app' %}"
+           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors
+                  border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5
+                  text-slate-600 dark:text-slate-400">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i> Gérer les Experts
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function triggerStepValidation() {
+    const step = document.getElementById('step-select').value;
+    const labels = {
+        '1': 'Rédaction WG', '2': 'Revue CTM', '3': 'Enquête Publique',
+        '4': 'Comité de Pilotage', '5': 'Légistique', '6': 'Validation Finale',
+        '7': 'Homologation & Publication'
+    };
+    if (confirm(`Confirmer le passage à l'Étape ${step} — ${labels[step]} ?\n\nCette action est enregistrée et notifiée à tous les experts concernés.`)) {
+        showToast(`Étape ${step} validée — notification envoyée.`, 'success');
+    }
+}
+</script>

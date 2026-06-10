@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cellule Technique de Coordination — CNETP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+        .module-card { transition: transform .2s, box-shadow .2s; }
+        .module-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+
+    <!-- ═══════════════════════════════════════════ TOPBAR -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-3
+                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+                   border-slate-200 dark:border-white/8">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'web:app' %}"
+               class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Espace de Travail
+            </a>
+            <span class="text-slate-300 dark:text-white/15">|</span>
+            <a href="{% url 'web:pilotage_dashboard' %}"
+               class="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                Comité de Pilotage
+            </a>
+            <span class="text-slate-300 dark:text-white/15">|</span>
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase">
+                Cellule Technique de Coordination
+            </h1>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border
+                         bg-teal-50 text-teal-700 border-teal-300
+                         dark:bg-teal-400/10 dark:text-teal-400 dark:border-teal-400/25
+                         uppercase tracking-widest">
+                20 Postes · Art. 12
+            </span>
+        </div>
+        <div class="flex items-center gap-3">
+            {% if can_approve_ctc_requests and pending_ctc_requests_count > 0 %}
+            <button onclick="document.getElementById('panel-ctc-requests').scrollIntoView({behavior:'smooth'})"
+                    class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                           bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20 transition-colors">
+                <i data-lucide="bell" class="w-3.5 h-3.5 animate-pulse"></i>
+                {{ pending_ctc_requests_count }} demande{{ pending_ctc_requests_count|pluralize }}
+            </button>
+            {% endif %}
+            <button onclick="toggleTheme()" title="Thème"
+                    class="p-2 rounded-lg border border-slate-200 dark:border-white/10
+                           hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
+                <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+                <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════ HERO -->
+    {% include "ctc/composants/hero_header.html" %}
+
+    <!-- ═══════════════════════════════════════════ CONTENU PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 pb-16 space-y-10 mt-8">
+
+        <!-- ── Profil 1 : Direction des Opérations ────────────────────── -->
+        {% if is_direction %}
+        <section class="animate-up" style="animation-delay:.05s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="git-branch" class="w-4 h-4 text-amber-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                    Hub de Routage Documentaire
+                </h2>
+            </div>
+            {% include "ctc/composants/hub_routage_documentaire.html" %}
+        </section>
+
+        {% if can_arbitrate_delays %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="alarm-clock" class="w-4 h-4 text-amber-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                    Console d'Arbitrage des Retards & Rappels CTM
+                </h2>
+            </div>
+            {% include "ctc/composants/console_arbitrage_retards.html" %}
+        </section>
+        {% endif %}
+        {% endif %}
+
+        <!-- ── Profil 2 : Pôle Analyse ────────────────────────────────── -->
+        {% if can_translate_iso %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="languages" class="w-4 h-4 text-blue-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-400">
+                    Widget Traduction & Alignement ISO
+                </h2>
+            </div>
+            {% include "ctc/composants/widget_traduction_iso.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_legistique_ctc %}
+        <section class="animate-up" style="animation-delay:.15s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="scale" class="w-4 h-4 text-blue-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-400">
+                    Console de Légistique — Conformité Réglementaire RDC
+                </h2>
+            </div>
+            {% include "ctc/composants/console_legistique_ctc.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_eco_env_matrix %}
+        <section class="animate-up" style="animation-delay:.2s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="leaf" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+                    Matrice d'Impacts Éco-Environnementaux
+                </h2>
+            </div>
+            {% include "ctc/composants/matrice_impacts_eco_env.html" %}
+        </section>
+        {% endif %}
+
+        {% if is_analyste and not can_translate_iso and not can_legistique_ctc and not can_eco_env_matrix %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="p-6 rounded-2xl border border-blue-400/20 bg-blue-400/3 text-center">
+                <i data-lucide="user-check" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {{ expert.user.get_full_name }} — {{ membership.get_role_display }}
+                </p>
+                <p class="text-xs text-slate-500 mt-1">
+                    Vos modules d'analyse spécialisés sont en cours de configuration.<br>
+                    Vous disposez d'un accès lecture à tous les documents CTC.
+                </p>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 3 : Pôle Logistique ──────────────────────────────── -->
+        {% if can_enquete_publique %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="megaphone" class="w-4 h-4 text-purple-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                    Console de Modération — Enquête Publique Nationale (Art. 12)
+                </h2>
+            </div>
+            {% include "ctc/composants/console_enquete_publique.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_cadrage_industriel %}
+        <section class="animate-up" style="animation-delay:.15s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="factory" class="w-4 h-4 text-purple-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                    Livre de Cadrage Industriel — FEC
+                </h2>
+            </div>
+            {% include "ctc/composants/livre_cadrage_industriel.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_grand_livre %}
+        <section class="animate-up" style="animation-delay:.2s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                    Grand Livre Comptable — Budget Opérationnel CTC
+                </h2>
+            </div>
+            {% include "ctc/composants/grand_livre_comptable.html" %}
+        </section>
+        {% endif %}
+
+        {% if is_logistique and not can_enquete_publique and not can_cadrage_industriel and not can_grand_livre %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="p-6 rounded-2xl border border-purple-400/20 bg-purple-400/3 text-center">
+                <i data-lucide="radio" class="w-8 h-8 text-purple-400 mx-auto mb-2"></i>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    Spécialiste en Communication et Vulgarisation
+                </p>
+                <p class="text-xs text-slate-500 mt-1">
+                    Module Communication en cours de développement.<br>
+                    Coordinateur des publications et supports de l'Enquête Publique.
+                </p>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 4 : Bureau Numérique ─────────────────────────────── -->
+        {% if can_upload_maps %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="map" class="w-4 h-4 text-teal-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-teal-400">
+                    Serveur Géospatial / SIG — Numérisation des Tracés
+                </h2>
+            </div>
+            {% include "ctc/composants/serveur_sig.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_admin_system %}
+        <section class="animate-up" style="animation-delay:.15s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="server" class="w-4 h-4 text-teal-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-teal-400">
+                    Console d'Administration Système — Portail CNETP
+                </h2>
+            </div>
+            {% include "ctc/composants/console_admin_systeme.html" %}
+        </section>
+        {% endif %}
+
+        {% if can_fast_entry %}
+        <section class="animate-up" style="animation-delay:.2s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="keyboard" class="w-4 h-4 text-teal-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-teal-400">
+                    Interface de Saisie Massive (Fast-Entry)
+                </h2>
+            </div>
+            {% include "ctc/composants/interface_saisie_massive.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Modules verrouillés (hors pôle) ─────────────────────────── -->
+        <section class="animate-up" style="animation-delay:.35s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="eye-off" class="w-4 h-4 text-slate-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-500">
+                    Modules Hors Pôle — Accès Temporaire par Interpellation
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% if not is_direction %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Hub de Routage Documentaire" module_icon="git-branch" module_color="amber" locked_reason="Direction des Opérations uniquement" locked_unit="Direction des Opérations" %}
+                {% endif %}
+                {% if not can_translate_iso and not is_direction %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Traduction & Alignement ISO" module_icon="languages" module_color="blue" locked_reason="Experts Veille Normative (ACGT / SG-ITP)" locked_unit="Pôle Analyse" %}
+                {% endif %}
+                {% if not can_legistique_ctc and not is_direction %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Légistique Réglementaire" module_icon="scale" module_color="blue" locked_reason="Expert Juridique Permanent" locked_unit="Pôle Analyse" %}
+                {% endif %}
+                {% if not can_enquete_publique and not is_direction and not is_analyse %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Modération Enquête Publique" module_icon="megaphone" module_color="purple" locked_reason="Responsable Enquêtes Publiques" locked_unit="Pôle Logistique" %}
+                {% endif %}
+                {% if not can_upload_maps and not is_direction %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Serveur SIG / Géospatial" module_icon="map" module_color="teal" locked_reason="Ingénieurs Cartographes SIG (BEAU / OVD)" locked_unit="Bureau Numérique" %}
+                {% endif %}
+                {% if not can_admin_system and not is_direction %}
+                    {% include "ctc/composants/locked_ctc_module.html" with module_name="Administration Système" module_icon="server" module_color="teal" locked_reason="Techniciens IT / Administrateurs (BTC / SG-ITP)" locked_unit="Bureau Numérique" %}
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- ── Mes demandes opérationnelles ──────────────────────────────── -->
+        {% if my_ctc_requests %}
+        <section class="animate-up" style="animation-delay:.4s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="file-question" class="w-4 h-4 text-slate-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-500">
+                    Mes Demandes Opérationnelles
+                </h2>
+            </div>
+            <div class="space-y-2">
+                {% for req in my_ctc_requests %}
+                <div class="flex items-center gap-3 p-3 rounded-xl border
+                            bg-white dark:bg-white/3 border-slate-200 dark:border-white/8 text-sm">
+                    <span class="w-2 h-2 rounded-full shrink-0
+                        {% if req.status == 'PENDING' %}bg-amber-400
+                        {% elif req.status == 'APPROVED' %}bg-emerald-400
+                        {% else %}bg-red-400{% endif %}"></span>
+                    <span class="flex-1 font-medium truncate text-xs">{{ req.restricted_resource }}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
+                        {% if req.status == 'PENDING' %}bg-amber-400/10 text-amber-400 border-amber-400/25
+                        {% elif req.status == 'APPROVED' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
+                        {% else %}bg-red-400/10 text-red-400 border-red-400/25{% endif %}">
+                        {{ req.get_status_display }}
+                    </span>
+                    <span class="text-[10px] text-slate-500">{{ req.created_at|date:"d/m/Y" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Assistant Exécutif : Demandes en attente ──────────────────── -->
+        {% if can_approve_ctc_requests %}
+        <section id="panel-ctc-requests" class="animate-up" style="animation-delay:.45s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="inbox" class="w-4 h-4 text-amber-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                    Demandes Opérationnelles — À Traiter
+                </h2>
+                {% if pending_ctc_requests_count > 0 %}
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
+                             bg-red-400/15 text-red-400 border border-red-400/30">
+                    {{ pending_ctc_requests_count }} en attente
+                </span>
+                {% endif %}
+            </div>
+            {% include "ctc/composants/ctc_pending_requests_panel.html" %}
+        </section>
+        {% endif %}
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════ MODAL -->
+    {% include "ctc/composants/ctc_permission_modal.html" %}
+
+    <script>
+        lucide.createIcons();
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        function openCTCPermissionModal(resourceName) {
+            const modal = document.getElementById('ctc-permission-modal');
+            document.getElementById('ctc-pm-resource').value = resourceName;
+            document.getElementById('ctc-pm-resource-label').textContent = resourceName;
+            modal.classList.remove('hidden');
+            document.getElementById('ctc-pm-reason').focus();
+        }
+
+        function closeCTCPermissionModal() {
+            document.getElementById('ctc-permission-modal').classList.add('hidden');
+            document.getElementById('ctc-pm-reason').value = '';
+        }
+
+        document.getElementById('ctc-permission-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('ctc-pm-submit-btn');
+            const resource = document.getElementById('ctc-pm-resource').value;
+            const reason   = document.getElementById('ctc-pm-reason').value.trim();
+            if (!reason) { alert('Veuillez saisir le motif de votre demande.'); return; }
+            btn.disabled = true;
+            btn.textContent = 'Envoi…';
+            try {
+                const resp = await fetch("{% url 'web:ctc_operational_request' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ restricted_resource: resource, reason })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    closeCTCPermissionModal();
+                    showToast("Demande transmise à l'Assistant Exécutif.", 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || "Erreur lors de l'envoi.", 'error');
+                }
+            } catch(err) {
+                showToast('Erreur réseau.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Transmettre à l'Assistant Exécutif";
+            }
+        });
+
+        async function handleCTCDecision(requestId, decision) {
+            const comment = document.getElementById(`ctc-comment-${requestId}`)?.value || '';
+            const btn = document.getElementById(`ctc-btn-${decision.toLowerCase()}-${requestId}`);
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+            try {
+                const resp = await fetch(`/ctc/approuver-demande/${requestId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ decision, comment })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, decision === 'APPROVED' ? 'success' : 'warning');
+                    document.getElementById(`ctc-request-row-${requestId}`)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                }
+            } catch(err) { showToast('Erreur réseau.', 'error'); }
+        }
+
+        function showToast(msg, type = 'success') {
+            const colors = { success: 'bg-emerald-500 text-white', error: 'bg-red-500 text-white', warning: 'bg-amber-500 text-white' };
+            const t = document.createElement('div');
+            t.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-xl ${colors[type] || colors.success}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        }
+    </script>
+</body>
+</html>

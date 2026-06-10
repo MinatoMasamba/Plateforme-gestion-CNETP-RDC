@@ -1,0 +1,166 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     HUB DE ROUTAGE DOCUMENTAIRE — Direction des Opérations
+     Interface maîtresse : assigner les livrables CTM aux analystes CTC
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Flux entrant des CTM -->
+    <div class="rounded-2xl border border-amber-400/20 bg-white dark:bg-white/2 p-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2">
+            <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Livrables Reçus des CTM
+            <span class="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-400/10 text-red-400 border border-red-400/25">
+                3 nouveaux
+            </span>
+        </h3>
+        <div class="space-y-2">
+            {% for item in ctms_list %}
+            <div class="flex items-center gap-3 p-3 rounded-xl border
+                        border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2
+                        hover:border-amber-400/20 transition-colors group">
+                <div class="w-8 h-8 rounded-lg bg-amber-400/10 flex items-center justify-center
+                            text-[9px] font-black text-amber-400 shrink-0">
+                    CTM{{ item.ctm.number }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300 truncate">
+                        {{ item.ctm.name }}
+                    </p>
+                    <p class="text-[9.5px] text-slate-500">{{ item.wg_count }} WG · {{ item.member_count }} experts</p>
+                </div>
+                <button class="opacity-0 group-hover:opacity-100 transition-opacity
+                               text-[9px] font-bold px-2 py-1 rounded-lg
+                               bg-amber-400/15 text-amber-400 border border-amber-400/25
+                               hover:bg-amber-400/25" title="Assigner ce livrable">
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                </button>
+            </div>
+            {% empty %}
+            <p class="text-xs text-slate-500 italic text-center py-4">
+                Aucun CTM configuré.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Console d'assignation -->
+    <div class="rounded-2xl border border-amber-400/20 bg-white dark:bg-white/2 p-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2">
+            <i data-lucide="git-branch" class="w-3.5 h-3.5"></i> Assignation aux Analystes
+        </h3>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Livrable à router
+                </label>
+                <select class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                               bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-400">
+                    <option>Sélectionner un CTM / WG…</option>
+                    {% for item in ctms_list %}
+                    <option>CTM {{ item.ctm.number }} — {{ item.ctm.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Analyste destinataire
+                </label>
+                <select class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                               bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-400">
+                    <option>Expert Veille Normative (ACGT)</option>
+                    <option>Expert Veille Normative (SG-ITP)</option>
+                    <option>Expert Juridique Permanent</option>
+                    <option>Expert Sauvegardes Environnementales</option>
+                    <option>Expert Planification Opérationnelle</option>
+                    <option>Expert Économiste (FONER)</option>
+                    <option>Conseiller Scientifique (INBTP)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Type d'analyse requise
+                </label>
+                <select class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                               bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-400">
+                    <option>Traduction & Alignement ISO</option>
+                    <option>Conformité réglementaire (Légistique)</option>
+                    <option>Impact environnemental & social</option>
+                    <option>Étude d'impact financier</option>
+                    <option>Validation scientifique</option>
+                    <option>Planification opérationnelle</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Date limite de retour
+                </label>
+                <input type="date" class="w-full text-xs rounded-xl border px-3 py-2
+                                          border-slate-200 dark:border-white/10 bg-transparent
+                                          text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-400">
+            </div>
+            <button class="w-full py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                           bg-amber-500 hover:bg-amber-400 text-white transition-colors
+                           flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Assigner et Notifier
+            </button>
+        </div>
+    </div>
+
+    <!-- Statut des assignments en cours -->
+    <div class="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/2 p-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+            <i data-lucide="activity" class="w-3.5 h-3.5"></i> Assignments en Cours
+        </h3>
+        <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-400/15 bg-amber-400/3">
+                <span class="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0 animate-pulse"></span>
+                <div>
+                    <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300">
+                        CTM 1 → Expert Juridique
+                    </p>
+                    <p class="text-[9.5px] text-slate-500">Conformité Réglementaire · Échéance 20/07</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-blue-400/15 bg-blue-400/3">
+                <span class="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0"></span>
+                <div>
+                    <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300">
+                        CTM 5 → Expert Veille ACGT
+                    </p>
+                    <p class="text-[9.5px] text-slate-500">Alignement ISO 13473 · Échéance 25/07</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-emerald-400/15 bg-emerald-400/3">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 mt-1 shrink-0"></span>
+                <div>
+                    <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300">
+                        CTM 7 → Expert Économiste
+                    </p>
+                    <p class="text-[9.5px] text-slate-500">Impact financier OVD · Rendu 10/07 ✓</p>
+                </div>
+            </div>
+        </div>
+
+        {% if can_transmit_directoire %}
+        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+            <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+                <i data-lucide="arrow-up-right" class="w-3 h-3"></i> Transmission finale
+            </h4>
+            <button onclick="confirmTransmit()"
+                    class="w-full py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wide
+                           border border-amber-400/30 bg-amber-400/8 text-amber-400
+                           hover:bg-amber-400/15 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                Transmettre au Bureau Directoire
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function confirmTransmit() {
+    if (confirm('Confirmer la transmission du dossier consolidé au Bureau Directoire du Comité de Pilotage ?\n\nTous les rapports d\'analyse doivent être finalisés avant cette action.')) {
+        showToast('Dossier transmis au Bureau Directoire.', 'success');
+    }
+}
+</script>

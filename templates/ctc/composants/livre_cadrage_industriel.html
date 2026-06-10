@@ -1,0 +1,109 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     LIVRE DE CADRAGE INDUSTRIEL — Expert Liaison Industrielle FEC
+     Intégration des retours économiques des entreprises BTP privées
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <div class="rounded-2xl border border-purple-400/20 bg-white dark:bg-white/2 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 flex items-center gap-2">
+                <i data-lucide="building" class="w-3.5 h-3.5"></i> Cahiers des Charges — Secteur BTP Privé
+            </h3>
+            <button class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                           bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20 transition-colors">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouveau Retour
+            </button>
+        </div>
+
+        <!-- Entreprises contributrices -->
+        <div class="space-y-2 mb-4">
+            {% for company in industrial_returns %}
+            <div class="p-3 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-400/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ company.name }}</p>
+                    <p class="text-[9.5px] text-slate-500 mt-0.5">CTM {{ company.ctm }} · {{ company.domain }}</p>
+                </div>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-amber-400/10 text-amber-400 border-amber-400/20">{{ company.status }}</span>
+            </div>
+            {% empty %}
+            <div class="p-3 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded-lg bg-purple-400/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Groupe SOKIMO</p>
+                    <p class="text-[9.5px] text-slate-500 mt-0.5">CTM 1 · Géotechnique & Chaussées</p>
+                </div>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-amber-400/10 text-amber-400 border-amber-400/20">Reçu</span>
+            </div>
+            <div class="p-3 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-400/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Bâticongo SARL</p>
+                    <p class="text-[9.5px] text-slate-500 mt-0.5">CTM 5 · Revêtements bitumineux</p>
+                </div>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-blue-400/10 text-blue-400 border-blue-400/20">En analyse</span>
+            </div>
+            <div class="p-3 rounded-xl border border-emerald-400/15 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-400/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Routes Africa</p>
+                    <p class="text-[9.5px] text-slate-500 mt-0.5">CTM 7 · Assainissement & Drainage</p>
+                </div>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-emerald-400/10 text-emerald-400 border-emerald-400/20">Validé</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Nouveau retour -->
+        <div class="space-y-2">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Intégrer un nouveau retour industriel
+            </label>
+            <input type="text" placeholder="Nom de l'entreprise BTP…"
+                   class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                          bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-400
+                          focus:outline-none focus:ring-1 focus:ring-purple-400">
+            <textarea rows="3" placeholder="Observations économiques ou techniques du secteur privé BTP…"
+                      class="w-full text-xs rounded-xl border px-3 py-2 resize-none border-slate-200 dark:border-white/10
+                             bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-400
+                             focus:outline-none focus:ring-1 focus:ring-purple-400"></textarea>
+            <button class="w-full py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                           bg-purple-500 hover:bg-purple-400 text-white transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-3.5 h-3.5"></i> Intégrer au Livre
+            </button>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-purple-400 mb-3">
+                Expert Liaison Industrielle — FEC
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Vous faites le pont entre la Commission et le secteur privé BTP congolais (FEC),
+                en intégrant leurs retours économiques et cahiers des charges dans le corpus normatif.
+            </p>
+            <div class="mt-3 pt-3 border-t border-purple-400/15 text-[10px] text-slate-500">
+                <p><strong class="text-purple-400">Quota :</strong> Ligne 17 (FEC)</p>
+            </div>
+        </div>
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Hors périmètre</h4>
+            </div>
+            <p class="text-[10.5px] text-slate-500">
+                Modifications de textes de lois et calculs géotechniques.
+                Grand Livre Comptable de la CTC.
+            </p>
+        </div>
+    </div>
+</div>

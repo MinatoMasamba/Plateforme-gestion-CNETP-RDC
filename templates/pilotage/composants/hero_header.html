@@ -1,0 +1,112 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO HEADER — Profil expert + Badge collège + Poste nominatif
+═══════════════════════════════════════════════════════════════════ -->
+<div class="relative overflow-hidden border-b border-slate-200 dark:border-white/8
+            bg-gradient-to-r from-slate-100 via-white to-slate-50
+            dark:from-[#06060c] dark:via-[#0a0a14] dark:to-[#06060c]">
+
+    <!-- Décoration fond -->
+    <div class="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20"
+         style="background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(212,175,55,.12), transparent)"></div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 relative">
+
+        <!-- Avatar initiales -->
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-lg
+                    {% if pilotage_college == 'directoire' %}bg-gradient-to-br from-amber-500 to-amber-700
+                    {% elif pilotage_college == 'conseiller_politique' %}bg-gradient-to-br from-blue-500 to-blue-700
+                    {% elif pilotage_college == 'atf' %}bg-gradient-to-br from-emerald-500 to-emerald-700
+                    {% else %}bg-gradient-to-br from-purple-500 to-purple-700{% endif %}">
+            {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
+        </div>
+
+        <!-- Infos expert -->
+        <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+                <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    {{ expert.user.get_full_name }}
+                </h2>
+                <!-- Badge collège -->
+                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border
+                             {{ college_badge }}">
+                    {{ college_label }}
+                </span>
+                <!-- Statut actif -->
+                <span class="flex items-center gap-1 text-[9.5px] font-bold px-2 py-0.5 rounded-full border
+                             bg-emerald-400/10 text-emerald-400 border-emerald-400/25">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Actif
+                </span>
+            </div>
+
+            <!-- Poste nominatif -->
+            {% if poste %}
+            <p class="text-sm font-semibold text-slate-600 dark:text-slate-300 truncate">
+                {{ poste.title }}
+            </p>
+            {% endif %}
+
+            <!-- Structure + sous-rôle technique -->
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                {% if expert.structure %}
+                <span class="flex items-center gap-1">
+                    <i data-lucide="building-2" class="w-3 h-3"></i>
+                    {{ expert.structure.name }} ({{ expert.structure.acronym }})
+                </span>
+                {% endif %}
+                <span class="flex items-center gap-1">
+                    <i data-lucide="fingerprint" class="w-3 h-3"></i>
+                    <span class="font-mono">{{ user_sub_role }}</span>
+                </span>
+                {% if expert.appointment_date %}
+                <span class="flex items-center gap-1">
+                    <i data-lucide="calendar" class="w-3 h-3"></i>
+                    Nommé le {{ expert.appointment_date|date:"d/m/Y" }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Résumé des droits (droite) -->
+        <div class="flex flex-col gap-2 shrink-0 text-right text-[10.5px]">
+            {% if can_trigger_steps %}
+            <span class="flex items-center gap-1.5 font-semibold text-amber-400">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Validation étapes 1–7
+            </span>
+            {% endif %}
+            {% if can_manage_access %}
+            <span class="flex items-center gap-1.5 font-semibold text-amber-400">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i> Gestion accès experts
+            </span>
+            {% endif %}
+            {% if can_edit_legistique %}
+            <span class="flex items-center gap-1.5 font-semibold text-blue-400">
+                <i data-lucide="scale" class="w-3.5 h-3.5"></i> Édition Arrêtés Ministériels
+            </span>
+            {% endif %}
+            {% if can_audit_financials %}
+            <span class="flex items-center gap-1.5 font-semibold text-emerald-400">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Validation financière (FONER)
+            </span>
+            {% endif %}
+            {% if can_control_labo %}
+            <span class="flex items-center gap-1.5 font-semibold text-teal-400">
+                <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i> Contrôle Essais (BTC)
+            </span>
+            {% endif %}
+            {% if can_avis_prive %}
+            <span class="flex items-center gap-1.5 font-semibold text-purple-400">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Avis Secteur Privé (FEC)
+            </span>
+            {% endif %}
+            {% if can_agrement_metro %}
+            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Agréation Métrologique (OCC)
+            </span>
+            {% endif %}
+            <!-- Lecture seule WG systématique -->
+            <span class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-slate-500">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lecture WG (indépendance scientifique)
+            </span>
+        </div>
+    </div>
+</div>

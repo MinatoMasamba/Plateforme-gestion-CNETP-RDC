@@ -57,7 +57,7 @@ class NormeBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Norme
         fields = [
-            'id', 'reference_number', 'title', 'status',
+            'id', 'reference_number', 'title', 'status', 'norm_type', 'target_count',
             'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at'
         ]
         read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at']
@@ -74,6 +74,7 @@ class NormeDetailSerializer(serializers.ModelSerializer):
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description', 'status',
+            'norm_type', 'target_count',
             'ctm', 'ctm_name', 'wg', 'wg_name',
             'iso_reference', 'arso_reference',
             'start_date', 'ctm_submission_date', 'legistic_review_date',
@@ -101,6 +102,7 @@ class NormeCreateUpdateSerializer(serializers.ModelSerializer):
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description',
+            'norm_type', 'target_count',
             'ctm', 'wg', 'iso_reference', 'arso_reference',
             'tags', 'is_public'
         ]
@@ -244,6 +246,7 @@ class NormeFullHistorySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'reference_number', 'title', 'description',
             'ctm', 'ctm_name', 'wg', 'wg_name', 'status',
+            'norm_type', 'target_count',
             'iso_reference', 'arso_reference', 'tags', 'is_public',
             'versions', 'created_at', 'updated_at'
         ]

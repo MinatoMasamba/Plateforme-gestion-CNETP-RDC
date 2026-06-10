@@ -1,0 +1,196 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     INTERFACE DE SAISIE MASSIVE — Opérateurs de Saisie (BTC)
+     Fast-Entry : numérisation, indexation, taggage documents physiques
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="lg:col-span-2 space-y-4">
+        <!-- Stats saisie -->
+        <div class="grid grid-cols-4 gap-3">
+            <div class="rounded-xl border border-orange-400/20 bg-orange-400/5 p-3 text-center">
+                <p class="text-xl font-black text-orange-400">312</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Docs numérisés</p>
+            </div>
+            <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-3 text-center">
+                <p class="text-xl font-black text-emerald-400">289</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Indexés &amp; tagués</p>
+            </div>
+            <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-center">
+                <p class="text-xl font-black text-amber-400">23</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">En attente</p>
+            </div>
+            <div class="rounded-xl border border-blue-400/20 bg-blue-400/5 p-3 text-center">
+                <p class="text-xl font-black text-blue-400">8</p>
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mt-0.5">Rejets qualité</p>
+            </div>
+        </div>
+
+        <!-- Formulaire Fast-Entry -->
+        <div class="rounded-2xl border border-orange-400/20 bg-white dark:bg-white/2 p-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-orange-400 mb-4 flex items-center gap-2">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Fast-Entry — Saisie Rapide de Document
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Référence physique
+                    </label>
+                    <input type="text" placeholder="ex: CTM3-DOC-2026-0041"
+                           class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                                  bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-400
+                                  focus:outline-none focus:ring-1 focus:ring-orange-400">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Numéro CTM associé
+                    </label>
+                    <select class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                                   bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-400">
+                        <option value="">Sélectionner le CTM…</option>
+                        {% for item in ctms_list %}
+                        <option value="{{ item.ctm.number }}">CTM {{ item.ctm.number }}</option>
+                        {% empty %}
+                        <option>CTM 1</option><option>CTM 2</option><option>CTM 3</option>
+                        <option>CTM 4</option><option>CTM 5</option><option>CTM 6</option>
+                        <option>CTM 7</option><option>CTM 8</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Type de document
+                    </label>
+                    <select class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                                   bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-400">
+                        <option>— Type —</option>
+                        <option>Rapport d'expertise technique</option>
+                        <option>Procès-verbal de réunion</option>
+                        <option>Livrable CTM (brouillon)</option>
+                        <option>Avis institutionnel</option>
+                        <option>Correspondance officielle</option>
+                        <option>Document d'appui</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Date du document physique
+                    </label>
+                    <input type="date"
+                           class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                                  bg-transparent text-slate-600 dark:text-slate-400
+                                  focus:outline-none focus:ring-1 focus:ring-orange-400">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Tags / Mots-clés
+                    </label>
+                    <input type="text" placeholder="ex: drainage, kinshasa, ACGT, norme-iso, révision-v2…"
+                           class="w-full text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                                  bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-400
+                                  focus:outline-none focus:ring-1 focus:ring-orange-400">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Fichier numérisé (PDF / image)
+                    </label>
+                    <div class="border-2 border-dashed border-orange-400/25 rounded-xl p-4 text-center
+                                hover:border-orange-400/50 transition-colors cursor-pointer">
+                        <i data-lucide="file-scan" class="w-6 h-6 text-orange-400 mx-auto mb-1"></i>
+                        <p class="text-[10px] text-slate-500">Glisser-déposer ou cliquer pour importer</p>
+                        <p class="text-[9.5px] text-slate-400">PDF, PNG, JPG — max 10 Mo</p>
+                    </div>
+                </div>
+            </div>
+            <button class="w-full mt-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                           bg-orange-500 hover:bg-orange-400 text-white transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Valider &amp; Indexer (Fast-Entry)
+            </button>
+        </div>
+
+        <!-- File d'attente -->
+        <div class="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/2 p-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <i data-lucide="inbox" class="w-3.5 h-3.5"></i> File d'Attente — Documents à Traiter
+            </h3>
+            <div class="space-y-1.5 max-h-44 overflow-y-auto">
+                {% for item in pending_documents %}
+                <div class="flex items-center gap-3 p-2.5 rounded-xl border border-amber-400/15 bg-amber-400/3 hover:bg-amber-400/6 transition-colors">
+                    <i data-lucide="file-clock" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300 truncate">{{ item.reference }}</p>
+                        <p class="text-[9.5px] text-slate-500">{{ item.type }} · {{ item.ctm }}</p>
+                    </div>
+                    <button class="text-[9px] font-bold px-2 py-0.5 rounded-lg bg-orange-400/10 text-orange-400 border border-orange-400/20 hover:bg-orange-400/20">Traiter</button>
+                </div>
+                {% empty %}
+                <div class="flex items-center gap-3 p-2.5 rounded-xl border border-amber-400/15 bg-amber-400/3 hover:bg-amber-400/6 transition-colors">
+                    <i data-lucide="file-clock" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300 truncate">CTM1-DOC-0038</p>
+                        <p class="text-[9.5px] text-slate-500">PV réunion · CTM 1</p>
+                    </div>
+                    <button class="text-[9px] font-bold px-2 py-0.5 rounded-lg bg-orange-400/10 text-orange-400 border border-orange-400/20 hover:bg-orange-400/20">Traiter</button>
+                </div>
+                <div class="flex items-center gap-3 p-2.5 rounded-xl border border-amber-400/15 bg-amber-400/3 hover:bg-amber-400/6 transition-colors">
+                    <i data-lucide="file-clock" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10.5px] font-bold text-slate-700 dark:text-slate-300 truncate">CTM5-DOC-0019</p>
+                        <p class="text-[9.5px] text-slate-500">Rapport expertise · CTM 5</p>
+                    </div>
+                    <button class="text-[9px] font-bold px-2 py-0.5 rounded-lg bg-orange-400/10 text-orange-400 border border-orange-400/20 hover:bg-orange-400/20">Traiter</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-orange-400/20 bg-orange-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-orange-400 mb-3">
+                Opérateur de Saisie — BTC
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Vous numérisez, indexez et taguez les métadonnées des documents physiques
+                reçus par la CNETP, alimentant ainsi la base documentaire commune des CTM.
+            </p>
+            <div class="mt-3 pt-3 border-t border-orange-400/15 text-[10px] text-slate-500">
+                <p><strong class="text-orange-400">Structure :</strong> BTC (Ligne 7)</p>
+                <p class="mt-0.5"><strong class="text-orange-400">Accès :</strong> Saisie uniquement — lecture CTM filtrée</p>
+            </div>
+        </div>
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Restrictions</h4>
+            </div>
+            <ul class="space-y-1 text-[10.5px] text-slate-500">
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Validation ou rejet de livrables CTM
+                </li>
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Textes normatifs &amp; légistique
+                </li>
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Administration système IT
+                </li>
+            </ul>
+        </div>
+        <!-- Quota de productivité journalière -->
+        <div class="rounded-xl border border-orange-400/15 bg-white dark:bg-white/2 p-4">
+            <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-2">
+                Productivité — Aujourd'hui
+            </h4>
+            <div class="flex items-end gap-2 mb-1">
+                <p class="text-2xl font-black text-orange-400">17</p>
+                <p class="text-xs text-slate-500 mb-0.5">/ 30 docs objectif</p>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-white/8 rounded-full h-2">
+                <div class="bg-orange-400 h-2 rounded-full" style="width: 57%;"></div>
+            </div>
+            <p class="text-[9.5px] text-slate-400 mt-1">57% de l'objectif journalier atteint</p>
+        </div>
+    </div>
+</div>

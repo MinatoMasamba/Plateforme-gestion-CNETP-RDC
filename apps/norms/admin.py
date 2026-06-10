@@ -92,6 +92,8 @@ class NormeAdmin(NormsModelAdmin):
     list_display = (
         "reference_number",
         "title",
+        "norm_type",
+        "target_count",
         "status",
         "ctm",
         "wg",
@@ -107,7 +109,7 @@ class NormeAdmin(NormsModelAdmin):
         "jo_reference",
         "tags",
     )
-    list_filter = ("status", "ctm", "wg", "is_public", "publication_date")
+    list_filter = ("norm_type", "status", "ctm", "wg", "is_public", "publication_date")
     inlines = (NormeVersionInline,)
 
 

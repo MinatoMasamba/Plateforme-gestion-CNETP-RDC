@@ -1,0 +1,118 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     WIDGET VALIDATION FINANCIÈRE — Directeur FONER (exclusif)
+     Évaluation et validation des études de coût du cycle de vie
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Liste des études soumises -->
+    <div class="lg:col-span-2 rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/2 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Études de Coût Soumises à Validation
+            </h3>
+        </div>
+
+        <div class="space-y-3">
+            {% for etude in etudes_financieres|default:""|make_list %}{% empty %}
+            <!-- Données illustratives -->
+            <div class="flex items-center gap-3 p-3.5 rounded-xl border
+                        border-slate-200 dark:border-white/8 bg-slate-50 dark:bg-white/3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 font-extrabold text-emerald-400 text-xs">
+                    CTM1
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Coût Cycle de Vie — Chaussées Géotechniques (CTM 1)
+                    </p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Soumis par WG 1.2 · Ref: FIN-2026-007</p>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                     bg-amber-400/10 text-amber-400 border-amber-400/20">Évaluation requise</span>
+                        <span class="text-[10px] text-slate-400 font-mono">USD 2,450,000</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5 shrink-0">
+                    <button class="px-2.5 py-1 rounded-lg text-[9px] font-extrabold
+                                   bg-emerald-500 text-white hover:bg-emerald-400 transition-colors">
+                        ✓ Valider
+                    </button>
+                    <button class="px-2.5 py-1 rounded-lg text-[9px] font-extrabold border
+                                   border-red-400/30 text-red-400 hover:bg-red-400/10 transition-colors">
+                        ✗ Rejeter
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 p-3.5 rounded-xl border
+                        border-slate-200 dark:border-white/8 bg-slate-50 dark:bg-white/3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 font-extrabold text-blue-400 text-xs">
+                    CTM5
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Coût d'Entretien — Revêtements Bitumineux (CTM 5)
+                    </p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Soumis par WG 5.1 · Ref: FIN-2026-009</p>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                     bg-emerald-400/10 text-emerald-400 border-emerald-400/20">Validé</span>
+                        <span class="text-[10px] text-slate-400 font-mono">USD 870,000</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5 shrink-0 opacity-50">
+                    <span class="px-2.5 py-1 rounded-lg text-[9px] font-extrabold text-center
+                                 bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
+                        Approuvé
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Résumé FONER -->
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 mb-3">
+                Rôle FONER
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Le <strong>Directeur des Études Financières du FONER</strong> est le seul habilité à évaluer
+                et valider les études d'impact financier du cycle de vie des chaussées produites par les WG.
+            </p>
+            <div class="mt-3 pt-3 border-t border-emerald-400/15 space-y-2 text-[10px] text-slate-500">
+                <div class="flex justify-between">
+                    <span>En attente de validation</span>
+                    <span class="font-bold text-amber-400">3 études</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Validées ce mois</span>
+                    <span class="font-bold text-emerald-400">7 études</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Budget total engagé</span>
+                    <span class="font-bold text-slate-300">USD 14.2M</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 dark:border-white/8 p-4 bg-white/50 dark:bg-white/2">
+            <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
+                <i data-lucide="lock" class="w-3 h-3"></i> Hors périmètre
+            </h4>
+            <ul class="space-y-1.5 text-[10.5px] text-slate-500">
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    Domaines hors finances (ingénierie, légistique)
+                </li>
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="x-circle" class="w-3 h-3 text-red-400 shrink-0"></i>
+                    CTMs non financiers (hors dérogation)
+                </li>
+                <li class="flex gap-2 items-center">
+                    <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400 shrink-0"></i>
+                    Lecture de tous les documents financiers
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

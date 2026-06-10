@@ -4,8 +4,10 @@ Checks that all required roles and functions are implemented
 """
 
 from django.core.management.base import BaseCommand
+from django.db.models import Sum
 from apps.governance.models import CTM, WG, ComitePilotage, TechnicalCell, PosteNominatif, PosteNominatifCTC
 from apps.experts.models import Structure
+from apps.norms.models import Norme
 import sys
 
 
@@ -42,6 +44,7 @@ class Command(BaseCommand):
             ('Official Structures (Lignes 1-17)', self._check_official_structures),
             ('Pilotage Postes Nominatifs (27)', self._check_pilotage_postes),
             ('CTC Postes Nominatifs (20)', self._check_ctc_postes),
+            ('Plan de Production Semestriel (PPT-2026)', self._check_production_plan_normes),
         ]
         
         results = {}
@@ -122,8 +125,8 @@ class Command(BaseCommand):
         self.stdout.write("\n  📋 Working Groups Structure:")
         
         expected_wg_counts = {
-            1: 3, 2: 3, 3: 3, 4: 3, 5: 3,
-            6: 3, 7: 3, 8: 4,
+            1: 3, 2: 3, 3: 3, 4: 3, 5: 4,
+            6: 3, 7: 3, 8: 3,
         }
         
         passed = 0
@@ -287,6 +290,55 @@ class Command(BaseCommand):
             return {'status': 'warn', 'message': "Aucun poste — exécutez : python manage.py seed_ctc_postes"}
         else:
             return {'status': 'warn', 'message': f"{count}/20 postes, {sans_structure} sans structure d'origine (attendu : 20 et 0)"}
+
+    def _check_production_plan_normes(self):
+        """Verify the production plan (NOTE TECHNIQUE N°1 COMPLÉMENT DIRCAB, CNE-ITP/CTC/PPT-2026):
+        185 NCD + 7 CA + 9 DIR + 8 REC réparties sur 24 GT (WG 4.3 volontairement exclu)."""
+        self.stdout.write("\n  📑 Plan de Production Semestriel (CNE-ITP/CTC/PPT-2026) :")
+
+        EXPECTED = {'NCD': 185, 'CA': 7, 'DIR': 9, 'REC': 8}
+
+        plan_normes = Norme.objects.filter(reference_number__startswith='CNETP-PPT2026-')
+
+        actual = {}
+        for norm_type in EXPECTED:
+            qs = plan_normes.filter(norm_type=norm_type)
+            if norm_type == 'NCD':
+                actual[norm_type] = qs.aggregate(total=Sum('target_count'))['total'] or 0
+            else:
+                actual[norm_type] = qs.count()
+
+        passed = 0
+        for norm_type, expected_count in EXPECTED.items():
+            if actual[norm_type] == expected_count:
+                self.stdout.write(f"    ✅ {norm_type}: {actual[norm_type]} (attendu {expected_count})")
+                passed += 1
+            else:
+                self.stdout.write(f"    ❌ {norm_type}: {actual[norm_type]} (attendu {expected_count})")
+
+        # 24 des 25 WG doivent avoir au moins une entrée (WG4.3 "Conformité OACI" exclu)
+        wgs_with_entries = set(
+            plan_normes.values_list('wg__ctm__number', 'wg__number').distinct()
+        )
+        excluded = {(4, 3)}
+        all_wgs = set(WG.objects.values_list('ctm__number', 'number'))
+        expected_wgs = all_wgs - excluded
+        missing_wgs = expected_wgs - wgs_with_entries
+
+        if missing_wgs:
+            self.stdout.write(
+                f"    ❌ GT manquants dans le plan de production : "
+                f"{', '.join(f'{c}.{w}' for c, w in sorted(missing_wgs))}"
+            )
+
+        status = 'pass' if passed == len(EXPECTED) and not missing_wgs else 'warn'
+        return {
+            'status': status,
+            'message': (
+                f"NCD={actual['NCD']}/185, CA={actual['CA']}/7, DIR={actual['DIR']}/9, "
+                f"REC={actual['REC']}/8, GT couverts={len(wgs_with_entries)}/24 (WG4.3 exclu)"
+            )
+        }
 
     def _print_summary(self, results):
         """Print verification summary"""

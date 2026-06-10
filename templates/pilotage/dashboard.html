@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comité de Pilotage — CNETP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+        .module-card { transition: transform .2s, box-shadow .2s; }
+        .module-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+
+    <!-- ═══════════════════════════════════════════
+         TOPBAR
+    ═══════════════════════════════════════════ -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-3
+                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+                   border-slate-200 dark:border-white/8">
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'web:app' %}"
+               class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Espace de Travail
+            </a>
+            <span class="text-slate-300 dark:text-white/15">|</span>
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase">
+                Comité de Pilotage Élargi
+            </h1>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border
+                         bg-amber-50 text-amber-700 border-amber-300
+                         dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/25
+                         uppercase tracking-widest">
+                27 Postes
+            </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Indicateur demandes en attente (Directoire uniquement) -->
+            {% if can_approve_requests and pending_requests_count > 0 %}
+            <button onclick="document.getElementById('panel-requests').scrollIntoView({behavior:'smooth'})"
+                    class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                           bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20 transition-colors">
+                <i data-lucide="bell" class="w-3.5 h-3.5 animate-pulse"></i>
+                {{ pending_requests_count }} demande{{ pending_requests_count|pluralize }} en attente
+            </button>
+            {% endif %}
+
+            <!-- Indicateur normes CTC en attente de réception (Président / Rapporteur) -->
+            {% if can_acknowledge_reception and pending_pilotage_reception_count > 0 %}
+            <button onclick="document.getElementById('panel-reception').scrollIntoView({behavior:'smooth'})"
+                    class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                           bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
+                <i data-lucide="file-check-2" class="w-3.5 h-3.5 animate-pulse"></i>
+                {{ pending_pilotage_reception_count }} norme{{ pending_pilotage_reception_count|pluralize }} CTC à réceptionner
+            </button>
+            {% endif %}
+
+            <!-- Indicateur actions de cadrage en attente (Bureau Directoire) -->
+            {% if can_trigger_steps and pending_cadrages_count > 0 %}
+            <button onclick="document.getElementById('panel-cadrage').scrollIntoView({behavior:'smooth'})"
+                    class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                           bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors">
+                <i data-lucide="compass" class="w-3.5 h-3.5 animate-pulse"></i>
+                {{ pending_cadrages_count }} cadrage{{ pending_cadrages_count|pluralize }} à traiter
+            </button>
+            {% endif %}
+
+            <!-- Bouton thème -->
+            <button onclick="toggleTheme()" title="Changer le thème"
+                    class="p-2 rounded-lg border border-slate-200 dark:border-white/10
+                           hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
+                <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+                <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════
+         HERO — PROFIL & COLLÈGE
+    ═══════════════════════════════════════════ -->
+    {% include "pilotage/composants/hero_header.html" %}
+
+    <!-- ═══════════════════════════════════════════
+         CONTENU PRINCIPAL — GRILLE DE MODULES
+    ═══════════════════════════════════════════ -->
+    <main class="max-w-7xl mx-auto px-4 pb-16 space-y-10 mt-8">
+
+        <!-- ── Profil 1 : Bureau Directoire ─────────────────────────────── -->
+        {% if can_view_global_console %}
+        <section class="animate-up" style="animation-delay:.05s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 text-amber-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                    Console Globale de Supervision
+                </h2>
+            </div>
+            {% include "pilotage/composants/console_globale.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 2 : Légistique (Conseillers Juridiques) ───────────── -->
+        {% if can_edit_legistique %}
+        <section class="animate-up" style="animation-delay:.1s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="scale" class="w-4 h-4 text-blue-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-400">
+                    Module de Légistique — Arrêtés Ministériels
+                </h2>
+            </div>
+            {% include "pilotage/composants/module_legistique.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 2 : Widget Planification (tous Conseillers) ───────── -->
+        {% if can_use_planification %}
+        <section class="animate-up" style="animation-delay:.15s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="calendar-check" class="w-4 h-4 text-sky-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-sky-400">
+                    Widget de Planification — Enquête Publique Nationale
+                </h2>
+            </div>
+            {% include "pilotage/composants/widget_planification.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 3 : Console Audit Technique (ATF) ──────────────────── -->
+        {% if can_audit_ctm %}
+        <section class="animate-up" style="animation-delay:.2s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="microscope" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+                    Console d'Audit Technique
+                </h2>
+            </div>
+            {% include "pilotage/composants/console_audit_technique.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 3 : Validation Financière (FONER exclusif) ─────────── -->
+        {% if can_audit_financials %}
+        <section class="animate-up" style="animation-delay:.25s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+                    Widget de Validation Financière — Cycle de Vie des Chaussées
+                </h2>
+            </div>
+            {% include "pilotage/composants/widget_validation_financiere.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 3 : Contrôle Labo (BTC exclusif) ───────────────────── -->
+        {% if can_control_labo %}
+        <section class="animate-up" style="animation-delay:.3s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-teal-400">
+                    Module de Contrôle — Protocoles d'Essais de Laboratoire
+                </h2>
+            </div>
+            {% include "pilotage/composants/module_controle_btc.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 4 : Avis Secteur Privé (FEC exclusif) ─────────────── -->
+        {% if can_avis_prive %}
+        <section class="animate-up" style="animation-delay:.2s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="briefcase" class="w-4 h-4 text-purple-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                    Widget d'Avis du Secteur Privé — FEC
+                </h2>
+            </div>
+            {% include "pilotage/composants/widget_avis_secteur_prive.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Profil 4 : Agréation Métrologique (OCC exclusif) ─────────── -->
+        {% if can_agrement_metro %}
+        <section class="animate-up" style="animation-delay:.25s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                    Console d'Agréation Métrologique — OCC
+                </h2>
+            </div>
+            {% include "pilotage/composants/console_agrement_occ.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Modules verrouillés (non-Directoire / hors spécialité) ────── -->
+        {% if not can_view_global_console %}
+        <section class="animate-up" style="animation-delay:.35s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="eye-off" class="w-4 h-4 text-slate-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-500">
+                    Modules Restreints — Accès par Dérogation
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% if not can_view_global_console %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Console Globale de Supervision" module_icon="layout-dashboard" module_color="amber" locked_reason="Réservée au Bureau Directoire (Étapes 1–7)" %}
+                {% endif %}
+                {% if not can_edit_legistique %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Module de Légistique" module_icon="scale" module_color="blue" locked_reason="Réservé aux Conseillers Juridiques" %}
+                {% endif %}
+                {% if not can_audit_financials and can_audit_ctm %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Validation Financière FONER" module_icon="trending-up" module_color="emerald" locked_reason="Réservé au Directeur des Études Financières du FONER" %}
+                {% endif %}
+                {% if not can_control_labo and can_audit_ctm %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Contrôle Essais BTC" module_icon="flask-conical" module_color="teal" locked_reason="Réservé au Directeur d'Expertise du BTC" %}
+                {% endif %}
+                {% if not can_avis_prive and not can_agrement_metro and not can_audit_ctm and not can_use_planification %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Avis Secteur Privé (FEC)" module_icon="briefcase" module_color="purple" locked_reason="Réservé au Représentant de la FEC" %}
+                    {% include "pilotage/composants/locked_module.html" with module_name="Agréation Métrologique (OCC)" module_icon="shield-check" module_color="indigo" locked_reason="Réservé au Directeur Technique de l'OCC" %}
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Mes demandes de permission ──────────────────────────────────── -->
+        {% if my_permission_requests %}
+        <section class="animate-up" style="animation-delay:.4s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="file-question" class="w-4 h-4 text-slate-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-500">
+                    Mes Demandes de Dérogation
+                </h2>
+            </div>
+            <div class="space-y-2">
+                {% for req in my_permission_requests %}
+                <div class="flex items-center gap-3 p-3 rounded-xl border
+                            bg-white dark:bg-white/3 border-slate-200 dark:border-white/8 text-sm">
+                    <span class="w-2 h-2 rounded-full shrink-0
+                        {% if req.status == 'PENDING' %}bg-amber-400
+                        {% elif req.status == 'APPROVED' %}bg-emerald-400
+                        {% else %}bg-red-400{% endif %}"></span>
+                    <span class="flex-1 font-medium truncate text-xs">{{ req.restricted_resource }}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
+                        {% if req.status == 'PENDING' %}bg-amber-400/10 text-amber-400 border-amber-400/25
+                        {% elif req.status == 'APPROVED' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
+                        {% else %}bg-red-400/10 text-red-400 border-red-400/25{% endif %}">
+                        {{ req.get_status_display }}
+                    </span>
+                    <span class="text-[10px] text-slate-500">{{ req.created_at|date:"d/m/Y" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Cadrage Bureau Directoire : Phases 1 & 2 (Postes 1 à 5) ─────── -->
+        {% if can_trigger_steps %}
+        <section id="panel-cadrage" class="animate-up" style="animation-delay:.4s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="compass" class="w-4 h-4 text-indigo-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                    Cadrage Bureau Directoire — Phases 1 & 2
+                </h2>
+                {% if pending_cadrages_count > 0 %}
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
+                             bg-indigo-400/15 text-indigo-400 border border-indigo-400/30">
+                    {{ pending_cadrages_count }} en attente
+                </span>
+                {% endif %}
+            </div>
+            {% include "pilotage/composants/cadrage_panel.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Étape 5 : Réception des normes transmises par la CTC ───────── -->
+        {% if can_acknowledge_reception %}
+        <section id="panel-reception" class="animate-up" style="animation-delay:.4s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+                    Réception des Normes Transmises par la CTC — Étape 5
+                </h2>
+                {% if pending_pilotage_reception_count > 0 %}
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
+                             bg-emerald-400/15 text-emerald-400 border border-emerald-400/30">
+                    {{ pending_pilotage_reception_count }} en attente
+                </span>
+                {% endif %}
+            </div>
+            {% include "pilotage/composants/reception_ctc_panel.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Directoire : Panneau demandes en attente ──────────────────── -->
+        {% if can_approve_requests %}
+        <section id="panel-requests" class="animate-up" style="animation-delay:.45s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="inbox" class="w-4 h-4 text-amber-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                    Demandes de Dérogation — À Traiter
+                </h2>
+                {% if pending_requests_count > 0 %}
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
+                             bg-red-400/15 text-red-400 border border-red-400/30">
+                    {{ pending_requests_count }} en attente
+                </span>
+                {% endif %}
+            </div>
+            {% include "pilotage/composants/pending_requests_panel.html" %}
+        </section>
+        {% endif %}
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════
+         MODAL DEMANDE DE PERMISSION
+    ═══════════════════════════════════════════ -->
+    {% include "pilotage/composants/permission_request_modal.html" %}
+
+    <script>
+        lucide.createIcons();
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        // ── Ouverture du modal de demande de permission ───────────────────────
+        function openPermissionModal(resourceName) {
+            const modal = document.getElementById('permission-modal');
+            document.getElementById('pm-resource').value = resourceName;
+            document.getElementById('pm-resource-label').textContent = resourceName;
+            modal.classList.remove('hidden');
+            document.getElementById('pm-reason').focus();
+        }
+
+        function closePermissionModal() {
+            document.getElementById('permission-modal').classList.add('hidden');
+            document.getElementById('pm-reason').value = '';
+        }
+
+        // ── Soumission AJAX demande de permission ─────────────────────────────
+        document.getElementById('permission-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('pm-submit-btn');
+            const resource = document.getElementById('pm-resource').value;
+            const reason   = document.getElementById('pm-reason').value.trim();
+
+            if (!reason) { alert('Veuillez saisir le motif de votre demande.'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Envoi en cours…';
+
+            try {
+                const resp = await fetch("{% url 'web:pilotage_permission_request' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ restricted_resource: resource, reason })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    closePermissionModal();
+                    showToast('Demande transmise au Bureau Directoire.', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Erreur lors de l\'envoi.', 'error');
+                }
+            } catch(err) {
+                showToast('Erreur réseau. Réessayez.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Transmettre au Bureau Directoire';
+            }
+        });
+
+        // ── Approbation / Rejet (Directoire) ─────────────────────────────────
+        async function handleDecision(requestId, decision) {
+            const comment = document.getElementById(`comment-${requestId}`)?.value || '';
+            const btn = document.getElementById(`btn-${decision.toLowerCase()}-${requestId}`);
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+            try {
+                const resp = await fetch(`/pilotage/approuver-demande/${requestId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ decision, comment })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, decision === 'APPROVED' ? 'success' : 'warning');
+                    document.getElementById(`request-row-${requestId}`)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+            }
+        }
+
+        // ── Accusé de réception CTC (Étape 5) ────────────────────────────────
+        async function acknowledgeReception(processusId) {
+            const btn = document.getElementById(`btn-receive-${processusId}`);
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+            try {
+                const resp = await fetch(`/pilotage/processus/${processusId}/receptionner/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+                    document.getElementById(`reception-row-${processusId}`)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
+            }
+        }
+
+        // ── Cadrage Bureau Directoire (Phases 1 & 2) ──────────────────────────
+        const CADRAGE_FIELDS = {
+            open:               ['strategic_orientation'],
+            validate_onic:      ['notes'],
+            validate_btp:       ['notes'],
+            formalize_mandate:  ['operational_mandate'],
+            schedule:           ['deadline_ctm_review', 'deadline_ctc_handoff', 'deadline_pilotage_review'],
+            verify_pv:          ['pv_reference'],
+            quitus_onic:        [],
+            quitus_btp:         [],
+            final_validate:     ['resolution_reference'],
+        };
+
+        async function submitCadrageAction(cadrageId, action) {
+            const btn = document.getElementById(`btn-cadrage-${cadrageId}`);
+            if (btn) {
+                btn.dataset.originalHtml = btn.dataset.originalHtml || btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '…';
+            }
+
+            const body = new URLSearchParams({ action });
+            (CADRAGE_FIELDS[action] || []).forEach(field => {
+                const el = document.getElementById(`cadrage-${cadrageId}-${field}`);
+                if (el) body.append(field, el.value);
+            });
+
+            try {
+                const resp = await fetch(`/pilotage/cadrage/${cadrageId}/action/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+                    document.getElementById(`cadrage-row-${cadrageId}`)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                    if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
+            }
+        }
+
+        // ── Toast notification ────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const colors = {
+                success: 'bg-emerald-500 text-white',
+                error:   'bg-red-500 text-white',
+                warning: 'bg-amber-500 text-white',
+            };
+            const t = document.createElement('div');
+            t.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-xl ${colors[type] || colors.success}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        }
+    </script>
+</body>
+</html>

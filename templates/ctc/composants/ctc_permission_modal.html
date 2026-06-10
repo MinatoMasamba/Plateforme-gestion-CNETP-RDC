@@ -1,0 +1,163 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODAL DEMANDE D'ACCÈS OPÉRATIONNEL CTC
+     Soumission → CTCOperationalRequest → Assistant Exécutif
+═══════════════════════════════════════════════════════════════════ -->
+<div id="ctcPermissionModal"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden"
+     role="dialog" aria-modal="true" aria-labelledby="ctcModalTitle">
+
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+         onclick="closeCTCPermissionModal()"></div>
+
+    <!-- Panel -->
+    <div class="relative w-full max-w-lg rounded-3xl border border-teal-400/25
+                bg-white dark:bg-slate-900 shadow-2xl shadow-black/40 overflow-hidden">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/8">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-teal-400/10 flex items-center justify-center">
+                    <i data-lucide="key" class="w-4.5 h-4.5 text-teal-400"></i>
+                </div>
+                <div>
+                    <h3 id="ctcModalTitle" class="text-sm font-extrabold text-slate-800 dark:text-slate-100">
+                        Demande d'Accès Temporaire
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        → Routée vers l'<strong class="text-teal-400">Assistant Exécutif CTC</strong>
+                    </p>
+                </div>
+            </div>
+            <button onclick="closeCTCPermissionModal()"
+                    class="w-8 h-8 rounded-xl flex items-center justify-center
+                           text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
+                           hover:bg-slate-100 dark:hover:bg-white/8 transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <form id="ctcPermissionForm" class="px-6 py-5 space-y-4">
+            {% csrf_token %}
+
+            <div class="rounded-xl bg-teal-400/8 border border-teal-400/15 p-3 text-[10.5px] text-slate-600 dark:text-slate-400 flex gap-2">
+                <i data-lucide="info" class="w-3.5 h-3.5 text-teal-400 shrink-0 mt-0.5"></i>
+                <span>
+                    Votre demande sera examinée par l'<strong class="text-teal-400">Assistant Exécutif</strong>.
+                    Elle sera traitée sous <strong>48h ouvrables</strong>.
+                </span>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Ressource demandée
+                </label>
+                <input id="ctcResourceField" type="text" name="restricted_resource" readonly
+                       class="w-full text-xs rounded-xl border px-3 py-2.5 border-slate-200 dark:border-white/10
+                              bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400
+                              focus:outline-none cursor-not-allowed">
+            </div>
+
+            <div>
+                <label for="ctcReasonField"
+                       class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Motif de la demande
+                    <span class="text-teal-400 ml-1">*</span>
+                </label>
+                <textarea id="ctcReasonField" name="reason" rows="4" required
+                          placeholder="Expliquez pourquoi vous avez besoin d'accéder temporairement à ce module (contexte, urgence, CTM concerné…)"
+                          class="w-full text-xs rounded-xl border px-3 py-2.5 resize-none
+                                 border-slate-200 dark:border-white/10 bg-transparent
+                                 text-slate-700 dark:text-slate-300 placeholder-slate-400
+                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40"></textarea>
+            </div>
+
+            <!-- Indicateur de statut -->
+            <div id="ctcPermissionStatus" class="hidden rounded-xl p-3 text-xs font-semibold"></div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 pt-1">
+                <button type="button" onclick="closeCTCPermissionModal()"
+                        class="flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                               border border-slate-200 dark:border-white/10 text-slate-500
+                               hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                               bg-teal-500 hover:bg-teal-400 text-white transition-colors
+                               flex items-center justify-center gap-2 disabled:opacity-50">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                    Soumettre la demande
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCTCPermissionModal(resourceName) {
+    document.getElementById('ctcResourceField').value = resourceName || 'Module CTC non spécifié';
+    document.getElementById('ctcReasonField').value = '';
+    document.getElementById('ctcPermissionStatus').classList.add('hidden');
+    document.getElementById('ctcPermissionModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('ctcReasonField').focus(), 50);
+}
+
+function closeCTCPermissionModal() {
+    document.getElementById('ctcPermissionModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeCTCPermissionModal();
+});
+
+document.getElementById('ctcPermissionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('[type="submit"]');
+    const statusEl = document.getElementById('ctcPermissionStatus');
+    const reason = document.getElementById('ctcReasonField').value.trim();
+
+    if (!reason) {
+        statusEl.className = 'rounded-xl p-3 text-xs font-semibold bg-red-400/10 text-red-400 border border-red-400/20';
+        statusEl.textContent = 'Le motif est obligatoire.';
+        statusEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Envoi…';
+
+    const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+    const payload = {
+        restricted_resource: document.getElementById('ctcResourceField').value,
+        reason: reason,
+    };
+
+    try {
+        const resp = await fetch('/ctc/demande-operationnelle/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+            statusEl.className = 'rounded-xl p-3 text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20';
+            statusEl.textContent = 'Demande soumise. L\'Assistant Exécutif en a été notifié.';
+            statusEl.classList.remove('hidden');
+            setTimeout(closeCTCPermissionModal, 2200);
+        } else {
+            throw new Error(data.error || 'Erreur serveur');
+        }
+    } catch (err) {
+        statusEl.className = 'rounded-xl p-3 text-xs font-semibold bg-red-400/10 text-red-400 border border-red-400/20';
+        statusEl.textContent = 'Erreur : ' + err.message;
+        statusEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Soumettre la demande';
+    }
+});
+</script>

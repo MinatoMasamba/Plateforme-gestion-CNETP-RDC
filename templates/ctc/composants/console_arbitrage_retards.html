@@ -1,0 +1,125 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONSOLE D'ARBITRAGE DES RETARDS — Coordonnateurs uniquement
+     Réallocation des délais + rappels automatiques aux présidents CTM
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <!-- CTMs en retard -->
+    <div class="rounded-2xl border border-red-400/20 bg-white dark:bg-white/2 p-5">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-red-400 mb-4 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Chronogramme — Points de Blocage
+        </h3>
+        <div class="space-y-3">
+            {% for item in ctms_list %}
+            <div class="p-3.5 rounded-xl border border-slate-100 dark:border-white/5
+                        bg-slate-50 dark:bg-white/2 group">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded uppercase
+                                     bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/8">
+                            CTM {{ item.ctm.number }}
+                        </span>
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
+                            {{ item.ctm.name }}
+                        </span>
+                    </div>
+                    <!-- Statut fictif : à connecter au modèle chronogramme -->
+                    {% if forloop.first %}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                 bg-red-400/10 text-red-400 border-red-400/20">Retard</span>
+                    {% elif forloop.counter == 2 %}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                 bg-amber-400/10 text-amber-400 border-amber-400/20">Risque</span>
+                    {% else %}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                 bg-emerald-400/10 text-emerald-400 border-emerald-400/20">OK</span>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="sendReminder({{ item.ctm.number }})"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-bold
+                                   bg-amber-400/10 text-amber-400 border border-amber-400/20
+                                   hover:bg-amber-400/20 transition-colors">
+                        <i data-lucide="bell" class="w-3 h-3"></i> Rappel
+                    </button>
+                    <button onclick="reallocateDelay({{ item.ctm.number }})"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-bold
+                                   bg-blue-400/10 text-blue-400 border border-blue-400/20
+                                   hover:bg-blue-400/20 transition-colors">
+                        <i data-lucide="clock" class="w-3 h-3"></i> Réallouer
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-xs text-slate-500 italic text-center py-6">Aucun CTM configuré.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Panneau d'action rapide -->
+    <div class="space-y-4">
+        <div class="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2">
+                <i data-lucide="alarm-clock" class="w-3.5 h-3.5"></i> Envoi Rappel Groupé
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">
+                Envoie un rappel automatique par email aux présidents scientifiques de tous les CTM
+                dont l'avancement est inférieur au seuil.
+            </p>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                        Seuil d'avancement déclencheur (%)
+                    </label>
+                    <input type="range" min="0" max="100" value="60"
+                           class="w-full accent-amber-400">
+                    <div class="flex justify-between text-[9px] text-slate-400 mt-1">
+                        <span>0%</span><span id="threshold-val" class="font-bold text-amber-400">60%</span><span>100%</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                        Message personnalisé
+                    </label>
+                    <textarea rows="3"
+                              placeholder="Objet du rappel aux présidents CTM…"
+                              class="w-full text-xs rounded-xl border px-3 py-2 resize-none
+                                     border-slate-200 dark:border-white/10 bg-transparent
+                                     text-slate-700 dark:text-slate-300 placeholder-slate-400
+                                     focus:outline-none focus:ring-1 focus:ring-amber-400"></textarea>
+                </div>
+                <button class="w-full py-2.5 rounded-xl text-xs font-extrabold uppercase
+                               bg-amber-500 hover:bg-amber-400 text-white transition-colors
+                               flex items-center justify-center gap-2">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                    Envoyer Rappels Automatiques
+                </button>
+            </div>
+        </div>
+
+        <!-- Blocage IT -->
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Restriction</h4>
+            </div>
+            <p class="text-[10.5px] text-slate-500">
+                Modification des <strong>métadonnées de configuration brute du serveur IT</strong>
+                réservée aux Techniciens IT / Administrateurs du Bureau Numérique.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelector('input[type=range]')?.addEventListener('input', function() {
+    document.getElementById('threshold-val').textContent = this.value + '%';
+});
+function sendReminder(ctmNum) {
+    showToast(`Rappel envoyé au Président du CTM ${ctmNum}.`, 'success');
+}
+function reallocateDelay(ctmNum) {
+    const days = prompt(`Réallouer le délai pour CTM ${ctmNum} — Nombre de jours supplémentaires :`);
+    if (days) showToast(`+${days} jours accordés au CTM ${ctmNum}.`, 'success');
+}
+</script>

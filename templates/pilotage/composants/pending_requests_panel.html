@@ -1,0 +1,84 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     PANNEAU DEMANDES EN ATTENTE — Bureau Directoire uniquement
+     Approbation / Rejet en un clic
+═══════════════════════════════════════════════════════════════════ -->
+{% if pending_requests %}
+<div class="space-y-3">
+    {% for req in pending_requests %}
+    <div id="request-row-{{ req.id }}"
+         class="rounded-2xl border border-amber-400/20 bg-white dark:bg-white/2 p-5">
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+
+            <!-- Info demandeur -->
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center
+                            text-xs font-black text-amber-400 shrink-0">
+                    {{ req.requester.user.first_name|first|upper }}{{ req.requester.user.last_name|first|upper }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {{ req.requester.user.get_full_name }}
+                    </p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">
+                        {% if req.requester.structure %}{{ req.requester.structure.acronym }} —{% endif %}
+                        {{ req.created_at|date:"d/m/Y à H:i" }}
+                    </p>
+                    <div class="mt-2 p-2.5 rounded-lg bg-slate-50 dark:bg-white/3 border border-slate-100 dark:border-white/5">
+                        <p class="text-[10px] font-semibold text-amber-400 mb-0.5">
+                            Ressource demandée :
+                        </p>
+                        <p class="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                            {{ req.restricted_resource }}
+                        </p>
+                        <p class="text-[10px] font-semibold text-slate-400 mt-1.5 mb-0.5">Motif :</p>
+                        <p class="text-[10.5px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {{ req.reason|truncatechars:200 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-2 sm:items-end shrink-0 min-w-[180px]">
+                <div>
+                    <label class="block text-[9.5px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Commentaire (optionnel)
+                    </label>
+                    <input type="text" id="comment-{{ req.id }}"
+                           placeholder="Note du Directoire…"
+                           class="w-full text-[10.5px] rounded-lg border px-2.5 py-1.5
+                                  border-slate-200 dark:border-white/10 bg-transparent
+                                  text-slate-600 dark:text-slate-400 placeholder-slate-400
+                                  focus:outline-none focus:ring-1 focus:ring-amber-400/50">
+                </div>
+                <div class="flex gap-2 w-full">
+                    <button id="btn-approved-{{ req.id }}"
+                            onclick="handleDecision({{ req.id }}, 'APPROVED')"
+                            class="flex-1 py-2 rounded-xl text-[10px] font-extrabold uppercase
+                                   bg-emerald-500 hover:bg-emerald-400 text-white
+                                   transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Approuver
+                    </button>
+                    <button id="btn-rejected-{{ req.id }}"
+                            onclick="handleDecision({{ req.id }}, 'REJECTED')"
+                            class="flex-1 py-2 rounded-xl text-[10px] font-extrabold uppercase border
+                                   border-red-400/30 text-red-400 hover:bg-red-400/10
+                                   transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i> Refuser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="rounded-2xl border border-dashed border-emerald-400/20 p-10 text-center">
+    <i data-lucide="inbox" class="w-10 h-10 text-emerald-400/40 mx-auto mb-3"></i>
+    <p class="text-sm font-semibold text-slate-500">Aucune demande en attente</p>
+    <p class="text-xs text-slate-400 mt-1">
+        Toutes les demandes de dérogation ont été traitées.
+    </p>
+</div>
+{% endif %}

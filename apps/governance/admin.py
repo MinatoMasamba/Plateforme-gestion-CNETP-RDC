@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Count
-from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC, OriginStructure, ExecutiveLevel
+from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC, OriginStructure, ExecutiveLevel, CTCProcessus, NormeCadrage
 
 # Ensure ComitePilotage objects expose a 'role' attribute to avoid errors
 # when other admin modules assume a membership-like object is returned.
@@ -327,3 +327,88 @@ class ExecutiveLevelAdmin(admin.ModelAdmin):
     def expert_structure(self, obj):
         return obj.expert.structure.name if obj.expert and obj.expert.structure else "Vacant"
     expert_structure.short_description = "Structure"
+
+
+@admin.register(CTCProcessus)
+class CTCProcessusAdmin(admin.ModelAdmin):
+    list_display = ('norme', 'current_stage', 'received_by', 'received_at', 'all_reviews_completed', 'signed_out_at', 'pilotage_reception_complete')
+    list_filter = ('current_stage', 'requires_sig', 'all_reviews_completed')
+    search_fields = ('norme__reference_number', 'norme__title')
+    raw_id_fields = ('received_by', 'intake_validated_by', 'sig_completed_by', 'signed_out_by', 'received_by_president', 'received_by_rapporteur')
+    readonly_fields = ('all_reviews_completed', 'all_reviews_completed_at', 'transmitted_to_pilotage_at', 'pilotage_reception_complete')
+    fieldsets = (
+        ('Document', {'fields': ('norme', 'current_stage')}),
+        ('Étape 1 — Réception', {'fields': ('received_by', 'received_at', 'indexed_at', 'intake_validated_by', 'intake_validated_at')}),
+        ('Étape 2 — SIG', {'fields': ('requires_sig', 'sig_completed_by', 'sig_completed_at', 'it_stored_at')}),
+        ('Étape 3 — Multi-Review', {'fields': ('multi_review_started_at', 'all_reviews_completed', 'all_reviews_completed_at')}),
+        ('Étape 4 — FEC', {'fields': ('industrial_completed_at',)}),
+        ('Étape 5 — Transmission CTC', {'fields': ('signed_out_by', 'signed_out_at', 'transmitted_to_pilotage_at')}),
+        ('Étape 5 — Réception Comité de Pilotage', {'fields': (
+            'received_by_president', 'received_by_president_at',
+            'received_by_rapporteur', 'received_by_rapporteur_at',
+            'pilotage_reception_complete',
+        )}),
+    )
+
+    def pilotage_reception_complete(self, obj):
+        return obj.pilotage_reception_complete
+    pilotage_reception_complete.boolean = True
+    pilotage_reception_complete.short_description = "Réception Pilotage complète"
+
+
+@admin.register(NormeCadrage)
+class NormeCadrageAdmin(admin.ModelAdmin):
+    list_display = ('norme', 'current_stage', 'opened_by', 'experts_review_complete', 'mandate_formalized_at', 'transmitted_to_ctc_at', 'conformity_quitus_complete', 'final_validated_at')
+    list_filter = ('current_stage',)
+    search_fields = ('norme__reference_number', 'norme__title')
+    raw_id_fields = (
+        'opened_by', 'onic_validated_by', 'btp_validated_by', 'mandate_formalized_by',
+        'scheduled_by', 'pv_verified_by', 'onic_quitus_by', 'btp_quitus_by', 'final_validated_by',
+    )
+    readonly_fields = ('experts_review_complete', 'conformity_quitus_complete')
+    fieldsets = (
+        ('Document', {'fields': ('norme', 'current_stage')}),
+        ('Phase 1.1 — Orientation stratégique (Président)', {
+            'fields': ('opened_by', 'opened_at', 'strategic_orientation'),
+        }),
+        ('Phase 1.2 — Validation des experts WG (1er & 2nd Vice-Présidents)', {
+            'fields': (
+                'onic_validated_by', 'onic_validated_at', 'onic_notes',
+                'btp_validated_by', 'btp_validated_at', 'btp_notes',
+                'experts_review_complete',
+            ),
+        }),
+        ('Phase 1.3 — Mandat opérationnel (Secrétaire)', {
+            'fields': ('mandate_formalized_by', 'mandate_formalized_at', 'operational_mandate'),
+        }),
+        ('Phase 1.4 — Chronogramme & ordre de service (Rapporteur Général)', {
+            'fields': (
+                'scheduled_by', 'scheduled_at',
+                'deadline_ctm_review', 'deadline_ctc_handoff', 'deadline_pilotage_review',
+                'transmitted_to_ctc_at',
+            ),
+        }),
+        ('Phase 2.1 — Vérification du PV de l\'Assemblée Plénière (Secrétaire)', {
+            'fields': ('pv_verified_by', 'pv_verified_at', 'pv_reference'),
+        }),
+        ('Phase 2.2 — Quitus de conformité (1er & 2nd Vice-Présidents)', {
+            'fields': (
+                'onic_quitus_by', 'onic_quitus_at',
+                'btp_quitus_by', 'btp_quitus_at',
+                'conformity_quitus_complete',
+            ),
+        }),
+        ('Phase 2.3 — Validation finale & signature (Président)', {
+            'fields': ('final_validated_by', 'final_validated_at', 'resolution_reference', 'transmitted_to_ministry_at'),
+        }),
+    )
+
+    def experts_review_complete(self, obj):
+        return obj.experts_review_complete
+    experts_review_complete.boolean = True
+    experts_review_complete.short_description = "Experts WG validés (VP1+VP2)"
+
+    def conformity_quitus_complete(self, obj):
+        return obj.conformity_quitus_complete
+    conformity_quitus_complete.boolean = True
+    conformity_quitus_complete.short_description = "Quitus conformité complet"

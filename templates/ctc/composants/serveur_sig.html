@@ -1,0 +1,120 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     SERVEUR SIG / GÉOSPATIAL — Ingénieurs Cartographes (BEAU / OVD)
+     Intégration et rendu des couches de cartes CNETP
+═══════════════════════════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="lg:col-span-2 space-y-4">
+        <!-- Zone de rendu carte (placeholder) -->
+        <div class="rounded-2xl border border-teal-400/20 bg-white dark:bg-white/2 p-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-teal-400 mb-4 flex items-center gap-2">
+                <i data-lucide="map" class="w-3.5 h-3.5"></i> Carte Interactive — Réseau d'Infrastructure RDC
+            </h3>
+
+            <!-- Simulacre de carte -->
+            <div class="relative rounded-xl border border-teal-400/15 bg-slate-100 dark:bg-slate-900 overflow-hidden"
+                 style="height: 220px;">
+                <div class="absolute inset-0 flex items-center justify-center flex-col gap-2">
+                    <i data-lucide="map" class="w-10 h-10 text-teal-400/40"></i>
+                    <p class="text-xs font-semibold text-slate-400">Serveur SIG</p>
+                    <p class="text-[10px] text-slate-500">À connecter au backend géospatial (GeoServer / PostGIS)</p>
+                </div>
+                <!-- Contrôles fictifs -->
+                <div class="absolute top-3 right-3 flex flex-col gap-1.5">
+                    <button class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-colors text-xs font-bold shadow-sm">+</button>
+                    <button class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-colors text-xs font-bold shadow-sm">−</button>
+                </div>
+            </div>
+
+            <!-- Couches de données -->
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {% for layer_data in sig_layers %}
+            <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                          border-teal-400/15 bg-teal-400/5 hover:bg-teal-400/10 transition-colors">
+                <input type="checkbox" checked class="accent-teal-400">
+                <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">{{ layer_data.name }}</span>
+            </label>
+            {% empty %}
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                              border-teal-400/15 bg-teal-400/5 hover:bg-teal-400/10 transition-colors">
+                    <input type="checkbox" checked class="accent-teal-400">
+                    <i data-lucide="route" class="w-3 h-3 text-teal-400"></i>
+                    <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Tracés chaussées</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                              border-red-400/15 bg-red-400/5 hover:bg-red-400/10 transition-colors">
+                    <input type="checkbox" class="accent-red-400">
+                    <i data-lucide="triangle-alert" class="w-3 h-3 text-red-400"></i>
+                    <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Zones d'érosion</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                              border-blue-400/15 bg-blue-400/5 hover:bg-blue-400/10 transition-colors">
+                    <input type="checkbox" checked class="accent-blue-400">
+                    <i data-lucide="droplets" class="w-3 h-3 text-blue-400"></i>
+                    <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Réseau drainage</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                              border-purple-400/15 bg-purple-400/5 hover:bg-purple-400/10 transition-colors">
+                    <input type="checkbox" class="accent-purple-400">
+                    <i data-lucide="building" class="w-3 h-3 text-purple-400"></i>
+                    <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Zones urbaines</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer
+                              border-emerald-400/15 bg-emerald-400/5 hover:bg-emerald-400/10 transition-colors">
+                    <input type="checkbox" checked class="accent-emerald-400">
+                    <i data-lucide="grid" class="w-3 h-3 text-emerald-400"></i>
+                    <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Assainissement</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <!-- Upload couche -->
+        <div class="rounded-2xl border border-teal-400/20 bg-white dark:bg-white/2 p-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-teal-400 mb-4 flex items-center gap-2">
+                <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Intégrer une Couche
+            </h3>
+            <div class="border-2 border-dashed border-teal-400/25 rounded-xl p-5 text-center hover:border-teal-400/50 transition-colors cursor-pointer">
+                <i data-lucide="map-pin" class="w-7 h-7 text-teal-400 mx-auto mb-2"></i>
+                <p class="text-[10px] font-semibold text-slate-500">Shapefile, GeoJSON, KML</p>
+            </div>
+            <select class="w-full mt-2 text-xs rounded-xl border px-3 py-2 border-slate-200 dark:border-white/10
+                           bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
+                <option>Type de couche…</option>
+                <option>Tracés de chaussées</option>
+                <option>Zones d'érosion critique</option>
+                <option>Réseau d'assainissement</option>
+            </select>
+            <button class="w-full mt-2 py-2 rounded-xl text-xs font-extrabold bg-teal-500 hover:bg-teal-400 text-white transition-colors">
+                Intégrer au Serveur SIG
+            </button>
+        </div>
+
+        <div class="rounded-2xl border border-teal-400/20 bg-teal-400/5 p-5">
+            <h4 class="text-xs font-extrabold uppercase tracking-widest text-teal-400 mb-3">
+                Ingénieurs Cartographes SIG
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Vous numérisez les tracés de chaussées, zones d'érosion et maillage
+                d'assainissement urbain pour l'infrastructure CNETP.
+            </p>
+            <div class="mt-3 pt-3 border-t border-teal-400/15 text-[10px] text-slate-500 space-y-1">
+                <p><strong class="text-teal-400">Structure :</strong> {{ expert.structure.acronym }}
+                    ({% if ctc_sub_role == 'sig_beau' %}BEAU{% else %}OVD{% endif %})
+                </p>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-red-400/15 bg-red-400/5 p-4">
+            <div class="flex items-center gap-2 mb-1">
+                <i data-lucide="shield-off" class="w-3.5 h-3.5 text-red-400"></i>
+                <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Restrictions</h4>
+            </div>
+            <p class="text-[10.5px] text-slate-500">
+                Validations politiques et arbitrages chronogramme strictement bloqués.
+            </p>
+        </div>
+    </div>
+</div>

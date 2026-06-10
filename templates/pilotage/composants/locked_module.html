@@ -1,0 +1,61 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODULE VERROUILLÉ — Blocage intelligent avec demande de dérogation
+     Usage : {% include "pilotage/composants/locked_module.html" with
+                module_name="..." module_icon="..." module_color="amber"
+                locked_reason="..." %}
+═══════════════════════════════════════════════════════════════════ -->
+<div class="module-card relative rounded-2xl border overflow-hidden
+            {% if module_color == 'amber' %}border-amber-400/15 bg-amber-400/3
+            {% elif module_color == 'blue' %}border-blue-400/15 bg-blue-400/3
+            {% elif module_color == 'emerald' %}border-emerald-400/15 bg-emerald-400/3
+            {% elif module_color == 'teal' %}border-teal-400/15 bg-teal-400/3
+            {% elif module_color == 'purple' %}border-purple-400/15 bg-purple-400/3
+            {% elif module_color == 'indigo' %}border-indigo-400/15 bg-indigo-400/3
+            {% else %}border-slate-200 dark:border-white/8 bg-white dark:bg-white/2{% endif %}
+            p-5 opacity-80">
+
+    <!-- Icône + Titre -->
+    <div class="flex items-start gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                    {% if module_color == 'amber' %}bg-amber-400/15
+                    {% elif module_color == 'blue' %}bg-blue-400/15
+                    {% elif module_color == 'emerald' %}bg-emerald-400/15
+                    {% elif module_color == 'teal' %}bg-teal-400/15
+                    {% elif module_color == 'purple' %}bg-purple-400/15
+                    {% elif module_color == 'indigo' %}bg-indigo-400/15
+                    {% else %}bg-slate-400/15{% endif %}">
+            <i data-lucide="{{ module_icon|default:'lock' }}"
+               class="w-5 h-5
+                      {% if module_color == 'amber' %}text-amber-400/50
+                      {% elif module_color == 'blue' %}text-blue-400/50
+                      {% elif module_color == 'emerald' %}text-emerald-400/50
+                      {% elif module_color == 'teal' %}text-teal-400/50
+                      {% elif module_color == 'purple' %}text-purple-400/50
+                      {% elif module_color == 'indigo' %}text-indigo-400/50
+                      {% else %}text-slate-400/50{% endif %}"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ module_name }}</h4>
+            <p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">{{ locked_reason }}</p>
+        </div>
+    </div>
+
+    <!-- Alerte visuelle verrou -->
+    <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl border mb-3
+                border-slate-200 dark:border-white/8 bg-white/60 dark:bg-black/20">
+        <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+        <span class="text-[10px] font-semibold text-slate-500">
+            Instance restreinte — hors de votre périmètre de privilèges
+        </span>
+    </div>
+
+    <!-- Bouton demande de dérogation -->
+    <button onclick="openPermissionModal('{{ module_name }}')"
+            class="w-full py-2 px-3 rounded-xl border text-[10.5px] font-extrabold uppercase tracking-wide
+                   transition-colors flex items-center justify-center gap-2
+                   border-amber-400/30 bg-amber-400/8 text-amber-400
+                   hover:bg-amber-400/15 hover:border-amber-400/50">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i>
+        Demander une Dérogation au Directoire
+    </button>
+</div>

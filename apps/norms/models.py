@@ -17,7 +17,20 @@ class Norme(BaseModel):
     # References
     iso_reference = models.CharField(max_length=50, blank=True, help_text="Ex: ISO 12345")
     arso_reference = models.CharField(max_length=50, blank=True)
-    
+
+    # Catégorisation (Plan de Production CNE-ITP/CTC/PPT-2026)
+    NORM_TYPE_CHOICES = [
+        ('NCD', 'Norme Nationale Congolaise'),
+        ('CA', 'Code Applicatif'),
+        ('DIR', 'Directive Technique'),
+        ('REC', 'Recommandation Technique'),
+    ]
+    norm_type = models.CharField(max_length=3, choices=NORM_TYPE_CHOICES, default='NCD')
+    target_count = models.PositiveIntegerField(
+        default=1,
+        help_text="Nombre de normes individuelles couvertes par cette ligne de planification"
+    )
+
     # Status du cycle de vie
     STATUS_CHOICES = [
         ('DRAFT', 'Brouillon'),

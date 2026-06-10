@@ -130,13 +130,13 @@ class ExpertAdmin(admin.ModelAdmin):
         if obj.ctm:
             committees.append(f"CTM {obj.ctm.number}")
         
-        pilotage = obj.pilotage_member_of.first()
-        if pilotage:
-            committees.append(f"Pilotage ({pilotage.role})")
+        pilotage_m = PilotageMembreship.objects.filter(expert=obj).first()
+        if pilotage_m:
+            committees.append(f"Pilotage ({pilotage_m.role})")
         
-        ctc = obj.ctc_member_of.first()
-        if ctc:
-            committees.append(f"CTC ({ctc.role})")
+        ctc_membership = CTCMembership.objects.filter(expert=obj).first()
+        if ctc_membership:
+            committees.append(f"CTC ({ctc_membership.role})")
         
         return ", ".join(committees) if committees else "—"
     get_committees.short_description = "Comités"
@@ -148,15 +148,13 @@ class ExpertAdmin(admin.ModelAdmin):
         if obj.ctm:
             details.append(f"<strong>CTM Principale:</strong> CTM {obj.ctm.number} - {obj.ctm.name}")
         
-        pilotages = obj.pilotage_member_of.all()
-        if pilotages:
-            for pilotage in pilotages:
-                details.append(f"<strong>Comité de Pilotage:</strong> {pilotage.role}")
+        pilotage_memberships = PilotageMembreship.objects.filter(expert=obj).select_related('comite')
+        for pilotage_m in pilotage_memberships:
+            details.append(f"<strong>Comité de Pilotage:</strong> {pilotage_m.role}")
         
-        ctcs = obj.ctc_member_of.all()
-        if ctcs:
-            for ctc in ctcs:
-                details.append(f"<strong>Cellule Technique:</strong> {ctc.role}")
+        ctc_memberships = CTCMembership.objects.filter(expert=obj).select_related('ctc')
+        for ctc_m in ctc_memberships:
+            details.append(f"<strong>Cellule Technique:</strong> {ctc_m.role}")
         
         if not details:
             return mark_safe("<em>Aucun comité assigné</em>")

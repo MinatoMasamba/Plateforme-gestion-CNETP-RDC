@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.core.models import BaseModel
 from apps.experts.models import Expert
+from django.utils import timezone
 
 
 class CTM(BaseModel):
@@ -454,6 +455,94 @@ class PosteNominatifCTC(BaseModel):
         return self.holder_id is None
 
 
+class CTCOperationalRequest(BaseModel):
+    """
+    Demande d'ouverture de droits temporaires ou de transmission urgente
+    émise par un membre de la CTC lorsqu'il tente d'accéder à une ressource
+    hors de son pôle. Routée vers l'Assistant Exécutif de la Direction des Opérations.
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'En attente'),
+        ('APPROVED', 'Approuvée'),
+        ('REJECTED', 'Refusée'),
+    ]
+
+    requester = models.ForeignKey(
+        Expert, on_delete=models.CASCADE, related_name='ctc_requests',
+        verbose_name="Demandeur"
+    )
+    restricted_resource = models.CharField(
+        max_length=300,
+        help_text="Module ou ressource CTC dont l'accès temporaire est demandé"
+    )
+    reason = models.TextField(
+        verbose_name="Demande d'ouverture de droits temporaires ou de transmission urgente de données"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+    reviewed_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='ctc_reviews', verbose_name="Examiné par (Assistant Exécutif)"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_comment = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Demande Opérationnelle CTC"
+        verbose_name_plural = "Demandes Opérationnelles CTC"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.requester.full_name} → {self.restricted_resource} ({self.status})"
+
+    @property
+    def is_pending(self):
+        return self.status == 'PENDING'
+
+
+class PermissionRequest(BaseModel):
+    """
+    Demande de dérogation d'accès émise par un membre du Comité de Pilotage
+    lorsqu'il tente d'accéder à une ressource hors de ses privilèges habituels.
+    Routée automatiquement vers le Bureau Directoire (Secrétaire + Président).
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'En attente'),
+        ('APPROVED', 'Approuvée'),
+        ('REJECTED', 'Refusée'),
+    ]
+
+    requester = models.ForeignKey(
+        Expert, on_delete=models.CASCADE, related_name='permission_requests',
+        verbose_name="Demandeur"
+    )
+    restricted_resource = models.CharField(
+        max_length=300,
+        help_text="Ressource ou module dont l'accès est demandé (ex: CTM 1 – Géotechnique)"
+    )
+    reason = models.TextField(verbose_name="Motif de la demande de consultation ou de dérogation")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+    reviewed_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='permission_reviews', verbose_name="Examiné par"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_comment = models.TextField(blank=True, verbose_name="Commentaire du Bureau Directoire")
+
+    class Meta:
+        verbose_name = "Demande de Permission"
+        verbose_name_plural = "Demandes de Permission"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.requester.full_name} → {self.restricted_resource} ({self.status})"
+
+    @property
+    def is_pending(self):
+        return self.status == 'PENDING'
+
+
 class ExecutiveLevel(BaseModel):
     """Niveau Exécutif - Haute tutelle (3 postes)"""
     position = models.CharField(
@@ -529,3 +618,415 @@ class Tache(BaseModel):
     
     def __str__(self):
         return f"{self.titre} ({self.working_group.name})"
+
+
+class CTCProcessus(BaseModel):
+    """
+    Hub de suivi du parcours d'une norme dans la CTC.
+    Ajoute la granularité interne à Norme.status == 'INTERNAL_REVIEW'
+    sans modifier les STATUS_CHOICES existants du modèle Norme.
+    """
+    norme = models.OneToOneField(
+        'norms.Norme',
+        on_delete=models.CASCADE,
+        related_name='ctc_processus'
+    )
+
+    STAGE_CHOICES = [
+        ('RECEPTION',    'Étape 1 — Réception, Numérisation & Cadrage'),
+        ('GEOSPATIAL',   'Étape 2 — Traitement Géospatial SIG (si applicable)'),
+        ('MULTI_REVIEW', 'Étape 3 — Toilettage Multi-Critères (examens parallèles)'),
+        ('INDUSTRIAL',   'Étape 4 — Consultation Industrielle FEC'),
+        ('SIGNED_OUT',   'Étape 5 — Signé & Transmis au Comité de Pilotage'),
+    ]
+    current_stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='RECEPTION')
+
+    # ── Étape 1 : Réception & Numérisation ──────────────────────────────────
+    received_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='received_norms',
+        help_text="Assistant Exécutif qui a enregistré le dossier"
+    )
+    received_at = models.DateTimeField(null=True, blank=True)
+    indexed_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Date de fin de mise en page et indexation par les Opérateurs de Saisie"
+    )
+    intake_validated_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='intake_validated_norms',
+        help_text="Coordonnateur qui a validé l'introduction dans le circuit"
+    )
+    intake_validated_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Étape 2 : Traitement SIG ─────────────────────────────────────────────
+    requires_sig = models.BooleanField(
+        default=False,
+        help_text="Cocher si la norme traite d'infrastructures linéaires nécessitant géolocalisation"
+    )
+    sig_completed_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='sig_completed_norms',
+        help_text="Ingénieur Cartographe SIG"
+    )
+    sig_completed_at = models.DateTimeField(null=True, blank=True)
+    it_stored_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Date de dépôt en base sécurisée par les Techniciens IT"
+    )
+
+    # ── Étape 3 : Multi-Review ───────────────────────────────────────────────
+    # Le suivi détaillé est dans les modèles OneToOne de validation :
+    # norme.iso_review, norme.legistic_review, norme.ecological_review,
+    # norme.economic_review, norme.schedule_review
+    multi_review_started_at = models.DateTimeField(null=True, blank=True)
+    all_reviews_completed = models.BooleanField(default=False)
+    all_reviews_completed_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Étape 4 : Consultation FEC ───────────────────────────────────────────
+    # Suivi détaillé dans norme.industrial_consultation
+    industrial_completed_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Étape 5 : Signature de sortie & Transmission Pilotage ────────────────
+    signed_out_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='signed_out_norms',
+        help_text="Coordonnateur Technique Principal qui certifie la fin du toilettage"
+    )
+    signed_out_at = models.DateTimeField(null=True, blank=True)
+    transmitted_to_pilotage_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Réception officielle par le Comité de Pilotage Élargi ────────────────
+    # Section 5.4.3 : le Président (Poste 16) et le Rapporteur Général (Poste 1)
+    # réceptionnent officiellement la norme nettoyée par la CTC.
+    received_by_president = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='president_received_norms',
+        help_text="Président du Comité de Pilotage Élargi"
+    )
+    received_by_president_at = models.DateTimeField(null=True, blank=True)
+    received_by_rapporteur = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='rapporteur_received_norms',
+        help_text="Rapporteur Général du Comité de Pilotage Élargi"
+    )
+    received_by_rapporteur_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Helpers ──────────────────────────────────────────────────────────────
+    def advance_to(self, stage):
+        self.current_stage = stage
+        self.save(update_fields=['current_stage', 'updated_at'])
+
+    def mark_received(self, expert):
+        self.received_by = expert
+        self.received_at = timezone.now()
+        self.save(update_fields=['received_by', 'received_at', 'updated_at'])
+
+    def mark_indexed(self):
+        self.indexed_at = timezone.now()
+        self.save(update_fields=['indexed_at', 'updated_at'])
+
+    def mark_intake_validated(self, expert):
+        self.intake_validated_by = expert
+        self.intake_validated_at = timezone.now()
+        if not self.requires_sig:
+            self.current_stage = 'MULTI_REVIEW'
+            self.multi_review_started_at = timezone.now()
+        else:
+            self.current_stage = 'GEOSPATIAL'
+        self.save()
+
+    def mark_sig_completed(self, expert):
+        self.sig_completed_by = expert
+        self.sig_completed_at = timezone.now()
+        self.current_stage = 'MULTI_REVIEW'
+        self.multi_review_started_at = timezone.now()
+        self.save()
+
+    def check_all_reviews(self):
+        """Vérifie si tous les examens parallèles sont APPROVED → passe à INDUSTRIAL."""
+        norme = self.norme
+        reviews_done = all([
+            getattr(norme, 'legistic_review', None) and norme.legistic_review.status == 'APPROVED',
+            getattr(norme, 'iso_review', None) and norme.iso_review.status == 'APPROVED',
+            getattr(norme, 'ecological_review', None) and norme.ecological_review.status == 'APPROVED',
+            getattr(norme, 'economic_review', None) and norme.economic_review.status == 'APPROVED',
+            getattr(norme, 'schedule_review', None) and norme.schedule_review.is_completed,
+        ])
+        if reviews_done and not self.all_reviews_completed:
+            self.all_reviews_completed = True
+            self.all_reviews_completed_at = timezone.now()
+            self.current_stage = 'INDUSTRIAL'
+            self.save()
+        return reviews_done
+
+    def mark_signed_out(self, expert):
+        self.signed_out_by = expert
+        self.signed_out_at = timezone.now()
+        self.transmitted_to_pilotage_at = timezone.now()
+        self.current_stage = 'SIGNED_OUT'
+        self.save()
+
+    @property
+    def pilotage_reception_complete(self):
+        return bool(self.received_by_president_at and self.received_by_rapporteur_at)
+
+    def mark_received_by_president(self, expert):
+        self.received_by_president = expert
+        self.received_by_president_at = timezone.now()
+        self.save(update_fields=['received_by_president', 'received_by_president_at', 'updated_at'])
+
+    def mark_received_by_rapporteur(self, expert):
+        self.received_by_rapporteur = expert
+        self.received_by_rapporteur_at = timezone.now()
+        self.save(update_fields=['received_by_rapporteur', 'received_by_rapporteur_at', 'updated_at'])
+        # Passer la norme au statut macro Pilotage
+        self.norme.status = 'PILOTAGE_REVIEW'
+        self.norme.save(update_fields=['status'])
+
+    class Meta:
+        verbose_name = "Processus CTC"
+        verbose_name_plural = "Processus CTC"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"CTC Processus — {self.norme.reference_number} [{self.current_stage}]"
+
+
+class NormeCadrage(BaseModel):
+    """
+    Hub de suivi du Bureau Directoire (Postes 1 à 5) pour une norme donnée,
+    couvrant les deux phases du Manuel Organisationnel 2026 :
+
+      Phase 1 — AVANT la création de la norme (cadrage stratégique) :
+        Poste 1 (Président)          : ouverture politique du chantier normatif
+        Poste 2 (1er VP — ONIC)       : validation des experts WG du giron Ingénierie
+        Poste 3 (2nd VP — AIBTP/CNIRS-BTP) : validation du mandat opérationnel des experts BTP
+        Poste 4 (Secrétaire)          : formalisation du mandat opérationnel + méthodologie
+        Poste 5 (Rapporteur Général)  : chronogramme général + ordre de service à la CTC
+
+      Phase 2 — APRÈS la finalisation technique (validation finale) :
+        Poste 4 (Secrétaire)          : vérification du PV de l'Assemblée Plénière
+        Postes 2 & 3 (1er & 2nd VP)    : quitus de conformité technique
+        Poste 1 (Président)           : validation finale, signature de la résolution,
+                                          transmission au Ministre (Arrêté d'Homologation)
+
+    Ajoute la granularité « amont/aval » du Bureau Directoire sans modifier
+    Norme.STATUS_CHOICES, sur le modèle de CTCProcessus.
+    """
+    norme = models.OneToOneField(
+        'norms.Norme',
+        on_delete=models.CASCADE,
+        related_name='cadrage'
+    )
+
+    STAGE_CHOICES = [
+        # Phase 1 — avant création de la norme
+        ('PROPOSED',              "Phase 1.1 — Orientation stratégique (Président)"),
+        ('EXPERTS_REVIEW',         "Phase 1.2 — Validation des experts WG (1er & 2nd Vice-Présidents)"),
+        ('MANDATE_FORMALIZATION', "Phase 1.3 — Mandat opérationnel formalisé (Secrétaire)"),
+        ('SCHEDULED',             "Phase 1.4 — Chronogramme & ordre de service (Rapporteur Général)"),
+        # Phase 2 — après finalisation technique
+        ('PV_VERIFICATION',       "Phase 2.1 — Vérification du PV de l'Assemblée Plénière (Secrétaire)"),
+        ('CONFORMITY_QUITUS',     "Phase 2.2 — Quitus de conformité technique (1er & 2nd Vice-Présidents)"),
+        ('FINAL_VALIDATION',      "Phase 2.3 — Validation finale & signature (Président)"),
+        ('COMPLETED',             "Terminé — Transmis au Ministre (Arrêté d'Homologation)"),
+    ]
+    current_stage = models.CharField(max_length=24, choices=STAGE_CHOICES, default='PROPOSED')
+
+    # ── Phase 1.1 — Poste 1 : Président — ouverture du chantier normatif ────
+    opened_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_ouverts',
+        help_text="Président du Comité de Pilotage Élargi"
+    )
+    opened_at = models.DateTimeField(null=True, blank=True)
+    strategic_orientation = models.TextField(
+        blank=True, help_text="Orientations stratégiques formulées pour la mise en chantier de cette norme"
+    )
+
+    # ── Phase 1.2 — Poste 2 : 1er Vice-Président (ONIC) ──────────────────────
+    onic_validated_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_valides_onic',
+        help_text="1er Vice-Président — ONIC (giron Ingénierie)"
+    )
+    onic_validated_at = models.DateTimeField(null=True, blank=True)
+    onic_notes = models.TextField(
+        blank=True, help_text="Avis sur la légitimité technique des experts WG du giron Ingénierie"
+    )
+
+    # ── Phase 1.2 — Poste 3 : 2nd Vice-Président (AIBTP/CNIRS-BTP) ───────────
+    btp_validated_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_valides_btp',
+        help_text="2nd Vice-Président — AIBTP/CNIRS-BTP (giron Construction)"
+    )
+    btp_validated_at = models.DateTimeField(null=True, blank=True)
+    btp_notes = models.TextField(
+        blank=True, help_text="Avis sur le mandat opérationnel des experts WG du secteur BTP"
+    )
+
+    # ── Phase 1.3 — Poste 4 : Secrétaire — mandat opérationnel ───────────────
+    mandate_formalized_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_mandats_formalises',
+        help_text="Secrétaire du Comité de Pilotage Élargi"
+    )
+    mandate_formalized_at = models.DateTimeField(null=True, blank=True)
+    operational_mandate = models.TextField(
+        blank=True, help_text="Mandat opérationnel initial et méthodologie scientifique transmis aux CTM"
+    )
+
+    # ── Phase 1.4 — Poste 5 : Rapporteur Général — chronogramme & ordre de service
+    scheduled_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_planifies',
+        help_text="Rapporteur Général — SG-ITP"
+    )
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    deadline_ctm_review = models.DateField(
+        null=True, blank=True, help_text="Date butoir — Remise des travaux du CTM/WG"
+    )
+    deadline_ctc_handoff = models.DateField(
+        null=True, blank=True, help_text="Date butoir — Transmission du dossier à la CTC"
+    )
+    deadline_pilotage_review = models.DateField(
+        null=True, blank=True, help_text="Date butoir — Retour devant le Comité de Pilotage"
+    )
+    transmitted_to_ctc_at = models.DateTimeField(
+        null=True, blank=True, help_text="Date de transmission de l'ordre de service à la CTC"
+    )
+
+    # ── Phase 2.1 — Poste 4 : Secrétaire — vérification du PV de l'AP ────────
+    pv_verified_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_pv_verifies',
+        help_text="Secrétaire du Comité de Pilotage Élargi"
+    )
+    pv_verified_at = models.DateTimeField(null=True, blank=True)
+    pv_reference = models.CharField(
+        max_length=100, blank=True, help_text="Référence du PV de l'Assemblée Plénière"
+    )
+
+    # ── Phase 2.2 — Postes 2 & 3 : Quitus de conformité technique ────────────
+    onic_quitus_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_quitus_onic',
+        help_text="1er Vice-Président — ONIC"
+    )
+    onic_quitus_at = models.DateTimeField(null=True, blank=True)
+    btp_quitus_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_quitus_btp',
+        help_text="2nd Vice-Président — AIBTP/CNIRS-BTP"
+    )
+    btp_quitus_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Phase 2.3 — Poste 1 : Président — validation finale & signature ─────
+    final_validated_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cadrages_valides_finaux',
+        help_text="Président du Comité de Pilotage Élargi"
+    )
+    final_validated_at = models.DateTimeField(null=True, blank=True)
+    resolution_reference = models.CharField(
+        max_length=100, blank=True, help_text="Référence de la résolution signée par le Président"
+    )
+    transmitted_to_ministry_at = models.DateTimeField(
+        null=True, blank=True, help_text="Date de transmission au Ministre pour l'Arrêté d'Homologation"
+    )
+
+    # ── Helpers — Phase 1 ─────────────────────────────────────────────────────
+    @property
+    def experts_review_complete(self):
+        return bool(self.onic_validated_at and self.btp_validated_at)
+
+    def mark_opened(self, expert, orientation=''):
+        self.opened_by = expert
+        self.opened_at = timezone.now()
+        if orientation:
+            self.strategic_orientation = orientation
+        self.current_stage = 'EXPERTS_REVIEW'
+        self.save()
+
+    def mark_onic_validated(self, expert, notes=''):
+        self.onic_validated_by = expert
+        self.onic_validated_at = timezone.now()
+        if notes:
+            self.onic_notes = notes
+        if self.experts_review_complete:
+            self.current_stage = 'MANDATE_FORMALIZATION'
+        self.save()
+
+    def mark_btp_validated(self, expert, notes=''):
+        self.btp_validated_by = expert
+        self.btp_validated_at = timezone.now()
+        if notes:
+            self.btp_notes = notes
+        if self.experts_review_complete:
+            self.current_stage = 'MANDATE_FORMALIZATION'
+        self.save()
+
+    def mark_mandate_formalized(self, expert, mandate_text=''):
+        self.mandate_formalized_by = expert
+        self.mandate_formalized_at = timezone.now()
+        if mandate_text:
+            self.operational_mandate = mandate_text
+        self.current_stage = 'SCHEDULED'
+        self.save()
+
+    def mark_scheduled(self, expert, deadline_ctm_review=None, deadline_ctc_handoff=None,
+                        deadline_pilotage_review=None):
+        self.scheduled_by = expert
+        self.scheduled_at = timezone.now()
+        self.deadline_ctm_review = deadline_ctm_review
+        self.deadline_ctc_handoff = deadline_ctc_handoff
+        self.deadline_pilotage_review = deadline_pilotage_review
+        self.transmitted_to_ctc_at = timezone.now()
+        self.current_stage = 'PV_VERIFICATION'
+        self.save()
+
+    # ── Helpers — Phase 2 ─────────────────────────────────────────────────────
+    @property
+    def conformity_quitus_complete(self):
+        return bool(self.onic_quitus_at and self.btp_quitus_at)
+
+    def mark_pv_verified(self, expert, pv_reference=''):
+        self.pv_verified_by = expert
+        self.pv_verified_at = timezone.now()
+        if pv_reference:
+            self.pv_reference = pv_reference
+        self.current_stage = 'CONFORMITY_QUITUS'
+        self.save()
+
+    def mark_onic_quitus(self, expert):
+        self.onic_quitus_by = expert
+        self.onic_quitus_at = timezone.now()
+        if self.conformity_quitus_complete:
+            self.current_stage = 'FINAL_VALIDATION'
+        self.save()
+
+    def mark_btp_quitus(self, expert):
+        self.btp_quitus_by = expert
+        self.btp_quitus_at = timezone.now()
+        if self.conformity_quitus_complete:
+            self.current_stage = 'FINAL_VALIDATION'
+        self.save()
+
+    def mark_final_validated(self, expert, resolution_reference=''):
+        self.final_validated_by = expert
+        self.final_validated_at = timezone.now()
+        if resolution_reference:
+            self.resolution_reference = resolution_reference
+        self.transmitted_to_ministry_at = timezone.now()
+        self.current_stage = 'COMPLETED'
+        self.save()
+
+    class Meta:
+        verbose_name = "Cadrage Bureau Directoire"
+        verbose_name_plural = "Cadrages Bureau Directoire"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Cadrage Bureau Directoire — {self.norme.reference_number} [{self.current_stage}]"
