@@ -312,6 +312,11 @@
             </div>
 
             <div class="shrink-0 flex items-center gap-3 pr-3 relative z-20">
+                <button onclick="openInstallGuideModal()" id="install-pc-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/10 text-slate-700 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-white/10 hover:text-white">
+                    <i data-lucide="monitor-down" class="h-3.5 w-3.5"></i>
+                    <span>Installer sur PC</span>
+                </button>
+
                 <button id="theme-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/10 text-slate-700 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-white/10 hover:text-white">
                     <span>☀️ Basculer Thème</span>
                 </button>
@@ -340,6 +345,7 @@
     <div id="messaging-widget-container" class="fixed bottom-0 right-10 z-40"></div>
     <div id="modals-container">
         {% include 'app/composants/create_norm_modal.html' %}
+        {% include 'app/composants/install_guide_modal.html' %}
     </div>
     <div id="modals-profil">
         {% include 'app/composants/profil_expert.html' %}
