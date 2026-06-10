@@ -10,8 +10,8 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Base de données locale
-db.sqlite3
+
+
 
 # Logs
 logs/*.log

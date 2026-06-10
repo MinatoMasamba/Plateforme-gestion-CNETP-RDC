@@ -45,6 +45,7 @@ class Command(BaseCommand):
             ('Pilotage Postes Nominatifs (27)', self._check_pilotage_postes),
             ('CTC Postes Nominatifs (20)', self._check_ctc_postes),
             ('Plan de Production Semestriel (PPT-2026)', self._check_production_plan_normes),
+            ('Normes ISO Miroiterie (CTM3)', self._check_miroiterie_normes),
         ]
         
         results = {}
@@ -337,6 +338,39 @@ class Command(BaseCommand):
             'message': (
                 f"NCD={actual['NCD']}/185, CA={actual['CA']}/7, DIR={actual['DIR']}/9, "
                 f"REC={actual['REC']}/8, GT couverts={len(wgs_with_entries)}/24 (WG4.3 exclu)"
+            )
+        }
+
+    def _check_miroiterie_normes(self):
+        """Verify the 20 ISO normes (Miroiterie/vitrages, ISO/TC 160) seeded under
+        CTM3, réparties WG3.1=10, WG3.2=6, WG3.3=4 (cf. seed_miroiterie_normes)."""
+        self.stdout.write("\n  🪟 Normes ISO Miroiterie (CTM3) :")
+
+        EXPECTED_BY_WG = {1: 10, 2: 6, 3: 4}
+
+        normes = Norme.objects.filter(reference_number__startswith='CNETP-CTM3-ISO-')
+        count = normes.count()
+
+        actual_by_wg = {}
+        for wg_num in EXPECTED_BY_WG:
+            actual_by_wg[wg_num] = normes.filter(wg__number=wg_num).count()
+
+        passed = 0
+        for wg_num, expected_count in EXPECTED_BY_WG.items():
+            actual_count = actual_by_wg[wg_num]
+            if actual_count == expected_count:
+                self.stdout.write(f"    ✅ WG3.{wg_num}: {actual_count} (attendu {expected_count})")
+                passed += 1
+            else:
+                self.stdout.write(f"    ❌ WG3.{wg_num}: {actual_count} (attendu {expected_count})")
+
+        total_expected = sum(EXPECTED_BY_WG.values())
+        status = 'pass' if count == total_expected and passed == len(EXPECTED_BY_WG) else 'warn'
+        return {
+            'status': status,
+            'message': (
+                f"{count}/{total_expected} normes (WG3.1={actual_by_wg[1]}/10, "
+                f"WG3.2={actual_by_wg[2]}/6, WG3.3={actual_by_wg[3]}/4)"
             )
         }
 
