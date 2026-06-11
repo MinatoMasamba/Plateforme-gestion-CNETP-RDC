@@ -27,3 +27,10 @@ env/
 
 # Médias uploadées
 media/
+
+# Base de données locale/serveur (chaque environnement a la sienne,
+# ne doit jamais être écrasée par un git pull/push)
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
