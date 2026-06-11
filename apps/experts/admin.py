@@ -116,7 +116,11 @@ class ExpertAdmin(admin.ModelAdmin):
     actions = ('make_active', 'make_inactive',)
 
     def make_active(self, request, queryset):
-        queryset.update(status='ACTIVE')
+        # On sauvegarde individuellement (et non via .update()) afin de déclencher
+        # le signal post_save qui envoie l'email de confirmation à l'expert.
+        for expert in queryset:
+            expert.status = 'ACTIVE'
+            expert.save(update_fields=['status'])
     make_active.short_description = 'Marquer les experts sélectionnés comme actifs'
 
     def make_inactive(self, request, queryset):

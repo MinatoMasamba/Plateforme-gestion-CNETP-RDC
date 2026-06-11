@@ -1,7 +1,7 @@
 """
 Signaux pour créer des notifications automatiquement à partir des événements du système
 """
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 import logging
@@ -320,6 +320,34 @@ def notify_ctm_leaders_on_registration(sender, instance, created, **kwargs):
                 )
     except Exception as e:
         logger.exception(f'Erreur notification leaders CTM inscription: {e}')
+
+
+# ========== SIGNAL ACCEPTATION EXPERT → EMAIL DE CONFIRMATION ==========
+
+@receiver(pre_save, sender='experts.Expert', dispatch_uid='track_expert_status_before_save')
+def track_expert_previous_status(sender, instance, **kwargs):
+    """Mémorise le statut précédent de l'expert avant sauvegarde, pour permettre
+    à `notify_expert_on_acceptance` de détecter un passage au statut ACTIVE."""
+    if instance.pk:
+        instance._previous_status = sender.objects.filter(pk=instance.pk).values_list('status', flat=True).first()
+    else:
+        instance._previous_status = None
+
+
+@receiver(post_save, sender='experts.Expert', dispatch_uid='notify_expert_on_acceptance')
+def notify_expert_on_acceptance(sender, instance, created, **kwargs):
+    """Quand un expert passe au statut ACTIVE (acceptation par le Président/CTM),
+    que ce soit via l'admin Django ou via l'application, lui envoyer un email
+    de confirmation."""
+    if created:
+        return
+    previous_status = getattr(instance, '_previous_status', None)
+    if instance.status == 'ACTIVE' and previous_status != 'ACTIVE':
+        try:
+            from apps.mobileapp.tasks import send_expert_acceptance_email
+            _fire_task(send_expert_acceptance_email, instance.id)
+        except Exception as e:
+            logger.exception(f'Erreur déclenchement email acceptation expert {instance.id}: {e}')
 
 
 # ========== SIGNAL TOKEN D'ACTIVATION EXPERT ==========

@@ -281,6 +281,58 @@ def send_activation_email(self, expert_id):
             return False
 
 
+@shared_task(bind=True, max_retries=3)
+def send_expert_acceptance_email(self, expert_id):
+    """Envoyer l'email de confirmation à un expert dont l'inscription vient
+    d'être validée (statut passé à ACTIVE), que ce soit via l'admin Django
+    ou via l'application.
+    """
+    try:
+        from apps.experts.models import Expert
+
+        expert = Expert.objects.select_related('user', 'structure', 'ctm').get(id=expert_id)
+        user = expert.user
+
+        context = {
+            'expert': expert,
+            'user': user,
+            'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
+        }
+
+        try:
+            html_message = render_to_string('mobileapp/emails/expert_accepted.html', context)
+        except Exception:
+            html_message = (
+                f"<h2>Félicitations {user.get_full_name()}</h2>"
+                f"<p>Votre inscription au CNETP a été validée. Vous êtes désormais "
+                f"un membre actif de la Commission.</p>"
+            )
+
+        send_mail(
+            subject='[CNETP] Votre inscription a été validée',
+            message=(
+                f"Bonjour {user.get_full_name()},\n\n"
+                f"Nous avons le plaisir de vous informer que votre inscription au "
+                f"CNETP a été validée. Vous êtes désormais un membre actif de la "
+                f"Commission et pouvez accéder à la plateforme.\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        logger.info(f"Email de confirmation d'acceptation envoyé à {user.email} (expert {expert_id})")
+        return True
+
+    except Exception as exc:
+        logger.exception(f"Erreur envoi email acceptation expert {expert_id}: {exc}")
+        try:
+            raise self.retry(exc=exc, countdown=60)
+        except Exception:
+            return False
+
+
 def _send_email_confirmation_code_now(user_id):
     """Logique d'envoi du code de confirmation, indépendante de Celery.
     Utilisée par la tâche `send_email_confirmation_code` ainsi qu'en repli
