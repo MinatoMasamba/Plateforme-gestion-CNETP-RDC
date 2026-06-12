@@ -84,6 +84,36 @@
             </button>
             {% endif %}
 
+            <!-- Espace administratif Bureau Directoire (Postes 1 à 5) -->
+            {% if can_trigger_steps %}
+            <a href="{% url 'web:pilotage_directoire_app' %}"
+               class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                      bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors">
+                <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
+                Espace Bureau Directoire
+            </a>
+            {% endif %}
+
+            <!-- Espace administratif Conseillers Institutionnels et Politiques (Postes 6 à 17) -->
+            {% if pilotage_college == 'conseiller_politique' %}
+            <a href="{% url 'web:pilotage_conseillers_app' %}"
+               class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                      bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20 transition-colors">
+                <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
+                Espace Conseillers Institutionnels
+            </a>
+            {% endif %}
+
+            <!-- Espace administratif Administrateurs Techniques et Financiers (Postes 18 à 20) -->
+            {% if pilotage_college == 'atf' %}
+            <a href="{% url 'web:pilotage_atf_app' %}"
+               class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border
+                      bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
+                <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
+                Espace Administrateurs Techniques et Financiers
+            </a>
+            {% endif %}
+
             <!-- Bouton thème -->
             <button onclick="toggleTheme()" title="Changer le thème"
                     class="p-2 rounded-lg border border-slate-200 dark:border-white/10

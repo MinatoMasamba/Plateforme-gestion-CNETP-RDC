@@ -1,0 +1,368 @@
+<div class="p-6 max-w-6xl mx-auto space-y-6 h-full flex flex-col text-slate-800 dark:text-slate-300 transition-colors duration-200">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-100 p-2 rounded-lg dark:bg-amber-500/10">
+                <i data-lucide="hard-drive" class="w-6 h-6 text-amber-600 dark:text-amber-500"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Espace Drive CNETP</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Stockage partagé et centralisé des projets de normes.</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="drive-search-input"
+                    oninput="handleDriveSearch(this.value)"
+                    placeholder="Rechercher dans le Drive..." 
+                    class="pl-9 pr-4 py-2 w-64 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:ring-amber-500/40"
+                />
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-wrap items-center justify-between gap-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none">
+        <div class="flex items-center gap-2">
+            <button onclick="handleCreateFolder()" class="flex items-center gap-2 px-3 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-sm font-bold transition cursor-pointer dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i> Créer Dossier
+            </button>
+            <button onclick="handleUploadFile()" class="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-sm font-bold transition cursor-pointer dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Téléverser Fichier
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-2 border-l border-slate-200 pl-3 dark:border-white/10 flex-wrap">
+            <button id="drive-btn-download" onclick="executeDownload()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-copy" onclick="executeCopy()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-rename" onclick="executeRename()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-print" onclick="executePrint()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-delete" onclick="executeDelete()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+        </div>
+    </div>
+
+    <div class="flex-1 flex gap-6 overflow-hidden min-h-[400px]">
+        
+        <div class="w-64 flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4 shadow-sm overflow-y-auto hidden md:block dark:bg-black/30 dark:border-white/10">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Mon Espace</h3>
+            <ul id="drive-folders-tree" class="space-y-1">
+                </ul>
+        </div>
+
+        <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col dark:bg-black/30 dark:border-white/10 dark:shadow-none">
+            
+            <div class="px-6 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between dark:bg-black/40 dark:border-white/10">
+                <div class="flex items-center gap-2">
+                    <button onclick="handleSelectAllToggle()" class="p-1 hover:bg-slate-200 dark:hover:bg-white/5 rounded text-slate-500 dark:text-slate-400 transition cursor-pointer" title="Tout sélectionner">
+                        <div id="drive-master-checkbox"></div>
+                    </button>
+                    <h3 id="drive-current-folder-title" class="font-bold text-slate-800 text-sm ml-2 dark:text-white">Tous les fichiers</h3>
+                </div>
+                <span id="drive-selection-count-text" class="text-xs font-bold text-slate-500 dark:text-slate-400">0 sélectionné(s)</span>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 scrollbar-none">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <tbody id="drive-files-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                        </tbody>
+                </table>
+                <div id="drive-empty-state" class="hidden text-center py-16 animate-fadeIn">
+                    <i data-lucide="folder" class="w-12 h-12 text-slate-200 mx-auto mb-3 dark:text-slate-700"></i>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Ce dossier est vide.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // ÉTAT LOCAL ET DONNÉES SIMULÉES DU DRIVE
+    // =========================================================================
+    const driveState = {
+        selectedFolder: null,
+        selectedFiles: [],
+        searchQuery: "",
+        folders: ['Direction CTC', 'CTM 2 - Ouvrages', 'CTM 6 - Eau', 'SIG & Cartographie', 'Finances (GAF)', 'Enquêtes Publiques'],
+        files: [
+            { id: 1, name: 'CTM-2-044_Brouillon_v1.docx', type: 'doc', size: '2.4 MB', date: '2026-06-08', folder: 'CTM 2 - Ouvrages' },
+            { id: 2, name: 'Annexe_Carto_RN39.qgz', type: 'map', size: '14.5 MB', date: '2026-06-05', folder: 'SIG & Cartographie' },
+            { id: 3, name: 'Budget_Q3_Previsionnel.xlsx', type: 'sheet', size: '1.1 MB', date: '2026-06-01', folder: 'Finances (GAF)' },
+            { id: 4, name: 'Rapport_Reception_Avis.pdf', type: 'pdf', size: '4.8 MB', date: '2026-05-28', folder: 'Enquêtes Publiques' },
+            { id: 5, name: 'PV_Reunion_Pilotage_Mai.pdf', type: 'pdf', size: '1.2 MB', date: '2026-05-15', folder: 'Direction CTC' }
+        ]
+    };
+
+    function getFileIconMarkup(type) {
+        switch (type) {
+            case 'doc': return `<i data-lucide="file-text" class="w-5 h-5 text-blue-500 shrink-0"></i>`;
+            case 'pdf': return `<i data-lucide="file-text" class="w-5 h-5 text-red-500 shrink-0"></i>`;
+            case 'sheet': return `<i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-500 shrink-0"></i>`;
+            case 'map': return `<i data-lucide="map" class="w-5 h-5 text-purple-500 shrink-0"></i>`;
+            default: return `<i data-lucide="file-text" class="w-5 h-5 text-slate-500 shrink-0"></i>`;
+        }
+    }
+
+    // =========================================================================
+    // FONCTIONS DE LIEN LOGIQUE & CALCUL DE RENDU
+    // =========================================================================
+    function getFilteredFiles() {
+        return driveState.files.filter(f => {
+            const matchesFolder = !driveState.selectedFolder || f.folder === driveState.selectedFolder;
+            const matchesSearch = !driveState.searchQuery || f.name.toLowerCase().includes(driveState.searchQuery.toLowerCase());
+            return matchesFolder && matchesSearch;
+        });
+    }
+
+    function renderDriveView() {
+        renderFoldersTree();
+        renderFilesTable();
+        updateToolbarState();
+    }
+
+    // Rendu de l'arborescence des dossiers latérale
+    function renderFoldersTree() {
+        const treeContainer = document.getElementById('drive-folders-tree');
+        if(!treeContainer) return;
+
+        let html = `
+        <li>
+            <button onclick="selectFolderGate(null)" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${!driveState.selectedFolder ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/5'}">
+                <i data-lucide="hard-drive" class="w-4 h-4"></i> Tout le Drive
+            </button>
+        </li>
+        <li class="pt-2 pb-1 px-2 text-xs font-bold text-slate-400 uppercase tracking-wider select-none">Dossiers CNETP</li>`;
+
+        html += driveState.folders.map(folder => {
+            const isSelected = driveState.selectedFolder === folder;
+            const folderIconColor = isSelected ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500';
+            const btnClass = isSelected 
+                ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' 
+                : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/5';
+
+            return `
+            <li>
+                <button onclick="selectFolderGate('${folder}')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${btnClass}">
+                    <i data-lucide="folder" class="w-4 h-4 ${folderIconColor}"></i> 
+                    <span class="truncate">${folder}</span>
+                </button>
+            </li>`;
+        }).join('');
+
+        treeContainer.innerHTML = html;
+    }
+
+    // Rendu de la table de fichiers (Spreadsheet)
+    function renderFilesTable() {
+        const tableBody = document.getElementById('drive-files-table-body');
+        const emptyState = document.getElementById('drive-empty-state');
+        const currentFiles = getFilteredFiles();
+
+        document.getElementById('drive-current-folder-title').textContent = driveState.selectedFolder ? driveState.selectedFolder : 'Tous les fichiers';
+        document.getElementById('drive-selection-count-text').textContent = `${driveState.selectedFiles.length} sélectionné(s)`;
+
+        // Checkbox maîtresse (Select All)
+        const masterCheckbox = document.getElementById('drive-master-checkbox');
+        if (currentFiles.length > 0 && driveState.selectedFiles.length === currentFiles.length) {
+            masterCheckbox.innerHTML = `<i data-lucide="check-square" class="w-5 h-5 text-amber-600 dark:text-amber-500"></i>`;
+        } else {
+            masterCheckbox.innerHTML = `<div class="w-5 h-5 border-2 border-slate-400 rounded dark:border-slate-500"></div>`;
+        }
+
+        if (currentFiles.length === 0) {
+            tableBody.innerHTML = "";
+            emptyState.classList.remove('hidden');
+            return;
+        }
+        emptyState.classList.add('hidden');
+
+        tableBody.innerHTML = currentFiles.map(file => {
+            const isChecked = driveState.selectedFiles.includes(file.id);
+            const rowSelectedClass = isChecked ? 'bg-amber-50/50 dark:bg-amber-500/5' : '';
+            
+            const checkboxMarkup = isChecked 
+                ? `<i data-lucide="check-square" class="w-5 h-5 text-amber-600 dark:text-amber-500"></i>`
+                : `<div class="w-5 h-5 border-2 border-slate-300 rounded group-hover:border-slate-400 dark:border-slate-600 dark:group-hover:border-slate-500"></div>`;
+
+            return `
+            <tr onclick="toggleFileSelectGate(event, ${file.id})" class="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group ${rowSelectedClass} animate-slideIn">
+                <td class="px-4 py-3 w-10">
+                    <div class="p-1">${checkboxMarkup}</div>
+                </td>
+                <td class="px-2 py-3">
+                    <div class="flex items-center gap-3">
+                        ${getVisualIcon(file.type)}
+                        <span class="font-medium text-slate-800 dark:text-slate-200 select-all">${file.name}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden sm:table-cell">
+                    <div class="flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i> ${file.folder}</div>
+                </td>
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden md:table-cell">${file.date}</td>
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs font-mono">${file.size}</td>
+                <td class="px-4 py-3 text-right">
+                    <button onclick="event.stopPropagation(); alert('Options complémentaires de fichier: #' + ${file.id})" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 dark:hover:text-white transition cursor-pointer">
+                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function getVisualIcon(type) {
+        return getFileIconMarkup(type);
+    }
+
+    // Gestion de l'activation/désactivation stylisée des boutons de la barre d'outils
+    function updateToolbarState() {
+        const count = driveState.selectedFiles.length;
+
+        configureToolbarButton('drive-btn-download', count > 0, 'download', 'Télécharger', 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5');
+        configureToolbarButton('drive-btn-copy', count > 0, 'copy', 'Copier', 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5');
+        configureToolbarButton('drive-btn-rename', count === 1, 'edit-2', 'Renommer', 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5');
+        configureToolbarButton('drive-btn-print', count > 0, 'printer', 'Imprimer', 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5');
+        configureToolbarButton('drive-btn-delete', count > 0, 'trash-2', 'Supprimer', 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10');
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function configureToolbarButton(btnId, enabled, icon, label, activeClasses) {
+        const btn = document.getElementById(btnId);
+        if(!btn) return;
+
+        btn.disabled = !enabled;
+        btn.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> ${label}`;
+        
+        if(enabled) {
+            btn.className = `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer ${activeClasses}`;
+        } else {
+            btn.className = `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-slate-400 cursor-not-allowed opacity-40 dark:text-slate-600`;
+        }
+    }
+
+    // =========================================================================
+    // OPERATIONAL MUTATIONS & ACTIONS HANDLERS
+    // =========================================================================
+    function selectFolderGate(folderName) {
+        driveState.selectedFolder = folderName;
+        driveState.selectedFiles = []; // Clear selections on folder swap
+        renderDriveView();
+    }
+
+    function toggleFileSelectGate(event, fileId) {
+        // Ignorer le clic sur l'icône de menu contextuel d'action
+        if(event.target.closest('button')) return;
+
+        const index = driveState.selectedFiles.indexOf(fileId);
+        if (index > -1) {
+            driveState.selectedFiles.splice(index, 1);
+        } else {
+            driveState.selectedFiles.push(fileId);
+        }
+        renderFilesTable();
+        updateToolbarState();
+    }
+
+    function handleSelectAllToggle() {
+        const currentFiles = getFilteredFiles();
+        if (driveState.selectedFiles.length === currentFiles.length) {
+            driveState.selectedFiles = [];
+        } else {
+            driveState.selectedFiles = currentFiles.map(f => f.id);
+        }
+        renderFilesTable();
+        updateToolbarState();
+    }
+
+    function handleDriveSearch(query) {
+        driveState.searchQuery = query;
+        renderFilesTable();
+    }
+
+    function handleCreateFolder() {
+        const name = prompt('Nom du nouveau dossier :');
+        if (name && name.trim() !== '') {
+            const cleanName = name.trim();
+            if (!driveState.folders.includes(cleanName)) {
+                driveState.folders.push(cleanName);
+                driveState.selectedFolder = cleanName;
+                driveState.selectedFiles = [];
+                renderDriveView();
+                if(window.showAppToast) window.showAppToast(`Dossier "${cleanName}" créé.`);
+            }
+        }
+    }
+
+    function handleUploadFile() {
+        const name = prompt('Nom du fichier à téléverser :');
+        if (name && name.trim() !== '') {
+            const cleanName = name.trim();
+            let type = 'doc';
+            if (cleanName.endsWith('.pdf')) type = 'pdf';
+            else if (cleanName.endsWith('.xlsx')) type = 'sheet';
+            else if (cleanName.endsWith('.qgz') || cleanName.endsWith('.shp')) type = 'map';
+
+            const newFile = {
+                id: Date.now(),
+                name: cleanName,
+                type: type,
+                size: '1.0 MB',
+                date: new Date().toISOString().split('T')[0],
+                folder: driveState.selectedFolder || 'Direction CTC'
+            };
+
+            driveState.files.push(newFile);
+            renderFilesTable();
+            if(window.showAppToast) window.showAppToast(`Fichier téléversé avec succès.`);
+        }
+    }
+
+    function executeDownload() {
+        alert(`Téléchargement de ${driveState.selectedFiles.length} fichier(s) en cours...`);
+        driveState.selectedFiles = [];
+        renderDriveView();
+    }
+
+    function executeCopy() {
+        alert(`${driveState.selectedFiles.length} fichier(s) copié(s) dans le presse-papiers.`);
+    }
+
+    function executePrint() {
+        const printedNames = driveState.files
+            .filter(f => driveState.selectedFiles.includes(f.id))
+            .map(f => f.name).join(', ');
+        alert(`Préparation de l'impression pour : ${printedNames}`);
+    }
+
+    function executeDelete() {
+        if (confirm(`Voulez-vous vraiment supprimer ${driveState.selectedFiles.length} fichier(s) ?`)) {
+            driveState.files = driveState.files.filter(f => !driveState.selectedFiles.includes(f.id));
+            driveState.selectedFiles = [];
+            renderDriveView();
+            if(window.showAppToast) window.showAppToast("Éléments supprimés.", "error");
+        }
+    }
+
+    function executeRename() {
+        if(driveState.selectedFiles.length !== 1) return;
+        const file = driveState.files.find(f => f.id === driveState.selectedFiles[0]);
+        if(!file) return;
+
+        const newName = prompt('Nouveau nom du fichier :', file.name);
+        if (newName && newName.trim() !== '') {
+            file.name = newName.trim();
+            driveState.selectedFiles = [];
+            renderDriveView();
+            if(window.showAppToast) window.showAppToast("Fichier renommé.");
+        }
+    }
+
+    // Auto-initialisation au montage
+    setTimeout(renderDriveView, 50);
+</script>

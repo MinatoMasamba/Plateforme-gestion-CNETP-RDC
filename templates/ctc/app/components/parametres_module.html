@@ -1,0 +1,234 @@
+<div class="p-6 max-w-4xl mx-auto relative text-slate-800 dark:text-slate-300 transition-colors duration-200">
+    
+    <div 
+        id="settings-toast" 
+        class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 font-bold text-sm transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none z-50 dark:bg-white dark:text-slate-900"
+    >
+        <div class="bg-emerald-500 rounded-full p-1 text-white dark:text-white">
+            <i data-lucide="save" class="w-3 h-3"></i>
+        </div>
+        <span>Préférences mises à jour</span>
+    </div>
+
+    <div class="mb-6 flex items-center gap-3 animate-slideIn">
+        <i data-lucide="settings" class="w-8 h-8 text-slate-400 dark:text-slate-500"></i>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Préférences Système</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+                Configuration de l'espace de travail pour le profil : <span id="settings-profile-title" class="font-bold text-slate-700 dark:text-slate-200">...</span>
+            </p>
+        </div>
+    </div>
+
+    <div id="settings-sections-container" class="grid grid-cols-1 gap-6">
+        </div>
+</div>
+
+<script>
+    // =========================================================================
+    // ÉTAT GLOBAL LOCAL DU MODULE DE CONFIGURATION
+    // =========================================================================
+    const settingsState = {
+        currentUser: {
+            id: "ctc-1",
+            title: "Directeur Général",
+            pole: "operations", // Options: operations, analyse, logistique, technique
+            role: "ADMIN"
+        },
+        // Stockage des préférences par utilisateur (Équivalent au state React)
+        preferences: {}
+    };
+
+    // =========================================================================
+    // COMPOSANTS DE RENDU TEMPLATE (BLOCS CONFIGURATION)
+    // =========================================================================
+    
+    function createSettingSectionMarkup(title, iconName, optionsHtml) {
+        return `
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm relative overflow-hidden dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
+            <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center gap-3 rounded-t-xl dark:bg-black/40 dark:border-white/10">
+                <div class="p-2 bg-white rounded-lg shadow-sm border border-slate-200 dark:bg-white/5 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                    <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 dark:text-slate-200">${title}</h3>
+            </div>
+            <div class="p-6 space-y-0.5">
+                ${optionsHtml}
+            </div>
+        </div>`;
+    }
+
+    function createToggleOptionMarkup(prefKey, label, description, defaultChecked = false) {
+        const userId = settingsState.currentUser.id;
+        
+        // Résolution de l'état actuel de la checkbox (State de secours si non défini)
+        if (settingsState.preferences[userId] === undefined) {
+            settingsState.preferences[userId] = {};
+        }
+        if (settingsState.preferences[userId][prefKey] === undefined) {
+            settingsState.preferences[userId][prefKey] = defaultChecked;
+        }
+        
+        const isChecked = settingsState.preferences[userId][prefKey];
+
+        return `
+        <div class="flex items-start justify-between py-3 border-b border-slate-100 last:border-0 last:pb-0 dark:border-white/5">
+            <div class="pr-4">
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-200">${label}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${description}</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-1 select-none">
+                <input 
+                    type="checkbox" 
+                    class="sr-only peer" 
+                    ${isChecked ? 'checked' : ''} 
+                    onchange="handlePrefChangeGate('${prefKey}', this.checked)"
+                />
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:bg-white/10 dark:after:border-slate-600"></div>
+            </label>
+        </div>`;
+    }
+
+    // =========================================================================
+    // ALGORITHME DE CORRÉLATION ET DISPATCHING DU RENDU
+    // =========================================================================
+    function renderSettingsView() {
+        // Synchronisation du profil avec le Layout Master global (si existant)
+        if (typeof window.state !== 'undefined' && window.state.currentUser) {
+            settingsState.currentUser.id = window.state.currentUser.id;
+            settingsState.currentUser.title = window.state.currentUser.role; // Titre du poste
+            settingsState.currentUser.role = window.state.currentUser.id === 'ctc-1' ? 'ADMIN' : 'MEMBER';
+            
+            // Résolution automatique du pôle d'ingénierie selon la maquette d'architecture
+            if (window.state.currentUser.id === 'ctc-1') settingsState.currentUser.pole = 'operations';
+            else if (window.state.currentUser.id === 'ctc-2') settingsState.currentUser.pole = 'analyse';
+            else if (window.state.currentUser.id === 'ctc-3') settingsState.currentUser.pole = 'logistique';
+            else settingsState.currentUser.pole = 'technique';
+        }
+
+        document.getElementById('settings-profile-title').textContent = settingsState.currentUser.title;
+        const container = document.getElementById('settings-sections-container');
+        const p = settingsState.currentUser.pole;
+
+        // 1. BLOC COMMUN : Préférences Générales
+        let generalOptionsHtml = `
+            ${createToggleOptionMarkup("notifications", "Notifications de Pôle", "Recevoir une alerte mail pour toute nouvelle activité dans votre pôle.", true)}
+            ${createToggleOptionMarkup("drive_sync", "Synchronisation Drive", "Lier automatiquement vos documents validés à l'espace Google Drive de la CNETP.", true)}
+            ${createToggleOptionMarkup("dark_mode", "Mode Sombre (Dark Mode)", "Activer l'interface en thème sombre.", true)}
+        `;
+        let fullHtml = createSettingSectionMarkup("Préférences Générales", "settings", generalOptionsHtml);
+
+        // 2. DISPATCHING DES BLOCS SPÉCIFIQUES AUX PÔLES EXCLUSIFS
+        if (p === 'operations') {
+            let opsHtml = `
+                ${createToggleOptionMarkup("delegation", "Délégation de signature temporaire", "Permet à l'Assistant Exécutif de valider les documents non-stratégiques.", false)}
+                ${createToggleOptionMarkup("alertes_strictes", "Alertes Chronogramme Strict", "Forcer les rappels 48h avant l'expiration du délai d'une Sous-Commission (CTM).", true)}
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Clé d'homologation (Comité de Pilotage)</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Renouvellement du token de signature sécurisée.</p>
+                    </div>
+                    <button onclick="triggerTokenRegeneration()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20 transition-colors cursor-pointer">Regénérer</button>
+                </div>
+            `;
+            fullHtml += createSettingSectionMarkup("Administration des Opérations", "shield", opsHtml);
+        } 
+        
+        else if (p === 'analyse') {
+            let analyseHtml = `
+                ${createToggleOptionMarkup("sync_iso", "Synchronisation ISO automatique", "Mettre à jour la base des référentiels internationaux chaque nuit.", true)}
+                ${createToggleOptionMarkup("correcteur_structure", "Correcteur de structure", "Vérification de la mise en forme légistique avant validation.", true)}
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <label class="text-sm font-bold text-slate-800 dark:text-slate-200 block mb-2">Modèle de rapport de non-conformité par défaut</label>
+                    <select class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-hidden bg-white text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 cursor-pointer">
+                        <option class="dark:bg-slate-900">Format Juridique National (SG-ITP)</option>
+                        <option class="dark:bg-slate-900">Format Scientifique Universitaire</option>
+                        <option class="dark:bg-slate-900">Format Analyse d'impacts environnementaux</option>
+                    </select>
+                </div>
+            `;
+            fullHtml += createSettingSectionMarkup("Outils d'Analyse Documentaire", "globe", analyseHtml);
+        } 
+        
+        else if (p === 'logistique') {
+            let logHtml = `
+                ${createToggleOptionMarkup("filtre_spam", "Filtre anti-spam Enquêtes Publiques", "Rejeter automatiquement les avis ne contenant pas d'information de contact valide.", true)}
+                ${createToggleOptionMarkup("visibilite_budget", "Visibilité Budgétaire", "Afficher le solde du trimestre courant en haut du tableau de bord.", settingsState.currentUser.id === 'gaf_sg_itp')}
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <label class="text-sm font-bold text-slate-800 dark:text-slate-200 block mb-2">Canal de communication externe</label>
+                    <select class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-hidden bg-white text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 cursor-pointer">
+                        <option class="dark:bg-slate-900">Portail public (CNETP.cd)</option>
+                        <option class="dark:bg-slate-900">Canaux syndicaux / industriels (FEC)</option>
+                    </select>
+                </div>
+            `;
+            fullHtml += createSettingSectionMarkup("Logistique & Relations Publiques", "briefcase", logHtml);
+        } 
+        
+        else if (p === 'technique') {
+            let techHtml = `
+                ${createToggleOptionMarkup("mode_debug", "Mode Debug Actif", "Afficher les logs système dans l'interface et enregistrer les erreurs réseau.", true)}
+                ${createToggleOptionMarkup("rendu_3d", "Rendu Cartographique 3D", "Activer l'interface matérielle pour l'affichage de couches SIG haute résolution.", true)}
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg flex items-center justify-between dark:bg-black/50 dark:border-white/5">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="database" class="w-5 h-5 text-emerald-400"></i>
+                            <div>
+                                <p class="text-white text-sm font-bold">Sauvegarde Globale</p>
+                                <p class="text-slate-400 text-xs mt-0.5">Dernier backup : Il y a 3 heures</p>
+                            </div>
+                        </div>
+                        <button onclick="executeDatabaseBackup()" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold rounded text-xs hover:bg-emerald-500/30 transition-colors cursor-pointer">Lancer Backup</button>
+                    </div>
+                </div>
+            `;
+            fullHtml += createSettingSectionMarkup("Serveur & Infrastructures (IT/SIG)", "server", techHtml);
+        }
+
+        container.innerHTML = fullHtml;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // =========================================================================
+    // HANDLERS D'INTERACTION ET MUTATIONS DE L'ÉTAT
+    // =========================================================================
+    
+    function handlePrefChangeGate(prefKey, isChecked) {
+        const userId = settingsState.currentUser.id;
+        settingsState.preferences[userId][prefKey] = isChecked;
+        
+        // Déclenchement de l'action synchrone du Thème si la clé est dark_mode
+        if (prefKey === "dark_mode" && typeof window.toggleTheme === 'function') {
+            window.toggleTheme();
+        }
+
+        flashToastFeedback();
+    }
+
+    function flashToastFeedback() {
+        const toast = document.getElementById('settings-toast');
+        if (!toast) return;
+
+        // Équivalent exact du cycle d'affichage React
+        toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        }, 2000);
+    }
+
+    function triggerTokenRegeneration() {
+        alert("Génération d'une nouvelle clé d'homologation d'autorité. Le jeton d'infrastructure AES-256 a été mis à jour.");
+        flashToastFeedback();
+    }
+
+    function executeDatabaseBackup() {
+        alert("Initialisation de la sauvegarde à chaud de la base de données PostgreSQL CNETP... Miroir de redondance stocké sur le serveur principal.");
+        flashToastFeedback();
+    }
+
+    // Auto-initialisation au montage
+    setTimeout(renderSettingsView, 50);
+</script>

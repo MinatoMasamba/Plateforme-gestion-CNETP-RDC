@@ -15,7 +15,7 @@
                 bg-white dark:bg-slate-900 shadow-2xl shadow-black/40 overflow-hidden">
 
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/8">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/[8%]">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-teal-400/10 flex items-center justify-center">
                     <i data-lucide="key" class="w-4.5 h-4.5 text-teal-400"></i>
@@ -32,7 +32,7 @@
             <button onclick="closeCTCPermissionModal()"
                     class="w-8 h-8 rounded-xl flex items-center justify-center
                            text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
-                           hover:bg-slate-100 dark:hover:bg-white/8 transition-colors">
+                           hover:bg-slate-100 dark:hover:bg-white/[8%] transition-colors">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
         </div>
@@ -140,14 +140,15 @@ document.getElementById('ctcPermissionForm').addEventListener('submit', async fu
     try {
         const resp = await fetch('/ctc/demande-operationnelle/', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-            body: JSON.stringify(payload),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken},
+            body: new URLSearchParams(payload),
         });
         const data = await resp.json();
-        if (resp.ok && data.success) {
+        if (resp.ok && data.ok) {
             statusEl.className = 'rounded-xl p-3 text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20';
-            statusEl.textContent = 'Demande soumise. L\'Assistant Exécutif en a été notifié.';
+            statusEl.textContent = data.message || 'Demande soumise. L\'Assistant Exécutif en a été notifié.';
             statusEl.classList.remove('hidden');
+            if (typeof window.showAppToast === 'function') window.showAppToast(statusEl.textContent, 'success');
             setTimeout(closeCTCPermissionModal, 2200);
         } else {
             throw new Error(data.error || 'Erreur serveur');

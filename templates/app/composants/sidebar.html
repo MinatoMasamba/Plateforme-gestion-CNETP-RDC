@@ -142,18 +142,18 @@
         return match ? match[1] : null;
     };
 
-    const getParallelNormsForWg = (wgCode) => {
-        switch (wgCode) {
-            case "WG 8.1": return ["Pr-RDC 801 (BTC)", "Pr-RDC 802 (Eco-Briques)", "Pr-RDC 803 (Recyclage)"];
-            case "WG 8.2": return ["Pr-RDC 812 (Ultrasons)", "Pr-RDC 813 (Mécanique)"];
-            case "WG 8.3": return ["Pr-RDC 821 (Label Vert)"];
-            case "WG 1.1": return ["Pr-RDC 101 (Argiles)", "Pr-RDC 102 (CBR Route)"];
-            case "WG 1.2": return ["Pr-RDC 112 (Anti-Érosion)"];
-            case "WG 2.3": return ["Pr-RDC 231 (Sismique)"];
-            case "WG 5.1": return ["Pr-RDC 501 (Enrobés Latérite)"];
-            case "WG 6.2": return ["Pr-RDC 611 (Assainissement)"];
-            default: return [];
-        }
+    const NORM_TYPE_LABELS = {
+        NCD: "Norme Nationale",
+        CA: "Code Applicatif",
+        DIR: "Directive",
+        REC: "Recommandation",
+    };
+
+    const getParallelNormsForWg = (wgId) => {
+        if (!wgId) return [];
+        return (sidebarState.documents || [])
+            .filter(doc => doc.wg != null && String(doc.wg) === String(wgId))
+            .map(doc => `${doc.code} (${doc.title})`);
     };
 
     // --- FONCTION PRINCIPALE DE RENDU ---
@@ -185,16 +185,20 @@
                         const isSelected = doc.id === sidebarState.selectedDocId;
                         const bgClass = isSelected ? (isDark ? 'bg-blue-600/15 border-blue-500/30 text-blue-300 shadow-xs font-bold' : 'bg-blue-50 border-blue-200 text-blue-800 shadow-xs font-bold') : (isDark ? 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/5 text-slate-400 hover:text-white' : 'bg-transparent border-transparent hover:bg-slate-100 hover:border-slate-100 text-slate-600 hover:text-slate-900');
                         const catColor = doc.category === 'Qualité' ? (isDark ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-slate-300 border-white/10') : (isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-white/5 text-slate-300 border-white/10');
-                        
+                        const isMyWgDoc = doc.wg != null && sidebarState.currentWgId != null && String(doc.wg) === String(sidebarState.currentWgId);
+
                         return `
                         <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
                             <div class="flex items-start justify-between gap-2 w-full">
                                 <span class="font-semibold text-xs truncate max-w-[150px] ${isSelected ? (isDark ? 'text-white' : 'text-blue-950') : (isDark ? 'text-slate-300' : 'text-slate-700')}">${doc.title}</span>
-                                <span class="text-[9.5px] px-1.5 py-0.5 rounded-full font-bold border shrink-0 ${catColor}">${doc.category}</span>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    ${isMyWgDoc ? `<span class="text-[8.5px] px-1 rounded font-extrabold uppercase border ${isDark ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-blue-100 text-blue-700 border-blue-200'}">Mon WG</span>` : ''}
+                                    <span class="text-[9.5px] px-1.5 py-0.5 rounded-full font-bold border ${catColor}">${doc.category}</span>
+                                </div>
                             </div>
                             <div class="flex items-center justify-between text-[10px] text-slate-500">
                                 <span class="font-mono ${isDark ? 'bg-white/5 border-white/5 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-600'} border px-1.5 rounded font-semibold">${doc.code}</span>
-                                <span class="truncate max-w-[100px]">Par ${doc.updatedBy}</span>
+                                <span class="truncate max-w-[100px]">${doc.updatedBy}</span>
                             </div>
                         </button>`;
                     }).join('')}
@@ -235,7 +239,7 @@
                         const wgCmtNum = getWgCmtNumber(wg.code);
                         const isSameCmt = currentExpertCmtNum && wgCmtNum ? currentExpertCmtNum === wgCmtNum : false;
                         const isMyWg = currentExpert?.wg && wg.code ? currentExpert.wg.toLowerCase().includes(wg.code.toLowerCase()) : false;
-                        const parallelNorms = getParallelNormsForWg(wg.code);
+                        const parallelNorms = getParallelNormsForWg(wg.id);
 
                         const bgClass = isSelected 
                             ? (isDark ? "bg-blue-500/10 border-blue-500/35 text-blue-400 shadow-[0_4px_12px_rgba(16,185,129,0.05)]" : "bg-blue-50 border-blue-300 text-blue-800 shadow-sm") 
@@ -430,11 +434,12 @@
     async function hydrateSidebarFromApi() {
         try {
             const headers = { 'X-Requested-With': 'XMLHttpRequest' };
-            const [wgsResponse, expertsResponse, ctmsResponse, profileResponse] = await Promise.all([
-                fetch('/api/v1/wg/', { headers }),
+            const [wgsResponse, expertsResponse, ctmsResponse, profileResponse, normsResponse] = await Promise.all([
+                fetch('/api/v1/wg/?page_size=100', { headers }),
                 fetch('/api/v1/experts/', { headers }),
                 fetch('/api/v1/ctm/', { headers }),
                 fetch('/api/v1/experts/me/', { headers }),
+                fetch('/api/v1/norms/?page_size=100', { headers }),
             ]);
 
             if (profileResponse.ok) {
@@ -442,6 +447,7 @@
                 const primaryAff = profile.affectations?.find(aff => aff.is_primary_ctm || aff.is_primary_wg) || profile.affectations?.[0] || null;
                 sidebarState.currentCtmId = primaryAff?.ctm || null;
                 sidebarState.currentCtmName = primaryAff?.ctm_name || "";
+                sidebarState.currentWgId = primaryAff?.wg || null;
             }
 
             if (ctmsResponse.ok) {
@@ -494,6 +500,25 @@
                 sidebarState.collaborators = sidebarState.experts;
                 if (!sidebarState.selectedExpertId && sidebarState.experts.length) {
                     sidebarState.selectedExpertId = sidebarState.experts[0].id;
+                }
+            }
+
+            if (normsResponse.ok) {
+                const data = await normsResponse.json();
+                const mappedDocs = (data.results || data).map(norm => ({
+                    id: norm.id,
+                    code: norm.reference_number,
+                    title: norm.title,
+                    category: NORM_TYPE_LABELS[norm.norm_type] || 'Norme',
+                    updatedBy: norm.wg_name || norm.ctm_name || '',
+                    ctm: norm.ctm,
+                    wg: norm.wg,
+                }));
+                sidebarState.documents = sidebarState.currentCtmId
+                    ? mappedDocs.filter(doc => String(doc.ctm) === String(sidebarState.currentCtmId))
+                    : mappedDocs;
+                if (!sidebarState.documents.find(doc => doc.id === sidebarState.selectedDocId)) {
+                    sidebarState.selectedDocId = sidebarState.documents[0]?.id ?? null;
                 }
             }
 

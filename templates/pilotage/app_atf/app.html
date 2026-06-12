@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrateurs Techniques et Financiers — Espace Administratif | CNETP</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn .25s ease-out forwards; }
+
+        .module-card { transition: transform .2s, box-shadow .2s; }
+        .module-card:hover { transform: translateY(-2px); }
+
+        .sidebar-nav-btn { transition: all .15s ease; }
+        .sidebar-nav-active {
+            background: linear-gradient(135deg, rgba(16,185,129,.16), rgba(16,185,129,.04)) !important;
+            color: #34d399 !important;
+            font-weight: 800;
+            border-color: rgba(16,185,129,.3) !important;
+        }
+
+        .view-container.hidden { display: none; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+
+    {% include "pilotage/app_atf/components/topbar_module.html" %}
+
+    <div class="flex flex-1 overflow-hidden relative w-full">
+
+        {% include "pilotage/app_atf/components/sidebar_module.html" %}
+
+        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            <div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
+
+                <div id="view-post-18" class="view-container hidden">
+                    {% include "pilotage/app_atf/components/composant_post_18.html" %}
+                </div>
+                <div id="view-post-19" class="view-container hidden">
+                    {% include "pilotage/app_atf/components/composant_post_19.html" %}
+                </div>
+                <div id="view-post-20" class="view-container hidden">
+                    {% include "pilotage/app_atf/components/composant_post_20.html" %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ── Thème clair / sombre ───────────────────────────────────────────────
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        // ── Sidebar mobile ───────────────────────────────────────────────────
+        window.setATFSidebarOpen = function(open) {
+            const aside = document.getElementById('atf-sidebar');
+            const overlay = document.getElementById('atf-sidebar-overlay');
+            if (open) {
+                aside.classList.remove('hidden');
+                aside.classList.add('flex');
+                overlay.classList.remove('hidden');
+            } else {
+                aside.classList.add('hidden');
+                aside.classList.remove('flex');
+                overlay.classList.add('hidden');
+            }
+        };
+
+        function toggleATFSidebar() {
+            const aside = document.getElementById('atf-sidebar');
+            window.setATFSidebarOpen(aside.classList.contains('hidden'));
+        }
+
+        // ── Navigation entre postes ─────────────────────────────────────────────
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+                btn.classList.toggle('sidebar-nav-active', btn.dataset.view === viewId);
+            });
+
+            if (window.innerWidth < 1024) {
+                window.setATFSidebarOpen(false);
+            }
+            lucide.createIcons();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.switchView('post-{{ default_post_n|default:18 }}');
+        });
+    </script>
+</body>
+</html>

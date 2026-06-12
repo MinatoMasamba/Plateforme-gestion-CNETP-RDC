@@ -1,0 +1,225 @@
+<aside
+    id="main-sidebar-aside"
+    class="bg-slate-900 text-slate-300 w-64 h-full flex flex-col shrink-0 overflow-hidden border-r border-white/5"
+>
+    <div class="p-5 border-b border-white/10 bg-slate-950/30 shrink-0">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 select-none">Votre Pôle Opérationnel</div>
+        <div id="sidebar-user-pole-text" class="text-sm font-black text-white uppercase tracking-wide truncate">{{ pole_label }}</div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-none">
+        
+        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-2 select-none">Principal</div>
+        <div id="sidebar-nav-principal" class="space-y-1">
+            </div>
+        
+        <div id="sidebar-pole-conditional-section" class="space-y-1">
+            </div>
+
+        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">Outils Collaboratifs</div>
+        <div class="space-y-1">
+            <button 
+                onclick="triggerDirectoryActionGate()" 
+                class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group"
+            >
+                <i data-lucide="mail" class="w-4 h-4 text-blue-400 group-hover:scale-105 transition-transform"></i>
+                <span>Annuaire & Mail Interne</span>
+            </button>
+            
+            <button 
+                onclick="setSidebarViewGate('reunions')" 
+                id="sidebar-btn-reunions"
+                class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group"
+            >
+                <i data-lucide="video" class="w-4 h-4 text-green-400 group-hover:scale-105 transition-transform"></i>
+                <span>Planifier une Réunion</span>
+            </button>
+            
+            <button 
+                onclick="setSidebarViewGate('drive')" 
+                id="sidebar-btn-drive"
+                class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group"
+            >
+                <i data-lucide="hard-drive" class="w-4 h-4 text-amber-400 group-hover:scale-105 transition-transform"></i>
+                <span>Espace Drive</span>
+            </button>
+        </div>
+
+        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">Système</div>
+        <div id="sidebar-nav-systeme" class="space-y-1">
+            </div>
+
+    </nav>
+</aside>
+
+<script>
+    // =========================================================================
+    // ÉTAT CENTRAL DE LA SIDEBAR (MOCK & COUPLAGE)
+    // =========================================================================
+    const sidebarState = {
+        isOpen: false,
+        currentView: "dashboard",
+        currentUser: {
+            // Options: operations, analyse, logistique, technique, null (membre sans pôle conditionnel)
+            pole: "{{ sidebar_pole|escapejs }}" || null
+        }
+    };
+
+    // Configuration des données des boutons pour éviter la répétition de code
+    const PRINCIPAL_ITEMS = [
+        { view: 'dashboard', label: 'Tableau de bord', icon: 'layout-dashboard' },
+        { view: 'dossiers', label: 'Dossiers Normatifs', icon: 'folders' },
+        { view: 'assignations', label: 'Mes Assignations', icon: 'file-check' }
+    ];
+
+    const SYSTEM_ITEMS = [
+        { view: 'archives', label: 'Archives', icon: 'history' },
+        { view: 'parametres', label: 'Paramètres', icon: 'settings' }
+    ];
+
+    // =========================================================================
+    // ENGINE DE RENDU ET CALCULS DES CLASSES CSS TRANSITIONS
+    // =========================================================================
+    
+    function renderSidebarContent() {
+        // 1. Rendu de la section principale
+        renderBtnGroup(document.getElementById('sidebar-nav-principal'), PRINCIPAL_ITEMS);
+
+        // 2. Rendu de la section système
+        renderBtnGroup(document.getElementById('sidebar-nav-systeme'), SYSTEM_ITEMS);
+
+        // 3. Rendu de la section conditionnelle liée au pôle exclusif
+        renderConditionalPoleSection();
+
+        // 4. Ajustement des classes actives pour les boutons d'outils collaboratifs hors structure itérative
+        updateStaticCollaborativeButtons();
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function renderBtnGroup(container, itemsList) {
+        if(!container) return;
+
+        container.innerHTML = itemsList.map(item => {
+            const isActive = sidebarState.currentView === item.view;
+            const btnClasses = isActive 
+                ? 'text-white bg-blue-600 shadow-sm border border-blue-500 font-bold' 
+                : 'hover:text-white hover:bg-white/5 text-slate-400 dark:text-slate-400';
+
+            return `
+            <button 
+                onclick="setSidebarViewGate('${item.view}')"
+                id="sidebar-btn-${item.view}"
+                class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group"
+            >
+                <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0 transition-transform ${!isActive ? 'group-hover:scale-105' : ''}"></i>
+                <span class="truncate">${item.label}</span>
+            </button>`;
+        }).join('');
+        
+        // Appliquer rétroactivement les classes d'activation
+        itemsList.forEach(item => {
+            const el = document.getElementById(`sidebar-btn-${item.view}`);
+            if(el) {
+                if(sidebarState.currentView === item.view) {
+                    el.classList.add('text-white', 'bg-blue-600', 'shadow-sm', 'border', 'border-blue-500', 'font-bold');
+                } else {
+                    el.classList.add('hover:text-white', 'hover:bg-white/5');
+                }
+            }
+        });
+    }
+
+    function renderConditionalPoleSection() {
+        const container = document.getElementById('sidebar-pole-conditional-section');
+        if(!container) return;
+
+        const p = sidebarState.currentUser.pole;
+        let html = "";
+
+        if (p === 'operations') {
+            html = `
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">Direction</div>
+            ${createSingleNavButtonMarkup('homologations', 'Homologations', 'shield-check')}`;
+        } else if (p === 'analyse') {
+            html = `
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">Expertise</div>
+            ${createSingleNavButtonMarkup('outils', "Outils d'Évaluation", 'pen-tool')}`;
+        } else if (p === 'logistique') {
+            html = `
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">Relations</div>
+            ${createSingleNavButtonMarkup('enquetes', 'Enquêtes & Public', 'radio', 'text-blue-400')}`;
+        } else if (p === 'technique') {
+            html = `
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 mt-6 select-none">IT & Data</div>
+            ${createSingleNavButtonMarkup('serveurs', 'Serveurs & SIG', 'database', 'text-emerald-400')}`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    function createSingleNavButtonMarkup(view, label, icon, colorClass = '') {
+        const isActive = sidebarState.currentView === view;
+        const activeClasses = isActive 
+            ? 'text-white bg-blue-600 shadow-sm border border-blue-500 font-bold' 
+            : 'hover:text-white hover:bg-white/5';
+        
+        const iconColorClass = !isActive && colorClass ? colorClass : '';
+
+        return `
+        <button 
+            onclick="setSidebarViewGate('${view}')"
+            id="sidebar-btn-${view}"
+            class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group ${activeClasses}"
+        >
+            <i data-lucide="${icon}" class="w-4 h-4 shrink-0 ${iconColorClass} transition-transform ${!isActive ? 'group-hover:scale-105' : ''}"></i>
+            <span class="truncate">${label}</span>
+        </button>`;
+    }
+
+    function updateStaticCollaborativeButtons() {
+        const reunionsBtn = document.getElementById('sidebar-btn-reunions');
+        const driveBtn = document.getElementById('sidebar-btn-drive');
+
+        if(reunionsBtn) {
+            if(sidebarState.currentView === 'reunions') reunionsBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 shadow-sm border border-blue-500 font-bold cursor-pointer";
+            else reunionsBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer";
+        }
+        if(driveBtn) {
+            if(sidebarState.currentView === 'drive') driveBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 shadow-sm border border-blue-500 font-bold cursor-pointer";
+            else driveBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer";
+        }
+    }
+
+    // =========================================================================
+    // LOGIQUE DE COMMUTATION ET ÉVÉNEMENTS (MÉTHODES DU COMMUTATEUR)
+    // =========================================================================
+    
+    function setSidebarViewGate(viewId) {
+        sidebarState.currentView = viewId;
+        
+        // Si le workspace global de routage de ctc_workspace.html existe, on synchronise la vue
+        if(typeof window.switchView === 'function') {
+            window.switchView(viewId);
+        } else {
+            renderSidebarContent();
+        }
+    }
+
+    function triggerDirectoryActionGate() {
+        if(typeof window.openDirectoryModal === 'function') {
+            window.openDirectoryModal();
+        } else {
+            alert("Appel de l'action d'ouverture de l'annuaire de l'équipe.");
+        }
+    }
+
+    // Hook d'actualisation exposé au Layout Master pour reconstruire les menus lors d'un swap de session
+    window.updateSidebarForTab = function(activeViewId) {
+        sidebarState.currentView = activeViewId;
+        renderSidebarContent();
+    };
+
+    // Auto-initialisation au montage ajax
+    setTimeout(renderSidebarContent, 50);
+</script>

@@ -5,7 +5,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
     <!-- Saisie matrice -->
-    <div class="rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/2 p-5">
+    <div class="rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/[2%] p-5">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 mb-4 flex items-center gap-2">
             <i data-lucide="table" class="w-3.5 h-3.5"></i>
             Saisie — Indicateurs
@@ -69,7 +69,7 @@
                     {% with sauvegarde_items="ok" %}
                 {% for label in sauvegarde_labels %}
                 <div class="flex items-center justify-between p-2.5 rounded-lg border
-                            border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                            border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">{{ label }}</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1
                                    border-slate-200 dark:border-white/10 bg-transparent
@@ -81,31 +81,31 @@
                 {% endfor %}
                 {% endwith %}
                 {% if not sauvegarde_labels %}
-                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">Déplacement involontaire de populations</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1 border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
                         <option>Non applicable</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Critique</option>
                     </select>
                 </div>
-                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">Perte de moyens de subsistance</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1 border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
                         <option>Non applicable</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Critique</option>
                     </select>
                 </div>
-                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">Impact sur patrimoine culturel</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1 border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
                         <option>Non applicable</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Critique</option>
                     </select>
                 </div>
-                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">Risques environnementaux (sols/eaux)</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1 border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
                         <option>Non applicable</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Critique</option>
                     </select>
                 </div>
-                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/2">
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%]">
                     <span class="text-xs text-slate-600 dark:text-slate-400">Zones sensibles traversées</span>
                     <select class="text-[10px] rounded-lg border px-2 py-1 border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-400 focus:outline-none">
                         <option>Non applicable</option><option>Faible</option><option>Modéré</option><option>Élevé</option><option>Critique</option>
@@ -148,7 +148,7 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 dark:border-white/8 p-4 bg-white/50 dark:bg-white/2">
+        <div class="rounded-xl border border-slate-200 dark:border-white/[8%] p-4 bg-white/50 dark:bg-white/[2%]">
             <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2">Restrictions</h4>
             <ul class="space-y-1.5 text-[10.5px] text-slate-500">
                 <li class="flex gap-2 items-center">

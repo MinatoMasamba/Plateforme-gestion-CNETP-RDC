@@ -20,7 +20,7 @@
         <!-- Items simulés — à connecter à un modèle Document -->
         {% for label, ref, status in legi_drafts|default:""|make_list %}{% empty %}
         <div class="space-y-2">
-            {% for item in legi_placeholder_items|default:legi_default_items %}
+            {% for item in legi_placeholder_items|default:"" %}
             {% empty %}
             <!-- Placeholder si aucun draft en DB -->
             <div class="p-3 rounded-xl border border-dashed border-blue-400/20 bg-blue-400/3

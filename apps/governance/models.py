@@ -992,6 +992,19 @@ class NormeCadrage(BaseModel):
     def conformity_quitus_complete(self):
         return bool(self.onic_quitus_at and self.btp_quitus_at)
 
+    @property
+    def ctc_handoff_complete(self):
+        """
+        True si la CTC a terminé son traitement (Article 12 — toilettage,
+        enquête publique, certification — Étape 5/SIGNED_OUT) ET que le
+        Président ET le Rapporteur Général ont accusé réception du dossier
+        nettoyé (Section 5.4.3). Condition préalable à 'verify_pv'
+        (Phase 2.1) : le Secrétaire ne peut auditer un PV dont le dossier
+        n'est pas encore revenu de la CTC.
+        """
+        processus = getattr(self.norme, 'ctc_processus', None)
+        return bool(processus and processus.pilotage_reception_complete)
+
     def mark_pv_verified(self, expert, pv_reference=''):
         self.pv_verified_by = expert
         self.pv_verified_at = timezone.now()

@@ -1,0 +1,130 @@
+<div
+    id="directory-modal-overlay"
+    class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+    onclick="closeDirectoryModal()"
+>
+    <div
+        class="bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800"
+        onclick="event.stopPropagation()"
+    >
+
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Annuaire de la Cellule (CTC)</h2>
+                <p class="text-sm text-slate-500">Contactez directement les membres - Envoi via votre client mail natif.</p>
+            </div>
+            <button
+                onclick="closeDirectoryModal()"
+                class="p-2 text-slate-400 hover:text-slate-700 bg-white shadow-sm rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            >
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="p-4 border-b border-slate-100 flex gap-4 bg-white">
+            <input
+                type="text"
+                id="directory-search-input"
+                oninput="handleDirectoryFilterChange()"
+                placeholder="Rechercher un membre ou un poste..."
+                class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition-all"
+            />
+            <select
+                id="directory-pole-filter"
+                onchange="handleDirectoryFilterChange()"
+                class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+            >
+                <option value="all">Tous les Pôles</option>
+                <option value="operations">Opérations</option>
+                <option value="analyse">Analyse Documentaire</option>
+                <option value="logistique">Logistique & Relations</option>
+                <option value="technique">Appui Technique</option>
+            </select>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 bg-slate-50 scrollbar-none">
+            <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for m in ctc_directory %}
+                <div class="directory-card bg-white border text-left border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 group"
+                     data-name="{{ m.name|lower }}" data-title="{{ m.role_label|lower }}" data-pole="{{ m.pole }}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200 shrink-0 select-none">
+                                {{ m.name|slice:":2"|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate">
+                                    {{ m.name }}{% if m.is_me %} <span class="text-blue-500 font-medium text-xs ml-1">(Vous)</span>{% endif %}
+                                </h3>
+                                <p class="text-xs text-slate-500 font-medium truncate mt-0.5">
+                                    {{ m.role_label }}{% if m.structure %} · {{ m.structure }}{% endif %}
+                                </p>
+                                <span class="inline-block mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-600">
+                                    Pôle {{ m.pole|default:"—" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2">
+                        <a
+                            href="mailto:{{ m.email }}"
+                            class="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                        >
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                            <span>Envoyer un mail</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="directory-empty-state" class="hidden text-center py-12 text-slate-400 font-medium italic">
+                Aucun membre ne correspond à vos critères de recherche.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function handleDirectoryFilterChange() {
+        const search = document.getElementById('directory-search-input').value.trim().toLowerCase();
+        const pole = document.getElementById('directory-pole-filter').value;
+        let visibleCount = 0;
+
+        document.querySelectorAll('#directory-grid .directory-card').forEach(function(card) {
+            const matchesSearch = card.dataset.name.includes(search) || card.dataset.title.includes(search);
+            const matchesPole = pole === 'all' || card.dataset.pole === pole;
+            const visible = matchesSearch && matchesPole;
+            card.classList.toggle('hidden', !visible);
+            if (visible) visibleCount += 1;
+        });
+
+        document.getElementById('directory-empty-state').classList.toggle('hidden', visibleCount > 0);
+    }
+
+    window.openDirectoryModal = function() {
+        document.getElementById('directory-search-input').value = '';
+        document.getElementById('directory-pole-filter').value = 'all';
+        handleDirectoryFilterChange();
+
+        const modal = document.getElementById('directory-modal-overlay');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            safeCreateIcons();
+        }
+    };
+
+    window.closeDirectoryModal = function() {
+        const modal = document.getElementById('directory-modal-overlay');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeDirectoryModal();
+    });
+</script>

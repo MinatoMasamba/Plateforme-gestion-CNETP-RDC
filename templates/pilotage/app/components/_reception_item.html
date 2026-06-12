@@ -1,0 +1,49 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     ITEM DE RÉCEPTION CTC — Étape 5 (Section 5.4.3)
+     Président (Poste 1) & Rapporteur Général (Poste 5).
+
+     Contexte attendu : `proc` (CTCProcessus), `is_mine` (bool),
+     `poste_n` (int — pour des id DOM uniques), `peer_received` (datetime|None),
+     `peer_label` (str — "le Président" / "le Rapporteur Général").
+═══════════════════════════════════════════════════════════════════ -->
+<div id="reception-row-{{ proc.id }}-{{ poste_n }}"
+     class="rounded-2xl border border-emerald-400/20 bg-white/70 dark:bg-white/2 backdrop-blur-sm p-5 animate-fadeIn">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex items-start gap-3 flex-1 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                    {{ proc.norme.reference_number }} — {{ proc.norme.title|truncatechars:60 }}
+                </p>
+                <p class="text-[10px] text-slate-500 mt-0.5">
+                    Signé et transmis par {{ proc.signed_out_by.full_name|default:"le Coordonnateur Technique Principal" }}
+                    le {{ proc.signed_out_at|date:"d/m/Y à H:i" }}
+                </p>
+                {% if peer_received %}
+                <p class="text-[10px] text-emerald-400 mt-1.5 flex items-center gap-1">
+                    <i data-lucide="check" class="w-3 h-3"></i> Déjà réceptionné par {{ peer_label }}
+                </p>
+                {% endif %}
+                {% if not is_mine %}
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-1.5 flex items-center gap-1">
+                    <i data-lucide="lock" class="w-3 h-3"></i> Réservé au titulaire de ce poste
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if is_mine %}
+        <div class="shrink-0">
+            <button id="btn-receive-{{ proc.id }}-{{ poste_n }}"
+                    onclick="acknowledgeReception({{ proc.id }}, {{ poste_n }})"
+                    class="px-4 py-2 rounded-xl text-[10px] font-extrabold uppercase
+                           bg-emerald-500 hover:bg-emerald-400 text-white
+                           transition-colors flex items-center gap-1.5">
+                <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>

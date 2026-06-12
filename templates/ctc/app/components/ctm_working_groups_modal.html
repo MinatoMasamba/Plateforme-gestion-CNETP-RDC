@@ -1,0 +1,186 @@
+<div
+    id="ctm-wg-modal"
+    class="hidden fixed inset-0 z-[100] items-center justify-center p-4 transition-all duration-300 bg-slate-900/60 backdrop-blur-sm"
+    onclick="closeCtmWorkingGroupsModal()"
+>
+    <div
+        class="w-full max-w-3xl rounded-2xl border flex flex-col max-h-[90vh] overflow-hidden bg-[#ffffff] border-slate-200 text-slate-800 shadow-xl dark:bg-[#05050b] dark:border-white/10 dark:text-white"
+        onclick="event.stopPropagation()"
+    >
+        <div class="bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 p-1 flex justify-between items-center shrink-0">
+            <span class="text-[10px] uppercase font-bold text-white px-2 tracking-widest bg-black/40 rounded">
+                RDC - Cabinet Interministériel de Co-Gouvernance
+            </span>
+            <span class="text-[10px] text-white/90 font-medium font-mono mr-2">Secrétariat National CNETP</span>
+        </div>
+
+        {% for item in ctms_list %}
+        <div id="ctm-modal-body-{{ item.ctm.id }}" class="ctm-modal-body hidden flex-1 overflow-hidden">
+
+            <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-start justify-between gap-4 shrink-0">
+                <div class="flex gap-3">
+                    <div class="h-12 w-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="layers" class="h-6 w-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-mono font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                CTM {{ item.ctm.number }}
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-500">• Sous-Commission CNETP</span>
+                        </div>
+                        <h2 class="text-lg font-bold tracking-tight mt-1 text-slate-800 dark:text-blue-400">
+                            {{ item.ctm.name }}
+                        </h2>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onclick="closeCtmWorkingGroupsModal()"
+                    class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer dark:hover:bg-white/5 dark:hover:text-white"
+                >
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+
+                <div class="p-5 rounded-xl border bg-slate-50 border-slate-200 dark:bg-white/[0.01] dark:border-white/5 space-y-4">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Mission Scientifique</h3>
+                        <p class="text-sm leading-relaxed font-semibold mt-1 text-slate-700 dark:text-slate-200">
+                            {{ item.ctm.description|default:"Mission non renseignée." }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1.5 border-t border-slate-200 dark:border-white/5">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block font-medium uppercase tracking-wide mt-2">Président scientifique</span>
+                            <span class="text-xs font-bold mt-0.5 block text-slate-800 dark:text-slate-300">
+                                {{ item.ctm.scientific_president.user.get_full_name|default:"—" }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block font-medium uppercase tracking-wide mt-2">Rapporteur</span>
+                            <span class="text-xs font-bold mt-0.5 block text-slate-800 dark:text-slate-300">
+                                {{ item.ctm.rapporteur.user.get_full_name|default:"—" }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block font-medium uppercase tracking-wide mt-2">Groupes de Travail</span>
+                            <span class="text-xs font-bold mt-0.5 block text-slate-800 dark:text-slate-300">
+                                {{ item.wg_count }} comité{{ item.wg_count|pluralize }} d'experts
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3.5">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                        <span>Groupes Techniques (WGs) Opérationnels d'Études</span>
+                        <span class="text-[10px] font-mono text-blue-600 uppercase dark:text-blue-400">{{ item.wg_count }} ENREGISTRÉ{{ item.wg_count|pluralize:",S" }}</span>
+                    </h3>
+
+                    <div class="space-y-3">
+                        {% for wg in item.ctm.working_groups.all %}
+                        <div class="p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-150 hover:shadow-sm border-slate-200 bg-white hover:bg-slate-50 dark:border-white/5 dark:bg-transparent dark:hover:bg-white/[0.02]">
+                            <div class="space-y-1.5 min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-mono text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
+                                        WG {{ item.ctm.number }}.{{ wg.number }}
+                                    </span>
+                                    <h4 class="text-sm font-bold leading-none text-slate-800 dark:text-slate-300">
+                                        {{ wg.name }}
+                                    </h4>
+                                </div>
+
+                                <p class="text-xs leading-normal text-slate-600 dark:text-slate-400">
+                                    {{ wg.description|default:"Description à compléter." }}
+                                </p>
+
+                                <div class="flex items-center gap-3.5 text-[10px] text-slate-500 pt-1 flex-wrap">
+                                    <span class="flex items-center gap-1">
+                                        <i data-lucide="users" class="h-3 w-3"></i>
+                                        {{ wg.affectations.count }} expert{{ wg.affectations.count|pluralize }}
+                                    </span>
+                                    {% if wg.president %}
+                                    <span class="text-slate-300 dark:text-slate-600">•</span>
+                                    <span class="flex items-center gap-1 truncate">
+                                        <i data-lucide="award" class="h-3 w-3 shrink-0"></i>
+                                        Président : <strong class="dark:text-slate-300">{{ wg.president.user.get_full_name }}</strong>
+                                    </span>
+                                    {% endif %}
+                                    {% if wg.rapporteur %}
+                                    <span class="text-slate-300 dark:text-slate-600">•</span>
+                                    <span class="flex items-center gap-1 truncate">
+                                        <i data-lucide="book-open" class="h-3 w-3 shrink-0"></i>
+                                        Rapporteur : <strong class="dark:text-slate-300">{{ wg.rapporteur.user.get_full_name }}</strong>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="shrink-0 flex items-center gap-2">
+                                <span class="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 font-bold flex items-center gap-1 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
+                                    <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+                                    Accrédité
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-6 text-center text-slate-500 text-xs border border-dashed border-slate-200 dark:border-white/5 rounded-xl">
+                            Aucun groupe technique pour l'instant rattaché à cette sous-commission.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-black/20">
+                <p class="text-[10.5px] text-slate-500 leading-relaxed max-w-lg">
+                    Les experts rattachés à ces groupes travaillent sous le régime du CNETP pour le lissage et dépôt des avant-projets de normes de la RDC.
+                </p>
+                <button
+                    type="button"
+                    onclick="closeCtmWorkingGroupsModal()"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 font-bold text-white rounded-lg text-xs transition-colors shadow-sm cursor-pointer"
+                >
+                    Fermer l'Aperçu
+                </button>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+<script>
+    window.openCtmWorkingGroupsModal = function(ctmId) {
+        const modal = document.getElementById('ctm-wg-modal');
+
+        document.querySelectorAll('.ctm-modal-body').forEach(function(body) {
+            body.classList.add('hidden');
+            body.classList.remove('flex', 'flex-col');
+        });
+
+        const body = document.getElementById('ctm-modal-body-' + ctmId);
+        if (body) {
+            body.classList.remove('hidden');
+            body.classList.add('flex', 'flex-col');
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        safeCreateIcons();
+    };
+
+    window.closeCtmWorkingGroupsModal = function() {
+        const modal = document.getElementById('ctm-wg-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+</script>

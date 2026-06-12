@@ -453,6 +453,7 @@
             collaborators: [],
             currentCtmId: null,
             currentCtmName: "",
+            currentWgId: null,
             historyEditors: [],
             meetings: [],
             budgets: [],
@@ -486,8 +487,8 @@
         async function fetchSidebarData() {
             try {
                 const results = await Promise.allSettled([
-                    apiFetch('/api/v1/norms/'),
-                    apiFetch('/api/v1/wg/'),
+                    apiFetch('/api/v1/norms/?page_size=100'),
+                    apiFetch('/api/v1/wg/?page_size=100'),
                     apiFetch('/api/v1/experts/'),
                     apiFetch('/api/v1/reunions/upcoming/'),
                     apiFetch('/api/v1/ctm/'),
@@ -498,6 +499,7 @@
                 const primaryAff = myProfile?.affectations?.find(aff => aff.is_primary_ctm || aff.is_primary_wg) || myProfile?.affectations?.[0] || null;
                 sidebarState.currentCtmId = primaryAff?.ctm || null;
                 sidebarState.currentCtmName = primaryAff?.ctm_name || "";
+                sidebarState.currentWgId = primaryAff?.wg || null;
 
                 if (ctms) {
                     sidebarState.ctms = (ctms.results || ctms).map(c => ({
@@ -508,13 +510,18 @@
                 }
 
                 if (norms) {
-                    sidebarState.documents = (norms.results || norms).map(n => ({
+                    const mappedDocs = (norms.results || norms).map(n => ({
                         id: n.id,
                         code: n.reference_number,
                         title: n.title,
                         category: n.status,
-                        updatedBy: n.ctm_name || "Admin"
+                        updatedBy: n.ctm_name || "Admin",
+                        ctm: n.ctm,
+                        wg: n.wg
                     }));
+                    sidebarState.documents = sidebarState.currentCtmId
+                        ? mappedDocs.filter(doc => String(doc.ctm) === String(sidebarState.currentCtmId))
+                        : mappedDocs;
                 }
 
                 if (wgs) {
@@ -655,8 +662,12 @@
                         ${sidebarState.documents.length ? sidebarState.documents.map(doc => {
                             const isSel = doc.id === sidebarState.selectedDocId;
                             const bgClass = isSel ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 font-bold' : 'bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400';
+                            const isMyWg = doc.wg != null && sidebarState.currentWgId != null && String(doc.wg) === String(sidebarState.currentWgId);
                             return `<button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
-                                <span class="font-semibold text-xs truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-semibold text-xs truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                                    ${isMyWg ? '<span class="text-[8.5px] px-1 rounded font-extrabold uppercase border shrink-0 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20">Mon WG</span>' : ''}
+                                </div>
                                 <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span>${doc.updatedBy}</span></div>
                             </button>`;
                         }).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun document trouvé.</p>'}

@@ -96,6 +96,25 @@ POLE_BADGE_COLORS = {
     'numerique':  'bg-teal-500/15 text-teal-400 border-teal-500/30',
 }
 
+# Pôle CTC (backend) → pôle de la sidebar du nouveau prototype (templates/ctc/app/)
+_SIDEBAR_POLE_MAP = {
+    'direction':  'operations',
+    'analyse':    'analyse',
+    'logistique': 'logistique',
+    'numerique':  'technique',
+}
+
+# Modèle de review → libellé affiché dans « Mes Assignations » + icône Lucide +
+# ancre du widget correspondant sur le tableau de bord (pour le bouton "Traiter")
+_REVIEW_TASK_META = {
+    ISOReview:             {'label': 'Traduction & Alignement ISO',        'icon': 'languages',     'anchor': 'widget-traduction-iso'},
+    LegisticReview:        {'label': 'Contrôle de Légistique',             'icon': 'scale',         'anchor': 'widget-legistique'},
+    EcologicalReview:      {'label': 'Sauvegardes Éco-Environnementales',  'icon': 'leaf',          'anchor': 'widget-eco-env'},
+    EconomicReview:        {'label': 'Évaluation Économique',              'icon': 'banknote',      'anchor': 'widget-eco-env'},
+    ScheduleReview:        {'label': 'Méthodologie & Chronogramme',        'icon': 'calendar-days', 'anchor': 'widget-methodologie'},
+    IndustrialConsultation:{'label': 'Consultation Industrielle (FEC)',    'icon': 'briefcase',     'anchor': 'widget-cadrage-industriel'},
+}
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # RÉSOLUTION DU SOUS-RÔLE
@@ -107,6 +126,17 @@ def _resolve_ctc_sub_role(ctc_role: str, acronym: str) -> str:
     if not role_map:
         return ctc_role.lower()
     return role_map.get(acronym) or role_map.get(None) or ctc_role.lower()
+
+
+def _pole_for_sub_role(sub_role: str) -> str:
+    """Détermine le pôle CTC (backend) auquel appartient un sous-rôle."""
+    return (
+        'direction'  if sub_role in _DIRECTION_SUBS  else
+        'analyse'    if sub_role in _ANALYSE_SUBS    else
+        'logistique' if sub_role in _LOGISTIQUE_SUBS else
+        'numerique'  if sub_role in _NUMERIQUE_SUBS  else
+        'membre'
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -135,13 +165,7 @@ def get_ctc_context(expert: Expert) -> dict | None:
     sub_role = _resolve_ctc_sub_role(role, acronym)
 
     # ── Détermination du pôle ──────────────────────────────────────────────
-    pole = (
-        'direction'  if sub_role in _DIRECTION_SUBS  else
-        'analyse'    if sub_role in _ANALYSE_SUBS    else
-        'logistique' if sub_role in _LOGISTIQUE_SUBS else
-        'numerique'  if sub_role in _NUMERIQUE_SUBS  else
-        'membre'
-    )
+    pole = _pole_for_sub_role(sub_role)
 
     is_direction  = sub_role in _DIRECTION_SUBS
     is_analyse    = sub_role in _ANALYSE_SUBS
@@ -194,6 +218,8 @@ def get_ctc_context(expert: Expert) -> dict | None:
         'can_legistique_ctc':     sub_role == 'expert_juridique',
         # Matrice Impacts Éco-Environnementaux
         'can_eco_env_matrix':     sub_role in {'economiste_foner', 'sauvegardes_ci'},
+        # Méthodologie & Chronogramme (validation planning + état de l'art scientifique)
+        'can_methodologie_chronogramme': sub_role in {'planification_recons', 'scientifique_inbtp'},
         # Lecture seule sur données logistiques / financières
         'readonly_logistique':    is_analyse,
         # WG modification → Note d'amendement obligatoire
@@ -272,9 +298,10 @@ def get_ctc_context(expert: Expert) -> dict | None:
     my_pending_reviews = []
     if sub_role in _review_model_for_sub:
         model_cls, field = _review_model_for_sub[sub_role]
+        status_field = f'{field}_status' if model_cls is ScheduleReview else 'status'
         my_pending_reviews = list(
             model_cls.objects
-            .filter(**{field: expert, 'status__in': ['PENDING', 'ASSIGNED', 'IN_REVIEW']})
+            .filter(**{field: expert, f'{status_field}__in': ['PENDING', 'ASSIGNED', 'IN_REVIEW']})
             .select_related('norme')
             .order_by('-created_at')
         )
@@ -290,6 +317,133 @@ def get_ctc_context(expert: Expert) -> dict | None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CONTEXTE PARTAGÉ DASHBOARD + COMPOSANTS AJAX
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _ctc_shared_context(expert: Expert) -> dict | None:
+    """
+    Contexte commun au shell CTC (`ctc/app/app.html`) et à tous les
+    composants chargés en AJAX (`ctc_component_api_view`).
+
+    Retourne None si l'expert n'est pas membre de la CTC.
+    """
+    ctx = get_ctc_context(expert)
+    if ctx is None:
+        return None
+
+    # CTMs pour le hub de routage (Direction) et la modale CTM
+    ctms = CTM.objects.prefetch_related('working_groups').order_by('number')
+    ctms_list = [
+        {
+            'ctm': c,
+            'wg_count': c.working_groups.count(),
+            'member_count': c.affectations.count(),
+        }
+        for c in ctms
+    ]
+
+    # Mes demandes opérationnelles (autres pôles)
+    my_ctc_requests = (
+        CTCOperationalRequest.objects
+        .filter(requester=expert)
+        .order_by('-created_at')[:10]
+    )
+
+    # Annuaire des membres CTC
+    ctc_directory = []
+    for m in CTCMembership.objects.select_related('expert__user', 'expert__structure'):
+        m_acronym = (m.expert.structure.acronym or '').upper() if m.expert.structure else ''
+        m_sub_role = _resolve_ctc_sub_role(m.role, m_acronym)
+        ctc_directory.append({
+            'name': m.expert.user.get_full_name(),
+            'email': m.expert.user.email,
+            'role_label': m.get_role_display(),
+            'structure': m.expert.structure.acronym if m.expert.structure else '',
+            'pole': _SIDEBAR_POLE_MAP.get(_pole_for_sub_role(m_sub_role), ''),
+            'is_me': m.expert_id == expert.id,
+        })
+
+    # Tâches personnelles en attente (vue "Mes Assignations")
+    assignation_tasks = []
+    for review in ctx.get('my_pending_reviews', []):
+        meta = _REVIEW_TASK_META.get(type(review), {'label': 'Examen', 'icon': 'file-text', 'anchor': None})
+        if isinstance(review, ScheduleReview):
+            status_display = (
+                review.get_planner_status_display() if ctx['ctc_sub_role'] == 'planification_recons'
+                else review.get_scientist_status_display()
+            )
+        else:
+            status_display = review.get_status_display()
+        assignation_tasks.append({
+            'type_label': meta['label'],
+            'icon': meta['icon'],
+            'reference': review.norme.reference_number,
+            'title': review.norme.title,
+            'status_display': status_display,
+            'view_target': 'dashboard',
+            'anchor': meta['anchor'],
+        })
+
+    if ctx['ctc_sub_role'] == 'assistant_executif':
+        for req in ctx.get('pending_ctc_requests', []):
+            assignation_tasks.append({
+                'type_label': "Demande d'Accès Inter-Pôles",
+                'icon': 'user-check',
+                'reference': '',
+                'title': f"{req.requester.user.get_full_name()} — {req.restricted_resource}",
+                'status_display': req.get_status_display(),
+                'view_target': 'dashboard',
+                'anchor': 'widget-pending-requests',
+            })
+        for p in ctx.get('active_processus', []):
+            assignation_tasks.append({
+                'type_label': 'Réception & Cadrage',
+                'icon': 'inbox',
+                'reference': p.norme.reference_number,
+                'title': p.norme.title,
+                'status_display': p.get_current_stage_display(),
+                'view_target': 'dossiers',
+                'anchor': None,
+            })
+
+    # Pipeline complet des dossiers normatifs (vue "Dossiers Normatifs")
+    dossiers = (
+        CTCProcessus.objects
+        .select_related('norme', 'norme__ctm', 'received_by__user')
+        .order_by('-updated_at')
+    )
+
+    # Sous-ensemble JSON-safe du contexte de privilèges, injecté côté client
+    # via `{{ ctc_ctx_json|json_script:"ctc-ctx-data" }}` (window.CTC_CTX).
+    _json_safe_keys = (
+        'is_ctc_member', 'ctc_sub_role', 'ctc_pole', 'pole_label',
+        'is_direction', 'can_route_documents', 'can_arbitrate_delays',
+        'can_transmit_directoire', 'can_approve_ctc_requests', 'direction_full_read',
+        'is_analyste', 'can_translate_iso', 'can_legistique_ctc', 'can_eco_env_matrix',
+        'can_methodologie_chronogramme',
+        'readonly_logistique', 'must_use_amendment',
+        'is_logistique', 'can_enquete_publique', 'can_cadrage_industriel',
+        'can_grand_livre', 'blocked_scientific_write',
+        'is_numerique', 'can_upload_maps', 'can_admin_system', 'can_fast_entry',
+        'blocked_political',
+        'pending_ctc_requests_count', 'active_processus_count', 'my_pending_reviews_count',
+    )
+    ctc_ctx_json = {k: ctx.get(k) for k in _json_safe_keys}
+
+    return {
+        'expert': expert,
+        'ctms_list': ctms_list,
+        'my_ctc_requests': my_ctc_requests,
+        'ctc_directory': ctc_directory,
+        'dossiers': dossiers,
+        'assignation_tasks': assignation_tasks,
+        'ctc_ctx_json': ctc_ctx_json,
+        'sidebar_pole': _SIDEBAR_POLE_MAP.get(ctx.get('ctc_pole'), ''),
+        **ctx,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # VUE PRINCIPALE DU TABLEAU DE BORD CTC
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -299,7 +453,7 @@ class CTCDashboardView(View):
     Tableau de bord principal pour les 20 membres de la Cellule Technique
     de Coordination / Secrétariat Technique.
     """
-    template_name = 'ctc/dashboard.html'
+    template_name = 'ctc/app/app.html'
 
     def get(self, request):
         expert = Expert.objects.filter(user=request.user).select_related('structure').first()
@@ -307,8 +461,8 @@ class CTCDashboardView(View):
             messages.warning(request, "Votre compte expert n'est pas encore activé.")
             return redirect('web:home')
 
-        ctx = get_ctc_context(expert)
-        if not ctx:
+        context = _ctc_shared_context(expert)
+        if context is None:
             messages.info(
                 request,
                 "Vous n'êtes pas membre de la Cellule Technique de Coordination. "
@@ -316,30 +470,6 @@ class CTCDashboardView(View):
             )
             return redirect('web:app')
 
-        # CTMs pour le hub de routage (Direction)
-        ctms = CTM.objects.prefetch_related('working_groups').order_by('number')
-        ctms_list = [
-            {
-                'ctm': c,
-                'wg_count': c.working_groups.count(),
-                'member_count': c.affectations.count(),
-            }
-            for c in ctms
-        ]
-
-        # Mes demandes opérationnelles (autres pôles)
-        my_ctc_requests = (
-            CTCOperationalRequest.objects
-            .filter(requester=expert)
-            .order_by('-created_at')[:10]
-        )
-
-        context = {
-            'expert': expert,
-            'ctms_list': ctms_list,
-            'my_ctc_requests': my_ctc_requests,
-            **ctx,
-        }
         return render(request, self.template_name, context)
 
 
@@ -435,6 +565,58 @@ class CTCApproveRequestView(View):
             'message': f"Demande de {req.requester.full_name} {action}.",
             'new_status': decision,
         })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VUE MÉTHODOLOGIE & CHRONOGRAMME (ScheduleReview — Planificateur / Scientifique)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCMethodologyActionView(View):
+    """
+    Met à jour les notes et le statut de validation chronogramme (Planificateur)
+    ou de validation scientifique (Conseiller Scientifique INBTP) d'un ScheduleReview.
+    """
+
+    def post(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        membership = CTCMembership.objects.filter(expert=expert).first()
+        if not membership:
+            return JsonResponse({'ok': False, 'error': 'Non membre CTC.'}, status=403)
+
+        acronym  = (expert.structure.acronym or '').upper() if expert.structure else ''
+        sub_role = _resolve_ctc_sub_role(membership.role, acronym)
+
+        review = get_object_or_404(ScheduleReview, pk=pk)
+        notes  = (request.POST.get('notes') or '').strip()
+        status = (request.POST.get('status') or '').strip().upper()
+
+        valid_statuses = {choice[0] for choice in ScheduleReview.PLANNER_STATUS_CHOICES}
+        if status not in valid_statuses:
+            return JsonResponse({'ok': False, 'error': 'Statut invalide.'}, status=400)
+
+        if sub_role == 'planification_recons':
+            if review.planner_id != expert.id:
+                return JsonResponse({'ok': False, 'error': "Ce dossier n'est pas assigné à votre poste."}, status=403)
+            review.planner_notes = notes
+            review.planner_status = status
+            review.save(update_fields=['planner_notes', 'planner_status'])
+        elif sub_role == 'scientifique_inbtp':
+            if review.scientist_id != expert.id:
+                return JsonResponse({'ok': False, 'error': "Ce dossier n'est pas assigné à votre poste."}, status=403)
+            review.scientist_notes = notes
+            review.scientist_status = status
+            review.save(update_fields=['scientist_notes', 'scientist_status'])
+        else:
+            return JsonResponse(
+                {'ok': False, 'error': "Réservé au pôle Analyse (Planification & Sciences)."},
+                status=403
+            )
+
+        return JsonResponse({'ok': True, 'message': 'Enregistré avec succès.', 'status': status})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

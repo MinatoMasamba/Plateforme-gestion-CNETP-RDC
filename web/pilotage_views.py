@@ -98,6 +98,456 @@ _CADRAGE_ACTION_EXCLUDE_FIELD = {
     'quitus_btp':    'btp_quitus_at',
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ESPACE ADMINISTRATIF — BUREAU DIRECTOIRE (Postes 1 à 5)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Métadonnées d'identité et de mission pour chacun des 5 postes du Bureau
+# Directoire, utilisées par l'interface `pilotage/app/` (sidebar + composant_post_n).
+_BUREAU_DIRECTOIRE_POSTES = [
+    {
+        'n': 1,
+        'sub_role': 'president',
+        'title': 'Président du Comité de Pilotage',
+        'origin': 'Cabinet du Ministre des ITP',
+        'icon': 'crown',
+        'accent': 'amber',
+        'mission': (
+            "Autorité d'impulsion stratégique et de validation finale du Comité de "
+            "Pilotage Élargi. Ouvre chaque chantier normatif par ses orientations et "
+            "clôt le circuit par la signature de la résolution finale."
+        ),
+        'phase1_title': "Phase 1.1 — Cadrage stratégique",
+        'phase1_description': (
+            "Avant toute saisine de la CTC, le Président examine la proposition de "
+            "norme et fixe les orientations stratégiques qui guideront l'ensemble du "
+            "chantier (priorités, portée, articulation avec les politiques "
+            "sectorielles en cours)."
+        ),
+        'phase2_title': "Phase 2.3 — Validation finale & signature",
+        'phase2_description': (
+            "Une fois le PV de l'Assemblée Plénière vérifié par le Secrétaire et les "
+            "quitus de conformité technique donnés par les deux Vice-Présidents, le "
+            "Président valide et signe la résolution finale qui consacre la norme et "
+            "autorise sa transmission au Ministre des ITP."
+        ),
+    },
+    {
+        'n': 2,
+        'sub_role': 'vice_president_onic',
+        'title': '1er Vice-Président',
+        'origin': 'ONIC — giron Ingénierie',
+        'icon': 'shield-check',
+        'accent': 'sky',
+        'mission': (
+            "Garant technique du giron Ingénierie. Valide la légitimité des experts "
+            "des Groupes de Travail et certifie la conformité technique des normes "
+            "relevant de son périmètre."
+        ),
+        'phase1_title': "Phase 1.2 — Validation des experts WG (Ingénierie)",
+        'phase1_description': (
+            "Avant le lancement des travaux, le 1er Vice-Président examine la liste "
+            "des experts pressentis pour les Groupes de Travail du giron Ingénierie "
+            "et valide leur légitimité technique."
+        ),
+        'phase2_title': "Phase 2.2 — Quitus de conformité technique",
+        'phase2_description': (
+            "Après vérification du PV de l'Assemblée Plénière, le 1er Vice-Président "
+            "donne son quitus de conformité technique pour le volet Ingénierie de la "
+            "norme, condition nécessaire à la validation finale du Président."
+        ),
+    },
+    {
+        'n': 3,
+        'sub_role': 'vice_president_btp',
+        'title': '2nd Vice-Président',
+        'origin': 'AIBTP / CNIRS-BTP — secteur BTP',
+        'icon': 'hard-hat',
+        'accent': 'orange',
+        'mission': (
+            "Garant technique du secteur BTP. Valide le mandat des experts des "
+            "Groupes de Travail BTP et certifie la conformité technique des normes "
+            "relevant de son périmètre."
+        ),
+        'phase1_title': "Phase 1.2 — Validation du mandat des experts WG (BTP)",
+        'phase1_description': (
+            "Avant le lancement des travaux, le 2nd Vice-Président examine et valide "
+            "le mandat des experts pressentis pour les Groupes de Travail du secteur "
+            "BTP."
+        ),
+        'phase2_title': "Phase 2.2 — Quitus de conformité technique",
+        'phase2_description': (
+            "Après vérification du PV de l'Assemblée Plénière, le 2nd Vice-Président "
+            "donne son quitus de conformité technique pour le volet BTP de la norme, "
+            "condition nécessaire à la validation finale du Président."
+        ),
+    },
+    {
+        'n': 4,
+        'sub_role': 'secretary',
+        'title': 'Secrétaire',
+        'origin': 'Membre académique',
+        'icon': 'file-text',
+        'accent': 'violet',
+        'mission': (
+            "Cheville opérationnelle du Comité. Formalise le mandat opérationnel "
+            "transmis aux CTM et audite la conformité formelle du Procès-Verbal de "
+            "l'Assemblée Plénière avant transmission aux Vice-Présidents."
+        ),
+        'phase1_title': "Phase 1.3 — Mandat opérationnel",
+        'phase1_description': (
+            "Une fois les experts validés par les Vice-Présidents, le Secrétaire "
+            "rédige et formalise le mandat opérationnel ainsi que la méthodologie "
+            "scientifique transmis aux Comités Techniques Mixtes (CTM)."
+        ),
+        'phase2_title': "Phase 2.1 — Vérification du PV de l'Assemblée Plénière",
+        'phase2_description': (
+            "Dès que la CTC a transmis le dossier nettoyé (Étape 5 — accusés de "
+            "réception du Président et du Rapporteur Général), le Secrétaire audite "
+            "la conformité du Procès-Verbal de l'Assemblée Plénière avant de le "
+            "transmettre aux Vice-Présidents pour quitus."
+        ),
+    },
+    {
+        'n': 5,
+        'sub_role': 'rapporteur',
+        'title': 'Rapporteur Général',
+        'origin': 'Secrétariat Général des ITP (SG-ITP)',
+        'icon': 'calendar-clock',
+        'accent': 'emerald',
+        'mission': (
+            "Architecte du calendrier du chantier normatif. Fixe le chronogramme et "
+            "transmet l'ordre de service à la CTC ; co-réceptionne avec le Président "
+            "le dossier nettoyé renvoyé par la CTC."
+        ),
+        'phase1_title': "Phase 1.4 — Chronogramme & ordre de service",
+        'phase1_description': (
+            "Une fois le mandat opérationnel formalisé par le Secrétaire, le "
+            "Rapporteur Général fixe les dates butoirs (travaux CTM/WG, transmission "
+            "à la CTC, retour au Pilotage) et transmet l'ordre de service à la CTC, "
+            "ouvrant ainsi le traitement interne de la CTC (Étapes 1 à 5)."
+        ),
+        'phase2_title': "Étape 5 — Réception du dossier nettoyé par la CTC",
+        'phase2_description': (
+            "À l'issue du traitement interne de la CTC (toilettage, enquête "
+            "publique, certification), le Rapporteur Général accuse réception du "
+            "dossier nettoyé, conjointement avec le Président — ce double accusé de "
+            "réception débloque la Phase 2.1 (vérification du PV) du Secrétaire."
+        ),
+    },
+]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ESPACE ADMINISTRATIF — COLLÈGE DES CONSEILLERS INSTITUTIONNELS ET POLITIQUES
+# (Postes 6 à 10 — premier lot des 12 postes du collège)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Métadonnées d'identité et de mission pour les Postes 6 à 15 du Collège des
+# Conseillers Institutionnels et Politiques, utilisées par l'interface
+# `pilotage/app_conseillers/` (sidebar + composant_post_n). Tous ces postes
+# partagent le même sous-rôle `conseiller_politique` (Profil 2) : lecture
+# seule sur les CTM/WG, Widget Planification (jalons Enquête Publique
+# Nationale) et téléversement de rapports institutionnels.
+#
+# Postes 11 à 15 = "Représentants des Ministères Partenaires" (1/5 à 5/5,
+# structure AUTRES-MIN, quota Ligne 12). Le Poste 15 porte une note
+# d'arbitrage (`arbitration_note`) : le Manuel Organisationnel annonce 5
+# sièges mais nomme 6 ministères candidats — ce 5e siège reste vacant en
+# attendant la décision du Bureau Directoire (cf. mémoire de session).
+_CONSEILLERS_POSTES = [
+    {
+        'n': 6,
+        'title': 'Conseiller — Cabinet du Ministre des ITP (1/2)',
+        'origin': 'Cabinet du Ministre des ITP',
+        'quota_line': 2,
+        'icon': 'landmark',
+        'accent': 'blue',
+        'mission': (
+            "Représente le Cabinet du Ministre des Infrastructures, Travaux Publics "
+            "et Reconstruction au sein du Comité de Pilotage Élargi. Porte la vision "
+            "politique du Ministre sur les chantiers normatifs et veille à leur "
+            "articulation avec les priorités gouvernementales du secteur."
+        ),
+        'interface_role': (
+            "Premier point de contact entre le Cabinet et le Comité de Pilotage en "
+            "amont des chantiers normatifs : relaie les priorités politiques du "
+            "Ministre dès l'ouverture d'un dossier (Phase 1.1 du Bureau Directoire) "
+            "et alerte sur les arbitrages sensibles à anticiper."
+        ),
+    },
+    {
+        'n': 7,
+        'title': 'Conseiller — Cabinet du Ministre des ITP (2/2)',
+        'origin': 'Cabinet du Ministre des ITP',
+        'quota_line': 2,
+        'icon': 'landmark',
+        'accent': 'blue',
+        'mission': (
+            "Second représentant du Cabinet du Ministre au sein du Comité de "
+            "Pilotage Élargi. Assure la liaison entre les décisions du Comité et les "
+            "services ministériels chargés de leur mise en œuvre."
+        ),
+        'interface_role': (
+            "Assure le suivi de la mise en œuvre côté Cabinet une fois les normes "
+            "validées : relaie aux services ministériels concernés les résolutions "
+            "adoptées par le Comité de Pilotage et veille à leur articulation avec "
+            "la communication gouvernementale."
+        ),
+    },
+    {
+        'n': 8,
+        'title': 'Conseiller — Secrétariat Général aux ITP',
+        'origin': 'Secrétariat Général aux ITP (SG-ITP)',
+        'quota_line': 1,
+        'icon': 'building-2',
+        'accent': 'sky',
+        'mission': (
+            "Représente le Secrétariat Général aux Infrastructures, Travaux Publics "
+            "et Reconstruction — l'administration centrale chargée de la mise en "
+            "œuvre opérationnelle des politiques sectorielles. Assure la cohérence "
+            "entre le travail normatif de la CNETP et les procédures administratives "
+            "en vigueur."
+        ),
+        'interface_role': (
+            "Garant de la cohérence administrative : veille à l'articulation entre "
+            "les futures normes et les procédures du Secrétariat Général, et relaie "
+            "au Comité de Pilotage l'état d'avancement des dossiers administratifs "
+            "connexes aux chantiers normatifs en cours."
+        ),
+    },
+    {
+        'n': 9,
+        'title': 'Conseiller — Secrétariat Général à la Reconstruction (1/2)',
+        'origin': 'Secrétariat Général à la Reconstruction (SG-RECONS)',
+        'quota_line': 3,
+        'icon': 'hammer',
+        'accent': 'indigo',
+        'mission': (
+            "Représente le Secrétariat Général à la Reconstruction, en charge des "
+            "grands programmes de reconstruction des infrastructures routières et "
+            "de transport. Veille à l'arrimage des normes en cours d'élaboration "
+            "avec ces chantiers prioritaires."
+        ),
+        'interface_role': (
+            "Interface privilégiée pour les normes touchant au volet routier et aux "
+            "corridors de transport de la reconstruction : signale les contraintes "
+            "de terrain et les urgences opérationnelles des chantiers en cours."
+        ),
+    },
+    {
+        'n': 10,
+        'title': 'Conseiller — Secrétariat Général à la Reconstruction (2/2)',
+        'origin': 'Secrétariat Général à la Reconstruction (SG-RECONS)',
+        'quota_line': 3,
+        'icon': 'hammer',
+        'accent': 'indigo',
+        'mission': (
+            "Second représentant du Secrétariat Général à la Reconstruction, en "
+            "charge du volet bâtiments publics et équipements collectifs. Veille à "
+            "ce que les normes élaborées par la CNETP répondent aux besoins de ces "
+            "programmes de reconstruction."
+        ),
+        'interface_role': (
+            "Interface privilégiée pour les normes touchant aux bâtiments publics et "
+            "équipements collectifs des programmes de reconstruction : relaie au "
+            "Comité de Pilotage les besoins normatifs émergents de ces chantiers."
+        ),
+    },
+    {
+        'n': 11,
+        'title': "Conseiller — Représentant du Ministère de l'Urbanisme et de l'Habitat (1/5)",
+        'origin': "Ministère de l'Urbanisme et de l'Habitat",
+        'quota_line': 12,
+        'icon': 'building',
+        'accent': 'cyan',
+        'mission': (
+            "Représente le Ministère de l'Urbanisme et de l'Habitat au sein du "
+            "Comité de Pilotage Élargi, premier des cinq sièges réservés aux "
+            "Ministères Partenaires. Veille à ce que les normes élaborées par la "
+            "CNETP s'articulent avec la réglementation foncière, les plans "
+            "d'aménagement urbain et les permis de construire."
+        ),
+        'interface_role': (
+            "Alerte le Comité de Pilotage sur les chantiers normatifs susceptibles "
+            "d'entrer en conflit avec les schémas directeurs d'urbanisme ou les "
+            "normes d'habitat existantes, et relaie les besoins de mise à jour "
+            "réglementaire identifiés par son Ministère."
+        ),
+    },
+    {
+        'n': 12,
+        'title': "Conseiller — Représentant du Ministère de l'Aménagement du Territoire (2/5)",
+        'origin': "Ministère de l'Aménagement du Territoire",
+        'quota_line': 12,
+        'icon': 'map',
+        'accent': 'cyan',
+        'mission': (
+            "Représente le Ministère de l'Aménagement du Territoire au sein du "
+            "Comité de Pilotage Élargi. Veille à la cohérence entre les normes "
+            "infrastructurelles en cours d'élaboration et les schémas nationaux et "
+            "provinciaux d'aménagement du territoire."
+        ),
+        'interface_role': (
+            "Signale au Comité de Pilotage les implications territoriales des "
+            "normes à l'étude — notamment pour les projets traversant plusieurs "
+            "provinces — et veille à leur articulation avec les priorités "
+            "d'aménagement du territoire."
+        ),
+    },
+    {
+        'n': 13,
+        'title': (
+            "Conseiller — Représentant du Ministère de l'Environnement et du "
+            "Développement Durable (3/5)"
+        ),
+        'origin': "Ministère de l'Environnement et du Développement Durable",
+        'quota_line': 12,
+        'icon': 'leaf',
+        'accent': 'cyan',
+        'mission': (
+            "Représente le Ministère de l'Environnement et du Développement "
+            "Durable au sein du Comité de Pilotage Élargi. Veille à l'intégration "
+            "des exigences environnementales — études d'impact, normes de "
+            "durabilité — dans les référentiels élaborés par la CNETP."
+        ),
+        'interface_role': (
+            "Examine les projets de normes sous l'angle environnemental, relaie "
+            "les exigences d'étude d'impact environnemental et social (EIES) et "
+            "propose des critères de durabilité et de résilience climatique."
+        ),
+    },
+    {
+        'n': 14,
+        'title': "Conseiller — Représentant du Ministère des Affaires Foncières (4/5)",
+        'origin': "Ministère des Affaires Foncières",
+        'quota_line': 12,
+        'icon': 'map-pin',
+        'accent': 'cyan',
+        'mission': (
+            "Représente le Ministère des Affaires Foncières au sein du Comité de "
+            "Pilotage Élargi. Veille à ce que les normes touchant à l'implantation "
+            "des infrastructures tiennent compte du régime foncier et des "
+            "procédures de cession, concession et expropriation en vigueur."
+        ),
+        'interface_role': (
+            "Alerte sur les risques fonciers liés aux emprises nécessaires aux "
+            "projets normés — titres de propriété, expropriations, occupations "
+            "informelles — et relaie les procédures foncières applicables."
+        ),
+    },
+    {
+        'n': 15,
+        'title': "Conseiller — Représentant d'un Ministère Partenaire (5/5)",
+        'origin': "Siège à pourvoir — arbitrage du Bureau Directoire en attente",
+        'quota_line': 12,
+        'icon': 'help-circle',
+        'accent': 'amber',
+        'mission': (
+            "Cinquième et dernier siège réservé aux Ministères Partenaires au sein "
+            "du Comité de Pilotage Élargi. Le Manuel Organisationnel annonce cinq "
+            "sièges mais nomme six ministères candidats (Urbanisme et Habitat, "
+            "Aménagement du Territoire, Environnement et Développement Durable, "
+            "Affaires Foncières, Ministère ayant la Ville de Kinshasa dans ses "
+            "attributions, OVDA). L'attribution de ce cinquième siège fait l'objet "
+            "d'un arbitrage en attente du Bureau Directoire."
+        ),
+        'interface_role': (
+            "Une fois l'arbitrage tranché par le Bureau Directoire, le titulaire "
+            "de ce siège héritera des mêmes prérogatives Profil 2 que les Postes "
+            "11 à 14 : lecture seule sur les CTM/WG, suivi des jalons de l'Enquête "
+            "Publique Nationale et téléversement de rapports institutionnels."
+        ),
+        'arbitration_note': (
+            "Le Manuel Organisationnel annonce 5 postes de Représentants des "
+            "Ministères Partenaires mais en nomme 6 : Urbanisme et Habitat, "
+            "Aménagement du Territoire, Environnement et Développement Durable, "
+            "Affaires Foncières, Ministère ayant la Ville de Kinshasa dans ses "
+            "attributions, et OVDA. Ce cinquième siège reste vacant en attendant "
+            "que le Bureau Directoire tranche entre les deux derniers candidats."
+        ),
+    },
+    {
+        'n': 16,
+        'title': 'Conseiller Juridique Spécialisé (1/2)',
+        'origin': 'Experts Juridiques Spécialisés (EJS)',
+        'quota_line': 13,
+        'icon': 'scale',
+        'accent': 'violet',
+        'mission': (
+            "Premier des deux Conseillers Juridiques Spécialisés du Comité de "
+            "Pilotage Élargi, issu du corps des Experts Juridiques Spécialisés "
+            "(Ligne 13). Pilote la rédaction des projets d'Arrêtés Ministériels "
+            "d'homologation pour les normes ayant achevé leur cycle de validation."
+        ),
+        'interface_role': (
+            "Dispose du droit exclusif d'édition du Module Légistique : rédige les "
+            "projets d'Arrêtés d'homologation pour chaque norme achevant son "
+            "cycle, en s'appuyant sur les références juridiques applicables au "
+            "processus d'homologation CNETP."
+        ),
+    },
+    {
+        'n': 17,
+        'title': 'Conseiller Juridique Spécialisé (2/2)',
+        'origin': 'Experts Juridiques Spécialisés (EJS)',
+        'quota_line': 13,
+        'icon': 'scale',
+        'accent': 'violet',
+        'mission': (
+            "Second Conseiller Juridique Spécialisé du Comité de Pilotage Élargi, "
+            "issu du corps des Experts Juridiques Spécialisés (Ligne 13). Assure "
+            "la relecture croisée et la validation collégiale des projets "
+            "d'Arrêtés Ministériels avant leur transmission au Bureau Directoire."
+        ),
+        'interface_role': (
+            "Partage avec le Poste 16 le droit exclusif d'édition du Module "
+            "Légistique : relit, amende et co-valide chaque projet d'Arrêté avant "
+            "qu'il ne soit transmis au Bureau Directoire pour validation finale et "
+            "signature."
+        ),
+    },
+]
+
+# Regroupement de la sidebar `app_conseillers` par sous-collège (utilisé par
+# `{% regroup %}` dans sidebar_module.html — la liste ci-dessus est déjà
+# ordonnée de façon à ce que chaque groupe soit contigu).
+_CONSEILLERS_GROUPS = [
+    (range(6, 11), "Cabinet du Ministre des ITP & Secrétariats Généraux"),
+    (range(11, 16), "Représentants des Ministères Partenaires"),
+    (range(16, 18), "Conseillers Juridiques Spécialisés"),
+]
+
+
+def _conseillers_group_label(n: int) -> str:
+    for rng, label in _CONSEILLERS_GROUPS:
+        if n in rng:
+            return label
+    return ''
+
+
+def _cadrages_for_subrole(sub_role: str) -> list[dict]:
+    """
+    Pour un sous-rôle du Bureau Directoire, retourne la liste des groupes
+    d'action de cadrage (Phase 1 puis Phase 2), chacun avec ses dossiers
+    actuellement en attente (liste `items` vide si aucun dossier n'est à
+    cette étape pour le moment).
+    """
+    groups = []
+    for phase, (stage, action, label) in enumerate(_CADRAGE_ACTIONS_BY_SUBROLE.get(sub_role, []), start=1):
+        qs = NormeCadrage.objects.filter(current_stage=stage)
+        exclude_field = _CADRAGE_ACTION_EXCLUDE_FIELD.get(action)
+        if exclude_field:
+            qs = qs.filter(**{f'{exclude_field}__isnull': True})
+        items = []
+        for cadrage in qs.select_related('norme', 'norme__ctc_processus').order_by('-created_at'):
+            # Phase 2.1 : le Secrétaire ne peut vérifier le PV que si la CTC a
+            # transmis le dossier nettoyé (Étape 5 — accusé de réception complet).
+            blocked = action == 'verify_pv' and not cadrage.ctc_handoff_complete
+            items.append({'cadrage': cadrage, 'action': action, 'label': label, 'blocked': blocked})
+        groups.append({'phase': phase, 'stage': stage, 'action': action, 'label': label, 'items': items})
+    return groups
+
 # CTMs couverts par chaque spécialiste ATF (accès privilégié sans demande de permission)
 _ATF_SPECIALTY_CTM = {
     'atf_or': [1],        # Office des Routes → CTM 1 Géotechnique/Chaussées
@@ -213,13 +663,8 @@ def get_pilotage_context(expert: Expert) -> dict | None:
     # ── Cadrage Bureau Directoire (Phases 1 & 2 — Postes 1 à 5) ───────────────
     pending_cadrages = []
     if is_directoire:
-        for stage, action, label in _CADRAGE_ACTIONS_BY_SUBROLE.get(sub_role, []):
-            qs = NormeCadrage.objects.filter(current_stage=stage)
-            exclude_field = _CADRAGE_ACTION_EXCLUDE_FIELD.get(action)
-            if exclude_field:
-                qs = qs.filter(**{f'{exclude_field}__isnull': True})
-            for cadrage in qs.select_related('norme').order_by('-created_at'):
-                pending_cadrages.append({'cadrage': cadrage, 'action': action, 'label': label})
+        for group in _cadrages_for_subrole(sub_role):
+            pending_cadrages.extend(group['items'])
 
     # ─────────────────────────────────────────────────────────────────────────
     # BOOLÉENS DE PRIVILÈGES (injectés dans le template)
@@ -551,6 +996,12 @@ class PilotageCadrageActionView(View):
             )
 
         elif action == 'verify_pv' and role == 'SECRETARY' and cadrage.current_stage == 'PV_VERIFICATION':
+            if not cadrage.ctc_handoff_complete:
+                return JsonResponse({
+                    'ok': False,
+                    'error': "La CTC n'a pas encore transmis le dossier nettoyé au Comité de Pilotage "
+                             "(Étape 5 — accusé de réception du Président et du Rapporteur Général en attente).",
+                }, status=400)
             cadrage.mark_pv_verified(expert, pv_reference=(request.POST.get('pv_reference') or '').strip())
 
         elif action == 'quitus_onic' and is_onic_vp and cadrage.current_stage == 'CONFORMITY_QUITUS':
@@ -598,3 +1049,252 @@ def pilotage_context_api(request):
     payload = {k: v for k, v in priv.items() if isinstance(v, (bool, str, int, list, type(None)))}
     payload['specialty_ctm_ids'] = list(priv.get('specialty_ctm_ids', []))
     return JsonResponse(payload)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ESPACE ADMINISTRATIF DU BUREAU DIRECTOIRE (Postes 1 à 5)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageDirectoireAppView(View):
+    """
+    Interface administrative dédiée au Bureau Directoire : navigation par
+    sidebar entre les 5 postes (Président, 1er/2nd Vice-Présidents,
+    Secrétaire, Rapporteur Général), chacun affichant sa mission ainsi que
+    ses actions de cadrage Phase 1 / Phase 2 (interactives pour le titulaire,
+    en lecture seule pour les autres membres du Directoire).
+    """
+    template_name = 'pilotage/app/app.html'
+
+    def get(self, request):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_pilotage_context(expert)
+        if not priv or not priv['can_trigger_steps']:
+            messages.info(
+                request,
+                "L'espace administratif du Bureau Directoire est réservé aux Postes 1 à 5 "
+                "du Comité de Pilotage."
+            )
+            return redirect('web:pilotage_dashboard')
+
+        postes = []
+        default_post_n = 1
+        for meta in _BUREAU_DIRECTOIRE_POSTES:
+            is_mine = meta['sub_role'] == priv['user_sub_role']
+            if is_mine:
+                default_post_n = meta['n']
+            postes.append({
+                **meta,
+                'is_mine': is_mine,
+                'cadrage_groups': _cadrages_for_subrole(meta['sub_role']),
+            })
+
+        # ── Étape 5 : réception du dossier nettoyé par la CTC (Postes 1 & 5) ──
+        pending_reception_president = list(
+            CTCProcessus.objects
+            .filter(current_stage='SIGNED_OUT', received_by_president__isnull=True)
+            .select_related('norme', 'signed_out_by')
+            .order_by('-signed_out_at')
+        )
+        pending_reception_rapporteur = list(
+            CTCProcessus.objects
+            .filter(current_stage='SIGNED_OUT', received_by_rapporteur__isnull=True)
+            .select_related('norme', 'signed_out_by')
+            .order_by('-signed_out_at')
+        )
+
+        context = {
+            'expert': expert,
+            'postes': postes,
+            'default_post_n': default_post_n,
+            'pending_reception_president': pending_reception_president,
+            'pending_reception_rapporteur': pending_reception_rapporteur,
+            **priv,
+        }
+        return render(request, self.template_name, context)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ESPACE ADMINISTRATIF DU COLLÈGE DES CONSEILLERS INSTITUTIONNELS ET POLITIQUES
+# (Postes 6 à 17)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageConseillersAppView(View):
+    """
+    Interface administrative dédiée au Collège des Conseillers Institutionnels
+    et Politiques : navigation par sidebar (groupée par sous-collège) entre les
+    Postes 6 à 17 (Cabinet du Ministre des ITP ×2, Secrétariat Général aux ITP,
+    Secrétariat Général à la Reconstruction ×2, Représentants des Ministères
+    Partenaires ×5, Conseillers Juridiques Spécialisés ×2), chacun affichant sa
+    mission, son cadre d'intervention (Profil 2) et les widgets partagés du
+    collège (Planification EPN pour tous, Module Légistique pour les Postes
+    16-17 uniquement).
+    """
+    template_name = 'pilotage/app_conseillers/app.html'
+
+    def get(self, request):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_pilotage_context(expert)
+        if not priv or priv['pilotage_college'] != 'conseiller_politique':
+            messages.info(
+                request,
+                "L'espace administratif des Conseillers Institutionnels et "
+                "Politiques est réservé aux membres de ce collège."
+            )
+            return redirect('web:pilotage_dashboard')
+
+        my_poste_order = priv['poste'].order if priv['poste'] else None
+
+        postes = []
+        default_post_n = _CONSEILLERS_POSTES[0]['n']
+        for meta in _CONSEILLERS_POSTES:
+            is_mine = meta['n'] == my_poste_order
+            if is_mine:
+                default_post_n = meta['n']
+            postes.append({
+                **meta,
+                'is_mine': is_mine,
+                'group_label': _conseillers_group_label(meta['n']),
+            })
+
+        context = {
+            'expert': expert,
+            'postes': postes,
+            'default_post_n': default_post_n,
+            **priv,
+        }
+        return render(request, self.template_name, context)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ESPACE ADMINISTRATIF DU COLLÈGE DES ADMINISTRATEURS TECHNIQUES ET FINANCIERS
+# (Postes 18 à 20)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Métadonnées d'identité et de mission pour les Postes 18 à 20 du Collège des
+# Administrateurs Techniques et Financiers (5 postes au total, 21-22 à venir),
+# utilisées par l'interface `pilotage/app_atf/` (sidebar + composant_post_n).
+# Tous ces postes partagent le sous-rôle dérivé de leur structure d'origine via
+# `_STRUCTURE_ACRONYM_TO_SUB` (Profil 3) : lecture seule sur CTM/WG, accès
+# privilégié (audit) sur leurs CTM de spécialité (`_ATF_SPECIALTY_CTM`), accès
+# aux autres CTM par demande de permission au Bureau Directoire.
+_ATF_POSTES = [
+    {
+        'n': 18,
+        'title': 'Administrateur Technique et Financier — Office des Routes (OR)',
+        'origin': 'Office des Routes (OR)',
+        'quota_line': 4,
+        'icon': 'route',
+        'accent': 'emerald',
+        'mission': (
+            "Représente l'Office des Routes, agence publique en charge de la "
+            "construction et de l'entretien du réseau routier national, au sein "
+            "du Comité de Pilotage Élargi. Apporte l'expertise de terrain sur les "
+            "normes de géotechnique et de chaussées en cours d'élaboration."
+        ),
+        'interface_role': (
+            "Dispose d'un accès privilégié au CTM 1 — Géotechnique & Chaussées : "
+            "audite les brouillons techniques sous l'angle de leur applicabilité "
+            "aux chantiers routiers et signale les contraintes opérationnelles du "
+            "réseau national. Pour tout autre CTM, l'accès passe par une demande "
+            "de permission au Bureau Directoire."
+        ),
+    },
+    {
+        'n': 19,
+        'title': 'Administrateur Technique et Financier — Office des Voiries et Drainage (OVD)',
+        'origin': 'Office des Voiries et Drainage (OVD)',
+        'quota_line': 5,
+        'icon': 'waves',
+        'accent': 'teal',
+        'mission': (
+            "Représente l'Office des Voiries et Drainage, agence publique en "
+            "charge des voiries urbaines et des réseaux de drainage, au sein du "
+            "Comité de Pilotage Élargi. Apporte l'expertise de terrain sur les "
+            "normes d'assainissement et de macro-drainage en cours d'élaboration."
+        ),
+        'interface_role': (
+            "Dispose d'un accès privilégié au CTM 7 — Assainissement & "
+            "Macro-drainage : audite les brouillons techniques sous l'angle de "
+            "leur applicabilité aux ouvrages de drainage urbain. Pour tout autre "
+            "CTM, l'accès passe par une demande de permission au Bureau "
+            "Directoire."
+        ),
+    },
+    {
+        'n': 20,
+        'title': 'Administrateur Technique et Financier — Agence Congolaise des Grands Travaux (ACGT)',
+        'origin': 'Agence Congolaise des Grands Travaux (ACGT)',
+        'quota_line': 6,
+        'icon': 'hard-hat',
+        'accent': 'green',
+        'mission': (
+            "Représente l'Agence Congolaise des Grands Travaux, maître d'ouvrage "
+            "délégué des grands projets d'infrastructure, au sein du Comité de "
+            "Pilotage Élargi. Apporte une vision transversale sur la faisabilité "
+            "opérationnelle des normes couvrant la géotechnique, les chaussées "
+            "et l'innovation."
+        ),
+        'interface_role': (
+            "Dispose d'un accès privilégié aux CTM 1 à 3 — Normes & Innovation : "
+            "audite les brouillons techniques de ces trois groupes sous l'angle "
+            "de leur faisabilité pour les grands chantiers. Pour tout autre CTM, "
+            "l'accès passe par une demande de permission au Bureau Directoire."
+        ),
+    },
+]
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageATFAppView(View):
+    """
+    Interface administrative dédiée au Collège des Administrateurs Techniques
+    et Financiers : navigation par sidebar entre les Postes 18 à 20 (Office des
+    Routes, Office des Voiries et Drainage, Agence Congolaise des Grands
+    Travaux), chacun affichant sa mission, son cadre d'intervention (Profil 3 :
+    lecture seule WG/CTM, accès privilégié sur ses CTM de spécialité) et la
+    Console d'Audit Technique propre à l'expert connecté.
+    """
+    template_name = 'pilotage/app_atf/app.html'
+
+    def get(self, request):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_pilotage_context(expert)
+        if not priv or priv['pilotage_college'] != 'atf':
+            messages.info(
+                request,
+                "L'espace administratif des Administrateurs Techniques et "
+                "Financiers est réservé aux membres de ce collège."
+            )
+            return redirect('web:pilotage_dashboard')
+
+        my_poste_order = priv['poste'].order if priv['poste'] else None
+
+        postes = []
+        default_post_n = _ATF_POSTES[0]['n']
+        for meta in _ATF_POSTES:
+            is_mine = meta['n'] == my_poste_order
+            if is_mine:
+                default_post_n = meta['n']
+            postes.append({**meta, 'is_mine': is_mine})
+
+        context = {
+            'expert': expert,
+            'postes': postes,
+            'default_post_n': default_post_n,
+            **priv,
+        }
+        return render(request, self.template_name, context)

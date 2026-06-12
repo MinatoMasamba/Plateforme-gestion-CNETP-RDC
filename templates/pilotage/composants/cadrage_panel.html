@@ -77,12 +77,19 @@
             </div>
 
             <!-- ── Phase 2.1 : Secrétaire — Vérification du PV de l'AP ─────── -->
-            {% elif item.action == 'verify_pv' %}
+            {% elif item.action == 'verify_pv' and not item.blocked %}
             <input type="text" id="cadrage-{{ cadrage.id }}-pv_reference"
                    placeholder="Référence du PV de l'Assemblée Plénière…"
                    class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
                           bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
                           placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
+
+            <!-- ── Phase 2.1 (bloqué) : dossier pas encore revenu de la CTC ── -->
+            {% elif item.action == 'verify_pv' and item.blocked %}
+            <div class="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-[11px] text-amber-500">
+                <i data-lucide="hourglass" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>En attente de transmission par la CTC (Étape 5 — accusé de réception du Président et du Rapporteur Général).</span>
+            </div>
 
             <!-- ── Phase 2.3 : Président — Validation finale & signature ───── -->
             {% elif item.action == 'final_validate' %}
@@ -107,6 +114,7 @@
             </div>
             {% endif %}
 
+            {% if not item.blocked %}
             <div class="flex justify-end">
                 <button id="btn-cadrage-{{ cadrage.id }}"
                         onclick="submitCadrageAction({{ cadrage.id }}, '{{ item.action }}')"
@@ -124,6 +132,7 @@
                     {% endif %}
                 </button>
             </div>
+            {% endif %}
         </div>
     </div>
     {% endwith %}

@@ -1,0 +1,300 @@
+<div class="p-6 max-w-5xl mx-auto space-y-6 text-slate-800 dark:text-slate-300 transition-colors duration-200">
+    
+    <div class="flex items-center gap-3 mb-6 animate-slideIn">
+        <div class="bg-green-100 p-2 rounded-lg dark:bg-green-500/10">
+            <i data-lucide="video" class="w-6 h-6 text-green-600 dark:text-green-500"></i>
+        </div>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Planificateur de Réunions & Meet</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Organisez les sessions des Comités et sous-groupes de travail.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
+                <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i> Détails de la Réunion
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-400 mb-1">Titre (Motif de la session)</label>
+                        <input 
+                            type="text" 
+                            id="meet-title-input"
+                            oninput="handleMeetTitleInput(this.value)"
+                            placeholder="Ex: Validation de la norme ponts (CTM-2)" 
+                            class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 focus:outline-hidden focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50"
+                        />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-400 mb-1">Date</label>
+                            <input type="date" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 focus:outline-hidden focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-400 mb-1">Heure</label>
+                            <div class="relative">
+                                <i data-lucide="clock" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500"></i>
+                                <input type="time" value="10:00" class="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2.5 text-sm bg-white text-slate-800 focus:outline-hidden focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-amber-500"></i> Participants (Convocations)
+                    </h3>
+                    <button 
+                        id="meet-toggle-all-btn"
+                        onclick="handleSelectAllToggle()" 
+                        class="text-xs font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition cursor-pointer"
+                    >
+                        Tout sélectionner
+                    </button>
+                </div>
+                
+                <div id="meet-groups-checkbox-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            
+            <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
+                <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 border-b border-slate-100 pb-2 dark:border-white/5">Génération & Liens</h3>
+                
+                <div id="meet-url-generated-ui" class="hidden space-y-4 animate-slideIn">
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between dark:bg-green-500/5 dark:border-green-500/20">
+                        <div class="flex items-center gap-2 truncate pr-2">
+                            <i data-lucide="video" class="w-5 h-5 text-green-600 dark:text-green-500 flex-shrink-0"></i>
+                            <span id="meet-generated-url-text" class="text-sm font-mono text-green-800 dark:text-green-400 truncate select-all"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button 
+                            id="meet-copy-btn"
+                            onclick="executeLinkCopy()" 
+                            class="flex items-center justify-center gap-2 py-2 px-3 border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                        >
+                            <span id="meet-copy-btn-icon-slot"></span>
+                            <span id="meet-copy-btn-text">Copier</span>
+                        </button>
+                        <button onclick="executeInviteGroupAlert()" class="flex items-center justify-center gap-2 py-2 px-3 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition cursor-pointer dark:bg-blue-500 dark:text-black dark:hover:bg-blue-400">
+                            <i data-lucide="send" class="w-4 h-4"></i> Inviter
+                        </button>
+                    </div>
+                </div>
+
+                <div id="meet-url-empty-ui" class="text-center py-6 animate-fadeIn">
+                    <i data-lucide="alert-circle" class="w-12 h-12 text-slate-300 mx-auto mb-3 dark:text-slate-700"></i>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Remplissez le titre pour générer une salle de réunion sécurisée.</p>
+                    <button 
+                        id="meet-generate-submit-btn"
+                        onclick="executeGenerateMeetingLink()"
+                        disabled
+                        class="w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-white/5 dark:text-slate-600"
+                    >
+                        <i data-lucide="link" class="w-4 h-4"></i> Créer le lien Meet
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 shadow-sm dark:bg-black/25 dark:border-white/5 dark:shadow-none animate-fadeIn">
+                <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-3 text-sm">Rappels Sécurité</h3>
+                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-2 list-disc pl-4 leading-relaxed">
+                    <li>Seuls les comptes CNETP peuvent rejoindre directement.</li>
+                    <li>Les invités externes (FEC) nécessitent une admission par l'hôte.</li>
+                    <li>La présence est requise pour le paiement des indemnités (GAF).</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // ÉTAT LOCAL DU MODULE RÉUNIONS & CONVOCATIONS
+    // =========================================================================
+    const reunionsState = {
+        title: "",
+        selectedGroups: [],
+        meetingUrl: "",
+        isCopied: false,
+        groups: [
+            { id: 'cnetp_all', label: 'Toute la CNETP (Assemblée Plénière)' },
+            { id: 'comite_pilotage', label: 'Comité de Pilotage Élargi' },
+            { id: 'ctc_all', label: 'Cellule Technique de Coordination (CTC)' },
+            { id: 'ctm_1_4', label: 'CTM 1-4 : Structures et Matériaux' },
+            { id: 'ctm_5_8', label: 'CTM 5-8 : Infrastructures et Environnement' },
+            { id: 'fec_occ', label: 'Représentants FEC & OCC' }
+        ]
+    };
+
+    // =========================================================================
+    // FONCTION DE RENDU CONTEXTUEL (UPDATE MODULE ELEMENTS)
+    // =========================================================================
+    function renderReunionsModule() {
+        const gridContainer = document.getElementById('meet-groups-checkbox-grid');
+        if(!gridContainer) return;
+
+        // 1. Rendu réactif de la grille des checkboxes sans effacer les états natifs
+        gridContainer.innerHTML = reunionsState.groups.map(group => {
+            const isChecked = reunionsState.selectedGroups.includes(group.id);
+            const activeCardClasses = isChecked 
+                ? 'border-blue-500 bg-blue-50/50 dark:border-blue-500/50 dark:bg-blue-500/5 shadow-xs' 
+                : 'border-slate-200 hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/[0.02]';
+            const labelTextColors = isChecked ? 'text-blue-900 dark:text-blue-400 font-bold' : 'text-slate-700 dark:text-slate-300';
+
+            return `
+            <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition select-none ${activeCardClasses}">
+                <input 
+                    type="checkbox" 
+                    class="mt-1 cursor-pointer"
+                    ${isChecked ? 'checked' : ''} 
+                    onclick="handleToggleGroupGate('${group.id}')"
+                />
+                <span class="text-sm font-medium ${labelTextColors}">
+                    ${group.label}
+                </span>
+            </label>`;
+        }).join('');
+
+        // 2. Bouton bascule global de l'en-tête (Tout sélectionner / Tout désélectionner)
+        const toggleAllBtn = document.getElementById('meet-toggle-all-btn');
+        if (reunionsState.selectedGroups.length === reunionsState.groups.length) {
+            toggleAllBtn.textContent = 'Tout désélectionner';
+        } else {
+            toggleAllBtn.textContent = 'Tout sélectionner';
+        }
+
+        // 3. Affichage du bloc latéral droit selon la présence d'un lien généré
+        const generatedUI = document.getElementById('meet-url-generated-ui');
+        const emptyUI = document.getElementById('meet-url-empty-ui');
+        const submitBtn = document.getElementById('meet-generate-submit-btn');
+
+        if (reunionsState.meetingUrl) {
+            emptyUI.classList.add('hidden');
+            generatedUI.classList.remove('hidden');
+            generatedUI.classList.add('flex');
+            
+            document.getElementById('meet-generated-url-text').textContent = reunionsState.meetingUrl;
+            
+            // Gestion de l'état "Copié !" temporaire
+            const copyIconSlot = document.getElementById('meet-copy-btn-icon-slot');
+            const copyText = document.getElementById('meet-copy-btn-text');
+            if (reunionsState.isCopied) {
+                copyIconSlot.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500 shrink-0"></i>`;
+                copyText.textContent = "Copié !";
+                copyText.className = "text-green-600 dark:text-green-400 font-bold";
+            } else {
+                copyIconSlot.innerHTML = `<i data-lucide="copy" class="w-4 h-4 text-slate-500 shrink-0"></i>`;
+                copyText.textContent = "Copier";
+                copyText.className = "text-slate-700 dark:text-slate-300";
+            }
+        } else {
+            generatedUI.classList.add('hidden');
+            generatedUI.classList.remove('flex');
+            emptyUI.classList.remove('hidden');
+            
+            // Verrouillage ou déverrouillage du bouton de création si le titre est rempli
+            if(reunionsState.title.trim().length > 0) {
+                submitBtn.disabled = false;
+                submitBtn.className = "w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition bg-green-600 text-white hover:bg-green-700 cursor-pointer shadow-md";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-white/5 dark:text-slate-600";
+            }
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // =========================================================================
+    // MUTATIONS & GESTION DES INTERACTIONS COMPOSANTS
+    // =========================================================================
+    
+    function handleMeetTitleInput(value) {
+        reunionsState.title = value;
+        // On n'actualise que le bouton de génération pour préserver le focus du clavier
+        const submitBtn = document.getElementById('meet-generate-submit-btn');
+        if(!reunionsState.meetingUrl && submitBtn) {
+            if(value.trim().length > 0) {
+                submitBtn.disabled = false;
+                submitBtn.className = "w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition bg-green-600 text-white hover:bg-green-700 cursor-pointer shadow-md";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-white/5 dark:text-slate-600";
+            }
+        }
+    }
+
+    function handleToggleGroupGate(groupId) {
+        const index = reunionsState.selectedGroups.indexOf(groupId);
+        if (index > -1) {
+            reunionsState.selectedGroups.splice(index, 1);
+        } else {
+            reunionsState.selectedGroups.push(groupId);
+        }
+        renderReunionsModule();
+    }
+
+    function handleSelectAllToggle() {
+        if (reunionsState.selectedGroups.length === reunionsState.groups.length) {
+            reunionsState.selectedGroups = [];
+        } else {
+            reunionsState.selectedGroups = reunionsState.groups.map(g => g.id);
+        }
+        renderReunionsModule();
+    }
+
+    function executeGenerateMeetingLink() {
+        if (reunionsState.title.trim().length === 0) return;
+        
+        // Algorithme de génération d'ID aléatoire identique à la version React
+        const randomId = Math.random().toString(36).substring(2, 12);
+        reunionsState.meetingUrl = `https://meet.google.com/cnetp-${randomId}`;
+        
+        renderReunionsModule();
+        if(typeof window.showAppToast === 'function') window.showAppToast("Salle de visioconférence Google Meet initialisée.");
+    }
+
+    function executeLinkCopy() {
+        if (!reunionsState.meetingUrl) return;
+        
+        navigator.clipboard.writeText(reunionsState.meetingUrl).then(() => {
+            reunionsState.isCopied = true;
+            renderReunionsModule();
+            
+            // Timeout de réinitialisation de l'icône de copie après 2000ms
+            setTimeout(() => {
+                reunionsState.isCopied = false;
+                renderReunionsModule();
+            }, 2000);
+        });
+    }
+
+    function executeInviteGroupAlert() {
+        if(reunionsState.selectedGroups.length === 0) {
+            alert("Veuillez sélectionner au moins un groupe participant à convoquer.");
+            return;
+        }
+        alert(`Invitations de convocation transmises avec succès aux ${reunionsState.selectedGroups.length} groupes sélectionnés avec le lien de visioconférence : ${reunionsState.meetingUrl}`);
+        
+        // Reset des états après envoi pour réinitialiser le workflow
+        reunionsState.title = "";
+        reunionsState.selectedGroups = [];
+        reunionsState.meetingUrl = "";
+        document.getElementById('meet-title-input').value = "";
+        renderReunionsModule();
+    }
+
+    // Auto-initialisation de sécurité au montage ajax
+    setTimeout(renderReunionsModule, 50);
+</script>

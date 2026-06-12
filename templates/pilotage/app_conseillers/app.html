@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conseillers Institutionnels et Politiques — Espace Administratif | CNETP</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn .25s ease-out forwards; }
+
+        .module-card { transition: transform .2s, box-shadow .2s; }
+        .module-card:hover { transform: translateY(-2px); }
+
+        .sidebar-nav-btn { transition: all .15s ease; }
+        .sidebar-nav-active {
+            background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(59,130,246,.04)) !important;
+            color: #60a5fa !important;
+            font-weight: 800;
+            border-color: rgba(59,130,246,.3) !important;
+        }
+
+        .view-container.hidden { display: none; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+
+    {% include "pilotage/app_conseillers/components/topbar_module.html" %}
+
+    <div class="flex flex-1 overflow-hidden relative w-full">
+
+        {% include "pilotage/app_conseillers/components/sidebar_module.html" %}
+
+        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            <div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
+
+                <div id="view-post-6" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_6.html" %}
+                </div>
+                <div id="view-post-7" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_7.html" %}
+                </div>
+                <div id="view-post-8" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_8.html" %}
+                </div>
+                <div id="view-post-9" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_9.html" %}
+                </div>
+                <div id="view-post-10" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_10.html" %}
+                </div>
+                <div id="view-post-11" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_11.html" %}
+                </div>
+                <div id="view-post-12" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_12.html" %}
+                </div>
+                <div id="view-post-13" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_13.html" %}
+                </div>
+                <div id="view-post-14" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_14.html" %}
+                </div>
+                <div id="view-post-15" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_15.html" %}
+                </div>
+                <div id="view-post-16" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_16.html" %}
+                </div>
+                <div id="view-post-17" class="view-container hidden">
+                    {% include "pilotage/app_conseillers/components/composant_post_17.html" %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ── Thème clair / sombre ───────────────────────────────────────────────
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        // ── Sidebar mobile ───────────────────────────────────────────────────
+        window.setConseillersSidebarOpen = function(open) {
+            const aside = document.getElementById('conseillers-sidebar');
+            const overlay = document.getElementById('conseillers-sidebar-overlay');
+            if (open) {
+                aside.classList.remove('hidden');
+                aside.classList.add('flex');
+                overlay.classList.remove('hidden');
+            } else {
+                aside.classList.add('hidden');
+                aside.classList.remove('flex');
+                overlay.classList.add('hidden');
+            }
+        };
+
+        function toggleConseillersSidebar() {
+            const aside = document.getElementById('conseillers-sidebar');
+            window.setConseillersSidebarOpen(aside.classList.contains('hidden'));
+        }
+
+        // ── Groupes repliables de la sidebar ────────────────────────────────────
+        window.toggleSidebarGroup = function(groupId) {
+            const content = document.getElementById(groupId);
+            const chevron = document.getElementById(groupId + '-chevron');
+            content.classList.toggle('hidden');
+            if (chevron) chevron.classList.toggle('rotate-180');
+        };
+
+        // ── Navigation entre postes ─────────────────────────────────────────────
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+                btn.classList.toggle('sidebar-nav-active', btn.dataset.view === viewId);
+            });
+
+            if (window.innerWidth < 1024) {
+                window.setConseillersSidebarOpen(false);
+            }
+            lucide.createIcons();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.switchView('post-{{ default_post_n|default:6 }}');
+        });
+    </script>
+</body>
+</html>

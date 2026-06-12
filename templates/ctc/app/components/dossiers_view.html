@@ -1,0 +1,148 @@
+<div class="p-6 max-w-6xl mx-auto space-y-6 text-slate-800 dark:text-slate-300 transition-colors duration-200">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Dossiers Normatifs (Pipeline CTC)</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Suivi des 5 étapes de traitement documentaire par la Cellule Technique.</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <div class="relative flex-1 sm:flex-initial">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input
+                    type="text"
+                    id="dossier-search-input"
+                    oninput="handleDossierFilterChange()"
+                    placeholder="Rechercher un dossier..."
+                    class="pl-9 pr-4 py-2 w-full sm:w-64 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:ring-blue-500/40"
+                />
+            </div>
+
+            <select
+                id="dossier-step-filter"
+                onchange="handleDossierFilterChange()"
+                class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-hidden cursor-pointer text-slate-800 hover:bg-slate-50 dark:bg-black/45 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+            >
+                <option value="all">Toutes les étapes</option>
+                <option value="RECEPTION">Étape 1 : Réception & Saisie (Ops/Tech)</option>
+                <option value="GEOSPATIAL">Étape 2 : Géospatial (SIG)</option>
+                <option value="MULTI_REVIEW">Étape 3 : Toilettage (Analyse)</option>
+                <option value="INDUSTRIAL">Étape 4 : Consultation (Logistique)</option>
+                <option value="SIGNED_OUT">Étape 5 : Transmission Superviseur</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 dark:bg-black/40 dark:text-slate-400 dark:border-white/10">
+                    <tr>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Identifiant</th>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Titre du Projet (Livrable)</th>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Étape de Traitement</th>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Statut Actuel</th>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dossiers-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                    {% for p in dossiers %}
+                    <tr class="dossier-row hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                        data-title="{{ p.norme.title|lower }} {{ p.norme.reference_number|lower }}"
+                        data-etape="{{ p.current_stage }}">
+                        <td class="px-6 py-4">
+                            <span class="font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1 rounded dark:bg-white/5 dark:border-white/10 dark:text-slate-300">
+                                {{ p.norme.reference_number }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-800 dark:text-white">{{ p.norme.title }}</div>
+                            <div class="text-xs text-slate-500 mt-1 dark:text-slate-400 text-wrap max-w-xl">
+                                Origine : CTM {{ p.norme.ctm.number }} · {{ p.norme.ctm.name }} • Reçu le {{ p.created_at|date:"d/m/Y" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if p.current_stage == 'RECEPTION' %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400">
+                                <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+                                <span>{{ p.get_current_stage_display }}</span>
+                            </div>
+                            {% elif p.current_stage == 'GEOSPATIAL' %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400">
+                                <i data-lucide="map" class="w-4 h-4 shrink-0"></i>
+                                <span>{{ p.get_current_stage_display }}</span>
+                            </div>
+                            {% elif p.current_stage == 'MULTI_REVIEW' %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400">
+                                <i data-lucide="scale" class="w-4 h-4 shrink-0"></i>
+                                <span>{{ p.get_current_stage_display }}</span>
+                            </div>
+                            {% elif p.current_stage == 'INDUSTRIAL' %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-teal-50 border-teal-200 text-teal-700 dark:bg-teal-500/10 dark:border-teal-500/20 dark:text-teal-400">
+                                <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
+                                <span>{{ p.get_current_stage_display }}</span>
+                            </div>
+                            {% else %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-green-50 border-green-200 text-green-700 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-400">
+                                <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
+                                <span>{{ p.get_current_stage_display }}</span>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
+                                <i data-lucide="clock" class="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0"></i>
+                                <span>Mis à jour {{ p.updated_at|timesince }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button onclick="handleOpenDossier('{{ p.norme.reference_number|escapejs }}')" class="flex items-center gap-1 text-blue-600 font-bold hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer">
+                                <span>Ouvrir</span>
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium italic">
+                            Aucun dossier normatif n'est actuellement engagé dans le circuit CTC.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="dossiers-empty-row" class="hidden">
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium italic">
+                            Aucun dossier normatif trouvé pour ces critères de filtrage.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleDossierFilterChange() {
+        const search = document.getElementById('dossier-search-input').value.trim().toLowerCase();
+        const stepFilter = document.getElementById('dossier-step-filter').value;
+        let visibleCount = 0;
+
+        document.querySelectorAll('#dossiers-table-body .dossier-row').forEach(function(row) {
+            const matchesSearch = row.dataset.title.includes(search);
+            const matchesStep = stepFilter === 'all' || row.dataset.etape === stepFilter;
+            const visible = matchesSearch && matchesStep;
+            row.classList.toggle('hidden', !visible);
+            if (visible) visibleCount += 1;
+        });
+
+        const emptyRow = document.getElementById('dossiers-empty-row');
+        if (emptyRow) emptyRow.classList.toggle('hidden', visibleCount > 0);
+    }
+
+    function handleOpenDossier(reference) {
+        if (typeof window.showAppToast === 'function') {
+            window.showAppToast(`Ouverture du dossier technico-légal ${reference} en mode d'évaluation.`, "success");
+        } else {
+            alert(`Ouverture du dossier : ${reference}`);
+        }
+    }
+</script>

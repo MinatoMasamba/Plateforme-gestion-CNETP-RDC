@@ -5,18 +5,18 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
     <!-- CTMs en retard -->
-    <div class="rounded-2xl border border-red-400/20 bg-white dark:bg-white/2 p-5">
+    <div class="rounded-2xl border border-red-400/20 bg-white dark:bg-white/[2%] p-5">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-red-400 mb-4 flex items-center gap-2">
             <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Chronogramme — Points de Blocage
         </h3>
         <div class="space-y-3">
             {% for item in ctms_list %}
             <div class="p-3.5 rounded-xl border border-slate-100 dark:border-white/5
-                        bg-slate-50 dark:bg-white/2 group">
+                        bg-slate-50 dark:bg-white/[2%] group">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                         <span class="text-[9px] font-black px-1.5 py-0.5 rounded uppercase
-                                     bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/8">
+                                     bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/[8%]">
                             CTM {{ item.ctm.number }}
                         </span>
                         <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[160px]">

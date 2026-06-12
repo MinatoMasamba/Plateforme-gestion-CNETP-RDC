@@ -1,0 +1,135 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     MÉTHODOLOGIE & CHRONOGRAMME — Pôle Analyse
+     Planification Opérationnelle (Planificateur) / Validation Scientifique (INBTP)
+     Source : ScheduleReview (my_pending_reviews)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="space-y-3">
+    {% if my_pending_reviews %}
+    {% for review in my_pending_reviews %}
+    <div class="rounded-2xl border border-blue-400/20 bg-white dark:bg-white/[2%] p-4" id="ctc-methodo-{{ review.pk }}">
+        <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="min-w-0 flex-1">
+                <p class="text-[9px] font-bold uppercase tracking-wider text-blue-400 font-mono">{{ review.norme.reference_number }}</p>
+                <h4 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{{ review.norme.title }}</h4>
+            </div>
+            {% if ctc_sub_role == 'planification_recons' %}
+            <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full border shrink-0
+                         bg-blue-400/10 text-blue-400 border-blue-400/20">{{ review.get_planner_status_display }}</span>
+            {% else %}
+            <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full border shrink-0
+                         bg-slate-400/10 text-slate-500 border-slate-400/20">{{ review.get_scientist_status_display }}</span>
+            {% endif %}
+        </div>
+
+        {% if ctc_sub_role == 'planification_recons' %}
+        <form class="ctc-methodo-form space-y-2" data-review-id="{{ review.pk }}">
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Validation des délais et découpage de production (chronogramme J0 → J+90).
+            </p>
+            <textarea name="notes" rows="3" placeholder="Observations chronogramme et délais…"
+                      class="w-full text-xs rounded-xl border px-3 py-2 resize-none
+                             border-slate-200 dark:border-white/10 bg-transparent
+                             text-slate-700 dark:text-slate-300 placeholder-slate-400
+                             focus:outline-none focus:ring-1 focus:ring-blue-400/40">{{ review.planner_notes }}</textarea>
+            <div class="flex gap-2">
+                <select name="status" class="flex-1 text-xs rounded-xl border px-3 py-2
+                               border-slate-200 dark:border-white/10 bg-transparent
+                               text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-400/40">
+                    {% for value, label in review.PLANNER_STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if review.planner_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit"
+                        class="px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                               bg-blue-500 hover:bg-blue-400 text-white transition-colors
+                               flex items-center justify-center gap-1.5 shrink-0">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Enregistrer
+                </button>
+            </div>
+            <p class="ctc-methodo-msg hidden text-[10px] font-semibold text-center rounded-lg py-1.5"></p>
+        </form>
+        {% elif ctc_sub_role == 'scientifique_inbtp' %}
+        <form class="ctc-methodo-form space-y-2" data-review-id="{{ review.pk }}">
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Vérification de l'état de l'art scientifique et mathématique (théorie & calculs).
+            </p>
+            <textarea name="notes" rows="3" placeholder="Validation état de l'art scientifique…"
+                      class="w-full text-xs rounded-xl border px-3 py-2 resize-none
+                             border-slate-200 dark:border-white/10 bg-transparent
+                             text-slate-700 dark:text-slate-300 placeholder-slate-400
+                             focus:outline-none focus:ring-1 focus:ring-blue-400/40">{{ review.scientist_notes }}</textarea>
+            <div class="flex gap-2">
+                <select name="status" class="flex-1 text-xs rounded-xl border px-3 py-2
+                               border-slate-200 dark:border-white/10 bg-transparent
+                               text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-400/40">
+                    {% for value, label in review.SCIENTIST_STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if review.scientist_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit"
+                        class="px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wide
+                               bg-slate-900 hover:bg-slate-800 text-white transition-colors
+                               flex items-center justify-center gap-1.5 shrink-0 dark:bg-white/10 dark:hover:bg-white/20">
+                    <i data-lucide="stamp" class="w-3.5 h-3.5"></i> Apposer visa
+                </button>
+            </div>
+            <p class="ctc-methodo-msg hidden text-[10px] font-semibold text-center rounded-lg py-1.5"></p>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="rounded-2xl border border-slate-100 dark:border-white/[6%] bg-white dark:bg-white/[2%]
+                p-8 flex flex-col items-center gap-3 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-400/10 flex items-center justify-center">
+            <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>
+        </div>
+        <p class="text-sm font-extrabold text-slate-700 dark:text-slate-300">Aucun dossier en attente</p>
+        <p class="text-xs text-slate-500">Vous serez notifié dès qu'un dossier sera assigné à votre poste.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.ctc-methodo-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reviewId = form.dataset.reviewId;
+        const notes = form.querySelector('[name="notes"]').value;
+        const status = form.querySelector('[name="status"]').value;
+        const msgEl = form.querySelector('.ctc-methodo-msg');
+        const submitBtn = form.querySelector('[type="submit"]');
+
+        submitBtn.disabled = true;
+
+        fetch(`/ctc/methodologie/${reviewId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({ notes, status })
+        })
+        .then(r => r.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            msgEl.classList.remove('hidden');
+            if (data.ok) {
+                msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-emerald-400/10 text-emerald-400';
+                msgEl.textContent = data.message;
+                if (typeof window.showAppToast === 'function') window.showAppToast(data.message, 'success');
+            } else {
+                msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-red-400/10 text-red-400';
+                msgEl.textContent = data.error || 'Erreur.';
+                if (typeof window.showAppToast === 'function') window.showAppToast(data.error || 'Erreur.', 'error');
+            }
+        })
+        .catch(() => {
+            submitBtn.disabled = false;
+            msgEl.classList.remove('hidden');
+            msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-red-400/10 text-red-400';
+            msgEl.textContent = 'Erreur réseau.';
+        });
+    });
+});
+</script>

@@ -1,0 +1,86 @@
+<div class="p-6 text-slate-800 dark:text-slate-300 transition-colors duration-200 w-full h-full flex flex-col">
+    
+    <div class="mb-6 animate-slideIn">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+            <span id="placeholder-header-icon-box"></span>
+            <span id="placeholder-title-header">---</span>
+        </h2>
+        <p id="placeholder-description-text" class="text-sm text-slate-500 dark:text-slate-400 mt-1">---</p>
+    </div>
+    
+    <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none flex-1 flex flex-col justify-center items-center animate-fadeIn">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-white/5">
+            <span id="placeholder-card-icon-box"></span>
+        </div>
+        
+        <h3 id="placeholder-title-card" class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-2">
+            Espace de travail en construction : ---
+        </h3>
+        
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+            Ce module métier est en cours de structuration. Il affichera prochainement les données correspondant à vos droits de lecture pour le pôle concerné.
+        </p>
+    </div>
+
+</div>
+
+<script>
+    // =========================================================================
+    // LOGIQUE DE CHARGEMENT DYNAMIQUE DU PLACEHOLDERVIEW
+    // =========================================================================
+    
+    // Configuration par défaut (Sert de fallback si aucun paramètre n'est passé)
+    const placeholderDefaultConfig = {
+        title: "Module National",
+        iconName: "book-open",
+        description: "Aperçu de l'interface en cours d'indexation par la cellule technique."
+    };
+
+    /**
+     * Initialise et peuple le composant PlaceholderView
+     * @param {string} title - Le titre de l'espace métier
+     * @param {string} iconName - Le nom de l'icône Lucide (ex: 'shield-check', 'database')
+     * @param {string} description - La description du pôle ou de l'étape
+     */
+    function initPlaceholderView(title, iconName, description) {
+        const finalTitle = title || placeholderDefaultConfig.title;
+        const finalIcon = iconName || placeholderDefaultConfig.iconName;
+        const finalDesc = description || placeholderDefaultConfig.description;
+
+        // 1. Injection des textes
+        document.getElementById('placeholder-title-header').textContent = finalTitle;
+        document.getElementById('placeholder-title-card').textContent = `Espace de travail en construction : ${finalTitle}`;
+        document.getElementById('placeholder-description-text').textContent = finalDesc;
+
+        // 2. Injection des icônes vectorielles Lucide
+        const headerIconBox = document.getElementById('placeholder-header-icon-box');
+        const cardIconBox = document.getElementById('placeholder-card-icon-box');
+
+        if (finalIcon) {
+            headerIconBox.innerHTML = `<i data-lucide="${finalIcon}" class="w-6 h-6 text-blue-600 dark:text-blue-500 shrink-0"></i>`;
+            cardIconBox.innerHTML = `<i data-lucide="${finalIcon}" class="w-8 h-8 text-slate-400 dark:text-slate-600 shrink-0"></i>`;
+        } else {
+            headerIconBox.innerHTML = '';
+            cardIconBox.innerHTML = '';
+        }
+
+        // 3. Demander à Lucide de générer les SVGs correspondants
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    // Exemple de déclenchement automatique pour le test au chargement du fichier
+    setTimeout(() => {
+        // Si le workspace global a déjà stocké un état de vue, on peut s'y synchroniser :
+        if (typeof window.NAVIGATION_ITEMS !== 'undefined' && typeof window.state !== 'undefined') {
+            const currentItem = window.NAVIGATION_ITEMS.find(i => i.id === window.state.currentView);
+            if (currentItem && currentItem.type === 'placeholder') {
+                initPlaceholderView(currentItem.label, currentItem.icon, currentItem.desc);
+                return;
+            }
+        }
+        // Fallback par défaut si chargé de manière isolée
+        initPlaceholderView(null, null, null);
+    }, 50);
+</script>

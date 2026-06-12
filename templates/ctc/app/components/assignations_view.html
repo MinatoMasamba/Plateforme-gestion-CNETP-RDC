@@ -1,0 +1,63 @@
+<div class="p-6 max-w-4xl mx-auto space-y-6 text-slate-800 dark:text-slate-300 transition-colors duration-200">
+
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Mes Assignations Personnelles</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+            Tâches requises pour le poste : <span class="font-bold text-slate-700 dark:text-slate-200">{{ pole_label }}{% if poste %} — {{ poste.title }}{% endif %}</span>
+        </p>
+    </div>
+
+    <div class="grid gap-4">
+        {% for task in assignation_tasks %}
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition dark:bg-black/35 dark:border-white/10 dark:shadow-none">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+                <div class="flex items-start gap-4 min-w-0">
+                    <div class="mt-1 shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+                        <i data-lucide="{{ task.icon }}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded dark:bg-white/5 dark:text-slate-400">
+                                {{ task.type_label }}
+                            </span>
+                            {% if task.reference %}
+                            <span class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">{{ task.reference }}</span>
+                            {% endif %}
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                                {{ task.status_display }}
+                            </span>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 leading-snug break-words">{{ task.title }}</h3>
+                    </div>
+                </div>
+                <button data-view-target="{{ task.view_target }}" data-anchor="{{ task.anchor|default_if_none:'' }}"
+                        onclick="handleProcessTask(this)"
+                        class="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition shrink-0 ml-12 sm:ml-0 cursor-pointer dark:bg-white/10 dark:hover:bg-white/20">
+                    <span>Traiter</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center p-12 bg-slate-50 border border-slate-200 rounded-xl border-dashed dark:bg-black/10 dark:border-white/5">
+            <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-500 mx-auto mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Boîte de réception vide</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Vous n'avez aucune assignation en attente de traitement pour votre pôle.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function handleProcessTask(btn) {
+        const viewId = btn.dataset.viewTarget;
+        const anchorId = btn.dataset.anchor;
+        if (typeof window.switchView === 'function') window.switchView(viewId);
+        if (anchorId) {
+            setTimeout(function() {
+                const el = document.getElementById(anchorId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }
+</script>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace de Travail Centralisé CTC</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Restaure la préférence de thème avant le rendu (par défaut : sombre)
+        const ctcTheme = localStorage.getItem('theme-preference') || 'dark';
+        document.documentElement.classList.toggle('dark', ctcTheme !== 'light');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 100: '#06060c', 200: '#020204' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes slideIn { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300 transition-colors duration-300">
+
+    {% include "ctc/app/components/topbar_module.html" %}
+
+    <div class="flex flex-1 overflow-hidden relative w-full">
+
+        {% include "ctc/app/components/sidebar_module.html" %}
+
+        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            <div id="main-viewport-content" class="w-full h-full">
+
+                <div id="view-dashboard" class="view-container">
+                    {% include "ctc/app/components/dashboard_module.html" %}
+                </div>
+
+                <div id="view-dossiers" class="view-container hidden">
+                    {% include "ctc/app/components/dossiers_view.html" %}
+                </div>
+
+                <div id="view-assignations" class="view-container hidden">
+                    {% include "ctc/app/components/assignations_view.html" %}
+                </div>
+
+                <div id="view-reunions" class="view-container hidden">
+                    {% include "ctc/app/components/reunions_view.html" %}
+                </div>
+
+                <div id="view-drive" class="view-container hidden">
+                    {% include "ctc/app/components/drive_view.html" %}
+                </div>
+
+                <div id="view-archives" class="view-container hidden">
+                    {% include "ctc/app/components/placeholder_view.html" %}
+                </div>
+
+                <div id="view-parametres" class="view-container hidden">
+                    {% include "ctc/app/components/parametres_module.html" %}
+                </div>
+
+                <div id="view-fallback" class="view-container hidden p-12 text-center text-slate-400">
+                    <i data-lucide="construction" class="w-10 h-10 mx-auto mb-3"></i>
+                    <p class="text-sm font-semibold">Module en cours de développement pour ce pôle.</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    {% include "ctc/app/components/directory_modal.html" %}
+    {% include "ctc/app/components/ctm_working_groups_modal.html" %}
+    {% include "ctc/composants/ctc_permission_modal.html" %}
+
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-800 dark:bg-[#020204]/90 dark:border-white/10 dark:text-slate-300 backdrop-blur-md transition-opacity">
+        <i id="toast-icon" data-lucide="check-circle-2" class="h-5 w-5 text-blue-400"></i>
+        <span id="toast-msg" class="text-xs font-semibold">Action réussie !</span>
+    </div>
+
+    {{ ctc_ctx_json|json_script:"ctc-ctx-data" }}
+
+    <script>
+        // =========================================================================
+        // CONTEXTE DE PRIVILÈGES CTC (injecté depuis get_ctc_context côté serveur)
+        // =========================================================================
+        window.CTC_CTX = JSON.parse(document.getElementById('ctc-ctx-data').textContent);
+
+        // =========================================================================
+        // UTILITAIRES API ET ICÔNES
+        // =========================================================================
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function apiFetch(url, options = {}) {
+            const defaults = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            };
+            const response = await fetch(url, {
+                ...defaults,
+                ...options,
+                headers: { ...defaults.headers, ...options.headers }
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errorText}`);
+            }
+            return response.json();
+        }
+
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+        };
+
+        function safeCreateIcons() {
+            try {
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                console.warn("Lucide icons error:", e);
+            }
+        }
+
+        window.showAppToast = function(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            if (!toast || !msgEl || !iconEl) return;
+
+            msgEl.textContent = message;
+            if (type === 'error') {
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+                iconEl.className = 'h-5 w-5 text-red-400';
+            } else if (type === 'warning') {
+                iconEl.setAttribute('data-lucide', 'alert-triangle');
+                iconEl.className = 'h-5 w-5 text-amber-400';
+            } else {
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+                iconEl.className = 'h-5 w-5 text-blue-400';
+            }
+            safeCreateIcons();
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        };
+
+        // =========================================================================
+        // ROUTAGE DES VUES — tous les modules sont rendus côté serveur via
+        // des inclus Django, on bascule simplement leur visibilité (pas d'AJAX).
+        // =========================================================================
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + viewId) || document.getElementById('view-fallback');
+            target.classList.remove('hidden');
+
+            if (typeof window.updateSidebarForTab === 'function') {
+                window.updateSidebarForTab(viewId);
+            }
+            safeCreateIcons();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            safeCreateIcons();
+            window.switchView('dashboard');
+        });
+    </script>
+</body>
+</html>

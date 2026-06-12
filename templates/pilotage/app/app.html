@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bureau Directoire — Espace Administratif | CNETP</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn .25s ease-out forwards; }
+
+        .module-card { transition: transform .2s, box-shadow .2s; }
+        .module-card:hover { transform: translateY(-2px); }
+
+        .sidebar-nav-btn { transition: all .15s ease; }
+        .sidebar-nav-active {
+            background: linear-gradient(135deg, rgba(99,102,241,.16), rgba(99,102,241,.04)) !important;
+            color: #818cf8 !important;
+            font-weight: 800;
+            border-color: rgba(99,102,241,.3) !important;
+        }
+
+        .view-container.hidden { display: none; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+
+    {% include "pilotage/app/components/topbar_module.html" %}
+
+    <div class="flex flex-1 overflow-hidden relative w-full">
+
+        {% include "pilotage/app/components/sidebar_module.html" %}
+
+        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            <div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
+
+                <div id="view-post-1" class="view-container hidden">
+                    {% include "pilotage/app/components/composant_post_1.html" %}
+                </div>
+                <div id="view-post-2" class="view-container hidden">
+                    {% include "pilotage/app/components/composant_post_2.html" %}
+                </div>
+                <div id="view-post-3" class="view-container hidden">
+                    {% include "pilotage/app/components/composant_post_3.html" %}
+                </div>
+                <div id="view-post-4" class="view-container hidden">
+                    {% include "pilotage/app/components/composant_post_4.html" %}
+                </div>
+                <div id="view-post-5" class="view-container hidden">
+                    {% include "pilotage/app/components/composant_post_5.html" %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-800 dark:bg-[#020204]/90 dark:border-white/10 dark:text-slate-300 backdrop-blur-md transition-opacity">
+        <i id="toast-icon" data-lucide="check-circle-2" class="h-5 w-5 text-blue-400"></i>
+        <span id="toast-msg" class="text-xs font-semibold">Action réussie !</span>
+    </div>
+
+    <script>
+        // ── Thème clair / sombre ───────────────────────────────────────────────
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        // ── Sidebar mobile ───────────────────────────────────────────────────
+        window.setDirectoireSidebarOpen = function(open) {
+            const aside = document.getElementById('directoire-sidebar');
+            const overlay = document.getElementById('directoire-sidebar-overlay');
+            if (open) {
+                aside.classList.remove('hidden');
+                aside.classList.add('flex');
+                overlay.classList.remove('hidden');
+            } else {
+                aside.classList.add('hidden');
+                aside.classList.remove('flex');
+                overlay.classList.add('hidden');
+            }
+        };
+
+        function toggleDirectoireSidebar() {
+            const aside = document.getElementById('directoire-sidebar');
+            window.setDirectoireSidebarOpen(aside.classList.contains('hidden'));
+        }
+
+        // ── Navigation entre postes ─────────────────────────────────────────────
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+                btn.classList.toggle('sidebar-nav-active', btn.dataset.view === viewId);
+            });
+
+            if (window.innerWidth < 1024) {
+                window.setDirectoireSidebarOpen(false);
+            }
+            lucide.createIcons();
+        };
+
+        // ── Accusé de réception CTC (Étape 5) ────────────────────────────────
+        async function acknowledgeReception(processusId, posteN) {
+            const rowId = `reception-row-${processusId}-${posteN}`;
+            const btn = document.getElementById(`btn-receive-${processusId}-${posteN}`);
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+            try {
+                const resp = await fetch(`/pilotage/processus/${processusId}/receptionner/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+                    document.getElementById(rowId)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
+            }
+        }
+
+        // ── Cadrage Bureau Directoire (Phases 1 & 2) ──────────────────────────
+        const CADRAGE_FIELDS = {
+            open:               ['strategic_orientation'],
+            validate_onic:      ['notes'],
+            validate_btp:       ['notes'],
+            formalize_mandate:  ['operational_mandate'],
+            schedule:           ['deadline_ctm_review', 'deadline_ctc_handoff', 'deadline_pilotage_review'],
+            verify_pv:          ['pv_reference'],
+            quitus_onic:        [],
+            quitus_btp:         [],
+            final_validate:     ['resolution_reference'],
+        };
+
+        async function submitCadrageAction(cadrageId, action) {
+            const rowId = `cadrage-row-${cadrageId}-${action}`;
+            const btn = document.getElementById(`btn-cadrage-${cadrageId}-${action}`);
+            if (btn) {
+                btn.dataset.originalHtml = btn.dataset.originalHtml || btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '…';
+            }
+
+            const body = new URLSearchParams({ action });
+            (CADRAGE_FIELDS[action] || []).forEach(field => {
+                const el = document.getElementById(`cadrage-${cadrageId}-${field}`);
+                if (el) body.append(field, el.value);
+            });
+
+            try {
+                const resp = await fetch(`/pilotage/cadrage/${cadrageId}/action/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+                    document.getElementById(rowId)?.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                    if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
+            }
+        }
+
+        // ── Toast notification ────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            if (!toast || !msgEl || !iconEl) return;
+
+            msgEl.textContent = msg;
+            if (type === 'error') {
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+                iconEl.className = 'h-5 w-5 text-red-400';
+            } else if (type === 'warning') {
+                iconEl.setAttribute('data-lucide', 'alert-triangle');
+                iconEl.className = 'h-5 w-5 text-amber-400';
+            } else {
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+                iconEl.className = 'h-5 w-5 text-blue-400';
+            }
+            lucide.createIcons();
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.switchView('post-{{ default_post_n|default:1 }}');
+        });
+    </script>
+</body>
+</html>

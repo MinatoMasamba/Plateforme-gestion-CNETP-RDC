@@ -9,12 +9,16 @@ from .pilotage_views import (
     PilotageApproveRequestView,
     PilotageAcknowledgeReceptionView,
     PilotageCadrageActionView,
+    PilotageDirectoireAppView,
+    PilotageConseillersAppView,
+    PilotageATFAppView,
     pilotage_context_api,
 )
 from .ctc_views import (
     CTCDashboardView,
     CTCOperationalRequestView,
     CTCApproveRequestView,
+    CTCMethodologyActionView,
     ctc_context_api,
 )
 
@@ -46,11 +50,15 @@ urlpatterns = [
     path('pilotage/approuver-demande/<int:pk>/', PilotageApproveRequestView.as_view(), name='pilotage_approve_request'),
     path('pilotage/processus/<int:pk>/receptionner/', PilotageAcknowledgeReceptionView.as_view(), name='pilotage_acknowledge_reception'),
     path('pilotage/cadrage/<int:pk>/action/', PilotageCadrageActionView.as_view(), name='pilotage_cadrage_action'),
+    path('pilotage/bureau-directoire/', PilotageDirectoireAppView.as_view(), name='pilotage_directoire_app'),
+    path('pilotage/conseillers/', PilotageConseillersAppView.as_view(), name='pilotage_conseillers_app'),
+    path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
     path('api/pilotage/contexte/', pilotage_context_api, name='pilotage_context_api'),
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────
     path('ctc/', CTCDashboardView.as_view(), name='ctc_dashboard'),
     path('ctc/demande-operationnelle/', CTCOperationalRequestView.as_view(), name='ctc_operational_request'),
     path('ctc/approuver-demande/<int:pk>/', CTCApproveRequestView.as_view(), name='ctc_approve_request'),
+    path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
     path('api/ctc/contexte/', ctc_context_api, name='ctc_context_api'),
 ]

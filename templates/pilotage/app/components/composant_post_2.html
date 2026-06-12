@@ -1,0 +1,54 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     POSTE 2 — 1er VICE-PRÉSIDENT (ONIC — giron Ingénierie)
+     Phase 1.2 (validation des experts WG) · Phase 2.2 (quitus de conformité)
+═══════════════════════════════════════════════════════════════════ -->
+{% with poste=postes.1 %}
+<div class="space-y-6">
+
+    <!-- ── Identité & mission ──────────────────────────────────────────── -->
+    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/3 backdrop-blur-md p-6 module-card animate-up">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-{{ poste.accent }}-400/15 flex items-center justify-center shrink-0">
+                <i data-lucide="{{ poste.icon }}" class="w-6 h-6 text-{{ poste.accent }}-400"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Poste {{ poste.n }} — {{ poste.title }}</h2>
+                    {% if poste.is_mine %}
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-400/15 text-indigo-400 uppercase tracking-wide">Mon poste</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">{{ poste.origin }}</p>
+                <p class="text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">{{ poste.mission }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Phase 1.2 — Validation des experts WG (Ingénierie) ──────────── -->
+    <div class="rounded-3xl border border-slate-200 dark:border-white/8 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
+            <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase1_description }}</p>
+        {% for group in poste.cadrage_groups %}
+            {% if group.phase == 1 %}
+                {% include "pilotage/app/components/_cadrage_group.html" with group=group is_mine=poste.is_mine %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ── Phase 2.2 — Quitus de conformité technique ──────────────────── -->
+    <div class="rounded-3xl border border-slate-200 dark:border-white/8 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
+            <i data-lucide="flag" class="w-4 h-4"></i> {{ poste.phase2_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase2_description }}</p>
+        {% for group in poste.cadrage_groups %}
+            {% if group.phase == 2 %}
+                {% include "pilotage/app/components/_cadrage_group.html" with group=group is_mine=poste.is_mine %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+</div>
+{% endwith %}
