@@ -137,6 +137,38 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
     def _vote_summary(self, norme):
         return compute_vote_summary(norme)
 
+    def _ctc_payload(self, norme):
+        """Décompose le circuit CTC (5 sous-étapes) pour la norme, si engagée."""
+        processus = getattr(norme, 'ctc_processus', None)
+        if not processus:
+            return None
+
+        stage_order = [key for key, _ in CTCProcessus.STAGE_CHOICES]
+        current_idx = stage_order.index(processus.current_stage)
+        fully_done = bool(processus.signed_out_at)
+        timestamps = {
+            'RECEPTION': processus.intake_validated_at or processus.indexed_at or processus.received_at,
+            'GEOSPATIAL': processus.sig_completed_at,
+            'MULTI_REVIEW': processus.all_reviews_completed_at,
+            'INDUSTRIAL': processus.industrial_completed_at,
+            'SIGNED_OUT': processus.signed_out_at,
+        }
+        return {
+            'current_stage': processus.current_stage,
+            'current_stage_label': processus.get_current_stage_display(),
+            'requires_sig': processus.requires_sig,
+            'stages': [
+                {
+                    'key': key,
+                    'label': label,
+                    'done': idx < current_idx or (fully_done and idx == current_idx),
+                    'current': idx == current_idx and not fully_done,
+                    'completed_at': timestamps[key].date().isoformat() if timestamps.get(key) else None,
+                }
+                for idx, (key, label) in enumerate(CTCProcessus.STAGE_CHOICES)
+            ],
+        }
+
     def _norme_payload(self, norme):
         vote_summary = self._vote_summary(norme)
         step = self.STATUS_TO_STEP.get(norme.status, 1)
@@ -146,6 +178,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
             'code': norme.reference_number,
             'description': norme.description,
             'ctm': getattr(norme.ctm, 'name', ''),
+            'ctm_id': norme.ctm_id,
             'wg': getattr(norme.wg, 'name', ''),
             'status': norme.status,
             'status_label': norme.get_status_display(),
@@ -155,6 +188,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
             'is_public': norme.is_public,
             'votes': vote_summary,
             'download_url': norme.current_version.url if norme.current_version else '',
+            'ctc': self._ctc_payload(norme),
         }
 
     def _review_payload(self, review):
@@ -182,7 +216,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
     def workspace(self, request):
         """Données serveur pour Processus ISO + Portail Public des Normes."""
         promoted = self._sync_vote_progression()
-        normes = Norme.objects.select_related('ctm', 'wg').prefetch_related('votes').all()
+        normes = Norme.objects.select_related('ctm', 'wg', 'ctc_processus').prefetch_related('votes').all()
         return Response({
             'steps': self.WORKFLOW_STEPS,
             'promoted_norme_ids': promoted,

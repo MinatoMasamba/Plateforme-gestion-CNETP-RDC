@@ -114,11 +114,29 @@
         activeDraftId: null,
         searchQuery: "",
         drafts: [],
+        myCtmDrafts: [],
+        myCtmId: null,
         steps: []
     };
 
     async function initValidationModule() {
+        await loadMyCtm();
         await loadValidationWorkspace();
+    }
+
+    async function loadMyCtm() {
+        try {
+            const data = await apiFetch('/api/v1/experts/me/');
+            if (data.ctm) {
+                valState.myCtmId = data.ctm;
+                return;
+            }
+            const affectations = data.affectations || [];
+            const primary = affectations.find(a => a.is_primary_ctm) || affectations[0];
+            valState.myCtmId = primary?.ctm || null;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     async function loadValidationWorkspace() {
@@ -131,7 +149,10 @@
             const data = await apiFetch('/api/v1/legistic-reviews/workspace/');
             valState.steps = data.steps || [];
             valState.drafts = data.normes || [];
-            if (!valState.activeDraftId && valState.drafts.length) valState.activeDraftId = String(valState.drafts[0].id);
+            valState.myCtmDrafts = valState.myCtmId
+                ? valState.drafts.filter(d => String(d.ctm_id) === String(valState.myCtmId))
+                : valState.drafts;
+            if (!valState.activeDraftId && valState.myCtmDrafts.length) valState.activeDraftId = String(valState.myCtmDrafts[0].id);
             if (data.promoted_norme_ids?.length && window.showAppToast) {
                 window.showAppToast(`${data.promoted_norme_ids.length} norme(s) promue(s) automatiquement après vote > 50%.`, 'success');
             }
@@ -147,18 +168,50 @@
     function initValidationSelect() {
         const select = document.getElementById('val-draft-select');
         if (!select) return;
-        select.innerHTML = valState.drafts.map(d => `<option value="${d.id}">${d.title} (${d.code})</option>`).join('');
+        select.innerHTML = valState.myCtmDrafts.map(d => `<option value="${d.id}">${d.title} (${d.code})</option>`).join('');
         select.value = valState.activeDraftId;
+    }
+
+    function renderCtcSubStages(ctc, isDark) {
+        return ctc.stages.map(stage => {
+            const label = stage.label.replace(/^Étape \d+ — /, '');
+            let circleClass, textClass, icon, badge;
+            if (stage.done) {
+                circleClass = "bg-emerald-500/15 text-emerald-600 border border-emerald-500/25";
+                textClass = isDark ? "text-slate-400" : "text-slate-600";
+                icon = "check";
+                const dateStr = stage.completed_at ? stage.completed_at.split('-').reverse().join('/') : '';
+                badge = `<span class="text-[9px] font-bold text-emerald-600 shrink-0">Terminé${dateStr ? ' le ' + dateStr : ''}</span>`;
+            } else if (stage.current) {
+                circleClass = "bg-amber-500 text-black shadow-xs";
+                textClass = isDark ? "text-amber-400 font-bold" : "text-amber-700 font-bold";
+                icon = "loader-circle";
+                badge = `<span class="text-[9px] font-bold text-amber-600 shrink-0">En cours</span>`;
+            } else {
+                circleClass = isDark ? "bg-black/40 border border-white/10 text-slate-600" : "bg-slate-200 border border-slate-300 text-slate-500";
+                textClass = isDark ? "text-slate-600" : "text-slate-400";
+                icon = "circle";
+                badge = `<span class="text-[9px] text-slate-400 italic shrink-0">À venir</span>`;
+            }
+            return `
+            <div class="flex items-center gap-3 pl-7 py-1 text-[10.5px]">
+                <span class="h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${circleClass}">
+                    <i data-lucide="${icon}" class="h-2.5 w-2.5"></i>
+                </span>
+                <span class="${textClass} flex-1">${label}</span>
+                ${badge}
+            </div>`;
+        }).join('');
     }
 
     function renderValidationModule() {
         initValidationSelect();
-        const d = valState.drafts.find(x => String(x.id) === String(valState.activeDraftId)) || valState.drafts[0];
+        const d = valState.myCtmDrafts.find(x => String(x.id) === String(valState.activeDraftId)) || valState.myCtmDrafts[0];
         const isDark = document.documentElement.classList.contains('dark');
         if (!d) {
             document.getElementById('val-active-title').textContent = 'Aucune norme disponible';
             document.getElementById('val-active-subtitle').textContent = '';
-            document.getElementById('val-workflow-steps').innerHTML = '<div class="p-4 text-xs text-slate-500">Aucune phase à afficher.</div>';
+            document.getElementById('val-workflow-steps').innerHTML = '<div class="p-4 text-xs text-slate-500">Aucune norme de votre CTM n\'est actuellement engagée dans le circuit réglementaire.</div>';
             document.getElementById('val-btn-prev').disabled = true;
             document.getElementById('val-btn-next').disabled = true;
             return;
@@ -174,6 +227,7 @@
         const stepsHtml = valState.steps.map(step => {
             const isPast = step.id < d.step;
             const isCurrent = step.id === d.step;
+            const hasCtc = step.id === 3 && !!d.ctc;
 
             let outerClass = "";
             let circleClass = "";
@@ -184,23 +238,36 @@
                 outerClass = isDark ? "bg-blue-500/10 border-blue-500/35 text-white shadow-sm scale-[1.01]" : "bg-blue-500/5 border-blue-400 text-blue-950 shadow-xs scale-[1.01]";
                 circleClass = "bg-blue-500 text-black shadow-xs";
                 titleClass += isDark ? " text-blue-400" : " text-blue-700";
-                descHtml = `<p class="text-[10.5px] mt-1 leading-normal ${isDark ? 'text-slate-400' : 'text-slate-600 font-medium'}">Statut serveur: ${d.status_label}. Votes POUR: ${d.votes?.percent_for || 0}%.</p>`;
+                if (hasCtc) {
+                    const stageLabel = d.ctc.current_stage_label.replace(/^Étape \d+ — /, '');
+                    descHtml = `<p class="text-[10.5px] mt-1 leading-normal ${isDark ? 'text-slate-400' : 'text-slate-600 font-medium'}">Circuit CTC en cours — étape actuelle : <span class="font-bold">${stageLabel}</span>.</p>`;
+                } else {
+                    descHtml = `<p class="text-[10.5px] mt-1 leading-normal ${isDark ? 'text-slate-400' : 'text-slate-600 font-medium'}">Statut serveur: ${d.status_label}. Votes POUR: ${d.votes?.percent_for || 0}%.</p>`;
+                }
             } else if (isPast) {
                 outerClass = isDark ? "bg-white/[0.01] border-white/5 text-slate-400 opacity-60" : "bg-slate-100/50 border-slate-200 text-slate-600 opacity-80";
                 circleClass = "bg-blue-500/15 text-blue-600 border border-blue-500/25 font-bold";
+                if (hasCtc) {
+                    descHtml = `<p class="text-[10.5px] mt-1 leading-normal ${isDark ? 'text-slate-400' : 'text-slate-600'}">Circuit CTC complété (5/5 étapes).</p>`;
+                }
             } else {
                 outerClass = isDark ? "bg-transparent border-transparent text-slate-600 opacity-30" : "bg-transparent border-transparent text-slate-400 opacity-50";
                 circleClass = isDark ? "bg-black/40 border border-white/10 text-slate-600" : "bg-slate-200 border border-slate-300 text-slate-500";
             }
+
+            const subStagesHtml = hasCtc
+                ? `<div class="mt-2 space-y-0.5 border-l ${isDark ? 'border-white/10' : 'border-slate-200'}">${renderCtcSubStages(d.ctc, isDark)}</div>`
+                : '';
 
             return `
             <div class="flex gap-4 p-3 rounded-lg border transition-all duration-200 text-xs select-none ${outerClass}">
                 <span class="h-7 w-7 rounded-full flex items-center justify-center font-bold text-[10.5px] font-mono shrink-0 transition-colors ${circleClass}">
                     ${step.id}
                 </span>
-                <div>
+                <div class="flex-1">
                     <p class="${titleClass}">${step.title}</p>
                     ${descHtml}
+                    ${subStagesHtml}
                 </div>
             </div>`;
         }).join('');
@@ -237,7 +304,7 @@
 
                 <div class="pt-2 border-t flex items-center justify-between text-[10px] text-slate-500 font-bold font-sans ${isDark ? 'border-white/5' : 'border-slate-200'}">
                     <span>Statut: ${d.status_label}</span>
-                    <button onclick="downloadNorme('${d.download_url}', '${d.code}')" class="px-2.5 py-1 rounded font-bold cursor-pointer transition-colors flex items-center gap-1.5 border ${isDark ? 'bg-white/5 hover:bg-white/10 text-white border-transparent' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'}">
+                    <button onclick="downloadNorme(${d.id}, '${d.code}')" class="px-2.5 py-1 rounded font-bold cursor-pointer transition-colors flex items-center gap-1.5 border ${isDark ? 'bg-white/5 hover:bg-white/10 text-white border-transparent' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'}">
                         <i data-lucide="download" class="h-3 w-3"></i> Télécharger
                     </button>
                 </div>
@@ -271,12 +338,12 @@
         if (draft && draft.step < 7) setValStep(draft.step + 1);
     }
 
-    function downloadNorme(url, code) {
-        if (url) {
-            window.open(url, '_blank');
+    function downloadNorme(id, code) {
+        if (!id) {
+            if(window.showAppToast) window.showAppToast(`Aucun contenu disponible pour ${code}.`, "warning");
             return;
         }
-        if(window.showAppToast) window.showAppToast(`Aucun fichier serveur disponible pour ${code}.`, "warning");
+        window.open(`/api/v1/norms/${id}/pdf/`, '_blank');
     }
 
     setTimeout(initValidationModule, 100);

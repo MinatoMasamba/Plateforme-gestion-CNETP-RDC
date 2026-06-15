@@ -6,6 +6,7 @@ import zipfile
 from html import unescape
 from xml.etree import ElementTree
 
+from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,6 +22,7 @@ from .serializers import (
     NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer
 )
 from ..permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
+from ..pdf_utils import generate_norm_pdf
 from ..validation.views import promote_norme_to_ctc_if_vote_passes
 
 
@@ -245,6 +247,15 @@ class NormeViewSet(viewsets.ModelViewSet):
         norme = self.get_object()
         serializer = NormeFullHistorySerializer(norme)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def pdf(self, request, pk=None):
+        """Génère et télécharge le PDF du contenu de la norme (dernière version)."""
+        norme = self.get_object()
+        pdf_bytes = generate_norm_pdf(norme)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{norme.reference_number}.pdf"'
+        return response
 
     @action(detail=True, methods=['get'])
     def votes(self, request, pk=None):

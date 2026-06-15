@@ -463,12 +463,48 @@
         });
     }
 
+    function renderEmptyMeetingState() {
+        document.getElementById('meet-active-title').textContent = 'Aucune session en cours';
+        document.getElementById('meet-active-law').textContent = '—';
+        document.getElementById('meet-quorum-text').textContent = '0 / 0 Membres';
+        document.getElementById('meet-quorum-badge').textContent = 'Aucune séance';
+        document.getElementById('meet-quorum-badge').className = 'text-[9.1px] font-bold px-1.5 py-0.5 rounded inline-block bg-slate-200 text-slate-500 dark:bg-white/5 dark:text-slate-400';
+        document.getElementById('meet-quorum-pct').textContent = '0%';
+        document.getElementById('meet-quorum-req').textContent = 'Requis : —';
+
+        const presidentNote = isCtmPresident()
+            ? `<p class="mt-2 text-[10.5px] text-slate-500 dark:text-slate-400 italic">En tant que Président scientifique du CTM, vous présidez les séances et participez aux scrutins (émargement &amp; vote) dès qu'une session est convoquée par le Secrétaire du CTM.</p>`
+            : '';
+        document.getElementById('meet-role-missions-card').innerHTML = `<div class="text-center py-2"><i data-lucide="calendar-x" class="h-6 w-6 text-slate-400 mx-auto mb-2"></i><p class="font-bold">Aucune session planifiée pour le moment.</p>${presidentNote}</div>`;
+
+        document.getElementById('meet-live-container').innerHTML = `<div class="md:col-span-3 rounded-xl border border-dashed border-slate-300 dark:border-white/10 p-8 text-center text-xs text-slate-500"><i data-lucide="video-off" class="h-6 w-6 mx-auto mb-2 text-slate-400"></i>Aucune visioconférence active. La convocation des séances relève du Secrétaire du CTM.</div>`;
+
+        document.getElementById('meet-attendance-role-banner').innerHTML = '';
+        document.getElementById('meet-quorum-desc').textContent = 'Aucune séance en cours : aucune règle de quorum à appliquer.';
+        document.getElementById('meet-attendance-list').innerHTML = '<p class="text-xs text-slate-500 text-center col-span-2 py-6 italic">Aucun émargement : aucune session n\'est actuellement convoquée.</p>';
+        document.getElementById('meet-quorum-verdict').innerHTML = '';
+
+        document.getElementById('stat-votants').textContent = '0';
+        document.getElementById('stat-exxprimes').textContent = '0';
+        document.getElementById('stat-abs').textContent = '0';
+        document.getElementById('stat-taux').textContent = '0%';
+        document.getElementById('vote-bars-container').innerHTML = '';
+        document.getElementById('vote-verdict-box').textContent = '';
+        document.getElementById('vote-verdict-box').className = 'p-3 rounded-lg text-[11px] font-mono text-center font-bold';
+        document.getElementById('stat-req-pct').textContent = '';
+        document.getElementById('vote-expert-block').innerHTML = '<div class="p-4 rounded-xl border text-xs text-slate-500 text-center italic">Aucun scrutin en cours.</div>';
+        document.getElementById('vote-close-action').innerHTML = '';
+
+        document.getElementById('pv-container').innerHTML = '<div class="rounded-xl border p-4 text-xs text-slate-500 italic text-center">Aucun procès-verbal disponible : aucune session n\'a encore été clôturée.</div>';
+
+        window.safeCreateIcons?.();
+    }
+
     function renderActiveMeeting() {
         const m = appState.meetings.find(x => sameId(x.id, appState.activeMeetingId));
         const detail = appState.currentMeetingDetails.detail || m;
         if (!m) {
-            document.getElementById('meet-active-title').textContent = 'Aucune réunion sélectionnée';
-            document.getElementById('meet-active-law').textContent = '';
+            renderEmptyMeetingState();
             return;
         }
         const presences = appState.currentMeetingDetails.presences || [];
