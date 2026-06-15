@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.mobileapp.apps.MobileappConfig',
     'apps.documents.apps.DocumentsConfig',
     'apps.messaging.apps.MessagingConfig',
+    'apps.ia_agent.apps.IaAgentConfig',
 ]
 
 MIDDLEWARE = [
@@ -243,6 +244,11 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cnetp.cd')
+
+# Agent IA (Claude / Anthropic) — laisser ANTHROPIC_API_KEY vide pour désactiver l'agent
+ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
+ANTHROPIC_MODEL = config('ANTHROPIC_MODEL', default='claude-sonnet-4-5')
+IA_AGENT_MAX_TOOL_ITERATIONS = config('IA_AGENT_MAX_TOOL_ITERATIONS', default=8, cast=int)
 
 # WhatsApp via Twilio (laisser vide pour désactiver l'envoi réel)
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')

@@ -104,10 +104,10 @@ class ExpertRegistrationForm(forms.ModelForm):
     last_name = forms.CharField(
         max_length=150,
         required=True,
-        label="Nom",
+        label="Nom et Post-nom",
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Votre nom'
+            'placeholder': 'Votre nom et post-nom'
         })
     )
     

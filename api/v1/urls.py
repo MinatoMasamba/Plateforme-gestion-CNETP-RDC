@@ -28,6 +28,7 @@ from .sidebar.views import (
     BudgetSidebarViewSet, DocumentHistoryViewSet, DashboardKPIsViewSet,
     ExpertActionsViewSet
 )
+from .ia_agent.views import AgentSessionViewSet, AgentArtifactViewSet
 
 # Créer le router et enregistrer les viewsets
 router = DefaultRouter()
@@ -89,6 +90,10 @@ router.register(r'messages', MessageViewSet, basename='messages')
 
 # Public amendments routes
 router.register(r'public-amendments', PublicAmendementViewSet, basename='public-amendments')
+
+# Agent IA routes
+router.register(r'ia-agent/sessions', AgentSessionViewSet, basename='ia-agent-sessions')
+router.register(r'ia-agent/artifacts', AgentArtifactViewSet, basename='ia-agent-artifacts')
 
 # SIDEBAR API ROUTES (Cahier des Charges Co-Gouvernance)
 router.register(r'working-groups', WorkingGroupSidebarViewSet, basename='working-groups-sidebar')

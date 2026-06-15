@@ -10,7 +10,6 @@ Usage :
 
 import json
 import logging
-import time
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -284,25 +283,11 @@ def whatsapp_from():
 
 
 def envoyer_whatsapp(client, numero, message):
-    """Envoie un message WhatsApp puis vérifie son statut réel auprès de Twilio.
-
-    L'API Twilio accepte (et renvoie un SID) même si le message ne sera
-    jamais livré (ex : destinataire non inscrit au Sandbox, quota du
-    compte Trial dépassé). On attend donc un court instant puis on relit
-    le statut pour détecter ces échecs et remonter le code d'erreur exact.
-    """
-    msg = client.messages.create(
+    client.messages.create(
         from_=whatsapp_from(),
         to=f"whatsapp:{normaliser_numero_whatsapp(numero)}",
         body=message,
     )
-    time.sleep(2)
-    msg = client.messages(msg.sid).fetch()
-    if msg.status == "failed" or msg.error_code:
-        raise RuntimeError(
-            f"Twilio {msg.status} (code {msg.error_code}) : "
-            f"{msg.error_message or 'voir https://www.twilio.com/docs/api/errors/' + str(msg.error_code)}"
-        )
 
 
 class Command(BaseCommand):
@@ -424,10 +409,10 @@ class Command(BaseCommand):
                             )
                         wa_ok += 1
                         self.stdout.write(self.style.SUCCESS(f"✅ WhatsApp envoyé à {nom} <{telephone}>"))
-                    except Exception as e:
+                    except Exception:
                         wa_ko += 1
                         logger.exception("Échec de l'envoi WhatsApp à %s <%s>", nom, telephone)
-                        self.stdout.write(self.style.ERROR(f"❌ Échec WhatsApp pour {nom} <{telephone}> : {e}"))
+                        self.stdout.write(self.style.ERROR(f"❌ Échec WhatsApp pour {nom} <{telephone}>"))
 
         self.stdout.write("\n" + "=" * 60)
         self.stdout.write(self.style.SUCCESS(
