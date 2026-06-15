@@ -6,14 +6,14 @@
 <div class="space-y-3">
     {% for req in pending_requests %}
     <div id="request-row-{{ req.id }}"
-         class="rounded-2xl border border-amber-400/20 bg-white dark:bg-white/2 p-5">
+         class="rounded-2xl border border-indigo-400/20 bg-white dark:bg-white/[2%] p-5">
 
         <div class="flex flex-col sm:flex-row sm:items-start gap-4">
 
             <!-- Info demandeur -->
             <div class="flex items-start gap-3 flex-1 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center
-                            text-xs font-black text-amber-400 shrink-0">
+                <div class="w-9 h-9 rounded-xl bg-indigo-400/15 flex items-center justify-center
+                            text-xs font-black text-indigo-400 shrink-0">
                     {{ req.requester.user.first_name|first|upper }}{{ req.requester.user.last_name|first|upper }}
                 </div>
                 <div class="min-w-0">
@@ -24,8 +24,8 @@
                         {% if req.requester.structure %}{{ req.requester.structure.acronym }} —{% endif %}
                         {{ req.created_at|date:"d/m/Y à H:i" }}
                     </p>
-                    <div class="mt-2 p-2.5 rounded-lg bg-slate-50 dark:bg-white/3 border border-slate-100 dark:border-white/5">
-                        <p class="text-[10px] font-semibold text-amber-400 mb-0.5">
+                    <div class="mt-2 p-2.5 rounded-lg bg-slate-50 dark:bg-white/[3%] border border-slate-100 dark:border-white/5">
+                        <p class="text-[10px] font-semibold text-indigo-400 mb-0.5">
                             Ressource demandée :
                         </p>
                         <p class="text-xs text-slate-700 dark:text-slate-300 font-medium">
@@ -50,7 +50,7 @@
                            class="w-full text-[10.5px] rounded-lg border px-2.5 py-1.5
                                   border-slate-200 dark:border-white/10 bg-transparent
                                   text-slate-600 dark:text-slate-400 placeholder-slate-400
-                                  focus:outline-none focus:ring-1 focus:ring-amber-400/50">
+                                  focus:outline-none focus:ring-1 focus:ring-indigo-400/50">
                 </div>
                 <div class="flex gap-2 w-full">
                     <button id="btn-approved-{{ req.id }}"

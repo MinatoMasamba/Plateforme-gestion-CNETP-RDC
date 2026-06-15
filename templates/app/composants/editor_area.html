@@ -821,9 +821,13 @@
             body: JSON.stringify({ vote: voteMap[choice] })
         });
         if (!response.ok) return window.showAppToast?.((await response.json()).detail || "Vote impossible.", "error");
+        const data = await response.json();
         await loadNormeVotes();
         renderVotes();
         window.showAppToast?.(`Vote (${choice.toUpperCase()}) enregistré pour cette norme.`, "success");
+        if (data.promoted_to_ctc) {
+            window.showAppToast?.("Plus de 50% de votes POUR : la norme est transmise automatiquement au Toilettage CTC.", "success");
+        }
     }
 
     // ==========================================

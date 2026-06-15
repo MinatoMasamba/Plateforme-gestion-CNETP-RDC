@@ -25,95 +25,97 @@ class Command(BaseCommand):
     )
 
     # (ordre, role, intitulé nominatif, nom de la Structure requise, n° Ligne / Tableau 1)
+    # Intitulés conformes à la section 3.1 « Le Comité de Pilotage Élargi (27
+    # Postes) » et à la Cartographie des 200 Postes (Annexe) du Manuel
+    # Organisationnel CNETP 2026.
     POSTES = [
         # ---- Bureau Directoire (5 postes) ----
         (1, 'PRESIDENT',
-         "Président — Cabinet du Ministre des ITP",
+         "Président du Comité de Pilotage Élargi",
          'Cabinet du Ministre des ITP', 2),
         (2, 'VICE_PRESIDENT',
-         "Vice-Président — Ordre National des Ingénieurs du Congo (ONIC)",
+         "Vice-Président — Ordre National des Ingénieurs Civils (ONIC)",
          'Ordres Professionnels et Associations Professionnelles', 15),
         (3, 'VICE_PRESIDENT',
-         "Vice-Président — Association/Conseil Interprofessionnel du BTP (AIBTP/CNIRS-BTP)",
+         "Vice-Président — Association des Ingénieurs BTP (AIBTP)",
          'Ordres Professionnels et Associations Professionnelles', 15),
         (4, 'SECRETARY',
-         "Secrétaire — Institutions Académiques et de Recherche",
+         "Secrétaire du Comité de Pilotage Élargi",
          'Institutions Académiques et de Recherche', 14),
         (5, 'RAPPORTEUR',
-         "Rapporteur Général — Secrétariat Général aux ITP",
+         "Rapporteur Général du Comité de Pilotage Élargi",
          'Secrétariat Général aux ITP', 1),
 
         # ---- Collège des Conseillers Institutionnels et Politiques (12 postes) ----
         (6, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Cabinet du Ministre des ITP (1/2)",
+         "Conseiller Technique — Cabinet du Ministre des ITP (1/2)",
          'Cabinet du Ministre des ITP', 2),
         (7, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Cabinet du Ministre des ITP (2/2)",
+         "Conseiller Technique — Cabinet du Ministre des ITP (2/2)",
          'Cabinet du Ministre des ITP', 2),
         (8, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Secrétariat Général aux ITP",
+         "Conseiller en Planification — Secrétariat Général aux ITP",
          'Secrétariat Général aux ITP', 1),
         (9, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Secrétariat Général à la Reconstruction (1/2)",
+         "Cadre Supérieur — Secrétariat Général à la Reconstruction (1/2)",
          'Secrétariat Général à la Reconstruction', 3),
         (10, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Secrétariat Général à la Reconstruction (2/2)",
+         "Cadre Supérieur — Secrétariat Général à la Reconstruction (2/2)",
          'Secrétariat Général à la Reconstruction', 3),
         (11, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Représentant des Ministères Partenaires (1/5)",
+         "Représentant expert du Ministère de l'Urbanisme et Habitat",
          'Autres Ministères', 12),
         (12, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Représentant des Ministères Partenaires (2/5)",
+         "Représentant expert du Ministère de l'Aménagement du Territoire",
          'Autres Ministères', 12),
         (13, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Représentant des Ministères Partenaires (3/5)",
+         "Représentant expert du Ministère de l'Environnement",
          'Autres Ministères', 12),
         (14, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Représentant des Ministères Partenaires (4/5)",
+         "Représentant expert du Ministère des Affaires Foncières",
          'Autres Ministères', 12),
         (15, 'CONSEILLER_POLITIQUE',
-         "Conseiller Institutionnel et Politique — Représentant des Ministères Partenaires (5/5) "
-         "[⚠ le manuel annonce 5 postes mais nomme 6 ministères — cf. avertissement final]",
+         "Représentant expert de la Division des ITP / Ville de Kinshasa",
          'Autres Ministères', 12),
         (16, 'CONSEILLER_POLITIQUE',
-         "Conseiller Juridique Spécialisé (1/2)",
+         "Conseiller Juridique expert en légistique (1/2)",
          'Experts Juridiques Spécialisés', 13),
         (17, 'CONSEILLER_POLITIQUE',
-         "Conseiller Juridique Spécialisé (2/2)",
+         "Conseiller Juridique expert en légistique (2/2)",
          'Experts Juridiques Spécialisés', 13),
 
         # ---- Collège des Administrateurs Techniques et Financiers (5 postes) ----
         (18, 'ADMIN_TECH_FIN',
-         "Administrateur Technique et Financier — Office des Routes (OR)",
+         "Directeur Technique — Office des Routes (OR)",
          'Office des Routes', 4),
         (19, 'ADMIN_TECH_FIN',
-         "Administrateur Technique et Financier — Office des Voiries et Drainage (OVD)",
+         "Directeur Technique — Office des Voiries et Drainage (OVD)",
          'Office des Voiries et Drainage', 5),
         (20, 'ADMIN_TECH_FIN',
-         "Administrateur Technique et Financier — Agence Congolaise des Grands Travaux (ACGT)",
+         "Directeur des Normes et de l'Innovation — Agence Congolaise des Grands Travaux (ACGT)",
          'Agence Congolaise des Grands Travaux', 6),
         (21, 'ADMIN_TECH_FIN',
-         "Administrateur Technique et Financier — Bureau Technique de Contrôle (BTC)",
+         "Directeur d'Expertise — Bureau Technique de Contrôle (BTC)",
          'Bureau Technique de Contrôle', 7),
         (22, 'ADMIN_TECH_FIN',
-         "Administrateur Technique et Financier — Fonds National d'Entretien Routier (FONER)",
+         "Directeur des Études Financières — Fonds National d'Entretien Routier (FONER)",
          "Fonds National d'Entretien Routier", 8),
 
         # ---- Collège des Partenaires Sectoriels et de la Société Civile (5 postes) ----
         (23, 'PARTENAIRE_SOC_CIV',
-         "Partenaire Sectoriel et Société Civile — Ordre National des Architectes (ONA)",
+         "Représentant de l'Ordre National des Architectes (ONA)",
          'Ordres Professionnels et Associations Professionnelles', 15),
         (24, 'PARTENAIRE_SOC_CIV',
-         "Partenaire Sectoriel et Société Civile — Syndicats Professionnels du BTP",
+         "Représentant des Syndicats et Organismes de Régulation",
          'Ordres Professionnels et Associations Professionnelles', 15),
         (25, 'PARTENAIRE_SOC_CIV',
-         "Partenaire Sectoriel et Société Civile — Bureau d'Études d'Aménagement Urbain (BEAU)",
+         "Administrateur Technique — Bureau d'Études d'Aménagement Urbain (BEAU)",
          "Bureau d'Études d'Aménagement Urbain", 10),
         (26, 'PARTENAIRE_SOC_CIV',
-         "Partenaire Sectoriel et Société Civile — Fédération des Entreprises du Congo (FEC)",
+         "Représentant du Patronat et du Secteur BTP Privé — Fédération des Entreprises du Congo (FEC)",
          'Fédération des Entreprises du Congo', 17),
         (27, 'PARTENAIRE_SOC_CIV',
-         "Partenaire Sectoriel et Société Civile — Office Congolais de Contrôle (OCC)",
+         "Directeur Technique — Office Congolais de Contrôle (OCC)",
          'Société Civile et Organismes Techniques', 16),
     ]
 
@@ -173,12 +175,8 @@ class Command(BaseCommand):
         self._signaler_incoherences(comite)
 
     def _signaler_incoherences(self, comite):
-        """Signale (sans les corriger) deux écarts de données qui nécessitent un arbitrage humain."""
-        self.stdout.write(self.style.WARNING(
-            "\n--- ⚠️  Points à arbitrer manuellement (non corrigés automatiquement) ---"
-        ))
-
-        # 1. L'adhésion Rapporteur pré-existante correspond-elle à la Ligne 1 (SG-ITP) ?
+        """Signale (sans la corriger) une réconciliation de données restant à faire."""
+        # L'adhésion Rapporteur pré-existante correspond-elle à la Ligne 1 (SG-ITP) ?
         rapporteur = (
             PilotageMembreship.objects
             .filter(comite=comite, role='RAPPORTEUR')
@@ -188,21 +186,13 @@ class Command(BaseCommand):
         if rapporteur and rapporteur.expert:
             structure_actuelle = rapporteur.expert.structure.name if rapporteur.expert.structure else "—"
             if structure_actuelle != 'Secrétariat Général aux ITP':
+                self.stdout.write(self.style.WARNING(
+                    "\n--- ⚠️  Point à arbitrer manuellement (non corrigé automatiquement) ---"
+                ))
                 self.stdout.write(
-                    f"  1. PilotageMembreship existante : le Rapporteur Général affecté "
+                    f"  PilotageMembreship existante : le Rapporteur Général affecté "
                     f"« {rapporteur.expert.full_name} » provient de « {structure_actuelle} », "
                     f"alors que le manuel exige la Ligne 1 (Secrétariat Général aux ITP). "
                     f"Cette adhésion n'a PAS été modifiée — à réconcilier une fois sa "
                     f"vraie structure d'origine confirmée."
                 )
-
-        # 2. Incohérence interne du manuel : 5 postes annoncés mais 6 ministères nommés
-        self.stdout.write(
-            "  2. Le manuel annonce « 5 Représentants des Ministères Partenaires » "
-            "(Collège des Conseillers, Ligne 12) mais en NOMME 6 (Urbanisme, Aménagement "
-            "du Territoire, Environnement, Affaires Foncières, ITP/Ville de Kinshasa, "
-            "OVDA). J'ai créé exactement 5 postes — conforme au total officiel "
-            "(12 = 2+1+2+5+2 et 27/200 au global) — le 5e porte une note ⚠ ; "
-            "tranchez lequel des 6 organismes occupe ce poste quand vous aurez la "
-            "clarification du Bureau."
-        )

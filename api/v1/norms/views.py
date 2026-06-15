@@ -21,13 +21,14 @@ from .serializers import (
     NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer
 )
 from ..permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
+from ..validation.views import promote_norme_to_ctc_if_vote_passes
 
 
 class NormeViewSet(viewsets.ModelViewSet):
     """ViewSet complet pour les normes"""
     queryset = Norme.objects.select_related(
         'ctm', 'wg', 'created_by', 'updated_by'
-    ).prefetch_related('versions')
+    ).prefetch_related('versions', 'votes')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'ctm__id', 'wg__id', 'is_public']
@@ -274,7 +275,17 @@ class NormeViewSet(viewsets.ModelViewSet):
                 'justification': request.data.get('justification', ''),
             }
         )
-        return Response(NormeVoteSerializer(vote).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+        promoted_to_ctc = promote_norme_to_ctc_if_vote_passes(norme)
+
+        return Response(
+            {
+                **NormeVoteSerializer(vote).data,
+                'norme_status': norme.status,
+                'promoted_to_ctc': promoted_to_ctc,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['get'])
     def versions(self, request, pk=None):

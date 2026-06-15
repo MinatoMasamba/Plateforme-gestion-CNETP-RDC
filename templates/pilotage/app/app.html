@@ -49,6 +49,13 @@
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200 transition-colors duration-300">
 
+    {% if platform_locked %}
+    <div class="shrink-0 px-4 py-2 bg-red-500/10 border-b border-red-400/30 text-red-500 text-[11px] font-bold flex items-center justify-center gap-2 text-center">
+        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+        Plateforme verrouillée par le Président du Comité de Pilotage{% if platform_locked_by %} ({{ platform_locked_by }}){% endif %} — toutes les actions de cadrage CTM sont suspendues.
+    </div>
+    {% endif %}
+
     {% include "pilotage/app/components/topbar_module.html" %}
 
     <div class="flex flex-1 overflow-hidden relative w-full">
@@ -110,6 +117,22 @@
             const aside = document.getElementById('directoire-sidebar');
             window.setDirectoireSidebarOpen(aside.classList.contains('hidden'));
         }
+
+        // ── Navigation vers une fonction de mon poste (sidebar) ─────────────────
+        // Affiche uniquement la section ciblée (onglet) et masque les autres
+        // sections du même poste, sans toucher au bloc "Identité & mission".
+        window.switchPosteSection = function(targetId, btn) {
+            const section = document.getElementById(targetId);
+            if (!section) return;
+
+            section.parentElement.querySelectorAll('.poste-section').forEach(el => el.classList.add('hidden'));
+            section.classList.remove('hidden');
+
+            document.querySelectorAll('#directoire-sidebar .sidebar-nav-btn').forEach(b => b.classList.remove('sidebar-nav-active'));
+            if (btn) btn.classList.add('sidebar-nav-active');
+
+            if (window.innerWidth < 1024) window.setDirectoireSidebarOpen(false);
+        };
 
         // ── Navigation entre postes ─────────────────────────────────────────────
         window.switchView = function(viewId) {
@@ -213,7 +236,7 @@
                 iconEl.className = 'h-5 w-5 text-red-400';
             } else if (type === 'warning') {
                 iconEl.setAttribute('data-lucide', 'alert-triangle');
-                iconEl.className = 'h-5 w-5 text-amber-400';
+                iconEl.className = 'h-5 w-5 text-indigo-400';
             } else {
                 iconEl.setAttribute('data-lucide', 'check-circle-2');
                 iconEl.className = 'h-5 w-5 text-blue-400';
@@ -226,6 +249,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             window.switchView('post-{{ default_post_n|default:1 }}');
+
+            const firstNavBtn = document.querySelector('#directoire-sidebar .sidebar-nav-btn');
+            if (firstNavBtn) window.switchPosteSection(firstNavBtn.dataset.section, firstNavBtn);
         });
     </script>
 </body>

@@ -1,19 +1,19 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      HERO HEADER — Profil expert + Badge collège + Poste nominatif
 ═══════════════════════════════════════════════════════════════════ -->
-<div class="relative overflow-hidden border-b border-slate-200 dark:border-white/8
+<div class="relative overflow-hidden border-b border-slate-200 dark:border-white/[8%]
             bg-gradient-to-r from-slate-100 via-white to-slate-50
             dark:from-[#06060c] dark:via-[#0a0a14] dark:to-[#06060c]">
 
     <!-- Décoration fond -->
     <div class="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20"
-         style="background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(212,175,55,.12), transparent)"></div>
+         style="background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(99,102,241,.12), transparent)"></div>
 
     <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 relative">
 
         <!-- Avatar initiales -->
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-lg
-                    {% if pilotage_college == 'directoire' %}bg-gradient-to-br from-amber-500 to-amber-700
+                    {% if pilotage_college == 'directoire' %}bg-gradient-to-br from-indigo-500 to-indigo-700
                     {% elif pilotage_college == 'conseiller_politique' %}bg-gradient-to-br from-blue-500 to-blue-700
                     {% elif pilotage_college == 'atf' %}bg-gradient-to-br from-emerald-500 to-emerald-700
                     {% else %}bg-gradient-to-br from-purple-500 to-purple-700{% endif %}">
@@ -69,12 +69,12 @@
         <!-- Résumé des droits (droite) -->
         <div class="flex flex-col gap-2 shrink-0 text-right text-[10.5px]">
             {% if can_trigger_steps %}
-            <span class="flex items-center gap-1.5 font-semibold text-amber-400">
+            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i> Validation étapes 1–7
             </span>
             {% endif %}
             {% if can_manage_access %}
-            <span class="flex items-center gap-1.5 font-semibold text-amber-400">
+            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
                 <i data-lucide="users" class="w-3.5 h-3.5"></i> Gestion accès experts
             </span>
             {% endif %}

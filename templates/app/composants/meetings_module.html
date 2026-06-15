@@ -17,7 +17,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div class="space-y-6">
-            <div class="border rounded-2xl p-5 space-y-4 relative overflow-hidden bg-slate-50 border-slate-200 dark:bg-slate-950/80 dark:border-white/10">
+            <div id="meet-plan-card" class="border rounded-2xl p-5 space-y-4 relative overflow-hidden bg-slate-50 border-slate-200 dark:bg-slate-950/80 dark:border-white/10">
                 <div id="meet-lock-overlay" class="hidden absolute inset-0 backdrop-blur-sm flex-col items-center justify-center p-6 text-center z-20 bg-slate-100/95 dark:bg-[#06060c]/95">
                     <i data-lucide="lock" class="h-7 w-7 text-slate-500 mb-2"></i>
                     <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-white">Planification verrouillée</h4>
@@ -82,6 +82,15 @@
                         <i data-lucide="plus" class="h-4 w-4"></i> Convoquer
                     </button>
                 </form>
+            </div>
+
+            <div id="meet-president-card" class="hidden border rounded-2xl p-5 space-y-3 bg-slate-50 border-slate-200 dark:bg-slate-950/80 dark:border-white/10">
+                <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-slate-800 dark:text-white">
+                    <i data-lucide="bar-chart-3" class="h-4 w-4 text-blue-500"></i> Votes par norme — CTM
+                </h3>
+                <div id="meet-president-votes" class="space-y-3 text-xs">
+                    <p class="text-slate-500 italic text-center py-3">Chargement…</p>
+                </div>
             </div>
 
             <div class="border rounded-2xl p-5 space-y-3 bg-slate-50 border-slate-200 dark:bg-black/35 dark:border-white/10">
@@ -203,6 +212,10 @@
     const typeLabel = type => ({ WG: 'WG', CTM: 'CTM', PILOTAGE: 'Comité de pilotage', ASSEMBLEE: 'Assemblée plénière', CTC: 'CTC' }[type] || type || '');
     const quorumRequired = type => type === 'ASSEMBLEE' ? 75 : (type === 'CTM' ? 66 : 50);
     const canManageMeeting = () => ['ADMIN', 'SEC_PERM', 'RAP_CTM', 'COORD_CTC'].includes(appState.userRole);
+    // Gestion de l'émargement réservée à l'expert organisateur de la réunion.
+    const canManageAttendance = meeting => !!(meeting && appState.myExpertId != null && sameId(meeting.organisateur, appState.myExpertId));
+    // Le Président scientifique du CTM ne planifie pas les réunions (rôle du Secrétaire CTM).
+    const isCtmPresident = () => appState.myCtmRole === 'Président scientifique CTM';
 
     const appState = {
         userRole: "{{ user.expert_profile.role|default:'OBSERVATEUR' }}",
@@ -214,6 +227,8 @@
         currentMeetingDetails: { presences: [], votes: [], pv: null },
         normVotesByMeeting: {},
         myExpertId: null,
+        myCtmRole: '',
+        myCtmId: null,
     };
 
     function meetingDateParts(value) {
@@ -245,7 +260,61 @@
 
     async function loadMyProfile() {
         const response = await fetch('/api/v1/experts/me/', { headers: apiHeaders() });
-        if (response.ok) appState.myExpertId = (await response.json()).id;
+        if (!response.ok) return;
+        const data = await response.json();
+        appState.myExpertId = data.id;
+        const affectations = data.affectations || [];
+        const primary = affectations.find(a => a.is_primary_ctm) || affectations[0];
+        appState.myCtmRole = primary?.ctm_role || '';
+        appState.myCtmId = primary?.ctm || null;
+    }
+
+    function applyRoleLayout() {
+        const president = isCtmPresident();
+        document.getElementById('meet-plan-card').classList.toggle('hidden', president);
+        document.getElementById('meet-president-card').classList.toggle('hidden', !president);
+        if (president) loadPresidentVotesWidget();
+    }
+
+    async function loadPresidentVotesWidget() {
+        const container = document.getElementById('meet-president-votes');
+        if (!appState.myCtmId) {
+            container.innerHTML = '<p class="text-slate-500 italic text-center py-3">Aucun CTM rattaché à votre profil.</p>';
+            return;
+        }
+        const response = await fetch(`/api/v1/norms/?ctm__id=${appState.myCtmId}`, { headers: apiHeaders() });
+        if (!response.ok) {
+            container.innerHTML = '<p class="text-red-500 italic text-center py-3">Chargement des votes impossible.</p>';
+            return;
+        }
+        const norms = asArray(await response.json());
+        if (!norms.length) {
+            container.innerHTML = '<p class="text-slate-500 italic text-center py-3">Aucune norme rattachée à ce CTM.</p>';
+            return;
+        }
+        container.innerHTML = norms.map(n => {
+            const v = n.votes_summary || { total: 0, for: 0, against: 0, abstain: 0, percent_for: 0, passes_threshold: false };
+            const pourPct = v.total ? (v.for / v.total) * 100 : 0;
+            const contrePct = v.total ? (v.against / v.total) * 100 : 0;
+            const absPct = v.total ? (v.abstain / v.total) * 100 : 0;
+            return `<div class="p-3 rounded-xl border bg-white border-slate-200 dark:bg-black/30 dark:border-white/10">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">${n.title}</p>
+                        <p class="text-[10px] font-mono text-slate-500">${n.reference_number}</p>
+                    </div>
+                    <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded shrink-0 ${v.passes_threshold ? 'bg-blue-500/15 text-blue-600' : 'bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-slate-400'}">${v.percent_for}% Pour</span>
+                </div>
+                <div class="w-full h-2 rounded-full overflow-hidden mt-2 flex bg-slate-200 dark:bg-white/5">
+                    <div class="h-full bg-blue-500" style="width:${pourPct}%"></div>
+                    <div class="h-full bg-red-500" style="width:${contrePct}%"></div>
+                    <div class="h-full bg-slate-400" style="width:${absPct}%"></div>
+                </div>
+                <div class="flex justify-between text-[9.5px] text-slate-500 mt-1">
+                    <span>${v.for} Pour</span><span>${v.against} Contre</span><span>${v.abstain} Abstention</span>
+                </div>
+            </div>`;
+        }).join('');
     }
 
     async function fetchMeetings() {
@@ -305,6 +374,7 @@
     async function initMeetingsModule() {
         try {
             await Promise.all([loadCTMs(), loadMyProfile()]);
+            applyRoleLayout();
             await fetchMeetings();
             renderMeetingsList();
             await fetchMeetingDetails(appState.activeMeetingId);
@@ -429,8 +499,8 @@
     }
 
     function renderAttendance(presences, meeting) {
-        const canEdit = canManageMeeting() && meeting.status !== 'COMPLETED';
-        document.getElementById('meet-attendance-role-banner').innerHTML = `<div class="p-3 rounded-xl border text-xs ${canEdit ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10'}">${canEdit ? 'Vous pouvez modifier les émargements.' : 'Émargement en lecture seule.'}</div>`;
+        const canEdit = canManageAttendance(meeting) && meeting.status !== 'COMPLETED';
+        document.getElementById('meet-attendance-role-banner').innerHTML = `<div class="p-3 rounded-xl border text-xs ${canEdit ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10'}">${canEdit ? 'Vous êtes l’organisateur : vous pouvez modifier les émargements.' : 'Émargement en lecture seule (réservé à l’organisateur de la réunion).'}</div>`;
         document.getElementById('meet-attendance-list').innerHTML = presences.length ? presences.map(p => {
             const ok = p.status === 'PRESENT';
             return `<div class="p-3 rounded-xl border flex items-center justify-between gap-3 ${ok ? 'bg-blue-50 border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/25' : 'bg-slate-50 border-slate-200 opacity-80 dark:bg-black/25 dark:border-white/5'}"><div class="flex items-center gap-3 min-w-0"><div class="h-8 w-8 rounded-lg bg-slate-200 dark:bg-black/40 border border-slate-300 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0">${(p.expert_name || 'EX').substring(0,2)}</div><div class="min-w-0"><p class="text-xs font-bold text-slate-900 dark:text-white truncate">${p.expert_name || 'Expert'}</p><p class="text-[9.5px] text-slate-500">${p.expert_structure || ''}</p></div></div><button ${canEdit ? '' : 'disabled'} onclick="toggleAttendance('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-md text-[10.5px] font-bold ${ok ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'} ${canEdit ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}">${ok ? 'Présent' : 'Absent'}</button></div>`;

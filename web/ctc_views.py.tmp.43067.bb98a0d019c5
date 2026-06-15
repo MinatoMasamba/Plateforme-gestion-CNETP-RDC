@@ -311,6 +311,10 @@ def get_ctc_context(expert: Expert) -> dict | None:
         'active_processus_count': len(active_processus) if visible_stages else 0,
         'my_pending_reviews':    my_pending_reviews,
         'my_pending_reviews_count': len(my_pending_reviews),
+        # Actions Étape 1 — Réception, Numérisation & Cadrage (CTCProcessus)
+        'can_ctc_reception_register': sub_role == 'assistant_executif',
+        'can_ctc_reception_index':    sub_role == 'operateur_saisie',
+        'can_ctc_reception_validate': sub_role in ('coordonnateur_principal', 'coordonnateur_adjoint'),
     })
 
     # ── Verrouillage plateforme CTC/CTM (action souveraine du Président) ────

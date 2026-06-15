@@ -16,7 +16,7 @@ from .serializers import (
     ProcessusVerbauxSerializer, ReunionSummarySerializer,
     ReunionStatsSerializer, ReunionVoteSerializer
 )
-from ..permissions import IsExpert, IsCTCCoordinator
+from ..permissions import IsExpert, IsCTCCoordinator, IsMeetingOrganizerOrCTC
 
 
 class ReunionViewSet(viewsets.ModelViewSet):
@@ -325,8 +325,16 @@ class PresenceViewSet(viewsets.ModelViewSet):
     filterset_fields = ['reunion__id', 'reunion', 'status']
 
     def get_permissions(self):
-        """Permissions granulaires"""
+        """Permissions granulaires : seul l'organisateur de la réunion (ou un
+        Coordinateur CTC/Admin) peut modifier l'émargement des participants."""
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsMeetingOrganizerOrCTC()]
         return [IsAuthenticated()]
+
+    def perform_update(self, serializer):
+        """Tracer l'expert qui a modifié l'émargement."""
+        expert = Expert.objects.filter(user=self.request.user).first()
+        serializer.save(marked_by=expert)
 
 
 class ReunionVoteViewSet(viewsets.ReadOnlyModelViewSet):

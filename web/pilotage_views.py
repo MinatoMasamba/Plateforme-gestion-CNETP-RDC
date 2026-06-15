@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
@@ -27,8 +28,10 @@ from django.views.decorators.csrf import csrf_protect
 from apps.experts.models import Expert
 from apps.governance.models import (
     ComitePilotage, PilotageMembreship, PosteNominatif,
-    CTM, WG, PermissionRequest, CTCProcessus, NormeCadrage,
+    CTM, WG, Affectation, PermissionRequest, CTCProcessus, NormeCadrage,
+    PlatformFreeze,
 )
+from apps.norms.models import Norme
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,20 +120,21 @@ _BUREAU_DIRECTOIRE_POSTES = [
             "Pilotage Élargi. Ouvre chaque chantier normatif par ses orientations et "
             "clôt le circuit par la signature de la résolution finale."
         ),
-        'phase1_title': "Phase 1.1 — Cadrage stratégique",
+        'phase1_title': "Cadrage stratégique",
         'phase1_description': (
             "Avant toute saisine de la CTC, le Président examine la proposition de "
             "norme et fixe les orientations stratégiques qui guideront l'ensemble du "
             "chantier (priorités, portée, articulation avec les politiques "
             "sectorielles en cours)."
         ),
-        'phase2_title': "Phase 2.3 — Validation finale & signature",
+        'phase2_title': "Validation finale & signature",
         'phase2_description': (
             "Une fois le PV de l'Assemblée Plénière vérifié par le Secrétaire et les "
             "quitus de conformité technique donnés par les deux Vice-Présidents, le "
             "Président valide et signe la résolution finale qui consacre la norme et "
             "autorise sa transmission au Ministre des ITP."
         ),
+        'phase3_title': "Réception du dossier nettoyé par la CTC",
     },
     {
         'n': 2,
@@ -144,13 +148,13 @@ _BUREAU_DIRECTOIRE_POSTES = [
             "des Groupes de Travail et certifie la conformité technique des normes "
             "relevant de son périmètre."
         ),
-        'phase1_title': "Phase 1.2 — Validation des experts WG (Ingénierie)",
+        'phase1_title': "Validation des experts WG (Ingénierie)",
         'phase1_description': (
             "Avant le lancement des travaux, le 1er Vice-Président examine la liste "
             "des experts pressentis pour les Groupes de Travail du giron Ingénierie "
             "et valide leur légitimité technique."
         ),
-        'phase2_title': "Phase 2.2 — Quitus de conformité technique",
+        'phase2_title': "Quitus de conformité technique",
         'phase2_description': (
             "Après vérification du PV de l'Assemblée Plénière, le 1er Vice-Président "
             "donne son quitus de conformité technique pour le volet Ingénierie de la "
@@ -169,13 +173,13 @@ _BUREAU_DIRECTOIRE_POSTES = [
             "Groupes de Travail BTP et certifie la conformité technique des normes "
             "relevant de son périmètre."
         ),
-        'phase1_title': "Phase 1.2 — Validation du mandat des experts WG (BTP)",
+        'phase1_title': "Validation du mandat des experts WG (BTP)",
         'phase1_description': (
             "Avant le lancement des travaux, le 2nd Vice-Président examine et valide "
             "le mandat des experts pressentis pour les Groupes de Travail du secteur "
             "BTP."
         ),
-        'phase2_title': "Phase 2.2 — Quitus de conformité technique",
+        'phase2_title': "Quitus de conformité technique",
         'phase2_description': (
             "Après vérification du PV de l'Assemblée Plénière, le 2nd Vice-Président "
             "donne son quitus de conformité technique pour le volet BTP de la norme, "
@@ -194,13 +198,13 @@ _BUREAU_DIRECTOIRE_POSTES = [
             "transmis aux CTM et audite la conformité formelle du Procès-Verbal de "
             "l'Assemblée Plénière avant transmission aux Vice-Présidents."
         ),
-        'phase1_title': "Phase 1.3 — Mandat opérationnel",
+        'phase1_title': "Mandat opérationnel",
         'phase1_description': (
             "Une fois les experts validés par les Vice-Présidents, le Secrétaire "
             "rédige et formalise le mandat opérationnel ainsi que la méthodologie "
             "scientifique transmis aux Comités Techniques Mixtes (CTM)."
         ),
-        'phase2_title': "Phase 2.1 — Vérification du PV de l'Assemblée Plénière",
+        'phase2_title': "Vérification du PV de l'Assemblée Plénière",
         'phase2_description': (
             "Dès que la CTC a transmis le dossier nettoyé (Étape 5 — accusés de "
             "réception du Président et du Rapporteur Général), le Secrétaire audite "
@@ -220,14 +224,14 @@ _BUREAU_DIRECTOIRE_POSTES = [
             "transmet l'ordre de service à la CTC ; co-réceptionne avec le Président "
             "le dossier nettoyé renvoyé par la CTC."
         ),
-        'phase1_title': "Phase 1.4 — Chronogramme & ordre de service",
+        'phase1_title': "Chronogramme & ordre de service",
         'phase1_description': (
             "Une fois le mandat opérationnel formalisé par le Secrétaire, le "
             "Rapporteur Général fixe les dates butoirs (travaux CTM/WG, transmission "
             "à la CTC, retour au Pilotage) et transmet l'ordre de service à la CTC, "
             "ouvrant ainsi le traitement interne de la CTC (Étapes 1 à 5)."
         ),
-        'phase2_title': "Étape 5 — Réception du dossier nettoyé par la CTC",
+        'phase2_title': "Réception du dossier nettoyé par la CTC",
         'phase2_description': (
             "À l'issue du traitement interne de la CTC (toilettage, enquête "
             "publique, certification), le Rapporteur Général accuse réception du "
@@ -438,33 +442,23 @@ _CONSEILLERS_POSTES = [
     },
     {
         'n': 15,
-        'title': "Conseiller — Représentant d'un Ministère Partenaire (5/5)",
-        'origin': "Siège à pourvoir — arbitrage du Bureau Directoire en attente",
+        'title': "Conseiller — Représentant de la Division ITP / Ville de Kinshasa (5/5)",
+        'origin': "Division des ITP / Ville de Kinshasa",
         'quota_line': 12,
-        'icon': 'help-circle',
-        'accent': 'amber',
+        'icon': 'landmark',
+        'accent': 'cyan',
         'mission': (
-            "Cinquième et dernier siège réservé aux Ministères Partenaires au sein "
-            "du Comité de Pilotage Élargi. Le Manuel Organisationnel annonce cinq "
-            "sièges mais nomme six ministères candidats (Urbanisme et Habitat, "
-            "Aménagement du Territoire, Environnement et Développement Durable, "
-            "Affaires Foncières, Ministère ayant la Ville de Kinshasa dans ses "
-            "attributions, OVDA). L'attribution de ce cinquième siège fait l'objet "
-            "d'un arbitrage en attente du Bureau Directoire."
+            "Représente la Division des Infrastructures et Travaux Publics de la "
+            "Ville de Kinshasa au sein du Comité de Pilotage Élargi, cinquième et "
+            "dernier siège réservé aux Ministères Partenaires. Veille à ce que les "
+            "normes élaborées par la CNETP intègrent les contraintes spécifiques du "
+            "tissu urbain dense de la capitale."
         ),
         'interface_role': (
-            "Une fois l'arbitrage tranché par le Bureau Directoire, le titulaire "
-            "de ce siège héritera des mêmes prérogatives Profil 2 que les Postes "
-            "11 à 14 : lecture seule sur les CTM/WG, suivi des jalons de l'Enquête "
-            "Publique Nationale et téléversement de rapports institutionnels."
-        ),
-        'arbitration_note': (
-            "Le Manuel Organisationnel annonce 5 postes de Représentants des "
-            "Ministères Partenaires mais en nomme 6 : Urbanisme et Habitat, "
-            "Aménagement du Territoire, Environnement et Développement Durable, "
-            "Affaires Foncières, Ministère ayant la Ville de Kinshasa dans ses "
-            "attributions, et OVDA. Ce cinquième siège reste vacant en attendant "
-            "que le Bureau Directoire tranche entre les deux derniers candidats."
+            "Alerte le Comité de Pilotage sur les spécificités d'application des "
+            "normes à l'étude dans la Ville de Kinshasa — réseaux existants, "
+            "densité urbaine, chantiers en cours — et relaie les retours "
+            "opérationnels des services techniques municipaux."
         ),
     },
     {
@@ -666,6 +660,9 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         for group in _cadrages_for_subrole(sub_role):
             pending_cadrages.extend(group['items'])
 
+    # ── Verrouillage plateforme CTC/CTM (action souveraine du Président) ─────
+    freeze = PlatformFreeze.get_solo()
+
     # ─────────────────────────────────────────────────────────────────────────
     # BOOLÉENS DE PRIVILÈGES (injectés dans le template)
     # ─────────────────────────────────────────────────────────────────────────
@@ -734,6 +731,11 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         # ── Cadrage Bureau Directoire (Phases 1 & 2) ──────────────────────────
         'pending_cadrages':       pending_cadrages,
         'pending_cadrages_count': len(pending_cadrages),
+
+        # ── Verrouillage plateforme CTC/CTM (action souveraine du Président) ─
+        'platform_locked':        freeze.is_locked,
+        'platform_locked_by':     freeze.locked_by.user.get_full_name() if freeze.locked_by else '',
+        'platform_locked_at':     freeze.locked_at,
     }
 
     return ctx
@@ -914,6 +916,12 @@ class PilotageAcknowledgeReceptionView(View):
     """
 
     def post(self, request, pk):
+        if PlatformFreeze.get_solo().is_locked:
+            return JsonResponse(
+                {'ok': False, 'error': "Plateforme verrouillée par le Président du Comité de Pilotage — action suspendue."},
+                status=423
+            )
+
         expert = Expert.objects.filter(user=request.user).select_related('structure').first()
         if not expert:
             return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
@@ -959,6 +967,12 @@ class PilotageCadrageActionView(View):
     """
 
     def post(self, request, pk):
+        if PlatformFreeze.get_solo().is_locked:
+            return JsonResponse(
+                {'ok': False, 'error': "Plateforme verrouillée par le Président du Comité de Pilotage — action suspendue."},
+                status=423
+            )
+
         expert = Expert.objects.filter(user=request.user).select_related('structure').first()
         if not expert:
             return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
@@ -1093,6 +1107,8 @@ class PilotageDirectoireAppView(View):
                 'cadrage_groups': _cadrages_for_subrole(meta['sub_role']),
             })
 
+        my_poste = next((p for p in postes if p['is_mine']), postes[0])
+
         # ── Étape 5 : réception du dossier nettoyé par la CTC (Postes 1 & 5) ──
         pending_reception_president = list(
             CTCProcessus.objects
@@ -1110,6 +1126,7 @@ class PilotageDirectoireAppView(View):
         context = {
             'expert': expert,
             'postes': postes,
+            'my_poste': my_poste,
             'default_post_n': default_post_n,
             'pending_reception_president': pending_reception_president,
             'pending_reception_rapporteur': pending_reception_rapporteur,
@@ -1298,3 +1315,220 @@ class PilotageATFAppView(View):
             **priv,
         }
         return render(request, self.template_name, context)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VUE DÉTAIL D'UN CTM (Console Globale — Bureau Directoire)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageCTMDetailView(View):
+    """
+    Vue détaillée d'un Comité Technique Miroir : ses Groupes de Travail,
+    ses experts membres, ses normes en cours et ses normes déjà publiées.
+    Accessible depuis la Console Globale du Bureau Directoire.
+    """
+    template_name = 'pilotage/ctm_detail.html'
+
+    def get(self, request, number):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_pilotage_context(expert)
+        if not priv or not priv['can_view_global_console']:
+            messages.info(
+                request,
+                "Le détail des Comités Techniques Miroirs est réservé au Bureau Directoire."
+            )
+            return redirect('web:pilotage_dashboard')
+
+        ctm = get_object_or_404(CTM, number=number)
+
+        wgs_with_stats = []
+        for wg in ctm.working_groups.select_related(
+            'president__user', 'rapporteur__user', 'secretary__user'
+        ).order_by('number'):
+            wgs_with_stats.append({'wg': wg, 'member_count': wg.affectations.count()})
+
+        affectations = (
+            ctm.affectations
+            .select_related('expert__user', 'expert__structure', 'wg')
+            .order_by('wg__number', 'expert__user__last_name')
+        )
+
+        normes_en_cours = (
+            ctm.normes.exclude(status='PUBLISHED')
+            .select_related('wg')
+            .order_by('wg__number', '-created_at')
+        )
+        normes_publiees = (
+            ctm.normes.filter(status='PUBLISHED')
+            .select_related('wg')
+            .order_by('-publication_date')
+        )
+
+        context = {
+            'ctm': ctm,
+            'wgs_with_stats': wgs_with_stats,
+            'affectations': affectations,
+            'normes_en_cours': normes_en_cours,
+            'normes_publiees': normes_publiees,
+            **priv,
+        }
+        return render(request, self.template_name, context)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VUE GESTION DES ACCÈS EXPERTS (Console Globale — Bureau Directoire)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageExpertAccessView(View):
+    """
+    Liste l'ensemble des experts et leurs affectations CTM/WG. Permet au
+    Bureau Directoire de débloquer/suspendre l'accès d'un expert à la
+    plateforme et de l'exclure d'un Groupe de Travail / CTM.
+    """
+    template_name = 'pilotage/expert_access.html'
+
+    def get(self, request):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_pilotage_context(expert)
+        if not priv or not priv['can_manage_access']:
+            messages.info(
+                request,
+                "La gestion des accès experts est réservée au Bureau Directoire."
+            )
+            return redirect('web:pilotage_dashboard')
+
+        experts = (
+            Expert.objects
+            .select_related('user', 'structure', 'ctm')
+            .prefetch_related(
+                Prefetch(
+                    'governance_affectations',
+                    queryset=Affectation.objects.select_related('ctm', 'wg').order_by('ctm__number', 'wg__number'),
+                )
+            )
+            .order_by('user__last_name', 'user__first_name')
+        )
+
+        context = {
+            'experts': experts,
+            **priv,
+        }
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageExpertStatusActionView(View):
+    """
+    Débloque ou suspend l'accès d'un expert à la plateforme (Expert.status).
+    Réservée au Bureau Directoire.
+    """
+
+    def post(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        membership = PilotageMembreship.objects.filter(
+            expert=expert, role__in=_DIRECTOIRE_ROLES
+        ).first()
+        if not membership:
+            return JsonResponse(
+                {'ok': False, 'error': 'Action réservée au Bureau Directoire.'},
+                status=403
+            )
+
+        target = get_object_or_404(Expert, pk=pk)
+        action = (request.POST.get('action') or '').strip().lower()
+
+        if action == 'suspend':
+            target.status = 'SUSPENDED'
+        elif action == 'activate':
+            target.status = 'ACTIVE'
+        else:
+            return JsonResponse({'ok': False, 'error': 'Action invalide.'}, status=400)
+
+        target.save(update_fields=['status'])
+
+        verb = 'suspendu' if action == 'suspend' else 'rétabli'
+        return JsonResponse({
+            'ok': True,
+            'message': f"Accès de {target.full_name} {verb}.",
+            'new_status': target.status,
+            'new_status_label': target.get_status_display(),
+        })
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageAffectationExcludeView(View):
+    """
+    Exclut un expert d'un Groupe de Travail / CTM (suppression de l'Affectation).
+    Réservée au Bureau Directoire.
+    """
+
+    def post(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        membership = PilotageMembreship.objects.filter(
+            expert=expert, role__in=_DIRECTOIRE_ROLES
+        ).first()
+        if not membership:
+            return JsonResponse(
+                {'ok': False, 'error': 'Action réservée au Bureau Directoire.'},
+                status=403
+            )
+
+        affectation = get_object_or_404(Affectation, pk=pk)
+        message = (
+            f"{affectation.expert.full_name} retiré du {affectation.wg} "
+            f"(CTM {affectation.ctm.number})."
+        )
+        affectation.delete()
+
+        return JsonResponse({'ok': True, 'message': message})
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotagePlatformFreezeToggleView(View):
+    """
+    Bascule le verrou plateforme CTC/CTM — réservé au Président du Comité de Pilotage.
+    """
+
+    def post(self, request):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        priv = get_pilotage_context(expert)
+        if not priv or priv['user_sub_role'] != 'president':
+            return JsonResponse(
+                {'ok': False, 'error': 'Action réservée au Président du Comité de Pilotage.'},
+                status=403
+            )
+
+        freeze = PlatformFreeze.get_solo()
+        freeze.is_locked = not freeze.is_locked
+        freeze.locked_by = expert if freeze.is_locked else None
+        freeze.locked_at = timezone.now() if freeze.is_locked else None
+        freeze.save(update_fields=['is_locked', 'locked_by', 'locked_at'])
+
+        return JsonResponse({
+            'ok': True,
+            'is_locked': freeze.is_locked,
+            'message': (
+                "Plateforme verrouillée : toutes les actions CTC et CTM sont suspendues."
+                if freeze.is_locked else
+                "Plateforme déverrouillée : les actions CTC et CTM sont rétablies."
+            ),
+        })

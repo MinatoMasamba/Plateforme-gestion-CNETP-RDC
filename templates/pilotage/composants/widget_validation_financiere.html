@@ -5,7 +5,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
     <!-- Liste des études soumises -->
-    <div class="lg:col-span-2 rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/2 p-5">
+    <div class="lg:col-span-2 rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/[2%] p-5">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
                 <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Études de Coût Soumises à Validation
@@ -16,7 +16,7 @@
             {% for etude in etudes_financieres|default:""|make_list %}{% empty %}
             <!-- Données illustratives -->
             <div class="flex items-center gap-3 p-3.5 rounded-xl border
-                        border-slate-200 dark:border-white/8 bg-slate-50 dark:bg-white/3">
+                        border-slate-200 dark:border-white/[8%] bg-slate-50 dark:bg-white/[3%]">
                 <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 font-extrabold text-emerald-400 text-xs">
                     CTM1
                 </div>
@@ -27,7 +27,7 @@
                     <p class="text-[10px] text-slate-500 mt-0.5">Soumis par WG 1.2 · Ref: FIN-2026-007</p>
                     <div class="flex items-center gap-2 mt-1.5">
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border
-                                     bg-amber-400/10 text-amber-400 border-amber-400/20">Évaluation requise</span>
+                                     bg-indigo-400/10 text-indigo-400 border-indigo-400/20">Évaluation requise</span>
                         <span class="text-[10px] text-slate-400 font-mono">USD 2,450,000</span>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3 p-3.5 rounded-xl border
-                        border-slate-200 dark:border-white/8 bg-slate-50 dark:bg-white/3">
+                        border-slate-200 dark:border-white/[8%] bg-slate-50 dark:bg-white/[3%]">
                 <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 font-extrabold text-blue-400 text-xs">
                     CTM5
                 </div>
@@ -82,7 +82,7 @@
             <div class="mt-3 pt-3 border-t border-emerald-400/15 space-y-2 text-[10px] text-slate-500">
                 <div class="flex justify-between">
                     <span>En attente de validation</span>
-                    <span class="font-bold text-amber-400">3 études</span>
+                    <span class="font-bold text-indigo-400">3 études</span>
                 </div>
                 <div class="flex justify-between">
                     <span>Validées ce mois</span>
@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 dark:border-white/8 p-4 bg-white/50 dark:bg-white/2">
+        <div class="rounded-xl border border-slate-200 dark:border-white/[8%] p-4 bg-white/50 dark:bg-white/[2%]">
             <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
                 <i data-lucide="lock" class="w-3 h-3"></i> Hors périmètre
             </h4>

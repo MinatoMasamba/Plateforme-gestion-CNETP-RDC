@@ -7,7 +7,7 @@
 <div class="space-y-6">
 
     <!-- ── Identité & mission ──────────────────────────────────────────── -->
-    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/3 backdrop-blur-md p-6 module-card animate-up">
+    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 module-card animate-up">
         <div class="flex items-start gap-4">
             <div class="w-12 h-12 rounded-2xl bg-{{ poste.accent }}-400/15 flex items-center justify-center shrink-0">
                 <i data-lucide="{{ poste.icon }}" class="w-6 h-6 text-{{ poste.accent }}-400"></i>
@@ -26,14 +26,14 @@
     </div>
 
     <!-- ── Cadre d'intervention ─────────────────────────────────────────── -->
-    <div class="rounded-3xl border border-slate-200 dark:border-white/8 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+    <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-{{ poste.accent }}-400 flex items-center gap-2 mb-1">
             <i data-lucide="compass" class="w-4 h-4"></i> Cadre d'intervention
         </h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.interface_role }}</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="rounded-xl border border-slate-200 dark:border-white/8 bg-white/50 dark:bg-white/2 p-4">
+            <div class="rounded-xl border border-slate-200 dark:border-white/[8%] bg-white/50 dark:bg-white/[2%] p-4">
                 <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
                     <i data-lucide="badge-check" class="w-3 h-3"></i> Quota d'origine
                 </h4>
@@ -41,7 +41,7 @@
                     Ligne {{ poste.quota_line }} — {{ poste.origin }}
                 </p>
             </div>
-            <div class="rounded-xl border border-slate-200 dark:border-white/8 bg-white/50 dark:bg-white/2 p-4">
+            <div class="rounded-xl border border-slate-200 dark:border-white/[8%] bg-white/50 dark:bg-white/[2%] p-4">
                 <h4 class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
                     <i data-lucide="lock" class="w-3 h-3"></i> Périmètre — Profil 2 étendu
                 </h4>
@@ -72,7 +72,7 @@
     </div>
 
     <!-- ── Module Légistique — Projets d'Arrêtés Ministériels ──────────── -->
-    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-{{ poste.accent }}-400 flex items-center gap-2 mb-4">
             <i data-lucide="scale" class="w-4 h-4"></i> Module Légistique — Projets d'Arrêtés Ministériels
         </h3>
@@ -80,7 +80,7 @@
     </div>
 
     <!-- ── Widget Planification — Enquête Publique Nationale ───────────── -->
-    <div class="rounded-3xl border border-sky-400/20 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
+    <div class="rounded-3xl border border-sky-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-sky-400 flex items-center gap-2 mb-4">
             <i data-lucide="calendar-check" class="w-4 h-4"></i> Widget de Planification — Enquête Publique Nationale
         </h3>

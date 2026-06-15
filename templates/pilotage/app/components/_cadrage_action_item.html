@@ -7,7 +7,7 @@
 ═══════════════════════════════════════════════════════════════════ -->
 {% with cadrage=item.cadrage %}
 <div id="cadrage-row-{{ cadrage.id }}-{{ item.action }}"
-     class="rounded-2xl border border-indigo-400/20 bg-white/70 dark:bg-white/2 backdrop-blur-sm p-5 animate-fadeIn">
+     class="rounded-2xl border border-indigo-400/20 bg-white/70 dark:bg-white/[2%] backdrop-blur-sm p-5 animate-fadeIn">
     <div class="flex flex-col gap-4">
         <div class="flex items-start gap-3 min-w-0">
             <div class="w-9 h-9 rounded-xl bg-indigo-400/15 flex items-center justify-center shrink-0">
@@ -32,7 +32,7 @@
         <textarea id="cadrage-{{ cadrage.id }}-strategic_orientation" rows="2"
                   placeholder="Orientations stratégiques retenues pour la mise en chantier de cette norme…"
                   class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                         bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
+                         bg-slate-50 dark:bg-white/[3%] p-3 text-slate-700 dark:text-slate-200
                          placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"></textarea>
 
         <!-- ── Phase 1.2 : VP1/VP2 — Validation des experts WG ─────────── -->
@@ -40,7 +40,7 @@
         <textarea id="cadrage-{{ cadrage.id }}-notes" rows="2"
                   placeholder="Avis sur la légitimité technique / le mandat opérationnel des experts pressentis…"
                   class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                         bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
+                         bg-slate-50 dark:bg-white/[3%] p-3 text-slate-700 dark:text-slate-200
                          placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"></textarea>
 
         <!-- ── Phase 1.3 : Secrétaire — Mandat opérationnel ────────────── -->
@@ -48,7 +48,7 @@
         <textarea id="cadrage-{{ cadrage.id }}-operational_mandate" rows="3"
                   placeholder="Mandat opérationnel initial et méthodologie scientifique transmis aux CTM…"
                   class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                         bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
+                         bg-slate-50 dark:bg-white/[3%] p-3 text-slate-700 dark:text-slate-200
                          placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"></textarea>
 
         <!-- ── Phase 1.4 : Rapporteur Général — Chronogramme & ordre de service ── -->
@@ -58,21 +58,21 @@
                 Date butoir — Travaux CTM/WG
                 <input type="date" id="cadrage-{{ cadrage.id }}-deadline_ctm_review"
                        class="mt-1 w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                              bg-slate-50 dark:bg-white/3 p-2 text-slate-700 dark:text-slate-200
+                              bg-slate-50 dark:bg-white/[3%] p-2 text-slate-700 dark:text-slate-200
                               focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
             </label>
             <label class="text-[10px] font-semibold text-slate-500">
                 Date butoir — Transmission CTC
                 <input type="date" id="cadrage-{{ cadrage.id }}-deadline_ctc_handoff"
                        class="mt-1 w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                              bg-slate-50 dark:bg-white/3 p-2 text-slate-700 dark:text-slate-200
+                              bg-slate-50 dark:bg-white/[3%] p-2 text-slate-700 dark:text-slate-200
                               focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
             </label>
             <label class="text-[10px] font-semibold text-slate-500">
                 Date butoir — Retour Pilotage
                 <input type="date" id="cadrage-{{ cadrage.id }}-deadline_pilotage_review"
                        class="mt-1 w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                              bg-slate-50 dark:bg-white/3 p-2 text-slate-700 dark:text-slate-200
+                              bg-slate-50 dark:bg-white/[3%] p-2 text-slate-700 dark:text-slate-200
                               focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
             </label>
         </div>
@@ -82,12 +82,12 @@
         <input type="text" id="cadrage-{{ cadrage.id }}-pv_reference"
                placeholder="Référence du PV de l'Assemblée Plénière…"
                class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                      bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
+                      bg-slate-50 dark:bg-white/[3%] p-3 text-slate-700 dark:text-slate-200
                       placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
 
         <!-- ── Phase 2.1 (bloqué) : dossier pas encore revenu de la CTC ── -->
         {% elif item.action == 'verify_pv' and item.blocked %}
-        <div class="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-[11px] text-amber-500">
+        <div class="flex items-center gap-2 rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-3 text-[11px] text-indigo-500">
             <i data-lucide="hourglass" class="w-3.5 h-3.5 shrink-0"></i>
             <span>En attente de transmission par la CTC (Étape 5 — accusé de réception du Président et du Rapporteur Général).</span>
         </div>
@@ -97,7 +97,7 @@
         <input type="text" id="cadrage-{{ cadrage.id }}-resolution_reference"
                placeholder="Référence de la résolution signée…"
                class="w-full text-xs rounded-xl border border-slate-200 dark:border-white/10
-                      bg-slate-50 dark:bg-white/3 p-3 text-slate-700 dark:text-slate-200
+                      bg-slate-50 dark:bg-white/[3%] p-3 text-slate-700 dark:text-slate-200
                       placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40">
         {% endif %}
 

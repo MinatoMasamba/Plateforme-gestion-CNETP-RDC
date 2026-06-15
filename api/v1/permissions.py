@@ -70,6 +70,18 @@ class IsOwnerOrCTC(permissions.BasePermission):
         return False
 
 
+class IsMeetingOrganizerOrCTC(permissions.BasePermission):
+    """Permission : Organisateur de la réunion (gestion de l'émargement) OU Coordinateur CTC/Admin."""
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_ctc_staff or request.user.is_superuser:
+            return True
+        expert = getattr(request.user, 'expert_profile', None)
+        if not expert:
+            return False
+        return obj.reunion.organisateur_id == expert.id
+
+
 class IsExpertOfCTM(permissions.BasePermission):
     """Permission : Expert doit être du CTM"""
     

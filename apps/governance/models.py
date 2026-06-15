@@ -1043,3 +1043,22 @@ class NormeCadrage(BaseModel):
 
     def __str__(self):
         return f"Cadrage Bureau Directoire — {self.norme.reference_number} [{self.current_stage}]"
+
+
+class PlatformFreeze(BaseModel):
+    """Verrou plateforme — gèle toutes les actions CTC et CTM (action souveraine du Président)."""
+    is_locked = models.BooleanField(default=False, verbose_name="Plateforme verrouillée")
+    locked_by = models.ForeignKey(Expert, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    locked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Verrou plateforme CTC/CTM"
+        verbose_name_plural = "Verrous plateforme CTC/CTM"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Plateforme verrouillée" if self.is_locked else "Plateforme déverrouillée"

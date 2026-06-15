@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════════ -->
 <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-3
                bg-white/90 dark:bg-black/80 backdrop-blur border-b
-               border-slate-200 dark:border-white/8 shrink-0">
+               border-slate-200 dark:border-white/[8%] shrink-0">
 
     <div class="flex items-center gap-3 min-w-0">
         <button onclick="toggleATFSidebar()"
@@ -29,7 +29,7 @@
 
     <div class="flex items-center gap-3 shrink-0">
         {% if poste %}
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/3">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[3%]">
             <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold uppercase shrink-0">
                 {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
             </div>

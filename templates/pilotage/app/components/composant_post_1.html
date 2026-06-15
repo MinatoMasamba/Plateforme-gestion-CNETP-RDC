@@ -7,14 +7,14 @@
 <div class="space-y-6">
 
     <!-- ── Identité & mission ──────────────────────────────────────────── -->
-    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/3 backdrop-blur-md p-6 module-card animate-up">
+    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 module-card animate-up">
         <div class="flex items-start gap-4">
             <div class="w-12 h-12 rounded-2xl bg-{{ poste.accent }}-400/15 flex items-center justify-center shrink-0">
                 <i data-lucide="{{ poste.icon }}" class="w-6 h-6 text-{{ poste.accent }}-400"></i>
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Poste {{ poste.n }} — {{ poste.title }}</h2>
+                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">{{ poste.title }}</h2>
                     {% if poste.is_mine %}
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-400/15 text-indigo-400 uppercase tracking-wide">Mon poste</span>
                     {% endif %}
@@ -26,7 +26,7 @@
     </div>
 
     <!-- ── Phase 1.1 — Cadrage stratégique ─────────────────────────────── -->
-    <div class="rounded-3xl border border-slate-200 dark:border-white/8 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+    <div id="post-1-phase1" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
             <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
         </h3>
@@ -39,7 +39,7 @@
     </div>
 
     <!-- ── Phase 2.3 — Validation finale & signature ───────────────────── -->
-    <div class="rounded-3xl border border-slate-200 dark:border-white/8 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+    <div id="post-1-phase2" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
             <i data-lucide="flag" class="w-4 h-4"></i> {{ poste.phase2_title }}
         </h3>
@@ -52,9 +52,9 @@
     </div>
 
     <!-- ── Étape 5 — Réception du dossier nettoyé par la CTC ───────────── -->
-    <div class="rounded-3xl border border-emerald-400/20 bg-white/60 dark:bg-white/2 backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
+    <div id="post-1-phase3" class="poste-section rounded-3xl border border-emerald-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
         <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2 mb-1">
-            <i data-lucide="file-check-2" class="w-4 h-4"></i> Étape 5 — Réception du dossier nettoyé par la CTC
+            <i data-lucide="file-check-2" class="w-4 h-4"></i> {{ poste.phase3_title }}
         </h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
             Le Président accuse réception, conjointement avec le Rapporteur Général, du dossier nettoyé et

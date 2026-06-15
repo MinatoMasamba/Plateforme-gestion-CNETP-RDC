@@ -12,6 +12,11 @@ from .pilotage_views import (
     PilotageDirectoireAppView,
     PilotageConseillersAppView,
     PilotageATFAppView,
+    PilotageCTMDetailView,
+    PilotageExpertAccessView,
+    PilotageExpertStatusActionView,
+    PilotageAffectationExcludeView,
+    PilotagePlatformFreezeToggleView,
     pilotage_context_api,
 )
 from .ctc_views import (
@@ -19,6 +24,7 @@ from .ctc_views import (
     CTCOperationalRequestView,
     CTCApproveRequestView,
     CTCMethodologyActionView,
+    CTCReceptionActionView,
     ctc_context_api,
 )
 
@@ -53,6 +59,11 @@ urlpatterns = [
     path('pilotage/bureau-directoire/', PilotageDirectoireAppView.as_view(), name='pilotage_directoire_app'),
     path('pilotage/conseillers/', PilotageConseillersAppView.as_view(), name='pilotage_conseillers_app'),
     path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
+    path('pilotage/ctm/<int:number>/', PilotageCTMDetailView.as_view(), name='pilotage_ctm_detail'),
+    path('pilotage/gestion-acces/', PilotageExpertAccessView.as_view(), name='pilotage_expert_access'),
+    path('pilotage/gestion-acces/expert/<int:pk>/statut/', PilotageExpertStatusActionView.as_view(), name='pilotage_expert_status_action'),
+    path('pilotage/gestion-acces/affectation/<int:pk>/exclure/', PilotageAffectationExcludeView.as_view(), name='pilotage_affectation_exclude'),
+    path('pilotage/plateforme/verrouillage/', PilotagePlatformFreezeToggleView.as_view(), name='pilotage_platform_freeze_toggle'),
     path('api/pilotage/contexte/', pilotage_context_api, name='pilotage_context_api'),
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────
@@ -60,5 +71,6 @@ urlpatterns = [
     path('ctc/demande-operationnelle/', CTCOperationalRequestView.as_view(), name='ctc_operational_request'),
     path('ctc/approuver-demande/<int:pk>/', CTCApproveRequestView.as_view(), name='ctc_approve_request'),
     path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
+    path('ctc/dossiers/<int:pk>/reception/', CTCReceptionActionView.as_view(), name='ctc_reception_action'),
     path('api/ctc/contexte/', ctc_context_api, name='ctc_context_api'),
 ]

@@ -17,8 +17,8 @@
         {% if specialty_ctms %}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {% for ctm in specialty_ctms %}
-            <div class="module-card rounded-xl border border-emerald-400/20 bg-emerald-400/3
-                        dark:bg-white/2 p-4">
+            <div class="module-card rounded-xl border border-emerald-400/20 bg-emerald-400/[3%]
+                        dark:bg-white/[2%] p-4">
                 <div class="flex items-start justify-between mb-2">
                     <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
                                  bg-emerald-400/15 text-emerald-400 border border-emerald-400/25">
@@ -65,13 +65,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {% for item in ctms_with_stats %}
             {% if item.ctm.number not in specialty_ctm_ids %}
-            <div class="module-card relative rounded-xl border border-slate-200 dark:border-white/8
-                        bg-white dark:bg-white/2 p-4 opacity-75">
+            <div class="module-card group relative rounded-xl border border-slate-200 dark:border-white/[8%]
+                        bg-white dark:bg-white/[2%] p-4 opacity-75">
                 <!-- Overlay slot -->
-                <div class="absolute inset-0 rounded-xl flex items-end p-3 bg-gradient-to-t from-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                <div class="absolute inset-0 rounded-xl flex items-end p-3 bg-gradient-to-t from-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button onclick="openPermissionModal('CTM {{ item.ctm.number }} — {{ item.ctm.name }}')"
                             class="w-full py-1.5 rounded-lg text-[10px] font-extrabold text-white
-                                   bg-amber-500/80 hover:bg-amber-500 transition-colors flex items-center justify-center gap-1.5">
+                                   bg-indigo-500/80 hover:bg-indigo-500 transition-colors flex items-center justify-center gap-1.5">
                         <i data-lucide="key" class="w-3 h-3"></i> Demander l'Accès
                     </button>
                 </div>

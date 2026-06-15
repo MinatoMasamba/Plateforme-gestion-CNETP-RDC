@@ -1,16 +1,16 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      CONSOLE GLOBALE — Bureau Directoire uniquement
-     Visibilité transverse : 8 CTM + WGs + Bouton Validation Étape
+     Visibilité transverse : 8 CTM + WGs + Verrouillage Plateforme (Président)
 ═══════════════════════════════════════════════════════════════════ -->
 
 <!-- KPI Row -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-amber-400">{{ total_ctms }}</p>
+    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-indigo-400">{{ total_ctms }}</p>
         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">CTM Actifs</p>
     </div>
-    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-amber-400">{{ total_wgs }}</p>
+    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4 text-center">
+        <p class="text-2xl font-black text-indigo-400">{{ total_wgs }}</p>
         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Groupes de Travail</p>
     </div>
     <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center">
@@ -23,40 +23,34 @@
     </div>
 </div>
 
-<!-- Bouton d'Action Maître — Validation Étapes -->
-<div class="mb-6 p-5 rounded-2xl border border-amber-400/25 bg-amber-400/5">
+{% if user_sub_role == 'president' %}
+<!-- Verrouillage de la Plateforme — Président uniquement -->
+<div class="mb-6 p-5 rounded-2xl border {% if platform_locked %}border-red-400/30 bg-red-400/5{% else %}border-indigo-400/25 bg-indigo-400/5{% endif %}">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
-                <i data-lucide="zap" class="w-4 h-4"></i>
-                Bouton d'Action Maître — Validation de Passage d'Étape
+            <h3 class="text-sm font-extrabold {% if platform_locked %}text-red-400{% else %}text-indigo-400{% endif %} flex items-center gap-2">
+                <i data-lucide="{% if platform_locked %}lock{% else %}unlock{% endif %}" class="w-4 h-4"></i>
+                Verrouillage de la plateforme — CTC &amp; CTM
             </h3>
             <p class="text-xs text-slate-500 mt-1">
-                Contrôle le passage d'une étape à l'autre du processus d'homologation (Art. 12 — Étapes 1 à 7).
-                Action souveraine réservée au Bureau Directoire.
+                {% if platform_locked %}
+                    Plateforme verrouillée{% if platform_locked_by %} par {{ platform_locked_by }}{% endif %}{% if platform_locked_at %} le {{ platform_locked_at|date:"d/m/Y à H:i" }}{% endif %}.
+                    Toutes les actions CTC et de cadrage CTM sont suspendues.
+                {% else %}
+                    Action souveraine : bloque immédiatement toutes les actions opérationnelles de la CTC
+                    (demandes, approbations, méthodologie) et du cadrage CTM (Phases 1 &amp; 2) sur toute la plateforme.
+                {% endif %}
             </p>
         </div>
-        <div class="flex gap-2 shrink-0">
-            <select id="step-select" class="text-xs font-semibold rounded-lg border px-3 py-2
-                                            border-amber-400/30 bg-amber-400/10 text-amber-400
-                                            focus:outline-none focus:ring-1 focus:ring-amber-400">
-                <option value="1">Étape 1 — Rédaction WG</option>
-                <option value="2">Étape 2 — Revue CTM</option>
-                <option value="3">Étape 3 — Enquête Publique</option>
-                <option value="4">Étape 4 — Comité de Pilotage</option>
-                <option value="5">Étape 5 — Légistique</option>
-                <option value="6">Étape 6 — Validation Finale</option>
-                <option value="7">Étape 7 — Homologation & Publication</option>
-            </select>
-            <button onclick="triggerStepValidation()"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase
-                           bg-amber-500 hover:bg-amber-400 text-white transition-colors shadow-lg
-                           shadow-amber-500/25">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> Valider
-            </button>
-        </div>
+        <button id="platform-freeze-btn" onclick="togglePlatformFreeze()"
+                class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition-colors shadow-lg w-full sm:w-auto
+                       {% if platform_locked %}bg-red-500 hover:bg-red-400{% else %}bg-indigo-500 hover:bg-indigo-400{% endif %} text-white">
+            <i data-lucide="{% if platform_locked %}unlock{% else %}lock{% endif %}" class="w-4 h-4"></i>
+            {% if platform_locked %}Déverrouiller{% else %}Verrouiller{% endif %}
+        </button>
     </div>
 </div>
+{% endif %}
 
 <!-- Grille des 8 CTM -->
 <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
@@ -64,13 +58,14 @@
 </h3>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
     {% for item in ctms_with_stats %}
-    <div class="module-card rounded-xl border p-4
-                border-slate-200 dark:border-white/8
-                bg-white dark:bg-white/3 hover:border-amber-400/30 dark:hover:border-amber-400/25
-                cursor-pointer" onclick="alert('Détail CTM {{ item.ctm.number }} — à connecter')">
+    <a href="{% url 'web:pilotage_ctm_detail' item.ctm.number %}"
+       class="module-card block rounded-xl border p-4
+                border-slate-200 dark:border-white/[8%]
+                bg-white dark:bg-white/[3%] hover:border-indigo-400/30 dark:hover:border-indigo-400/25
+                cursor-pointer">
         <div class="flex items-start justify-between mb-2">
             <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
-                         bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                         bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
                 CTM {{ item.ctm.number }}
             </span>
             <span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} experts</span>
@@ -84,7 +79,7 @@
             <span class="text-[9px] font-mono text-slate-400">{{ item.ctm.iso_reference }}</span>
             {% endif %}
         </div>
-    </div>
+    </a>
     {% empty %}
     <div class="col-span-4 text-center py-8 text-sm text-slate-500 italic">
         Aucun CTM trouvé — configurez les Comités Techniques Miroirs.
@@ -94,7 +89,7 @@
 
 <!-- Section Gestion des Accès -->
 {% if can_manage_access %}
-<div class="mt-6 p-4 rounded-xl border border-slate-200 dark:border-white/8 bg-white/50 dark:bg-white/2">
+<div class="mt-6 p-4 rounded-xl border border-slate-200 dark:border-white/[8%] bg-white/50 dark:bg-white/[2%]">
     <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
         <i data-lucide="key" class="w-3.5 h-3.5"></i> Gestion des Accès Experts
     </h3>
@@ -102,7 +97,7 @@
         Le Bureau Directoire peut débloquer ou suspendre l'accès d'un expert à la plateforme.
     </p>
     <div class="flex gap-2">
-        <a href="{% url 'web:app' %}"
+        <a href="{% url 'web:pilotage_expert_access' %}"
            class="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors
                   border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5
                   text-slate-600 dark:text-slate-400">
@@ -112,16 +107,25 @@
 </div>
 {% endif %}
 
+{% if user_sub_role == 'president' %}
 <script>
-function triggerStepValidation() {
-    const step = document.getElementById('step-select').value;
-    const labels = {
-        '1': 'Rédaction WG', '2': 'Revue CTM', '3': 'Enquête Publique',
-        '4': 'Comité de Pilotage', '5': 'Légistique', '6': 'Validation Finale',
-        '7': 'Homologation & Publication'
-    };
-    if (confirm(`Confirmer le passage à l'Étape ${step} — ${labels[step]} ?\n\nCette action est enregistrée et notifiée à tous les experts concernés.`)) {
-        showToast(`Étape ${step} validée — notification envoyée.`, 'success');
-    }
+function togglePlatformFreeze() {
+    const verb = {{ platform_locked|yesno:"true,false" }} ? 'déverrouiller' : 'verrouiller';
+    if (!confirm(`Confirmez-vous vouloir ${verb} la plateforme CTC/CTM ?`)) return;
+    fetch("{% url 'web:pilotage_platform_freeze_toggle' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(data.error || 'Une erreur est survenue.', 'error');
+        }
+    })
+    .catch(() => showToast('Erreur réseau.', 'error'));
 }
 </script>
+{% endif %}

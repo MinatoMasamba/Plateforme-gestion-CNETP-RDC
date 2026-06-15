@@ -10,6 +10,7 @@ from datetime import date
 
 from apps.validation.models import LegisticReview
 from apps.norms.models import Norme
+from apps.governance.models import CTCProcessus
 from .serializers import (
     LegisticReviewBasicSerializer,
     LegisticReviewDetailSerializer,
@@ -18,6 +19,44 @@ from .serializers import (
     LegisticReviewRejectSerializer
 )
 from ..permissions import IsLegist, IsCTCCoordinator
+
+
+def compute_vote_summary(norme):
+    """Calcule le décompte de votes (POUR/CONTRE/ABSTENTION) d'une norme."""
+    counts = norme.votes.aggregate(
+        total=Count('id'),
+        for_votes=Count('id', filter=Q(vote='FOR')),
+        against_votes=Count('id', filter=Q(vote='AGAINST')),
+        abstain_votes=Count('id', filter=Q(vote='ABSTAIN')),
+    )
+    total = counts['total'] or 0
+    for_votes = counts['for_votes'] or 0
+    percent_for = round((for_votes / total) * 100, 2) if total else 0
+    return {
+        'total': total,
+        'for': for_votes,
+        'against': counts['against_votes'] or 0,
+        'abstain': counts['abstain_votes'] or 0,
+        'percent_for': percent_for,
+        'passes_threshold': total > 0 and percent_for > 50,
+    }
+
+
+def promote_norme_to_ctc_if_vote_passes(norme):
+    """Transmet automatiquement une norme au Toilettage CTC (LEGISTIC_REVIEW)
+    dès qu'elle obtient plus de 50% de votes POUR, quel que soit son statut
+    de départ (Brouillon, Révision interne ou Soumise au CTM)."""
+    if norme.status not in ('DRAFT', 'INTERNAL_REVIEW', 'CTM_REVIEW'):
+        return False
+    if not compute_vote_summary(norme)['passes_threshold']:
+        return False
+    norme.status = 'LEGISTIC_REVIEW'
+    norme.legistic_review_date = date.today()
+    norme.is_public = False
+    norme.save(update_fields=['status', 'legistic_review_date', 'is_public', 'updated_at'])
+    LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
+    CTCProcessus.objects.get_or_create(norme=norme)
+    return True
 
 
 class LegisticReviewViewSet(viewsets.ModelViewSet):
@@ -96,23 +135,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
         return latest.content if latest else ''
 
     def _vote_summary(self, norme):
-        counts = norme.votes.aggregate(
-            total=Count('id'),
-            for_votes=Count('id', filter=Q(vote='FOR')),
-            against_votes=Count('id', filter=Q(vote='AGAINST')),
-            abstain_votes=Count('id', filter=Q(vote='ABSTAIN')),
-        )
-        total = counts['total'] or 0
-        for_votes = counts['for_votes'] or 0
-        percent_for = round((for_votes / total) * 100, 2) if total else 0
-        return {
-            'total': total,
-            'for': for_votes,
-            'against': counts['against_votes'] or 0,
-            'abstain': counts['abstain_votes'] or 0,
-            'percent_for': percent_for,
-            'passes_threshold': total > 0 and percent_for > 50,
-        }
+        return compute_vote_summary(norme)
 
     def _norme_payload(self, norme):
         vote_summary = self._vote_summary(norme)
@@ -147,19 +170,12 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
         }
 
     def _sync_vote_progression(self):
-        candidates = Norme.objects.filter(status__in=['INTERNAL_REVIEW', 'CTM_REVIEW']).prefetch_related('votes')
+        candidates = Norme.objects.filter(status__in=['DRAFT', 'INTERNAL_REVIEW', 'CTM_REVIEW']).prefetch_related('votes')
         promoted = []
         with transaction.atomic():
             for norme in candidates:
-                summary = self._vote_summary(norme)
-                if not summary['passes_threshold']:
-                    continue
-                norme.status = 'LEGISTIC_REVIEW'
-                norme.legistic_review_date = date.today()
-                norme.is_public = False
-                norme.save(update_fields=['status', 'legistic_review_date', 'is_public', 'updated_at'])
-                LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
-                promoted.append(norme.id)
+                if promote_norme_to_ctc_if_vote_passes(norme):
+                    promoted.append(norme.id)
         return promoted
 
     @action(detail=False, methods=['get'], url_path='workspace')
@@ -263,6 +279,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
         if step == 3:
             norme.legistic_review_date = date.today()
             LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
+            CTCProcessus.objects.get_or_create(norme=norme)
         elif step == 4 and not norme.public_inquiry_start:
             norme.public_inquiry_start = date.today()
         elif step == 6 and not norme.homologation_date:

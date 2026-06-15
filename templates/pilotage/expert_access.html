@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Accès Experts | CNETP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'dark';
+        if (theme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .animate-up { animation: slideUp .35s ease-out forwards; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+
+    <!-- ═══════════════════════════════════════════
+         TOPBAR
+    ═══════════════════════════════════════════ -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-3
+                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+                   border-slate-200 dark:border-white/[8%] shrink-0">
+
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{% url 'web:pilotage_dashboard' %}"
+               class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors shrink-0">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Tableau de bord
+            </a>
+            <span class="text-slate-300 dark:text-white/15">|</span>
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase truncate">
+                Gestion des Accès Experts
+            </h1>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+            <button onclick="toggleTheme()" title="Changer le thème"
+                    class="p-2 rounded-lg border border-slate-200 dark:border-white/10
+                           hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
+                <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+                <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto w-full bg-slate-50/50 dark:bg-[#020204]/40">
+        <div class="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
+
+            <!-- ── En-tête ──────────────────────────────────────────────────── -->
+            <div class="rounded-3xl border border-indigo-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 animate-up">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-400/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="key" class="w-6 h-6 text-indigo-400"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Gestion des Accès Experts</h2>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            Le Bureau Directoire peut débloquer ou suspendre l'accès d'un expert à la plateforme,
+                            et l'exclure d'un Groupe de Travail / CTM.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <div class="relative max-w-sm">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input id="expert-search" type="text" oninput="filterExperts()"
+                               placeholder="Rechercher un expert ou une structure…"
+                               class="w-full pl-9 pr-3 py-2 rounded-lg text-xs border
+                                      border-slate-300 dark:border-white/10 bg-white dark:bg-white/[3%]
+                                      text-slate-700 dark:text-slate-200 placeholder-slate-400
+                                      focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Table des experts ───────────────────────────────────────── -->
+            <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+                <div class="overflow-x-auto -mx-2">
+                    <table id="experts-table" class="w-full text-xs">
+                        <thead>
+                            <tr class="text-left text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 dark:border-white/[8%]">
+                                <th class="px-2 py-2">Expert</th>
+                                <th class="px-2 py-2">Structure</th>
+                                <th class="px-2 py-2">CTM Principal</th>
+                                <th class="px-2 py-2">Affectations (WG / CTM)</th>
+                                <th class="px-2 py-2">Statut</th>
+                                <th class="px-2 py-2">Accès</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in experts %}
+                            <tr class="border-b border-slate-100 dark:border-white/5"
+                                data-search="{{ e.full_name|lower }} {{ e.structure.acronym|lower }}">
+                                <td class="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{{ e.full_name }}</td>
+                                <td class="px-2 py-2 text-slate-500 whitespace-nowrap">{{ e.structure.acronym }}</td>
+                                <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                                    {% if e.ctm %}CTM {{ e.ctm.number }}{% else %}<span class="italic">—</span>{% endif %}
+                                </td>
+                                <td class="px-2 py-2">
+                                    <div class="flex flex-wrap gap-1.5">
+                                        {% for a in e.governance_affectations.all %}
+                                        <span id="affectation-{{ a.pk }}"
+                                              class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
+                                                     bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
+                                            CTM {{ a.ctm.number }} / WG {{ a.ctm.number }}.{{ a.wg.number }} — {{ a.role }}
+                                            <button onclick="excludeAffectation({{ a.pk }}, document.getElementById('affectation-{{ a.pk }}'))"
+                                                    title="Exclure de ce WG / CTM"
+                                                    class="hover:text-red-400 transition-colors">
+                                                <i data-lucide="x" class="w-3 h-3"></i>
+                                            </button>
+                                        </span>
+                                        {% empty %}
+                                        <span class="text-[10px] text-slate-400 italic">Aucune</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td class="px-2 py-2 whitespace-nowrap">
+                                    <span id="status-badge-{{ e.pk }}"
+                                          class="text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide
+                                                 {% if e.status == 'ACTIVE' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
+                                                 {% elif e.status == 'SUSPENDED' %}bg-red-400/10 text-red-400 border-red-400/25
+                                                 {% elif e.status == 'PENDING' %}bg-indigo-400/10 text-indigo-400 border-indigo-400/25
+                                                 {% else %}bg-slate-400/10 text-slate-400 border-slate-400/25{% endif %}">
+                                        {{ e.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-2 py-2 whitespace-nowrap">
+                                    {% if e.status == 'SUSPENDED' %}
+                                    <button onclick="toggleExpertAccess({{ e.pk }}, this)" data-action="activate"
+                                            class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors
+                                                   bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">
+                                        Débloquer l'accès
+                                    </button>
+                                    {% else %}
+                                    <button onclick="toggleExpertAccess({{ e.pk }}, this)" data-action="suspend"
+                                            class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors
+                                                   bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20">
+                                        Suspendre l'accès
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-sm text-slate-500 italic">Aucun expert trouvé.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p id="no-results" class="hidden text-center py-8 text-sm text-slate-500 italic">Aucun expert ne correspond à la recherche.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast notification -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-800 dark:bg-[#020204]/90 dark:border-white/10 dark:text-slate-300 backdrop-blur-md transition-opacity">
+        <i id="toast-icon" data-lucide="check-circle-2" class="h-5 w-5 text-blue-400"></i>
+        <span id="toast-msg" class="text-xs font-semibold">Action réussie !</span>
+    </div>
+
+    <script>
+        // ── Thème clair / sombre ───────────────────────────────────────────────
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        // ── Recherche / filtre experts ──────────────────────────────────────────
+        function filterExperts() {
+            const q = document.getElementById('expert-search').value.trim().toLowerCase();
+            const rows = document.querySelectorAll('#experts-table tbody tr');
+            let visible = 0;
+            rows.forEach(tr => {
+                const hay = tr.dataset.search || '';
+                const show = !q || hay.includes(q);
+                tr.classList.toggle('hidden', !show);
+                if (show) visible++;
+            });
+            document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+        }
+
+        // ── Statuts d'accès (badge) ─────────────────────────────────────────────
+        const STATUS_BADGE_CLASSES = {
+            ACTIVE:    'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-emerald-400/10 text-emerald-400 border-emerald-400/25',
+            SUSPENDED: 'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-red-400/10 text-red-400 border-red-400/25',
+            PENDING:   'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-indigo-400/10 text-indigo-400 border-indigo-400/25',
+        };
+        const STATUS_BADGE_DEFAULT = 'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-slate-400/10 text-slate-400 border-slate-400/25';
+
+        // ── Débloquer / suspendre l'accès d'un expert ───────────────────────────
+        async function toggleExpertAccess(expertId, btn) {
+            const action = btn.dataset.action;
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '…';
+
+            try {
+                const resp = await fetch(`/pilotage/gestion-acces/expert/${expertId}/statut/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+
+                    const badge = document.getElementById(`status-badge-${expertId}`);
+                    badge.textContent = data.new_status_label;
+                    badge.className = STATUS_BADGE_CLASSES[data.new_status] || STATUS_BADGE_DEFAULT;
+
+                    if (data.new_status === 'SUSPENDED') {
+                        btn.dataset.action = 'activate';
+                        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20";
+                        btn.innerHTML = "Débloquer l'accès";
+                    } else {
+                        btn.dataset.action = 'suspend';
+                        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20";
+                        btn.innerHTML = "Suspendre l'accès";
+                    }
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+                btn.innerHTML = originalHtml;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ── Exclure un expert d'un WG / CTM ─────────────────────────────────────
+        async function excludeAffectation(affectationId, chipEl) {
+            if (!confirm("Confirmer l'exclusion de cet expert de ce Groupe de Travail / CTM ?")) return;
+
+            try {
+                const resp = await fetch(`/pilotage/gestion-acces/affectation/${affectationId}/exclure/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    showToast(data.message, 'success');
+                    chipEl.remove();
+                } else {
+                    showToast(data.error || 'Erreur.', 'error');
+                }
+            } catch (err) {
+                showToast('Erreur réseau.', 'error');
+            }
+        }
+
+        // ── Toast notification ──────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            if (!toast || !msgEl || !iconEl) return;
+
+            msgEl.textContent = msg;
+            if (type === 'error') {
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+                iconEl.className = 'h-5 w-5 text-red-400';
+            } else {
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+                iconEl.className = 'h-5 w-5 text-blue-400';
+            }
+            lucide.createIcons();
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+    </script>
+</body>
+</html>

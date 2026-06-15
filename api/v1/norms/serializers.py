@@ -53,14 +53,31 @@ class NormeBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les normes"""
     ctm_name = serializers.CharField(source='ctm.name', read_only=True)
     wg_name = serializers.CharField(source='wg.name', read_only=True)
+    votes_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'status', 'norm_type', 'target_count',
-            'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at'
+            'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at', 'votes_summary'
         ]
-        read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at']
+        read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at', 'votes_summary']
+
+    def get_votes_summary(self, obj):
+        votes = list(obj.votes.all())
+        total = len(votes)
+        for_votes = sum(1 for v in votes if v.vote == 'FOR')
+        against_votes = sum(1 for v in votes if v.vote == 'AGAINST')
+        abstain_votes = sum(1 for v in votes if v.vote == 'ABSTAIN')
+        percent_for = round((for_votes / total) * 100, 2) if total else 0
+        return {
+            'total': total,
+            'for': for_votes,
+            'against': against_votes,
+            'abstain': abstain_votes,
+            'percent_for': percent_for,
+            'passes_threshold': total > 0 and percent_for > 50,
+        }
 
 
 class NormeDetailSerializer(serializers.ModelSerializer):
