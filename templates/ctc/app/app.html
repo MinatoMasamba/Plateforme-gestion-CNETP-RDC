@@ -94,6 +94,7 @@
     {% include "ctc/app/components/directory_modal.html" %}
     {% include "ctc/app/components/ctm_working_groups_modal.html" %}
     {% include "ctc/composants/ctc_permission_modal.html" %}
+    {% include 'ia_agent/composants/agent_widget.html' with widget_scope='ctc' widget_position='bottom-6 right-6' %}
 
     <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-800 dark:bg-[#020204]/90 dark:border-white/10 dark:text-slate-300 backdrop-blur-md transition-opacity">
         <i id="toast-icon" data-lucide="check-circle-2" class="h-5 w-5 text-blue-400"></i>

@@ -4,13 +4,11 @@ set -e
 # Activate venv
 source mon_env/bin/activate
 
-# Create test data (admin user)
+# Create test data (admin user + expert)
 echo "Creating test data..."
 python manage.py shell << PYEOF
 from django.contrib.auth import get_user_model
-from apps.experts.models import Expert
-from apps.documents.models import DocumentFile
-import os
+from apps.experts.models import Expert, Structure
 
 User = get_user_model()
 
@@ -24,42 +22,31 @@ else:
 
 # Create test expert
 if not Expert.objects.filter(user=admin).exists():
-    expert = Expert.objects.create(
-        user=admin,
-        role='Expert',
-        phone='+243999999999',
-        is_active=True
-    )
-    print("✓ Test expert created")
+    structure = Structure.objects.first()
+    if structure:
+        Expert.objects.create(
+            user=admin,
+            structure=structure,
+            status='ACTIVE',
+            specialties='Administration, Pilotage',
+        )
+        print("✓ Test expert created")
+    else:
+        print("⚠ Aucune structure disponible — expert non créé")
 else:
-    expert = Expert.objects.get(user=admin)
     print("✓ Expert already exists")
 
-print("\nTest credentials:")
-print("Username: admin")
-print("Password: admin123")
+print("\nIdentifiants de test :")
+print("  Username : admin")
+print("  Password : admin123")
 PYEOF
 
 echo ""
-echo "🚀 Starting Django backend on port 8000..."
-python manage.py runserver 0.0.0.0:8000 &
-DJANGO_PID=$!
-
-# Wait for Django to start
-sleep 3
-
-cd frontend
-echo "🚀 Starting Vite frontend on port 5173..."
-npm run dev &
-VITE_PID=$!
-
+echo "Démarrage du serveur Django sur http://localhost:8000 ..."
+echo "Admin :   http://localhost:8000/admin/"
+echo "Swagger : http://localhost:8000/api/v1/schema/swagger/"
 echo ""
-echo "✅ Servers started!"
-echo "   Backend:  http://localhost:8000"
-echo "   Frontend: http://localhost:5173"
-echo "   Swagger:  http://localhost:8000/api/v1/schema/swagger/"
+echo "Ctrl+C pour arrêter"
 echo ""
-echo "Press Ctrl+C to stop"
 
-# Wait for both processes
-wait $DJANGO_PID $VITE_PID
+python manage.py runserver 0.0.0.0:8000

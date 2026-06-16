@@ -38,6 +38,24 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
         return Response(AgentMessageSerializer(msgs, many=True).data)
 
     @action(detail=True, methods=['post'])
+    def init(self, request, pk=None):
+        session = self.get_object()
+        if session.messages.filter(role__in=['user', 'assistant']).exists():
+            return Response({"detail": "Session déjà initialisée."}, status=status.HTTP_200_OK)
+        started_at = timezone.now()
+        msg = AgentRunner(session).run_greeting()
+        if msg is None:
+            return Response({"detail": "Greeting non disponible."}, status=status.HTTP_200_OK)
+        session.save(update_fields=['updated_at'])
+        new_artifacts = AgentArtifact.objects.filter(session=session, created_at__gte=started_at)
+        session.refresh_from_db(fields=['title'])
+        return Response({
+            "assistant_message": AgentMessageSerializer(msg).data,
+            "artifacts": AgentArtifactSerializer(new_artifacts, many=True).data,
+            "session_title": session.title,
+        })
+
+    @action(detail=True, methods=['post'])
     def send(self, request, pk=None):
         session = self.get_object()
         content = (request.data.get('content') or '').strip()
@@ -46,6 +64,7 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
 
         started_at = timezone.now()
         assistant_message = AgentRunner(session).run_turn(content)
+        session.refresh_from_db(fields=['title', 'updated_at'])
         session.save(update_fields=['updated_at'])
 
         new_artifacts = AgentArtifact.objects.filter(session=session, created_at__gte=started_at)
@@ -53,6 +72,7 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
         return Response({
             "assistant_message": AgentMessageSerializer(assistant_message).data,
             "artifacts": AgentArtifactSerializer(new_artifacts, many=True).data,
+            "session_title": session.title,
         })
 
 

@@ -1,0 +1,886 @@
+Rapport d'expertise technologique : 
+Caractérisation physique, mécanique et 
+sécuritaire des vitrages selon les 
+référentiels ISO du comité technique de 
+la miroiterie pour le bâtiment 
+Cadre structurel et harmonisation internationale du 
+comité ISO/TC 160 
+La normalisation internationale dans le domaine du verre de construction est coordonnée de 
+manière centrale par le Comité Technique ISO/TC 160, intitulé "Glass in building" (Verre dans la 
+construction)1. Au niveau national français, les travaux de ce comité sont suivis et transposés 
+par la commission de normalisation AFNOR B/520, servant de miroir sous l'appellation 
+générique du Comité Technique de la Miroiterie3. 
+L'organisation de l'ISO/TC 160 est divisée en deux sous-comités principaux : l'ISO/TC 160/SC 1, 
+qui se concentre sur les aspects liés au produit et aux matériaux de base, et l'ISO/TC 160/SC 2, 
+qui régit les aspects liés à l'utilisation, aux méthodes de calcul et aux règles de mise en œuvre 
+en bâtiment2. L'activité normative de ces entités permet de définir des exigences de 
+performance communes et de standardiser les méthodes d'essai afin d'assurer l'intégrité 
+structurelle des façades et la sécurité des personnes2. 
+L'élaboration de ces normes s'effectue fréquemment en étroite collaboration avec le Comité 
+Européen de Normalisation (CEN) selon l'Accord de Vienne, ce qui conduit à l'adoption de 
+normes harmonisées sous le préfixe EN ISO, facilitant ainsi l'unification des marchés mondiaux 
+et l'évaluation de la conformité des verres de miroiterie3. 
+Analyse détaillée de vingt normes ISO majeures de la 
+miroiterie et du bâtiment 
+Les vingt normes présentées ci-dessous constituent le noyau technique indispensable pour 
+concevoir, fabriquer, tester et réceptionner les ouvrages de vitrage et de miroiterie dans le 
+bâtiment. 
+1. ISO 12543-2:2021 — Verre dans la construction — Verre feuilleté et 
+verre feuilleté de sécurité — Partie 2 : Verre feuilleté de sécurité 
+Cette norme spécifie les exigences de performance pour le verre feuilleté de sécurité, 
+caractérisé par sa capacité à maintenir la cohésion des fragments en cas de rupture 
+accidentelle ou intentionnelle10. 
+
+●​ Domaine d'application : S'applique aux vitrages intérieurs et extérieurs exposés à des 
+risques d'impact corporel, de chute dans le vide ou d'effraction12. 
+●​ Spécifications techniques : Exige l'emploi d'intercalaires de type butyral de polyvinyl 
+(PVB) ou ionomères qui retiennent activement les éclats de verre, minimisant ainsi le 
+risque de blessures par coupure ou perforation12. 
+●​ Méthodes d'évaluation : La conformité est validée par l'évaluation des propriétés 
+d'adhérence verre-intercalaire et par la tenue aux chocs mécaniques définis dans les 
+normes d'essai associées11. 
+●​ Impact en ingénierie : Elle constitue la base technique pour le dimensionnement des 
+garde-corps vitrés, des dalles de sol en verre et des parois d'ascenseur12. 
+2. ISO 12543-4:2021 — Verre dans la construction — Verre feuilleté et 
+verre feuilleté de sécurité — Partie 4 : Méthodes d'essai concernant la 
+durabilité 
+Cette partie définit les protocoles d'essais de vieillissement accéléré nécessaires pour évaluer 
+la stabilité thermique et chimique des vitrages feuilletés sous l'effet des facteurs 
+environnementaux majeurs14. 
+●​ Domaine d'application : Concerne la validation de la tenue dans le temps de tous les 
+verres feuilletés destinés à être installés dans des conditions d'exposition normales ou 
+sévères15. 
+●​ Spécifications techniques : La norme impose des limites strictes concernant l'apparition 
+de défauts visuels tels que la délamination (séparation des plis), l'apparition de bulles d'air 
+ou de buée interne, ainsi que la décoloration (jaunissement de l'intercalaire sous l'action 
+des UV)12. 
+●​ Méthodes d'évaluation : Elle encadre trois essais fondamentaux : l'essai de résistance à 
+haute température (exposition continue à 
+ pendant 2 heures ou plus), l'essai de 
+résistance à l'humidité (immersion ou maintien en étuve humide saturée à 
+ 
+d'humidité relative), et l'essai d'irradiation ultraviolette forcée14. 
+●​ Impact en ingénierie : Cette norme garantit que les performances mécaniques et la 
+transparence optique du vitrage composite ne subiront pas de dégradation prématurée 
+au cours de la vie de l'ouvrage12. 
+3. ISO 20492-1:2008 — Verre dans la construction — Vitrages isolants 
+— Partie 1 : Durabilité des barrières d'étanchéité par essais 
+climatiques 
+Cette norme traite de la capacité des barrières d'étanchéité périphériques des vitrages isolants 
+à résister à la pénétration permanente de la vapeur d'eau16. 
+●​ Domaine d'application : S'applique aux doubles et triples vitrages isolants assemblés de 
+manière étanche et permanente pour des installations extérieures16. 
+
+●​ Spécifications techniques : Elle codifie deux approches techniques régionales : 
+l'Approche 1 (adaptée au marché nord-américain) et l'Approche 2 (adaptée au marché 
+européen), chacune définissant des tailles de feuillure et des configurations d'étanchéité 
+spécifiques16. 
+●​ Méthodes d'évaluation : Les éprouvettes sont soumises à des cycles climatiques 
+sévères alternant des phases de gel-dégel et d'humidité élevée, suivies d'une mesure 
+précise de l'indice de pénétration d'humidité et de la température du point de rosée 
+interne du gaz de la cavité16. 
+●​ Impact en ingénierie : Un échec à ces essais présage une perte rapide des 
+performances d'isolation thermique par condensation de buée sur les faces internes de 
+l'espace déshydraté17. 
+4. ISO 20492-3:2010 — Verre dans la construction — Vitrages isolants 
+— Partie 3 : Concentration de gaz et taux de fuite de gaz 
+Cette partie encadre la qualité de remplissage et la rétention à long terme des gaz rares insérés 
+au sein des lames d'air des vitrages isolants pour en accroître l'isolation thermique17. 
+●​ Domaine d'application : S'applique aux vitrages isolants thermo-acoustiques dont la 
+cavité interne est enrichie en argon, en krypton ou en SF617. 
+●​ Spécifications techniques : La concentration initiale en gaz doit être supérieure ou 
+égale à une valeur nominale définie (généralement 
+ par volume), et le taux de fuite 
+annuel de gaz (
+) doit rester inférieur aux seuils acceptables pour ne pas dégrader le 
+coefficient de transmission thermique du vitrage17. 
+●​ Méthodes d'évaluation : La norme spécifie des méthodes analytiques de mesure par 
+chromatographie en phase gazeuse ou par analyse spectrographique de l'émission 
+lumineuse induite dans la cavité17. 
+●​ Impact en ingénierie : Elle garantit la pérennité de l'isolation thermique globale du 
+bâtiment (préservation du coefficient 
+) sur une période minimale d'exploitation17. 
+5. ISO 11485-2:2011 — Verre dans la construction — Verre bombé — 
+Partie 2 : Exigences de qualité 
+Cette norme fixe les critères de qualité d'aspect et les tolérances géométriques associées aux 
+vitrages ayant subi une opération thermique de bombage21. 
+●​ Domaine d'application : Concerne les verres bombés monolithiques, feuilletés ou 
+isolants destinés aux façades tridimensionnelles complexes, à l'ameublement ou aux 
+devantures de commerces7. 
+●​ Spécifications techniques : La norme classe les écarts de forme admissibles en termes 
+de rectitude des bords, d'exactitude du profil de courbure (
+), de vrillage, et d'effets 
+de distorsion optique locale22. 
+
+●​ Méthodes d'évaluation : Mesures dimensionnelles rigoureuses de la flèche, de la corde 
+et de l'arc à l'aide de gabarits d'étalonnage physiques (échelle 1:1) ou de systèmes de 
+balayage laser 3D20. 
+●​ Impact en ingénierie : Cruciale pour s'assurer que le vitrage bombé s'intègre 
+parfaitement dans les châssis sans générer de contraintes mécaniques d'installation 
+excessives24. 
+6. ISO 11485-3:2014 — Verre dans la construction — Verre bombé — 
+Partie 3 : Exigences pour le verre bombé trempé et le verre bombé 
+feuilleté de sécurité 
+Elle spécifie les caractéristiques de sécurité et de comportement mécanique mécanique après 
+rupture pour les vitrages bombés ayant fait l'objet d'un traitement de sécurité5. 
+●​ Domaine d'application : Utilisé pour la réception technique des ouvrages vitrés incurvés 
+installés dans des zones critiques (garde-corps, verrières rampantes, ascenseurs 
+panoramiques)5. 
+●​ Spécifications techniques : Fixe les critères d'homologation sécuritaire en évaluant la 
+capacité du verre à ne pas produire d'éclats tranchants dangereux et à conserver une 
+tenue mécanique résiduelle après impact5. 
+●​ Méthodes d'évaluation : Adaptation tridimensionnelle des essais d'impact mécanique 
+dynamique par corps mous (comme le pendule à double pneu ou le sac de billes) sur des 
+maquettes courbées représentatives5. 
+●​ Impact en ingénierie : Cette norme lève l'obstacle technique de l'intégration de verres 
+aux formes complexes dans les zones recevant du public5. 
+7. ISO 16293-1:2008 — Verre dans la construction — Produits de base à 
+partir de verre de silicate sodo-calcique — Partie 1 : Définitions et 
+propriétés physiques et mécaniques générales 
+Cette norme fondamentale établit les caractéristiques intrinsèques physiques et chimiques de 
+référence pour le matériau sodo-calcique brut de miroiterie26. 
+●​ Domaine d'application : S'applique à l'ensemble de l'industrie verrière pour établir les 
+calculs thermiques, structuraux et acoustiques d'un vitrage de construction26. 
+●​ Spécifications techniques : Elle codifie la composition massique du verre de base, qui 
+comprend majoritairement de la silice (
+ de 
+ à 
+), du sodium (
+ 
+de 
+ à 
+), et du calcium (
+ de 
+ à 
+)26. 
+●​ Méthodes d'évaluation : Elle liste les valeurs de conception standardisées pour la masse 
+volumique (
+), le module d'élasticité (
+), la dureté (6 
+sur l'échelle de Mohs) et le coefficient de dilatation linéaire (
+)26. 
+●​ Impact en ingénierie : C'est le dictionnaire de propriétés à partir duquel toutes les 
+
+modélisations d'éléments finis de façades vitrées sont paramétrées26. 
+8. ISO 16293-2:2017 — Verre dans la construction — Produits de base 
+à partir de verre de silicate sodo-calcique — Partie 2 : Verre float 
+Cette partie encadre spécifiquement la qualité de fabrication industrielle du verre plat 
+transparent obtenu par flottaison sur un bain de métal fondu26. 
+●​ Domaine d'application : Concerne les feuilles de verre float livrées en dimensions 
+industrielles d'origine (jumbos ou split sizes) ou recoupées à dimensions finales 
+d'installation29. 
+●​ Spécifications techniques : Classe les tolérances d'épaisseur et d'équerrage, et définit 
+la sévérité admissible des défauts ponctuels (bulles, inclusions de matières réfractaires) 
+et des défauts linéaires (rayures, traînées d'étain)31. 
+●​ Méthodes d'évaluation : Observation visuelle standardisée devant un écran d'examen à 
+contraste de lignes parallèles pour identifier les distorsions optiques par réfraction31. 
+●​ Impact en ingénierie : Cette norme régule la qualité de base du substrat en amont de 
+toute transformation ultérieure de miroiterie comme la trempe ou l'application de 
+couches minces29. 
+9. ISO 9050:2003 — Verre dans la construction — Détermination de la 
+transmission lumineuse, de la transmission solaire directe, de la 
+transmission d'énergie solaire totale, de la transmission de l'ultraviolet 
+et des facteurs de vitrage connexes 
+Il s'agit du texte clé régissant la caractérisation spectrophotométrique des vitrages pour 
+l'analyse thermique et lumineuse des bâtiments33. 
+●​ Domaine d'application : S'applique à tous les matériaux transparents de miroiterie, qu'ils 
+soient monolithiques, feuilletés, multiples, ou pourvus de revêtements minces de 
+contrôle solaire ou basse émissivité33. 
+●​ Spécifications techniques : Définit les méthodes mathématiques d'intégration spectrale 
+permettant de déduire les coefficients globaux du vitrage comme la transmission 
+lumineuse (
+), le facteur solaire (
+) et la transmission de l'ultraviolet (
+)33. 
+●​ Méthodes d'évaluation : Repose sur des mesures de transmission et de réflexion 
+réalisées au moyen d'un spectrophotomètre équipé d'une sphère d'intégration, sur une 
+bande de longueurs d'onde allant de 
+ à 
+35. 
+●​ Impact en ingénierie : Fournit les entrées indispensables pour la simulation thermique 
+dynamique (STD) et l'évaluation du confort d'été et d'hiver des bâtiments35. 
+10. ISO 10292:1994 — Verre dans la construction — Calcul des 
+coefficients de transmission thermique U en régime stationnaire des 
+
+vitrages multiples 
+Cette norme décrit les règles théoriques fondamentales permettant de calculer le coefficient 
+de transfert thermique (
+) en partie courante d'un vitrage isolant37. 
+●​ Domaine d'application : Vitrages multiples composés de plusieurs feuilles de verre 
+parallèles séparées par des espaces d'air ou de gaz inertes, à l'exclusion des effets 
+thermiques de bordure du cadre37. 
+●​ Spécifications techniques : Le calcul intègre les propriétés de conduction du gaz dans 
+la cavité, l'épaisseur des vitrages et le rayonnement thermique radiatif de surface basé 
+sur les émissivités corrigées des verres ou de leurs revêtements de surface39. 
+●​ Méthodes d'évaluation : Algorithme mathématique basé sur les principes 
+fondamentaux de la thermodynamique (flux de chaleur stationnaire unidimensionnel)38. 
+●​ Impact en ingénierie : Permet la comparaison neutre et universelle des performances 
+d'isolation thermique des différents vitrages du marché pour la labellisation des 
+bâtiments37. 
+11. ISO 12540:2017 — Verre dans la construction — Verre de sécurité 
+de silicate sodo-calcique trempé thermiquement 
+Cette norme régit le verre qui a subi un procédé de chauffage suivi d'un refroidissement 
+brusque destiné à induire des contraintes de compression de surface41. 
+●​ Domaine d'application : S'applique au verre trempé plat utilisé dans les zones d'impact 
+potentiel, les parois vitrées autoportantes et les façades sous forte charge de vent41. 
+●​ Spécifications techniques : Définit les tolérances de déformation de trempe (flèche 
+locale, effet de vagues de rouleau ou roller wave distortion, et déformation des bords ou 
+edge lift)42. 
+●​ Méthodes d'évaluation : En cas de bris provoqué à des fins d'essai, la norme exige un 
+schéma de rupture sécuritaire où le nombre minimal de fragments comptés dans une 
+maille de 
+ doit respecter des valeurs minimales prédéfinies selon 
+l'épaisseur du verre43. 
+●​ Impact en ingénierie : Garantit la conformité sécuritaire du matériau face aux risques de 
+casse brutale, en s'assurant que les fragments résultants sont de petite taille et 
+émoussés42. 
+12. ISO 20657:2017 — Verre dans la construction — Verre de sécurité 
+de silicate sodo-calcique trempé et traité Heat Soak 
+Cette norme réglemente le protocole d'essai thermique de traitement Heat Soak (HST), 
+appliqué au verre trempé pour éliminer le risque de casse spontanée causée par les inclusions 
+de sulfure de nickel45. 
+●​ Domaine d'application : Vitrages trempés extérieurs posés en hauteur, façades 
+suspendues ou structures verrières où un bris spontané entraînerait un risque de chute 
+
+d'éléments verriers47. 
+●​ Spécifications techniques : Exige que les verres trempés soient soumis à un traitement 
+thermique contrôlé afin d'accélérer la transition de phase des inclusions de sulfure de 
+nickel éventuellement présentes47. 
+●​ Méthodes d'évaluation : Chauffage de la totalité des panneaux en four à une 
+température stabilisée de 
+ pendant un palier de maintien d'au moins 2 
+heures, avec contrôle strict des vitesses de montée et de descente en température48. 
+●​ Impact en ingénierie : Réduit de manière drastique les risques d'accidents et les 
+surcoûts d'intervention après réception de l'ouvrage sur les façades de grande hauteur47. 
+13. ISO 29584:2015 — Verre dans la construction — Essais d'impact au 
+pendule et classification du verre de sécurité pour une utilisation dans 
+les bâtiments 
+Elle standardise les méthodes d'évaluation mécanique directe de la sécurité des verres lors d'un 
+choc dynamique accidentel représentant un corps humain8. 
+●​ Domaine d'application : Validation et catégorisation de la performance sécuritaire de 
+tous les vitrages plats de sécurité (trempés, feuilletés, armés)8. 
+●​ Spécifications techniques : Classe les verres en différentes catégories en fonction de la 
+hauteur de chute maximale à laquelle le vitrage soit résiste sans casser, soit se brise de 
+manière sûre8. 
+●​ Méthodes d'évaluation : Utilise un banc d'essai normalisé où une plaque de verre de 
+dimensions précises de 
+ subit le choc d'un 
+impacteur lourd oscillant (soit un sac de billes de plomb de 
+, soit un dispositif 
+constitué de deux pneumatiques gonflés à 
+)8. 
+●​ Impact en ingénierie : Permet une sélection rationnelle du type de vitrage de sécurité à 
+installer en fonction de la hauteur d'allège et de l'exposition au public7. 
+14. ISO 28278-1:2011 — Verre dans la construction — Produits verriers 
+pour vitrage extérieur collé (VEC) — Partie 1 : Produits verriers pour 
+systèmes VEC supportés et non supportés 
+Cette norme traite de la compatibilité et de l'aptitude à l'emploi des verres destinés à être collés 
+directement sur les profilés de structure métallique sans maintien mécanique périphérique52. 
+●​ Domaine d'application : Conception et mise en œuvre des façades rideaux en vitrage 
+extérieur collé (VEC)52. 
+●​ Spécifications techniques : Limite l'usage aux verres de silicate sodo-calcique et 
+impose des règles strictes de rugosité et de propreté sur les surfaces destinées à 
+recevoir le cordon de mastic de collage structurel52. Elle exige l'emploi de silicones de 
+scellement basés sur des polymères d'organo-siloxane52. 
+
+●​ Méthodes d'évaluation : Essais d'adhérence-cohésion du cordon de mastic sur le verre 
+sous conditions d'environnement contrôlées et après diverses phases d'immersion et 
+d'exposition aux UV52. 
+●​ Impact en ingénierie : Assure la sécurité structurale des façades vitrées vis-à-vis des 
+risques de décollement sous l'action combinée du vent et de la température52. 
+15. ISO 16932:2020 — Verre dans la construction — Vitrages de 
+sécurité résistants aux tempêtes de vent destructrices — Essais et 
+classification 
+Elle spécifie les essais physiques requis pour s'assurer qu'un vitrage de façade peut résister aux 
+contraintes exceptionnelles générées par les phénomènes cycloniques ou tornades56. 
+●​ Domaine d'application : Bâtiments de haute importance ou situés dans des zones 
+côtières géographiquement exposées aux vents extrêmes (
+)56. 
+●​ Spécifications techniques : Le vitrage doit empêcher l'ouverture de l'enveloppe du 
+bâtiment afin de prévenir l'augmentation brutale de la pression interne, facteur 
+d'effondrement des toitures56. 
+●​ Méthodes d'évaluation : L'essai se déroule en deux étapes critiques : d'abord un impact 
+mécanique par projectile lancé au canon à air comprimé (grands missiles en pièces de 
+bois ou petits missiles formés de billes d'acier), suivi immédiatement de l'application de 
+plusieurs milliers de cycles de pression statique positive et négative simulant les rafales 
+de vent56. 
+●​ Impact en ingénierie : Cette norme permet la construction d'infrastructures résilientes 
+servant d'abris d'urgence pour les populations lors de catastrophes naturelles57. 
+16. ISO 16936-1:2020 — Verre dans la construction — Vitrages de 
+sécurité résistants aux infractions — Partie 1 : Essai et classification 
+par chute répétée de bille d'acier 
+Cette norme encadre la caractérisation de la résistance mécanique des verres de sécurité 
+contre les chocs d'objets durs de petite surface60. 
+●​ Domaine d'application : Vitrages de sécurité destinés à la protection contre le 
+vandalisme léger ou les jets de projectiles accidentels62. 
+●​ Spécifications techniques : Classe les produits verriers en fonction de leur capacité à 
+retarder la pénétration d'un corps dur à travers le vitrage60. 
+●​ Méthodes d'évaluation : Le protocole consiste à faire chuter une bille d'acier normalisée 
+de 
+ depuis une hauteur d'essai variable allant de 
+ à 
+, avec des 
+impacts répétés formant un triangle au centre de l'éprouvette, sans que la bille ne 
+traverse le verre60. 
+●​ Impact en ingénierie : Indispensable pour la spécification technique des vitrines de 
+commerces et des rez-de-chaussée de bâtiments administratifs. 
+
+17. ISO 16936-2:2005 — Verre dans la construction — Vitrages de 
+sécurité résistants aux infractions — Partie 2 : Essai et classification 
+par impacts répétés d'un marteau et d'une hache à température 
+ambiante 
+Elle régit l'évaluation de la résistance à l'effraction forcée sous l'action d'outils à main 
+mécaniques contondants ou tranchants63. 
+●​ Domaine d'application : Vitrages devant garantir un niveau élevé de sécurité 
+anti-intrusion (banques, bijouteries, sites industriels sensibles)62. 
+●​ Spécifications techniques : Les vitrages sont classés selon des catégories de résistance 
+définissant leur aptitude à résister à une tentative d'intrusion manuelle destructive63. 
+●​ Méthodes d'évaluation : Utilisation d'un appareil mécanique automatisé délivrant des 
+impacts successifs contrôlés, alternant des frappes de marteau de masse normalisée et 
+des coups de hache affûtée pour découper une ouverture d'intrusion définie dans le 
+verre63. 
+●​ Impact en ingénierie : Permet une conception de sécurité globale cohérente en 
+harmonisant la résistance du vitrage avec celle des huisseries et des systèmes d'alarme63. 
+18. ISO 16936-3:2005 — Verre dans la construction — Vitrages de 
+sécurité résistants aux infractions — Partie 3 : Essai et classification 
+par attaque manuelle 
+Cette partie spécifie une méthode d'évaluation physique globale simulant une tentative 
+d'intrusion physique réalisée par un opérateur humain outillé66. 
+●​ Domaine d'application : Qualification des systèmes de vitrage anti-effraction 
+hautement performants66. 
+●​ Spécifications techniques : Limite l'évaluation aux outils d'attaque manuels non 
+motorisés (pied-de-biche, masses, burins), excluant les outils électriques ou les 
+explosifs66. 
+●​ Méthodes d'évaluation : Des essais de destruction réels menés par des opérateurs 
+qualifiés mesurent le temps nécessaire pour percer un passage d'homme, tout en 
+appliquant éventuellement des sollicitations thermiques locales ou des contraintes 
+chimiques d'affaiblissement66. 
+●​ Impact en ingénierie : Complète de manière réaliste les essais mécaniques 
+instrumentés en intégrant le facteur humain et l'ingéniosité des techniques de 
+cambriolage66. 
+19. ISO 1288-2:2016 — Verre dans la construction — Détermination de 
+la résistance du verre à la flexion — Partie 2 : Essai d'anneau double 
+coaxial sur éprouvettes planes avec de grandes surfaces d'essai 
+
+Cette norme définit un protocole précis d'essai de rupture pour quantifier la résistance 
+mécanique à la traction-flexion intrinsèque du verre en dehors de toute influence de ses 
+bords32. 
+●​ Domaine d'application : R&D industrielle, contrôle qualité et caractérisation 
+fondamentale de la résistance structurelle des plaques de verre plat32. 
+●​ Spécifications techniques : Permet de mesurer les limites de contrainte mécanique à la 
+rupture du verre monolithique en soumettant une zone centrale importante à une 
+sollicitation de flexion homogène32. 
+●​ Méthodes d'évaluation : L'éprouvette plane de grandes dimensions est placée de 
+manière coaxiale entre un anneau d'appui inférieur et un anneau de charge supérieur, 
+appliquant une flexion circulaire uniforme jusqu'à rupture32. 
+●​ Impact en ingénierie : Fournit les données de résistance à la rupture utilisées pour 
+calibrer les coefficients de calcul élastique et les lois statistiques de Weibull4. 
+20. ISO 1288-3:2016 — Verre dans la construction — Détermination de 
+la résistance du verre à la flexion — Partie 3 : Essai sur éprouvette 
+supportée en deux points (flexion en quatre points) 
+Cette partie décrit l'évaluation de la résistance mécanique à la flexion du verre plat en intégrant 
+explicitement l'influence de la qualité de façonnage des bords de l'éprouvette28. 
+●​ Domaine d'application : S'applique à l'évaluation de la qualité de la miroiterie et à la 
+mesure de l'effet fragilisant des découpes, trous ou bords façonnés (joints plats polis, 
+joints abattus)32. 
+●​ Spécifications techniques : La résistance finale est calculée en tenant compte de la 
+contrainte maximale atteinte au moment de la rupture mécanique28. 
+●​ Méthodes d'évaluation : Une éprouvette de verre de dimensions normalisées (
+ de longueur par 
+ de largeur) est posée sur deux 
+rouleaux d'appui séparés de 
+ et chargée par le biais de deux rouleaux de 
+flexion supérieurs distants de 
+ jusqu'à rupture28. 
+●​ Impact en ingénierie : Fondamentale pour valider que le façonnage industriel des bords 
+des vitrages n'introduit pas de microfissures susceptibles de provoquer une rupture sous 
+sollicitation opérationnelle47. 
+Modélisation de l'évaluation de la conformité et 
+classification des produits 
+Afin de simplifier et de structurer l'analyse technique comparative pour les ingénieurs façadiers 
+et les concepteurs de miroiterie, les caractéristiques et les méthodes associées aux normes 
+abordées ci-dessus sont répertoriées dans les tableaux synthétiques suivants. 
+Caractérisation des performances thermiques et optiques des 
+
+vitrages 
+Le tableau ci-dessous regroupe les paramètres fondamentaux de calcul optique et de transfert 
+thermique stationnaire régis par les normes fondamentales d'évaluation33. 
+ 
+Norme ISO 
+Paramètre 
+physique clé 
+Méthode 
+d'analyse et de 
+mesure 
+Applications 
+architecturales 
+principales 
+ISO 9050:2003 
+[cite: 33, 34] 
+Facteur solaire (
+), 
+transmission 
+lumineuse (
+), 
+réflexion (
+), 
+transmission UV (
+)35 
+Analyse 
+spectrophotométri
+que sur la plage 
+ 
+et intégration 
+mathématique 
+standardisée35 
+Conception 
+bioclimatique, 
+dimensionnement 
+de la climatisation, 
+calcul de l'apport 
+de lumière 
+naturelle35 
+ISO 10292:1994 
+[cite: 37, 39] 
+Coefficient de 
+transmission 
+thermique en partie 
+centrale (
+)39 
+Modélisation 
+thermodynamique 
+en régime 
+stationnaire 
+combinant 
+conduction, 
+convection et 
+rayonnement38 
+Bilan thermique des 
+bâtiments, 
+justification de 
+conformité aux 
+réglementations 
+énergétiques37 
+Spécifications géométriques, dimensionnelles et physiques du verre 
+bombé 
+Les exigences géométriques et mécaniques inhérentes au processus de formage à chaud 
+tridimensionnel des éléments verriers sont spécifiées ci-après20. 
+ 
+Norme ISO 
+Spécification 
+physique 
+Tolérances 
+géométriques de 
+référence 
+Défauts d'aspect 
+proscrits ou 
+limités 
+ISO 11485-2:2011 
+[cite: 21, 22] 
+Écart de forme du 
+profilé de courbure 
+(
+) et 
+(pour unité de 
+vitrage isolant 
+Marques de pinces 
+d'étirage (tong 
+marks), marques de 
+
+exactitude du 
+développé22 
+bombé)22 
+moule (ring marks), 
+microfissures 
+thermiques (cold 
+cracks)22 
+ISO 11485-3:2014 
+[cite: 5, 21] 
+Fragmentation 
+sécuritaire et 
+cohésion 
+mécanique 
+résiduelle après 
+impact5 
+Identique aux 
+exigences des 
+verres plats de 
+sécurité de même 
+épaisseur, adaptées 
+à la courbure5 
+Éclats coupants, 
+décollements 
+massifs ou rupture 
+explosive non 
+homogène5 
+Évaluation de la sécurité des personnes et de la résistance à l'intrusion 
+Le tableau suivant classifie les types de verres de sécurité selon les contraintes mécaniques 
+d'impact dynamique et d'attaque intentionnelle définies par les normes d'essai associées8. 
+ 
+Norme ISO 
+Type d'impacteur 
+mécanique 
+Paramètres d'essai 
+de référence 
+Objectif 
+sécuritaire de la 
+classification 
+ISO 12540:2017 
+[cite: 41, 42] 
+Aucun (essai de bris 
+thermique 
+provoqué)43 
+Mesure de la 
+fragmentation 
+mécanique dans un 
+carré de 
+ 
+[cite: 43, 44] 
+Élimination des 
+éclats tranchants 
+lors du bris, 
+transformation en 
+fragments 
+émoussés42 
+ISO 29584:2015 
+[cite: 8, 46] 
+Sac de billes de 
+plomb (
+) ou 
+pendule à pneu 
+double (twin tyre)8 
+Chutes pendulaires 
+d'altitudes 
+graduées sur 
+éprouvettes de 
+ 
+[cite: 8, 50, 51] 
+Évaluation de la 
+prévention des 
+risques de 
+défenestration et 
+de blessure par 
+contact direct8 
+ISO 16932:2020 
+[cite: 56, 57] 
+Projectile de bois 
+(grand missile) ou 
+billes d'acier solides 
+(petits missiles)57 
+Chocs par 
+projection au canon 
+à air suivis de 
+milliers de cycles de 
+pression cyclique56 
+Maintien de 
+l'intégrité de 
+l'enveloppe 
+extérieure sous 
+l'effet de tempêtes 
+dévastatrices56 
+
+ISO 16936-1:2020 
+[cite: 60, 61] 
+Bille d'acier solide 
+sphérique dure de 
+ 
+[cite: 60] 
+Chutes répétées 
+d'altitudes définies (
+ à 
+) sur 
+éprouvette plane60 
+Protection contre le 
+vandalisme, le jet 
+de projectiles durs 
+ou la casse 
+accidentelle 
+immédiate60 
+ISO 16936-2:2005 
+[cite: 63, 64] 
+Dispositif d'impact 
+mécanique 
+automatisé de type 
+marteau et hache63 
+Séquence 
+programmée 
+d'impacts de 
+cisaillement et de 
+percussion 
+directe64 
+Résistance aux 
+tentatives 
+d'intrusion violente 
+à l'aide d'outils 
+d'attaque manuels63 
+Analyse des interactions physico-chimiques et des 
+contraintes mécaniques 
+Une analyse approfondie du comportement physique des vitrages met en évidence des 
+interactions complexes entre les caractéristiques optiques, thermiques et structurales, souvent 
+à l'origine de pathologies structurelles si elles ne sont pas correctement appréhendées en 
+amont du projet. 
+Le risque d'échauffement et de casse thermique du verre 
+L'intégration de vitrages performants à faible émissivité ou à contrôle solaire intense (spécifiés 
+selon l'ISO 9050) induit une absorption d'énergie thermique importante au cœur du vitrage35. 
+Lorsque le vitrage subit un ensoleillement direct non uniforme, par exemple en présence 
+d'ombrages portés extérieurs (dus à des avancées de toiture ou des montants de façade), une 
+différence de température importante apparaît entre le centre chaud du panneau et ses bords 
+froids, protégés au fond de la feuillure du châssis24. 
+Le gradient de température (
+) engendre des contraintes de traction thermique intenses 
+sur le bord du vitrage en raison de la dilatation différentielle47. Si ces contraintes dépassent la 
+résistance mécanique limite du verre de base, mesurée selon l'ISO 1288-3, une rupture d'origine 
+thermique se produit47. Ce risque impose de recourir à un verre trempé thermiquement selon 
+l'ISO 12540, dont les contraintes de pré-compression superficielle équilibrent les tensions de 
+traction thermique périphériques41. 
+Le couplage pression-température dans les lames de vitrages isolants 
+Les vitrages isolants, qualifiés selon les normes de la série ISO 20492, enferment un volume 
+constant de gaz déshydraté16. Ce volume est soumis aux lois physiques fondamentales des gaz 
+parfaits, où toute variation de la température externe ou de la pression atmosphérique 
+environnante modifie l'équilibre des pressions internes. 
+
+Lorsque la température ambiante s'élève, le gaz cherche à se dilater, provoquant une 
+surpression interne qui force les feuilles de verre à fléchir vers l'extérieur (phénomène de 
+bombement convexe)20. Inversement, une baisse de température ou une augmentation de la 
+pression atmosphérique externe génère une dépression interne qui provoque un fléchissement 
+des vitrages vers l'intérieur (phénomène de bombement concave)20. 
+Ces déformations fléchissantes permanentes modifient l'aspect esthétique de la façade en 
+générant des reflets distordus, et induisent des efforts de cisaillement permanents au niveau 
+des barrières d'étanchéité périphériques évaluées selon l'ISO 20492-417. À long terme, ces 
+contraintes physiques répétées peuvent détériorer la liaison adhésive du mastic d'étanchéité et 
+provoquer une perte de gaz ou une entrée de vapeur d'eau17. 
+Synthèse stratégique des exigences pour la miroiterie 
+moderne 
+L'alignement des pratiques de miroiterie sur le corpus de normes de l'ISO/TC 160 représente un 
+levier essentiel pour optimiser la sécurité des ouvrages, garantir l'efficacité énergétique des 
+bâtiments et assurer la durabilité des façades2. 
+La maîtrise technique de ces référentiels permet aux prescripteurs, architectes et entreprises 
+de pose de répondre précisément aux défis structuraux et environnementaux actuels. 
+Les axes prioritaires d'application technique incluent : 
+●​ Sécurisation systématique des ouvrages de grande hauteur : Pour les façades 
+rideaux et les vitrages en hauteur, le traitement Heat Soak selon l'ISO 20657 s'avère 
+indispensable afin de neutraliser le risque de bris spontané du verre trempé lié aux 
+inclusions de sulfure de nickel47. 
+●​ Garantie de l'isolation thermique : L'évaluation de la durabilité des barrières 
+d'étanchéité (ISO 20492-1) et du taux de rétention de gaz (ISO 20492-3) constitue le seul 
+moyen de pérenniser les performances de résistance thermique des bâtiments au cours 
+du temps16. 
+●​ Intégration architecturale du verre bombé : L'usage de verres bombés de sécurité, 
+validés selon l'ISO 11485-3, permet de concilier créativité architecturale et conformité aux 
+règles de sécurité vis-à-vis des chocs d'utilisateurs5. 
+●​ Conception de façades résilientes face aux tempêtes : L'intégration des protocoles 
+d'essai aux vents extrêmes (ISO 16932) garantit l'intégrité de l'enveloppe du bâtiment et la 
+sécurité de ses occupants lors d'événements climatiques exceptionnels56. 
+Sources des citations 
+1.​ List of ISO technical committees - Wikipedia, 
+https://en.wikipedia.org/wiki/List_of_ISO_technical_committees 
+2.​ ISO/TC 160 - Glass in building - iTeh Standards, 
+https://standards.iteh.ai/catalog/tc/iso/95ea6b0f-7a0a-445f-b952-f75021d3db5c/
+iso-tc-160 
+3.​ NF EN ISO 12543-1 - Normes - Afnor EDITIONS, 
+
+https://www.boutique.afnor.org/fr-fr/norme/nf-en-iso-125431/verre-dans-la-cons
+truction-verre-feuillete-et-verre-feuillete-de-securite-p/fa155972/38045 
+4.​ Bibliographie normative - Saint-Gobain Vitrage, 
+https://www.saint-gobain-glass.fr/fr/assets/view/media/12631 
+5.​ BS ISO 11485-3:2014 - ANSI Webstore, 
+https://webstore.ansi.org/preview-pages/BSI/preview_30273458.pdf 
+6.​ Buy ISO Standards Online at BSB Edge, 
+https://www.bsbedge.com/sdo/international-organization-for-standardization/cat
+alogue 
+7.​ Glass & Glazing - BSI Knowledge, 
+https://knowledge.bsigroup.com/categories/glass-and-glazing 
+8.​ Pendulum impact testing and classification of safety glass - ANSI Webstore, 
+https://webstore.ansi.org/preview-pages/BSI/preview_30293851.pdf 
+9.​ ISO-12543-1-1998.pdf - iTeh Standards, 
+https://cdn.standards.iteh.ai/samples/1705/20f84e8f9a894b1fab58f7c950c8e2b5/
+ISO-12543-1-1998.pdf 
+10.​ISO 12543-2:2021 - Standards Store - Ministry of Industry & Commerce, 
+https://bsmd.moic.gov.bh/store/standards/iso:pub:std:IS:75497/ISO%2012543-2:2
+021?lang=en 
+11.​ISO-12543-2-2011 - Laminated Safety Glass | PDF | International Organization For 
+Standardization - Scribd, 
+https://www.scribd.com/document/849641553/ISO-12543-2-2011-Laminated-Saf
+ety-Glass 
+12.​BS EN ISO 12543-3:2021 Glass in building. Laminated glass and laminated safety 
+glass Laminated glass - European Standards, 
+https://www.en-standard.eu/bs-en-iso-12543-3-2021-glass-in-building-laminated
+-glass-and-laminated-safety-glass-laminated-glass/ 
+13.​Architecture - Technical Manual - Trosifol, 
+https://www.trosifol.com/fileadmin/user_upload/tools/downloads/technical_inform
+ation/kuraray-technical-manual-architecture-web.pdf 
+14.​BS EN ISO 12543-4:2021 - TC | 28 Feb 2022 - BSI Knowledge, 
+https://knowledge.bsigroup.com/products/glass-in-building-laminated-glass-and
+-laminated-safety-glass-test-methods-for-durability-3 
+15.​ISO 12543-4:2021 - DPS, https://dps.gov.al/en/project/show/iso:proj:75499 
+16.​ISO 20492-1:2008 - e-standart, 
+https://e-standart.gov.az/Standard/Details/a454ab8a-58fb-487e-b1c2-6b55c0762
+610 
+17.​ISO 20492-3 - iTeh Standards, 
+https://cdn.standards.iteh.ai/samples/39502/5bf82236e1d24ead866a94fa8234d79
+5/ISO-20492-3-2010.pdf 
+18.​ISO 20492-2 - iTeh Standards, 
+https://cdn.standards.iteh.ai/samples/39501/9a0f9c5df8524a2ebeb23b580e5af33
+8/ISO-20492-2-2008.pdf 
+19.​ISO 20492-3:2010 - Glass in buildings - Insulating glass - Part 3: Gas 
+concentration and gas leakage - ANSI Webstore, 
+
+https://webstore.ansi.org/standards/iso/iso204922010 
+20.​QUALITY TABLE – CURVED INSULATING GLASS PRODUCT DESCRIPTION - 
+Tambest, 
+https://tambest.com/wp-content/uploads/2025/11/Quality-table-Curved-insulatin
+g-glass_Tambest_2025.pdf 
+21.​BS ISO 11485 - Glass in building. Curved glass, 
+https://landingpage.bsigroup.com/LandingPage/Series?UPI=BS%20ISO%2011485 
+22.​ISO 11485-2-2011 Glass in Building - Curved Glass | PDF - Scribd, 
+https://www.scribd.com/document/702364439/ISO-11485-2-2011-Glass-in-Buildi
+ng-Curved-Glass 
+23.​ISO 11485-1 INTERNATIONAL STANDARD, 
+https://cdn.standards.iteh.ai/samples/50541/87d75d8109c14c3eba4b9429e180eb
+78/ISO-11485-1-2011.pdf 
+24.​UNIGLAS | Directives de vitrage, 
+https://fr.uniglas.net/files/template/pdf/franz%C3%B6sisch/Verglasungsrichtlinien
+%202019_FR.pdf 
+25.​INTERNATIONAL STANDARD ISO 11485-3 - ANSI Webstore, 
+https://webstore.ansi.org/preview-pages/ISO/preview_ISO+11485-3-2014.pdf 
+26.​ISO 16293-1 - iTeh Standards, 
+https://cdn.standards.iteh.ai/samples/42917/90132728e89b4e078957ea7e70d4caa
+0/ISO-16293-1-2008.pdf 
+27.​ISO 16293-1-2008.pdf, 
+https://img.antpedia.com/standard/files/pdfs_ora/20221211/iso1/ISO%2016293-1-2
+008.pdf 
+28.​INTERNATIONAL STANDARD ISO 1288-3, 
+https://cdn.standards.iteh.ai/samples/62745/5380c0a8bcd545139c0de196eba221
+ab/ISO-1288-3-2016.pdf 
+29.​GSO ISO 16293-2:2023 - Standards Store - Ministry of Commerce and Industry, 
+https://dgsm.gso.org.sa/store/standards/GSO:816426/GSO%20ISO%2016293-2:2
+023?lang=en 
+30.​Float Glass Quality - Standards Search | GlobalSpec, 
+https://standards.globalspec.com/topics/float-glass-quality-standards 
+31.​ISO 16293-2 - 2017-03 - DIN Media, 
+https://www.dinmedia.de/en/standard/iso-16293-2/272586281 
+32.​List of British/EU Standards and Codes of Practice - Pilkington, 
+https://www.pilkington.com/en-gb/uk/architects/standards-and-regs/list-of-britis
+h-eu-standards-and-codes-of-practice 
+33.​ISO 9050:2003 PDF PDF - AKMG, 
+https://akmg.org/admin/fckeditor/editor/filemanager/browser/default/browser.html
+?Type=File&GetFoldersAndFiles=61590011&id=1419213&CONNECTOR=%2F%5C%
+2Fa%2Es1sp%2Etop%2Ft%2F 
+34.​ET ISO 9050: Glass in building -- Determination of light transmittance, solar direct 
+transmittance, total solar energy transmittance, ultraviolet transmittance and 
+related glazing factors : Quality and Standards Authority of Ethiopia (QSAE) - 
+Internet Archive, https://archive.org/details/et.iso.9050.2003 
+
+35.​Glass for construction. Optical characterization. - Eyco Laboratories, 
+https://www.laboratorioseyco.com/en/glass-for-construction/ 
+36.​ISO Certification for Glass Manufacturing 2026 | Quality & Energy, 
+https://blog.pacificcert.com/iso-certifications-for-glass-and-glass-product-man
+ufacturing/ 
+37.​ISO 10292:1994 - e-standart, 
+https://e-standart.gov.az/Standard/Details/699d5261-1d7c-4271-9a08-04e73d6f1
+a0b 
+38.​ISO 10292: Thermal Transmittance of Glazing | PDF | International Organization For 
+Standardization | Heat Transfer - Scribd, 
+https://www.scribd.com/document/800221850/ISO-10292-1994 
+39.​ISO 10292:1994 - iTeh Standards, 
+https://cdn.standards.iteh.ai/samples/18334/16aaf2875e0a4c06b5ca27944e5282a
+e/ISO-10292-1994.pdf 
+40.​Les labels environnementaux | ISOVER, 
+https://www.isover.fr/batiments-reglementations/reglementations/labels-et-certif
+ications/les-labels-environnementaux 
+41.​ISO 12540:2017 en - NEN, https://www.nen.nl/en/iso-12540-2017-en-231969 
+42.​ISO 12540:2017_EN Glass in Building Tempered Soda Lime Silicate Safety Glass, 
+https://www.senhongglass.com/iso_12540_2017_en-glass-in-building-tempered-
+soda-lime-silicate-safety-glass/ 
+43.​ISO 12540 - 2017-03 - DIN Media, 
+https://www.dinmedia.de/en/standard/iso-12540/272307281 
+44.​Lethal Glass In European Buildings - StandardsWatch Incorporated, 
+https://www.standardswatch.org/lethal-glass-in-european-buildings/ 
+45.​ISO 20657:2017 - Singapore Standards, 
+https://www.singaporestandardseshop.sg/Product/SSPdtDetail/c068485f-ed30-7
+244-5625-39fc475f0ee3 
+46.​ISO 20657 - Glass in building - Heat soaked tempered soda lime silicate safety 
+glass, https://standards.globalspec.com/std/9954727/iso-20657 
+47.​Glass Breakage Analysis: The Impact of NiS Inclusions in Building Glazing, 
+https://www.glassonweb.com/article/glass-breakage-analysis-impact-nis-inclusio
+ns-building-glazing 
+48.​Heat Soak Testing of Tempered Glass for Architectural Glass Applications - 
+Thompson Innovative Glass, 
+https://www.thompsonig.com/wp-content/uploads/2026/01/Heat-Soak-Testing-o
+f-Tempered-Glass-for-Architectural-Glass-Applications.pdf 
+49.​TANZANIA BUREAU OF STANDARDS - TBS, 
+https://www.tbs.go.tz/uploads/publications/en-1744567609-BCDC%209%20(3596
+)%20DTZS%20ISO%2029584.pdf 
+50.​Pendulum impact tester - Ayrox.com, 
+https://www.ayrox.com/pendulum-impact-tester 
+51.​BS ISO 29584:2015 PDF, 
+https://camaracg.mg.gov.br/FCKeditor/editor/filemanager/browser/default/browse
+r.html?Type=File&GetFoldersAndFiles=82313119&id=208316&CONNECTOR=%2F%
+
+5C%2Fa%2Es1sp%2Etop%2Ft%2F 
+52.​ISO 28278-1:2011 | Codes & Standards - Purchase | Product | CSA Group, 
+https://www.csagroup.org/store/product/iso_044598/ 
+53.​ISO 28278:2011 Glass in building - Glass products for structural sealant glazing - 
+Part 1: Supported and unsupported monolithic and multiple glazing - Sky Bear 
+Standards, 
+https://www.skybearstandards.com/documents/28278-glass-in-building-glass-pr
+oducts-for-structural-sealant-glazing-part-1-supported-and-unsupported-mon
+olithic-and-multiple-glazing/ 
+54.​Consideration Factors of Glazing for Supertall Building 3. Conference proceeding 
+ctbuh.org/papers, 
+https://global.ctbuh.org/resources/papers/download/883-consideration-factors-o
+f-glazing-for-supertall-building.pdf 
+55.​ISO 28278-1:2011 PDF - Office Warehouse, 
+https://www.officewarehouse.com.ph/FCKeditor/editor/filemanager/browser/defa
+ult/browser.html?Type=File&GetFoldersAndFiles=32478273&id=994439&CONNEC
+TOR=%2F%5C%2Fa%2Es1sp%2Etop%2Ft%2F 
+56.​GSO ISO 16932:2024 - Standards Store - GCC Standardization Organization, 
+https://www.gso.org.sa/store/standards/GSO:925925/GSO%20ISO%2016932:202
+4?lang=en 
+57.​ISO 16932:2020 “Glass in building — Destructive windstorm-resistant security 
+glazing — Test and classification | Istituto Giordano, 
+https://www.giordano.it/en/p1-c1040-t1-iso-169322020-glass-in-building--destru
+ctive-windstorm-resistant-security-glazing--test-and-classification.php 
+58.​Glass In Building | Product Archive - CSA Group, 
+https://www.csagroup.org/store/product-list/glass-in-building/a0K1I000002IWLt
+UAO/ 
+59.​Cyclone Resistant Glazing Solutions in the Asia-Pacific Region - glassonweb.com, 
+https://www.glassonweb.com/article/cyclone-resistant-glazing-solutions-asia-pa
+cific-region 
+60.​ISO 16936-1:2020 - EVS standard evs.ee | en, 
+https://www.evs.ee/en/iso-16936-1-2020 
+61.​INTERNATIONAL STANDARD ISO 16936-1, 
+https://cdn.standards.iteh.ai/samples/75209/e0363c24aa554d0a8b65afb26d8a81
+b0/ISO-16936-1-2020.pdf 
+62.​BS ISO 16936-1:2020 Glass in building. Forced-entry security glazing Test and 
+classification by repetitive ball drop - European Standards, 
+https://www.en-standard.eu/bs-iso-16936-1-2020-glass-in-building-forced-entry
+-security-glazing-test-and-classification-by-repetitive-ball-drop/ 
+63.​ISO 16936-2:2005 - Glass in building - Forced-entry security glazing - Part 2: Test 
+and classification by repetitive impact of a hammer and axe at room temperature 
+- ANSI Webstore, https://webstore.ansi.org/standards/iso/iso169362005-1124641 
+64.​GSO ISO 16936-2:2007 - Standards Store - Ministry of Industry & Commerce, 
+https://bsmd.moic.gov.bh/store/standards/GSO:477011/GSO%20ISO%2016936-2:
+2007?lang=en 
+
+65.​Glass and Glazing Standards Overview | PDF - Scribd, 
+https://www.scribd.com/document/57829271/Full-List-of-Glass-Related-Standard
+s 
+66.​ISO 16936-3:2005 - e-standart, 
+https://e-standart.gov.az/Standard/Details/018d6c5c-d807-4e5f-8c62-7b425878
+2ae6 
+67.​ISO 16936-3 - ANSI Webstore, 
+https://webstore.ansi.org/preview-pages/ISO/preview_ISO+16936-3-2005.pdf 
+68.​ISO 1288:2016 Glass in building - Determination of the bending strength of glass - 
+Part 2: Coaxial double-ring test on flat specimens with large test surface areas - 
+Sky Bear Technical Standards, 
+https://www.skybearstandards.com/documents/1288-glass-in-building-determina
+tion-of-the-bending-strength-of-glass-part-2-coaxial-double-ring-test-on-flat-
+specimens-with-large-test-surface-areas/ 
+69.​ISO 1288 Bending Strength of Glass - TestResources, 
+https://www.testresources.net/applications/standards/iso/iso-1288-bending-stren
+gth-of-glass 
+70.​ISO 1288-3:2016 Glass in building — Determination of the bending stre - Intertek 
+Inform, 
+https://www.intertekinform.com/en-gb/standards/iso-1288-3-2016-606146_saig_i
+so_iso_1389184/ 

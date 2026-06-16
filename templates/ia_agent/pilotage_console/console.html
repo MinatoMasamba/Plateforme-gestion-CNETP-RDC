@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilotage IA — CNETP</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+
+    <script>
+        const iaTheme = localStorage.getItem('theme-preference') || 'dark';
+        if (iaTheme === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        };
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 10px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes iaFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .ia-animate { animation: iaFadeIn .2s ease-out forwards; }
+        .ia-md p { margin: .25em 0; }
+        .ia-md ul, .ia-md ol { margin: .25em 0 .25em 1.4em; }
+        .ia-md li { margin: .1em 0; }
+        .ia-md strong { font-weight: 700; }
+        .ia-md em { font-style: italic; }
+        .ia-md h1,.ia-md h2,.ia-md h3 { font-weight: 700; margin: .5em 0 .2em; }
+        .ia-md h1 { font-size: 1.05em; }
+        .ia-md h2 { font-size: 1em; }
+        .ia-md h3 { font-size: .95em; }
+        .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
+        .ia-md pre { background: rgba(0,0,0,.07); padding: .5em .75em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
+        .ia-md blockquote { border-left: 3px solid rgba(99,102,241,.4); padding-left: .75em; opacity: .85; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+
+    <header class="sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3
+                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+                   border-slate-200 dark:border-white/[8%] shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{% url 'web:pilotage_dashboard' %}"
+               class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors shrink-0">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Pilotage
+            </a>
+            <span class="text-slate-300 dark:text-white/15">|</span>
+            <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+                <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase truncate">
+                    Assistant IA — Pilotage
+                </h1>
+            </div>
+            <span class="hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border
+                         bg-indigo-50 text-indigo-700 border-indigo-300
+                         dark:bg-indigo-400/10 dark:text-indigo-400 dark:border-indigo-400/25
+                         uppercase tracking-widest shrink-0">
+                Comité de Pilotage
+            </span>
+        </div>
+
+        <button onclick="toggleTheme()" title="Changer le thème"
+                class="p-2 rounded-lg border border-slate-200 dark:border-white/10
+                       hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
+            <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+            <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+        </button>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- ═══════════════ Historique des sessions ═══════════════ -->
+        <aside class="hidden lg:flex w-60 flex-col border-r border-slate-200 dark:border-white/[8%] bg-white dark:bg-[#0b0c14] shrink-0">
+            <div class="p-3 shrink-0 space-y-2">
+                <button type="button" onclick="iaNewSession()"
+                        class="w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg
+                               bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouvelle session
+                </button>
+                <div class="flex gap-1.5">
+                    <button type="button" onclick="iaSetProvider('anthropic')" id="ia-console-btn-anthropic"
+                            class="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold rounded-lg border transition-colors
+                                   border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400">
+                        <i data-lucide="bot" class="w-3 h-3"></i> Claude
+                    </button>
+                    <button type="button" onclick="iaSetProvider('gemini')" id="ia-console-btn-gemini"
+                            class="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold rounded-lg border transition-colors
+                                   border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400
+                                   hover:bg-slate-50 dark:hover:bg-white/5">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i> Gemini
+                    </button>
+                </div>
+            </div>
+            <div id="ia-session-list" class="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
+                {% for s in ia_sessions %}
+                <button type="button" onclick="iaSwitchSession({{ s.id }})" data-session-id="{{ s.id }}"
+                        class="ia-session-item w-full text-left px-3 py-2 rounded-lg text-xs font-semibold
+                               text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5
+                               transition-colors truncate">
+                    {{ s.title|default:"Session sans titre" }}
+                    <span class="block text-[10px] font-normal text-slate-400">{{ s.updated_at|date:"d/m/Y H:i" }}</span>
+                </button>
+                {% empty %}
+                <p id="ia-session-empty" class="text-xs text-slate-400 text-center px-2 py-4">
+                    Aucune session pour le moment.
+                </p>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- ═══════════════ Chat ═══════════════ -->
+        <main class="flex-1 flex flex-col min-w-0 border-r border-slate-200 dark:border-white/[8%]">
+            <div id="ia-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 text-sm">
+                <div id="ia-empty-hint" class="text-xs text-slate-400 text-center py-10">
+                    Démarre une conversation avec l'assistant IA du Comité de Pilotage…
+                </div>
+            </div>
+            <div class="shrink-0 border-t border-slate-200 dark:border-white/10 p-3 bg-white dark:bg-[#0b0c14]">
+                <form id="ia-form" onsubmit="return iaSubmit(event)" class="flex items-end gap-2">
+                    <textarea id="ia-input" rows="2" placeholder="Écris ton message…"
+                              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('ia-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}"
+                              class="flex-1 resize-none text-sm rounded-xl border border-slate-200 dark:border-white/10
+                                     bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-3 py-2
+                                     focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <button type="submit" id="ia-send-btn"
+                            class="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white
+                                   flex items-center justify-center transition-colors">
+                        <i data-lucide="send" class="h-4 w-4"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- ═══════════════ Artefacts ═══════════════ -->
+        <aside class="hidden xl:flex w-[420px] flex-col bg-white dark:bg-[#0b0c14] shrink-0">
+            <div class="p-3 border-b border-slate-200 dark:border-white/[8%] shrink-0">
+                <h2 class="text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Artefacts de la session
+                </h2>
+            </div>
+            <div id="ia-artifacts" class="flex-1 overflow-y-auto p-3 space-y-3">
+                <div id="ia-artifacts-empty" class="text-xs text-slate-400 text-center py-10">
+                    Les graphiques, brouillons et propositions générés par l'assistant apparaîtront ici.
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+    (function() {
+        const IA_STORAGE_KEY = 'ia_agent_session_pilotage';
+        const IA_PROVIDER_KEY = IA_STORAGE_KEY + '_provider';
+        let iaSessionId = null;
+        let iaSending = false;
+        let iaChartInstances = [];
+        let iaSelectedProvider = localStorage.getItem(IA_PROVIDER_KEY) || 'anthropic';
+
+        Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#475569';
+        Chart.defaults.borderColor = document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)';
+
+        window.iaSetProvider = function iaSetProvider(p) {
+            iaSelectedProvider = p;
+            localStorage.setItem(IA_PROVIDER_KEY, p);
+            const activeClass = 'flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold rounded-lg border transition-colors border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400';
+            const inactiveClass = 'flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold rounded-lg border transition-colors border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5';
+            const btnC = document.getElementById('ia-console-btn-anthropic');
+            const btnG = document.getElementById('ia-console-btn-gemini');
+            if (btnC) btnC.className = p === 'anthropic' ? activeClass : inactiveClass;
+            if (btnG) btnG.className = p === 'gemini' ? activeClass : inactiveClass;
+            iaIcons();
+        }
+
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+        };
+
+        function iaCsrf() {
+            const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function iaEsc(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        function iaIcons() {
+            try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
+        }
+
+        async function iaApi(url, options) {
+            options = options || {};
+            const headers = Object.assign({
+                'Content-Type': 'application/json',
+                'X-CSRFToken': iaCsrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }, options.headers || {});
+            const response = await fetch(url, Object.assign({}, options, {headers}));
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error('Agent IA — erreur ' + response.status + ' : ' + text);
+            }
+            return response.json();
+        }
+
+        function iaScrollToBottom() {
+            const box = document.getElementById('ia-messages');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function iaRenderMessage(msg) {
+            const box = document.getElementById('ia-messages');
+            const isUser = msg.role === 'user';
+            const wrap = document.createElement('div');
+            wrap.className = 'flex ia-animate ' + (isUser ? 'justify-end' : 'justify-start');
+            const bubble = document.createElement('div');
+            if (isUser) {
+                bubble.className = 'bg-indigo-600 text-white rounded-2xl px-4 py-2.5 max-w-[80%] whitespace-pre-wrap break-words';
+                bubble.innerHTML = iaEsc(msg.content);
+            } else {
+                bubble.className = 'ia-md bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-4 py-2.5 max-w-[80%] break-words';
+                bubble.innerHTML = (typeof marked !== 'undefined')
+                    ? marked.parse(msg.content || '')
+                    : iaEsc(msg.content);
+            }
+            wrap.appendChild(bubble);
+            box.appendChild(wrap);
+            return wrap;
+        }
+
+        function iaArtifactIcon(type) {
+            const icons = {
+                WG_REQUEST: '<i data-lucide="file-text" class="h-3.5 w-3.5"></i>',
+                NORM_OVERLAP: '<i data-lucide="git-compare" class="h-3.5 w-3.5"></i>',
+                EXTERNAL_PROPOSAL: '<i data-lucide="lightbulb" class="h-3.5 w-3.5"></i>',
+                EMAIL_DRAFT: '<i data-lucide="mail" class="h-3.5 w-3.5"></i>',
+                CHART: '<i data-lucide="bar-chart-3" class="h-3.5 w-3.5"></i>',
+            };
+            return icons[type] || '<i data-lucide="box" class="h-3.5 w-3.5"></i>';
+        }
+
+        function iaStatusBadge(status) {
+            const labels = {DRAFT: 'Brouillon', APPROVED: 'Approuvé', SENT: 'Envoyé'};
+            const classes = {
+                DRAFT: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/25',
+                APPROVED: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-400/10 dark:text-emerald-400 dark:border-emerald-400/25',
+                SENT: 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-400/10 dark:text-blue-400 dark:border-blue-400/25',
+            };
+            const span = document.createElement('span');
+            span.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-widest shrink-0 ' + (classes[status] || classes.DRAFT);
+            span.textContent = labels[status] || status;
+            return span;
+        }
+
+        function iaField(tag, label, value, type) {
+            const wrap = document.createElement('label');
+            wrap.className = 'block';
+            const span = document.createElement('span');
+            span.className = 'block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5';
+            span.textContent = label;
+            const input = document.createElement(tag);
+            if (tag === 'input') { input.type = type || 'text'; input.value = value || ''; }
+            else { input.value = value || ''; input.rows = 4; }
+            input.className = 'w-full text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+            wrap.appendChild(span);
+            wrap.appendChild(input);
+            return {wrap, input};
+        }
+
+        function iaMarkSent(btn, status, fields) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="check" class="h-3 w-3"></i> Envoyé';
+            btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold text-xs flex items-center gap-1 cursor-default';
+            status.textContent = '';
+            fields.forEach(f => f.input.disabled = true);
+            iaIcons();
+        }
+
+        function iaBuildEmailForm(artifact) {
+            const wrap = document.createElement('div');
+            wrap.className = 'space-y-2';
+            const payload = artifact.payload || {};
+            const toF = iaField('input', 'À', payload.to, 'email');
+            const subjectF = iaField('input', 'Sujet', payload.subject, 'text');
+            const bodyF = iaField('textarea', 'Message', payload.body);
+            wrap.appendChild(toF.wrap);
+            wrap.appendChild(subjectF.wrap);
+            wrap.appendChild(bodyF.wrap);
+
+            const footer = document.createElement('div');
+            footer.className = 'flex items-center gap-2 pt-1';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center gap-1';
+            btn.innerHTML = '<i data-lucide="send" class="h-3 w-3"></i> Envoyer';
+            const status = document.createElement('span');
+            status.className = 'text-[11px] text-slate-400';
+
+            const fields = [toF, subjectF, bodyF];
+            if (artifact.status === 'SENT') iaMarkSent(btn, status, fields);
+
+            btn.onclick = async function() {
+                btn.disabled = true;
+                btn.textContent = 'Envoi…';
+                try {
+                    await iaApi('/api/v1/ia-agent/artifacts/' + artifact.id + '/send/', {
+                        method: 'POST',
+                        body: JSON.stringify({to: toF.input.value, subject: subjectF.input.value, body: bodyF.input.value}),
+                    });
+                    iaMarkSent(btn, status, fields);
+                } catch (e) {
+                    status.textContent = "Erreur lors de l'envoi.";
+                    status.className = 'text-[11px] text-red-500';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="send" class="h-3 w-3"></i> Envoyer';
+                    iaIcons();
+                }
+            };
+
+            footer.appendChild(btn);
+            footer.appendChild(status);
+            wrap.appendChild(footer);
+            return wrap;
+        }
+
+        function iaBuildProposalCard(artifact) {
+            const wrap = document.createElement('div');
+            const payload = artifact.payload || {};
+
+            const main = document.createElement('div');
+            main.className = 'whitespace-pre-wrap text-slate-600 dark:text-slate-300 mb-2';
+            main.textContent = payload.analysis || payload.description || '';
+            wrap.appendChild(main);
+
+            const secondary = payload.recommendation || payload.referential_excerpt;
+            if (secondary) {
+                const sec = document.createElement('div');
+                sec.className = 'whitespace-pre-wrap text-slate-500 dark:text-slate-400 italic mb-2 border-l-2 border-slate-300 dark:border-white/10 pl-2';
+                sec.textContent = secondary;
+                wrap.appendChild(sec);
+            }
+
+            const footer = document.createElement('div');
+            footer.className = 'flex items-center gap-2';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1';
+            btn.innerHTML = '<i data-lucide="check" class="h-3 w-3"></i> Approuver';
+            const status = document.createElement('span');
+            status.className = 'text-[11px] text-slate-400';
+
+            if (artifact.status !== 'DRAFT') {
+                btn.disabled = true;
+                btn.textContent = 'Approuvé';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold text-xs cursor-default';
+            }
+
+            btn.onclick = async function() {
+                btn.disabled = true;
+                try {
+                    await iaApi('/api/v1/ia-agent/artifacts/' + artifact.id + '/approve/', {method: 'POST'});
+                    btn.textContent = 'Approuvé';
+                    btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold text-xs cursor-default';
+                } catch (e) {
+                    status.textContent = "Erreur lors de l'approbation.";
+                    status.className = 'text-[11px] text-red-500';
+                    btn.disabled = false;
+                }
+            };
+
+            footer.appendChild(btn);
+            footer.appendChild(status);
+            wrap.appendChild(footer);
+            return wrap;
+        }
+
+        function iaBuildChart(artifact) {
+            const wrap = document.createElement('div');
+            const canvasWrap = document.createElement('div');
+            canvasWrap.className = 'relative h-56';
+            const canvas = document.createElement('canvas');
+            canvasWrap.appendChild(canvas);
+            wrap.appendChild(canvasWrap);
+
+            const spec = (artifact.payload || {}).chart_spec || {};
+            try {
+                const chart = new Chart(canvas.getContext('2d'), Object.assign({}, spec, {
+                    options: Object.assign({maintainAspectRatio: false, responsive: true}, spec.options || {}),
+                }));
+                iaChartInstances.push(chart);
+            } catch (e) {
+                wrap.textContent = 'Graphique indisponible.';
+            }
+            return wrap;
+        }
+
+        function iaBuildWgRequest(artifact) {
+            const wrap = document.createElement('div');
+            const link = document.createElement('a');
+            link.href = '/api/v1/ia-agent/artifacts/' + artifact.id + '/download-pdf/';
+            link.target = '_blank';
+            link.className = 'inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-semibold';
+            link.innerHTML = '<i data-lucide="download" class="h-3.5 w-3.5"></i> Télécharger la demande (PDF)';
+            wrap.appendChild(link);
+            return wrap;
+        }
+
+        function iaRenderArtifact(artifact) {
+            const empty = document.getElementById('ia-artifacts-empty');
+            if (empty) empty.remove();
+
+            const box = document.getElementById('ia-artifacts');
+            if (box.querySelector('[data-artifact-id="' + artifact.id + '"]')) return;
+
+            const card = document.createElement('div');
+            card.className = 'border rounded-xl text-xs bg-slate-50 dark:bg-[#11131f] border-slate-200 dark:border-white/10 ia-animate overflow-hidden';
+            card.dataset.artifactId = artifact.id;
+
+            // En-tête compact cliquable
+            const header = document.createElement('button');
+            header.type = 'button';
+            header.className = 'w-full flex items-center gap-2 px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-left';
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'shrink-0 text-indigo-500 dark:text-indigo-400';
+            iconSpan.innerHTML = iaArtifactIcon(artifact.artifact_type);
+            header.appendChild(iconSpan);
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'flex-1 font-semibold text-slate-700 dark:text-slate-200 truncate min-w-0';
+            titleSpan.textContent = artifact.title || '—';
+            header.appendChild(titleSpan);
+
+            header.appendChild(iaStatusBadge(artifact.status));
+
+            const chevron = document.createElement('span');
+            chevron.className = 'shrink-0 text-slate-400 transition-transform duration-200';
+            chevron.innerHTML = '<i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>';
+            header.appendChild(chevron);
+
+            card.appendChild(header);
+
+            // Corps masqué par défaut, rendu au premier clic
+            const body = document.createElement('div');
+            body.className = 'hidden border-t border-slate-200 dark:border-white/10 px-3 py-3';
+            body.dataset.rendered = '0';
+            card.appendChild(body);
+
+            header.addEventListener('click', function() {
+                const isOpen = !body.classList.contains('hidden');
+                body.classList.toggle('hidden', isOpen);
+                chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+
+                if (!isOpen && body.dataset.rendered === '0') {
+                    body.dataset.rendered = '1';
+                    if (artifact.artifact_type === 'WG_REQUEST') {
+                        body.appendChild(iaBuildWgRequest(artifact));
+                    } else if (artifact.artifact_type === 'EMAIL_DRAFT') {
+                        body.appendChild(iaBuildEmailForm(artifact));
+                    } else if (artifact.artifact_type === 'NORM_OVERLAP' || artifact.artifact_type === 'EXTERNAL_PROPOSAL') {
+                        body.appendChild(iaBuildProposalCard(artifact));
+                    } else if (artifact.artifact_type === 'CHART') {
+                        body.appendChild(iaBuildChart(artifact));
+                    }
+                    iaIcons();
+                }
+            });
+
+            box.appendChild(card);
+            iaIcons();
+            return card;
+        }
+
+        function iaClearConversation() {
+            iaChartInstances.forEach(c => { try { c.destroy(); } catch (e) {} });
+            iaChartInstances = [];
+
+            const messages = document.getElementById('ia-messages');
+            messages.innerHTML = '<div id="ia-empty-hint" class="text-xs text-slate-400 text-center py-10">Démarre une conversation avec l\'assistant IA du Comité de Pilotage…</div>';
+
+            const artifacts = document.getElementById('ia-artifacts');
+            artifacts.innerHTML = '<div id="ia-artifacts-empty" class="text-xs text-slate-400 text-center py-10">Les graphiques, brouillons et propositions générés par l\'assistant apparaîtront ici.</div>';
+        }
+
+        function iaUpdateSessionTitle(id, title) {
+            const btn = document.querySelector('.ia-session-item[data-session-id="' + id + '"]');
+            if (!btn || !title) return;
+            // Bouton dynamique (span.ia-session-title) ou rendu serveur (nœud texte)
+            const span = btn.querySelector('.ia-session-title');
+            if (span) {
+                span.textContent = title;
+            } else {
+                const textNode = [...btn.childNodes].find(n => n.nodeType === Node.TEXT_NODE);
+                if (textNode) textNode.textContent = title + ' ';
+            }
+        }
+
+        function iaHighlightSession(id) {
+            document.querySelectorAll('.ia-session-item').forEach(btn => {
+                const active = String(btn.dataset.sessionId) === String(id);
+                btn.classList.toggle('bg-indigo-50', active);
+                btn.classList.toggle('dark:bg-indigo-500/10', active);
+                btn.classList.toggle('text-indigo-700', active);
+                btn.classList.toggle('dark:text-indigo-400', active);
+                btn.classList.toggle('font-extrabold', active);
+            });
+        }
+
+        async function iaAutoGreet(sessionId) {
+            const hint = document.getElementById('ia-empty-hint');
+            if (hint) hint.remove();
+            const box = document.getElementById('ia-messages');
+            const sendBtn = document.getElementById('ia-send-btn');
+            const inputEl = document.getElementById('ia-input');
+
+            // Bloquer l'envoi pendant l'analyse de fond
+            iaSending = true;
+            if (sendBtn) sendBtn.disabled = true;
+            if (inputEl) { inputEl.disabled = true; inputEl.placeholder = 'Analyse en cours…'; }
+
+            const thinking = document.createElement('div');
+            thinking.className = 'flex justify-start';
+            thinking.innerHTML = '<div class="bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-slate-400 text-xs flex items-center gap-2"><i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Analyse des données en cours…</div>';
+            box.appendChild(thinking);
+            iaScrollToBottom();
+            iaIcons();
+            try {
+                const greet = await iaApi('/api/v1/ia-agent/sessions/' + sessionId + '/init/', {method: 'POST'});
+                thinking.remove();
+                if (greet.assistant_message) {
+                    iaRenderMessage(greet.assistant_message);
+                    (greet.artifacts || []).forEach(iaRenderArtifact);
+                    iaScrollToBottom();
+                }
+                if (greet.session_title) iaUpdateSessionTitle(sessionId, greet.session_title);
+            } catch (e) {
+                thinking.remove();
+            } finally {
+                iaSending = false;
+                if (sendBtn) sendBtn.disabled = false;
+                if (inputEl) { inputEl.disabled = false; inputEl.placeholder = 'Écris ton message…'; }
+            }
+        }
+
+        window.iaSwitchSession = async function(id) {
+            iaSessionId = id;
+            localStorage.setItem(IA_STORAGE_KEY, id);
+            iaHighlightSession(id);
+            iaClearConversation();
+
+            try {
+                const msgs = await iaApi('/api/v1/ia-agent/sessions/' + id + '/messages/');
+                if (msgs.length) {
+                    document.getElementById('ia-empty-hint').remove();
+                    msgs.forEach(iaRenderMessage);
+                    iaScrollToBottom();
+                } else {
+                    await iaAutoGreet(id);
+                }
+            } catch (e) {}
+
+            try {
+                const artifacts = await iaApi('/api/v1/ia-agent/artifacts/');
+                artifacts
+                    .filter(a => String(a.session) === String(id))
+                    .sort((a, b) => a.id - b.id)
+                    .forEach(iaRenderArtifact);
+            } catch (e) {}
+        };
+
+        window.iaNewSession = async function() {
+            try {
+                const session = await iaApi('/api/v1/ia-agent/sessions/', {
+                    method: 'POST',
+                    body: JSON.stringify({scope: 'pilotage', provider: iaSelectedProvider}),
+                });
+                const emptyMsg = document.getElementById('ia-session-empty');
+                if (emptyMsg) emptyMsg.remove();
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.dataset.sessionId = session.id;
+                btn.className = 'ia-session-item w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors truncate';
+                btn.innerHTML = '<span class="ia-session-title">Nouvelle session</span><span class="block text-[10px] font-normal text-slate-400">À l\'instant</span>';
+                btn.onclick = function() { iaSwitchSession(session.id); };
+
+                const list = document.getElementById('ia-session-list');
+                list.insertBefore(btn, list.firstChild);
+
+                iaSessionId = session.id;
+                localStorage.setItem(IA_STORAGE_KEY, session.id);
+                iaHighlightSession(session.id);
+                iaClearConversation();
+                await iaAutoGreet(session.id);
+            } catch (e) {}
+        };
+
+        async function iaEnsureSession() {
+            if (iaSessionId) return iaSessionId;
+            const session = await iaApi('/api/v1/ia-agent/sessions/', {
+                method: 'POST',
+                body: JSON.stringify({scope: 'pilotage', provider: iaSelectedProvider}),
+            });
+            iaSessionId = session.id;
+            localStorage.setItem(IA_STORAGE_KEY, session.id);
+            return iaSessionId;
+        }
+
+        window.iaSubmit = function(event) {
+            event.preventDefault();
+            const input = document.getElementById('ia-input');
+            const text = input.value.trim();
+            if (!text || iaSending) return false;
+
+            const hint = document.getElementById('ia-empty-hint');
+            if (hint) hint.remove();
+
+            iaRenderMessage({role: 'user', content: text});
+            iaScrollToBottom();
+            input.value = '';
+            iaSending = true;
+            const sendBtn = document.getElementById('ia-send-btn');
+            sendBtn.disabled = true;
+
+            const thinking = document.createElement('div');
+            thinking.className = 'flex justify-start';
+            thinking.innerHTML = '<div class="bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-slate-400 text-xs flex items-center gap-2"><i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> L\'assistant réfléchit…</div>';
+            document.getElementById('ia-messages').appendChild(thinking);
+            iaScrollToBottom();
+            iaIcons();
+
+            (async function() {
+                try {
+                    await iaEnsureSession();
+                    const result = await iaApi('/api/v1/ia-agent/sessions/' + iaSessionId + '/send/', {
+                        method: 'POST',
+                        body: JSON.stringify({content: text}),
+                    });
+                    thinking.remove();
+                    iaRenderMessage(result.assistant_message);
+                    (result.artifacts || []).forEach(iaRenderArtifact);
+                    iaScrollToBottom();
+                    if (result.session_title) iaUpdateSessionTitle(iaSessionId, result.session_title);
+                } catch (e) {
+                    thinking.remove();
+                    iaRenderMessage({role: 'assistant', content: "Une erreur est survenue. Réessaie dans un instant."});
+                    iaScrollToBottom();
+                } finally {
+                    iaSending = false;
+                    sendBtn.disabled = false;
+                }
+            })();
+
+            return false;
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            iaIcons();
+            iaSetProvider(iaSelectedProvider);
+            const first = document.querySelector('.ia-session-item');
+            if (first) {
+                const saved = localStorage.getItem(IA_STORAGE_KEY);
+                const target = (saved && document.querySelector('.ia-session-item[data-session-id="' + saved + '"]')) ? saved : first.dataset.sessionId;
+                iaSwitchSession(target);
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

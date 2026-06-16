@@ -1,0 +1,527 @@
+{% comment %}
+Widget flottant "Assistant IA CNETP" — position fixe, ne bouge pas au scroll.
+Paramètres d'inclusion :
+  - widget_scope    : 'expert' | 'ctc' | 'pilotage'
+  - widget_position : classes Tailwind de positionnement (défaut 'bottom-6 right-6')
+{% endcomment %}
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<style>
+    #ia-agent-toggle-btn, #ia-agent-panel { position: fixed !important; }
+    .ia-md p { margin: .2em 0; }
+    .ia-md ul, .ia-md ol { margin: .2em 0 .2em 1.3em; }
+    .ia-md li { margin: .1em 0; }
+    .ia-md strong { font-weight: 700; }
+    .ia-md em { font-style: italic; }
+    .ia-md h1,.ia-md h2,.ia-md h3 { font-weight: 700; margin: .4em 0 .2em; }
+    .ia-md h1 { font-size: 1em; }
+    .ia-md h2 { font-size: .95em; }
+    .ia-md h3 { font-size: .9em; }
+    .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
+    .ia-md pre { background: rgba(0,0,0,.07); padding: .4em .6em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
+    .ia-md blockquote { border-left: 3px solid rgba(99,102,241,.4); padding-left: .6em; opacity: .85; }
+</style>
+
+<div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60]">
+    <button onclick="toggleIaAgentPanel()"
+            class="h-14 w-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
+            title="Assistant IA CNETP">
+        <i data-lucide="sparkles" class="h-6 w-6"></i>
+    </button>
+</div>
+
+<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
+     data-scope="{{ widget_scope }}">
+
+    <div class="shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white">
+        <div class="flex items-center gap-2">
+            <i data-lucide="bot" class="h-5 w-5"></i>
+            <div class="leading-tight">
+                <p class="text-sm font-bold">Assistant IA CNETP</p>
+                <p class="text-[11px] opacity-80" id="ia-agent-scope-label"></p>
+            </div>
+        </div>
+        <button onclick="toggleIaAgentPanel()" class="p-1 rounded hover:bg-white/15">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+
+    <div id="ia-agent-messages" class="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm bg-slate-50 dark:bg-[#020204]">
+        <div id="ia-agent-empty-hint" class="py-5 text-center space-y-3">
+            <p class="text-xs text-slate-400">Choisis l'assistant IA puis pose ta question.</p>
+            <div class="flex items-center justify-center gap-2" id="ia-provider-toggle">
+                <button type="button" onclick="iaSetProvider('anthropic')" id="ia-btn-anthropic"
+                        class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors
+                               border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400">
+                    <i data-lucide="bot" class="w-3 h-3"></i> Claude
+                </button>
+                <button type="button" onclick="iaSetProvider('gemini')" id="ia-btn-gemini"
+                        class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors
+                               border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400
+                               hover:bg-slate-50 dark:hover:bg-white/5">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i> Gemini
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="shrink-0 border-t border-slate-200 dark:border-white/10 p-2 bg-white dark:bg-[#0b0c14]">
+        <form id="ia-agent-form" onsubmit="return iaAgentSubmit(event)" class="flex items-end gap-2">
+            <textarea id="ia-agent-input" rows="2" placeholder="Écris ton message…"
+                      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('ia-agent-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}"
+                      class="flex-1 resize-none text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <button type="submit" id="ia-agent-send-btn"
+                    class="h-10 w-10 shrink-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors">
+                <i data-lucide="send" class="h-4 w-4"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function() {
+    const IA_SCOPE = "{{ widget_scope }}";
+    const IA_SCOPE_LABELS = {expert: "Espace Expert", ctc: "Espace CTC", pilotage: "Comité de Pilotage"};
+    const IA_STORAGE_KEY = "ia_agent_session_" + IA_SCOPE;
+    const IA_PROVIDER_KEY = IA_STORAGE_KEY + "_provider";
+
+    let iaSessionId = null;
+    let iaInitialized = false;
+    let iaSending = false;
+    let iaSelectedProvider = localStorage.getItem(IA_PROVIDER_KEY) || 'anthropic';
+
+    function iaCsrf() {
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function iaEsc(str) {
+        const div = document.createElement('div');
+        div.textContent = str == null ? '' : String(str);
+        return div.innerHTML;
+    }
+
+    function iaIcons() {
+        try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
+    }
+
+    async function iaApi(url, options) {
+        options = options || {};
+        const headers = Object.assign({
+            'Content-Type': 'application/json',
+            'X-CSRFToken': iaCsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+        }, options.headers || {});
+        const response = await fetch(url, Object.assign({}, options, {headers}));
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error('Agent IA — erreur ' + response.status + ' : ' + text);
+        }
+        return response.json();
+    }
+
+    const IA_BTN_ACTIVE = 'flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400';
+    const IA_BTN_INACTIVE = 'flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5';
+
+    function iaUpdateProviderUI(p) {
+        const btnC = document.getElementById('ia-btn-anthropic');
+        const btnG = document.getElementById('ia-btn-gemini');
+        if (btnC) btnC.className = p === 'anthropic' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE;
+        if (btnG) btnG.className = p === 'gemini' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE;
+        const label = document.getElementById('ia-agent-scope-label');
+        if (label) label.textContent = (IA_SCOPE_LABELS[IA_SCOPE] || '') + ' · ' + (p === 'gemini' ? 'Gemini' : 'Claude');
+        iaIcons();
+    }
+
+    function iaRebuildEmptyHint(p) {
+        const box = document.getElementById('ia-agent-messages');
+        if (!box) return;
+        const label = p === 'gemini' ? 'Gemini' : 'Claude';
+        box.innerHTML =
+            '<div id="ia-agent-empty-hint" class="py-5 text-center space-y-3">'
+            + '<p class="text-xs text-slate-400 px-4">Passage à ' + label + ' — envoie un message pour démarrer.</p>'
+            + '<div class="flex items-center justify-center gap-2">'
+            + '<button type="button" onclick="iaSetProvider(\'anthropic\')" id="ia-btn-anthropic"'
+            + ' class="' + (p === 'anthropic' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE) + '">'
+            + '<i data-lucide="bot" class="w-3 h-3"></i> Claude</button>'
+            + '<button type="button" onclick="iaSetProvider(\'gemini\')" id="ia-btn-gemini"'
+            + ' class="' + (p === 'gemini' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE) + '">'
+            + '<i data-lucide="sparkles" class="w-3 h-3"></i> Gemini</button>'
+            + '</div></div>';
+        iaIcons();
+    }
+
+    window.iaSetProvider = function(p) {
+        const prev = iaSelectedProvider;
+        iaSelectedProvider = p;
+        localStorage.setItem(IA_PROVIDER_KEY, p);
+        iaUpdateProviderUI(p);
+
+        if (prev !== p && iaSessionId) {
+            iaSessionId = null;
+            localStorage.removeItem(IA_STORAGE_KEY);
+            iaRebuildEmptyHint(p);
+        }
+    }
+
+    window.toggleIaAgentPanel = function() {
+        const panel = document.getElementById('ia-agent-panel');
+        const btn = document.getElementById('ia-agent-toggle-btn');
+        const opening = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden');
+        btn.classList.toggle('hidden');
+        iaIcons();
+        if (opening && !iaInitialized) {
+            iaInitialized = true;
+            iaUpdateProviderUI(iaSelectedProvider);
+            iaInit();
+        }
+    };
+
+    async function iaAutoGreet(sessionId) {
+        const hint = document.getElementById('ia-agent-empty-hint');
+        if (hint) hint.remove();
+        const box = document.getElementById('ia-agent-messages');
+        const sendBtn = document.getElementById('ia-agent-send-btn');
+        const inputEl = document.getElementById('ia-agent-input');
+
+        // Bloquer l'envoi pendant l'analyse de fond
+        iaSending = true;
+        if (sendBtn) sendBtn.disabled = true;
+        if (inputEl) { inputEl.disabled = true; inputEl.placeholder = 'Analyse en cours…'; }
+
+        const thinking = document.createElement('div');
+        thinking.className = 'flex justify-start';
+        thinking.innerHTML = '<div class="bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-2xl px-3 py-2 text-slate-400 text-xs flex items-center gap-2"><i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Analyse des données en cours…</div>';
+        box.appendChild(thinking);
+        iaScrollToBottom();
+        iaIcons();
+        try {
+            const greet = await iaApi('/api/v1/ia-agent/sessions/' + sessionId + '/init/', {method: 'POST'});
+            thinking.remove();
+            if (greet.assistant_message) {
+                iaRenderMessage(greet.assistant_message);
+                (greet.artifacts || []).forEach(iaRenderArtifact);
+                iaScrollToBottom();
+            }
+        } catch (e) {
+            thinking.remove();
+        } finally {
+            iaSending = false;
+            if (sendBtn) sendBtn.disabled = false;
+            if (inputEl) { inputEl.disabled = false; inputEl.placeholder = 'Écris ton message…'; }
+        }
+    }
+
+    async function iaInit() {
+        const savedId = localStorage.getItem(IA_STORAGE_KEY);
+        try {
+            if (savedId) {
+                const data = await iaApi('/api/v1/ia-agent/sessions/' + savedId + '/messages/');
+                iaSessionId = savedId;
+                if (data.length) {
+                    document.getElementById('ia-agent-empty-hint').remove();
+                    data.forEach(iaRenderMessage);
+                } else {
+                    await iaAutoGreet(savedId);
+                }
+            } else {
+                const session = await iaApi('/api/v1/ia-agent/sessions/', {
+                    method: 'POST',
+                    body: JSON.stringify({scope: IA_SCOPE, provider: iaSelectedProvider}),
+                });
+                iaSessionId = session.id;
+                localStorage.setItem(IA_STORAGE_KEY, session.id);
+                localStorage.setItem(IA_PROVIDER_KEY, session.provider || iaSelectedProvider);
+                await iaAutoGreet(session.id);
+            }
+        } catch (e) {
+            localStorage.removeItem(IA_STORAGE_KEY);
+        }
+    }
+
+    async function iaEnsureSession() {
+        if (iaSessionId) return iaSessionId;
+        const savedId = localStorage.getItem(IA_STORAGE_KEY);
+        if (savedId) { iaSessionId = savedId; return iaSessionId; }
+        const session = await iaApi('/api/v1/ia-agent/sessions/', {
+            method: 'POST',
+            body: JSON.stringify({scope: IA_SCOPE, provider: iaSelectedProvider}),
+        });
+        iaSessionId = session.id;
+        localStorage.setItem(IA_STORAGE_KEY, session.id);
+        localStorage.setItem(IA_PROVIDER_KEY, session.provider || iaSelectedProvider);
+        return iaSessionId;
+    }
+
+    function iaScrollToBottom() {
+        const box = document.getElementById('ia-agent-messages');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function iaRenderMessage(msg) {
+        const box = document.getElementById('ia-agent-messages');
+        const isUser = msg.role === 'user';
+        const wrap = document.createElement('div');
+        wrap.className = 'flex ' + (isUser ? 'justify-end' : 'justify-start');
+        const bubble = document.createElement('div');
+        if (isUser) {
+            bubble.className = 'bg-blue-600 text-white rounded-2xl px-3 py-2 max-w-[85%] whitespace-pre-wrap break-words';
+            bubble.innerHTML = iaEsc(msg.content);
+        } else {
+            bubble.className = 'ia-md bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-3 py-2 max-w-[85%] break-words';
+            bubble.innerHTML = (typeof marked !== 'undefined')
+                ? marked.parse(msg.content || '')
+                : iaEsc(msg.content);
+        }
+        wrap.appendChild(bubble);
+        box.appendChild(wrap);
+        return wrap;
+    }
+
+    function iaRenderArtifact(artifact) {
+        const box = document.getElementById('ia-agent-messages');
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-3 text-xs bg-white dark:bg-[#11131f] border-slate-200 dark:border-white/10 max-w-[90%]';
+        card.dataset.artifactId = artifact.id;
+
+        const title = document.createElement('div');
+        title.className = 'font-semibold mb-1.5 flex items-center gap-1.5';
+        title.innerHTML = iaArtifactIcon(artifact.artifact_type) + ' ' + iaEsc(artifact.title || '');
+        card.appendChild(title);
+
+        if (artifact.artifact_type === 'WG_REQUEST') {
+            const link = document.createElement('a');
+            link.href = '/api/v1/ia-agent/artifacts/' + artifact.id + '/download-pdf/';
+            link.target = '_blank';
+            link.className = 'inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline';
+            link.innerHTML = '<i data-lucide="download" class="h-3.5 w-3.5"></i> Télécharger la demande (PDF)';
+            card.appendChild(link);
+
+        } else if (artifact.artifact_type === 'EMAIL_DRAFT') {
+            card.appendChild(iaBuildEmailForm(artifact));
+
+        } else if (artifact.artifact_type === 'NORM_OVERLAP' || artifact.artifact_type === 'EXTERNAL_PROPOSAL') {
+            card.appendChild(iaBuildProposalCard(artifact));
+
+        } else if (artifact.artifact_type === 'CHART') {
+            card.appendChild(iaBuildChartSummary(artifact));
+        }
+
+        box.appendChild(card);
+        iaIcons();
+        return card;
+    }
+
+    function iaArtifactIcon(type) {
+        const icons = {
+            WG_REQUEST: '<i data-lucide="file-text" class="h-3.5 w-3.5"></i>',
+            NORM_OVERLAP: '<i data-lucide="git-compare" class="h-3.5 w-3.5"></i>',
+            EXTERNAL_PROPOSAL: '<i data-lucide="lightbulb" class="h-3.5 w-3.5"></i>',
+            EMAIL_DRAFT: '<i data-lucide="mail" class="h-3.5 w-3.5"></i>',
+            CHART: '<i data-lucide="bar-chart-3" class="h-3.5 w-3.5"></i>',
+        };
+        return icons[type] || '';
+    }
+
+    function iaBuildEmailForm(artifact) {
+        const wrap = document.createElement('div');
+        wrap.className = 'space-y-1.5';
+
+        const payload = artifact.payload || {};
+        const toInput = iaField('input', 'À', payload.to, 'email');
+        const subjectInput = iaField('input', 'Sujet', payload.subject, 'text');
+        const bodyInput = iaField('textarea', 'Message', payload.body);
+
+        wrap.appendChild(toInput.wrap);
+        wrap.appendChild(subjectInput.wrap);
+        wrap.appendChild(bodyInput.wrap);
+
+        const footer = document.createElement('div');
+        footer.className = 'flex items-center gap-2 pt-1';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1';
+        btn.innerHTML = '<i data-lucide="send" class="h-3 w-3"></i> Envoyer';
+        const status = document.createElement('span');
+        status.className = 'text-[11px] text-slate-400';
+
+        if (artifact.status === 'SENT') {
+            iaMarkSent(btn, status, toInput, subjectInput, bodyInput);
+        }
+
+        btn.onclick = async function() {
+            btn.disabled = true;
+            btn.textContent = 'Envoi…';
+            try {
+                const updated = await iaApi('/api/v1/ia-agent/artifacts/' + artifact.id + '/send/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        to: toInput.input.value,
+                        subject: subjectInput.input.value,
+                        body: bodyInput.input.value,
+                    }),
+                });
+                iaMarkSent(btn, status, toInput, subjectInput, bodyInput);
+                artifact.status = updated.status;
+            } catch (e) {
+                status.textContent = "Erreur lors de l'envoi.";
+                status.className = 'text-[11px] text-red-500';
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="send" class="h-3 w-3"></i> Envoyer';
+                iaIcons();
+            }
+        };
+
+        footer.appendChild(btn);
+        footer.appendChild(status);
+        wrap.appendChild(footer);
+        return wrap;
+    }
+
+    function iaMarkSent(btn, status, toInput, subjectInput, bodyInput) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="check" class="h-3 w-3"></i> Envoyé';
+        btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold text-xs flex items-center gap-1 cursor-default';
+        status.textContent = '';
+        [toInput, subjectInput, bodyInput].forEach(f => f.input.disabled = true);
+        iaIcons();
+    }
+
+    function iaField(tag, label, value, type) {
+        const wrap = document.createElement('label');
+        wrap.className = 'block';
+        const span = document.createElement('span');
+        span.className = 'block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5';
+        span.textContent = label;
+        const input = document.createElement(tag);
+        if (tag === 'input') { input.type = type || 'text'; input.value = value || ''; }
+        else { input.value = value || ''; input.rows = 4; }
+        input.className = 'w-full text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500';
+        wrap.appendChild(span);
+        wrap.appendChild(input);
+        return {wrap, input};
+    }
+
+    function iaBuildProposalCard(artifact) {
+        const wrap = document.createElement('div');
+        const payload = artifact.payload || {};
+        const main = document.createElement('div');
+        main.className = 'whitespace-pre-wrap text-slate-600 dark:text-slate-300 mb-2';
+        main.textContent = payload.analysis || payload.description || '';
+        wrap.appendChild(main);
+
+        const secondary = payload.recommendation || payload.referential_excerpt;
+        if (secondary) {
+            const sec = document.createElement('div');
+            sec.className = 'whitespace-pre-wrap text-slate-500 dark:text-slate-400 italic mb-2 border-l-2 border-slate-300 dark:border-white/10 pl-2';
+            sec.textContent = secondary;
+            wrap.appendChild(sec);
+        }
+
+        const footer = document.createElement('div');
+        footer.className = 'flex items-center gap-2';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1';
+        btn.innerHTML = '<i data-lucide="check" class="h-3 w-3"></i> Approuver pour la CTC';
+        const status = document.createElement('span');
+        status.className = 'text-[11px] text-slate-400';
+
+        if (artifact.status !== 'DRAFT') {
+            btn.disabled = true;
+            btn.textContent = 'Approuvé';
+            btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold text-xs cursor-default';
+        }
+
+        btn.onclick = async function() {
+            btn.disabled = true;
+            try {
+                await iaApi('/api/v1/ia-agent/artifacts/' + artifact.id + '/approve/', {method: 'POST'});
+                btn.textContent = 'Approuvé';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold text-xs cursor-default';
+            } catch (e) {
+                status.textContent = "Erreur lors de l'approbation.";
+                status.className = 'text-[11px] text-red-500';
+                btn.disabled = false;
+            }
+        };
+
+        footer.appendChild(btn);
+        footer.appendChild(status);
+        wrap.appendChild(footer);
+        return wrap;
+    }
+
+    function iaBuildChartSummary(artifact) {
+        const wrap = document.createElement('div');
+        const spec = (artifact.payload || {}).chart_spec || {};
+        const dataset = (spec.data && spec.data.datasets && spec.data.datasets[0]) || {};
+        const labels = (spec.data && spec.data.labels) || [];
+        const values = dataset.data || [];
+
+        const list = document.createElement('ul');
+        list.className = 'space-y-0.5 text-slate-600 dark:text-slate-300 mb-2';
+        labels.forEach((label, i) => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between gap-2';
+            li.innerHTML = '<span>' + iaEsc(label) + '</span><span class="font-semibold">' + iaEsc(values[i]) + '</span>';
+            list.appendChild(li);
+        });
+        wrap.appendChild(list);
+
+        const link = document.createElement('a');
+        link.href = '/pilotage/ia-agent/';
+        link.className = 'inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline';
+        link.innerHTML = '<i data-lucide="external-link" class="h-3.5 w-3.5"></i> Voir le graphique dans Pilotage IA';
+        wrap.appendChild(link);
+        return wrap;
+    }
+
+    window.iaAgentSubmit = function(event) {
+        event.preventDefault();
+        const input = document.getElementById('ia-agent-input');
+        const text = input.value.trim();
+        if (!text || iaSending) return false;
+
+        const hint = document.getElementById('ia-agent-empty-hint');
+        if (hint) hint.remove();
+
+        iaRenderMessage({role: 'user', content: text});
+        iaScrollToBottom();
+        input.value = '';
+        iaSending = true;
+        const sendBtn = document.getElementById('ia-agent-send-btn');
+        sendBtn.disabled = true;
+
+        const thinking = document.createElement('div');
+        thinking.className = 'flex justify-start';
+        thinking.innerHTML = '<div class="bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-2xl px-3 py-2 text-slate-400 text-xs flex items-center gap-2"><i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> L\'assistant réfléchit…</div>';
+        document.getElementById('ia-agent-messages').appendChild(thinking);
+        iaScrollToBottom();
+        iaIcons();
+
+        (async function() {
+            try {
+                await iaEnsureSession();
+                const result = await iaApi('/api/v1/ia-agent/sessions/' + iaSessionId + '/send/', {
+                    method: 'POST',
+                    body: JSON.stringify({content: text}),
+                });
+                thinking.remove();
+                iaRenderMessage(result.assistant_message);
+                (result.artifacts || []).forEach(iaRenderArtifact);
+                iaScrollToBottom();
+            } catch (e) {
+                thinking.remove();
+                iaRenderMessage({role: 'assistant', content: "Une erreur est survenue. Réessaie dans un instant."});
+                iaScrollToBottom();
+            } finally {
+                iaSending = false;
+                sendBtn.disabled = false;
+            }
+        })();
+
+        return false;
+    };
+})();
+</script>

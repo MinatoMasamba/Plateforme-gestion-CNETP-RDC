@@ -128,7 +128,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / 'web' / 'static' / 'dist', BASE_DIR / 'frontend_static' # React build output
+    BASE_DIR / 'web' / 'static' / 'dist',
 ]
 
 MEDIA_URL = '/media/'
@@ -245,9 +245,12 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cnetp.cd')
 
-# Agent IA (Claude / Anthropic) — laisser ANTHROPIC_API_KEY vide pour désactiver l'agent
+# Agent IA — Claude (Anthropic) — laisser vide pour désactiver
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 ANTHROPIC_MODEL = config('ANTHROPIC_MODEL', default='claude-sonnet-4-5')
+# Agent IA — Gemini (Google) — laisser vide pour désactiver
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-2.0-flash')
 IA_AGENT_MAX_TOOL_ITERATIONS = config('IA_AGENT_MAX_TOOL_ITERATIONS', default=8, cast=int)
 
 # WhatsApp via Twilio (laisser vide pour désactiver l'envoi réel)

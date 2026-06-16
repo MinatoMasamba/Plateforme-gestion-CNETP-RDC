@@ -27,6 +27,7 @@ from .ctc_views import (
     CTCReceptionActionView,
     ctc_context_api,
 )
+from apps.ia_agent.views_web import PilotageIAConsoleView
 
 app_name = 'web'
 
@@ -64,6 +65,7 @@ urlpatterns = [
     path('pilotage/gestion-acces/expert/<int:pk>/statut/', PilotageExpertStatusActionView.as_view(), name='pilotage_expert_status_action'),
     path('pilotage/gestion-acces/affectation/<int:pk>/exclure/', PilotageAffectationExcludeView.as_view(), name='pilotage_affectation_exclude'),
     path('pilotage/plateforme/verrouillage/', PilotagePlatformFreezeToggleView.as_view(), name='pilotage_platform_freeze_toggle'),
+    path('pilotage/ia-agent/', PilotageIAConsoleView.as_view(), name='pilotage_ia_console'),
     path('api/pilotage/contexte/', pilotage_context_api, name='pilotage_context_api'),
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────

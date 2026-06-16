@@ -156,5 +156,7 @@
             window.switchView('post-{{ default_post_n|default:6 }}');
         });
     </script>
+
+    {% include 'ia_agent/composants/agent_widget.html' with widget_scope='pilotage' widget_position='bottom-6 right-6' %}
 </body>
 </html>

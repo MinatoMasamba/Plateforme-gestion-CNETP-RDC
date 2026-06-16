@@ -6,7 +6,7 @@ from apps.ia_agent.models import AgentArtifact, AgentMessage, AgentSession
 class AgentSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentSession
-        fields = ['id', 'scope', 'title', 'is_active', 'created_at', 'updated_at']
+        fields = ['id', 'scope', 'provider', 'title', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
