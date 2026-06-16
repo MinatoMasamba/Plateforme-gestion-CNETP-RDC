@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM
+from apps.governance.models import CTM, PilotageMembreship, CTCMembership
 from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm
 from django.contrib.auth import login as auth_login, get_user_model
 
@@ -253,8 +253,27 @@ class ExpertLoginView(View):
             user = form.cleaned_data.get('user')
             auth_login(request, user)
             messages.success(request, f"Bienvenue expert {user.get_full_name()}")
-            return redirect('web:app')
+            return redirect(self._get_redirect_url(user))
         return render(request, self.template_name, {'form': form})
+
+    @staticmethod
+    def _get_redirect_url(user):
+        _DIRECTOIRE = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
+        expert = Expert.objects.filter(user=user).first()
+        if expert:
+            membership = PilotageMembreship.objects.filter(expert=expert).first()
+            if membership:
+                role = membership.role
+                if role in _DIRECTOIRE:
+                    return 'web:pilotage_directoire_app'
+                if role == 'CONSEILLER_POLITIQUE':
+                    return 'web:pilotage_conseillers_app'
+                if role == 'ADMIN_TECH_FIN':
+                    return 'web:pilotage_atf_app'
+                return 'web:pilotage_dashboard'
+            if CTCMembership.objects.filter(expert=expert).exists():
+                return 'web:ctc_dashboard'
+        return 'web:app'
 
 
 
