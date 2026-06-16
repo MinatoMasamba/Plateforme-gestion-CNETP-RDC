@@ -5,9 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNETP Plateforme</title>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <style>
         /* Custom styles for animations replacing Framer Motion */
         .reveal {
@@ -55,6 +58,33 @@
         html {
             scroll-behavior: smooth;
         }
+
+        /* ── Light mode (défaut — pas de class="dark" sur <html>) ─────────── */
+        html:not(.dark) body {
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+        }
+        html:not(.dark) [class~="text-white"] { color: #1e293b !important; }
+        html:not(.dark) [class~="text-slate-300"],
+        html:not(.dark) [class~="text-slate-400"] { color: #475569 !important; }
+        html:not(.dark) [class~="text-slate-500"] { color: #64748b !important; }
+        html:not(.dark) [class~="bg-black/20"],
+        html:not(.dark) [class~="bg-black/40"],
+        html:not(.dark) [class~="bg-black/50"],
+        html:not(.dark) [class~="bg-black/60"] { background-color: rgba(241,245,249,0.9) !important; }
+        html:not(.dark) [class~="bg-black/90"] { background-color: rgba(248,250,252,0.97) !important; }
+        html:not(.dark) [class~="bg-white/5"]  { background-color: rgba(241,245,249,1) !important; }
+        html:not(.dark) [class~="border-white/5"]  { border-color: #e2e8f0 !important; }
+        html:not(.dark) [class~="border-white/10"] { border-color: #cbd5e1 !important; }
+        html:not(.dark) #navbar {
+            background-color: rgba(248,250,252,0.95) !important;
+            backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        html:not(.dark) footer {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
     </style>
 </head>
 <body class="w-full min-h-screen bg-[#06060c] text-slate-300 relative z-0 overflow-x-hidden font-sans">
@@ -77,7 +107,12 @@
                     <a href="#audience" class="text-xs font-bold tracking-wider uppercase text-slate-400 hover:text-white transition-colors">Pour Qui ?</a>
                 </div>
                 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTheme()"
+                            class="p-2 rounded-full border border-slate-300 bg-white/70 text-slate-600 hover:bg-slate-100 transition-all dark:border-white/10 dark:bg-white/5 dark:text-yellow-400 dark:hover:bg-white/10"
+                            title="Changer de thème">
+                        <i id="theme-icon-index" data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
                     {% if not user.is_authenticated %}
                     <button onclick="window.location.href='{% url "web:expert_login" %}'" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-teal-400 transition-colors cursor-pointer">
                         Se Connecter
@@ -373,6 +408,23 @@ des Infrastructures et des Travaux Publics (CNE-ITP)</span>
     </footer>
 
     <script>
+        // Thème : applique la préférence sauvegardée (dark si précédemment activé)
+        (function() {
+            if (localStorage.getItem('cnetp_theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('cnetp_theme', isDark ? 'dark' : 'light');
+            const icon = document.getElementById('theme-icon-index');
+            if (icon) {
+                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                lucide.createIcons();
+            }
+        }
+
         // Initialisation des icônes Lucide
         lucide.createIcons();
 

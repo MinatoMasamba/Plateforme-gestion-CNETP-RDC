@@ -29,38 +29,31 @@ Paramètres d'inclusion :
     </button>
 </div>
 
-<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
+<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
      data-scope="{{ widget_scope }}">
 
     <div class="shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white">
-        <div class="flex items-center gap-2">
-            <i data-lucide="bot" class="h-5 w-5"></i>
-            <div class="leading-tight">
+        <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="bot" class="h-5 w-5 shrink-0"></i>
+            <div class="leading-tight min-w-0">
                 <p class="text-sm font-bold">Assistant IA CNETP</p>
-                <p class="text-[11px] opacity-80" id="ia-agent-scope-label"></p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <button type="button" onclick="iaSetProvider('anthropic')" id="ia-hdr-btn-anthropic"
+                            class="px-2 py-0.5 text-[10px] font-bold rounded transition-colors bg-white/25 text-white">Claude</button>
+                    <span class="text-white/30 text-[10px]">|</span>
+                    <button type="button" onclick="iaSetProvider('gemini')" id="ia-hdr-btn-gemini"
+                            class="px-2 py-0.5 text-[10px] font-bold rounded transition-colors text-white/55 hover:bg-white/15 hover:text-white">Gemini</button>
+                </div>
             </div>
         </div>
-        <button onclick="toggleIaAgentPanel()" class="p-1 rounded hover:bg-white/15">
+        <button onclick="toggleIaAgentPanel()" class="p-1 rounded hover:bg-white/15 shrink-0">
             <i data-lucide="x" class="h-4 w-4"></i>
         </button>
     </div>
 
     <div id="ia-agent-messages" class="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm bg-slate-50 dark:bg-[#020204]">
-        <div id="ia-agent-empty-hint" class="py-5 text-center space-y-3">
-            <p class="text-xs text-slate-400">Choisis l'assistant IA puis pose ta question.</p>
-            <div class="flex items-center justify-center gap-2" id="ia-provider-toggle">
-                <button type="button" onclick="iaSetProvider('anthropic')" id="ia-btn-anthropic"
-                        class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors
-                               border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400">
-                    <i data-lucide="bot" class="w-3 h-3"></i> Claude
-                </button>
-                <button type="button" onclick="iaSetProvider('gemini')" id="ia-btn-gemini"
-                        class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors
-                               border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400
-                               hover:bg-slate-50 dark:hover:bg-white/5">
-                    <i data-lucide="sparkles" class="w-3 h-3"></i> Gemini
-                </button>
-            </div>
+        <div id="ia-agent-empty-hint" class="py-8 text-center">
+            <p class="text-xs text-slate-400">Sélectionne Claude ou Gemini dans l'en-tête, puis pose ta question.</p>
         </div>
     </div>
 
@@ -122,13 +115,20 @@ Paramètres d'inclusion :
     const IA_BTN_ACTIVE = 'flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400';
     const IA_BTN_INACTIVE = 'flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors border-slate-300 text-slate-500 dark:border-white/10 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5';
 
+    const IA_HDR_ACTIVE   = 'px-2 py-0.5 text-[10px] font-bold rounded transition-colors bg-white/25 text-white';
+    const IA_HDR_INACTIVE = 'px-2 py-0.5 text-[10px] font-bold rounded transition-colors text-white/55 hover:bg-white/15 hover:text-white';
+
     function iaUpdateProviderUI(p) {
+        // Boutons dans le chat (état vide uniquement)
         const btnC = document.getElementById('ia-btn-anthropic');
         const btnG = document.getElementById('ia-btn-gemini');
         if (btnC) btnC.className = p === 'anthropic' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE;
         if (btnG) btnG.className = p === 'gemini' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE;
-        const label = document.getElementById('ia-agent-scope-label');
-        if (label) label.textContent = (IA_SCOPE_LABELS[IA_SCOPE] || '') + ' · ' + (p === 'gemini' ? 'Gemini' : 'Claude');
+        // Boutons permanents dans l'en-tête
+        const hdrC = document.getElementById('ia-hdr-btn-anthropic');
+        const hdrG = document.getElementById('ia-hdr-btn-gemini');
+        if (hdrC) hdrC.className = p === 'anthropic' ? IA_HDR_ACTIVE : IA_HDR_INACTIVE;
+        if (hdrG) hdrG.className = p === 'gemini' ? IA_HDR_ACTIVE : IA_HDR_INACTIVE;
         iaIcons();
     }
 
@@ -137,17 +137,9 @@ Paramètres d'inclusion :
         if (!box) return;
         const label = p === 'gemini' ? 'Gemini' : 'Claude';
         box.innerHTML =
-            '<div id="ia-agent-empty-hint" class="py-5 text-center space-y-3">'
+            '<div id="ia-agent-empty-hint" class="py-8 text-center">'
             + '<p class="text-xs text-slate-400 px-4">Passage à ' + label + ' — envoie un message pour démarrer.</p>'
-            + '<div class="flex items-center justify-center gap-2">'
-            + '<button type="button" onclick="iaSetProvider(\'anthropic\')" id="ia-btn-anthropic"'
-            + ' class="' + (p === 'anthropic' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE) + '">'
-            + '<i data-lucide="bot" class="w-3 h-3"></i> Claude</button>'
-            + '<button type="button" onclick="iaSetProvider(\'gemini\')" id="ia-btn-gemini"'
-            + ' class="' + (p === 'gemini' ? IA_BTN_ACTIVE : IA_BTN_INACTIVE) + '">'
-            + '<i data-lucide="sparkles" class="w-3 h-3"></i> Gemini</button>'
-            + '</div></div>';
-        iaIcons();
+            + '</div>';
     }
 
     window.iaSetProvider = function(p) {
