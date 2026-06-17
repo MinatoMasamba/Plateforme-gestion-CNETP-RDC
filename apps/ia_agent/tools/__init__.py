@@ -43,5 +43,6 @@ def load_tools():
     from . import email_tools  # noqa: F401
     from . import expert_tools  # noqa: F401
     from . import governance_tools  # noqa: F401
+    from . import platform_tools  # noqa: F401
     from . import public_inquiry_tools  # noqa: F401
     from . import referential_tools  # noqa: F401
