@@ -197,73 +197,75 @@
 
     async function loadFinancialData() {
         try {
-            const [cotisationsResponse, jetonsResponse, profileResponse] = await Promise.all([
-                fetch('/api/v1/cotisations/?ordering=-annee', { headers: finApiHeaders() }),
-                fetch('/api/v1/jetons/', { headers: finApiHeaders() }),
-                fetch('/api/v1/experts/me/', { headers: finApiHeaders() }),
-            ]);
+            await window.withButtonLoading(null, async () => {
+                const [cotisationsResponse, jetonsResponse, profileResponse] = await Promise.all([
+                    window.fetchWithTimeout('/api/v1/cotisations/?ordering=-annee', { headers: finApiHeaders() }),
+                    window.fetchWithTimeout('/api/v1/jetons/', { headers: finApiHeaders() }),
+                    window.fetchWithTimeout('/api/v1/experts/me/', { headers: finApiHeaders() }),
+                ]);
 
-            if (cotisationsResponse.ok) {
-                const cotisations = finAsArray(await cotisationsResponse.json());
-                finState.loadedFromServer = true;
-                finState.fees = cotisations.map(c => {
-                    const name = c.structure?.name || c.structure_name || `Structure ${c.structure || ''}`;
-                    return {
-                        id: c.id,
-                        structureId: c.structure?.id || c.structure,
-                        name,
-                        category: inferStructureCategory(name),
-                        annualFee: parseMoney(c.montant),
-                        paidAmount: parseMoney(c.montant_paye),
-                        status: statusFinLabel(c.status),
-                        dueDate: c.due_date,
-                        expertsQuota: c.structure?.experts_count || 0,
-                        fromServer: true,
-                    };
-                });
-            }
+                if (cotisationsResponse.ok) {
+                    const cotisations = finAsArray(await cotisationsResponse.json());
+                    finState.loadedFromServer = true;
+                    finState.fees = cotisations.map(c => {
+                        const name = c.structure?.name || c.structure_name || `Structure ${c.structure || ''}`;
+                        return {
+                            id: c.id,
+                            structureId: c.structure?.id || c.structure,
+                            name,
+                            category: inferStructureCategory(name),
+                            annualFee: parseMoney(c.montant),
+                            paidAmount: parseMoney(c.montant_paye),
+                            status: statusFinLabel(c.status),
+                            dueDate: c.due_date,
+                            expertsQuota: c.structure?.experts_count || 0,
+                            fromServer: true,
+                        };
+                    });
+                }
 
-            if (jetonsResponse.ok) {
-                const jetons = finAsArray(await jetonsResponse.json());
-                const grouped = {};
-                jetons.forEach(j => {
-                    const key = j.expert;
-                    if (!grouped[key]) grouped[key] = {
-                        id: `expert-${key}`,
-                        expertId: key,
-                        name: j.expert_name || 'Expert',
-                        role: 'Membre CNETP',
-                        structure: '',
+                if (jetonsResponse.ok) {
+                    const jetons = finAsArray(await jetonsResponse.json());
+                    const grouped = {};
+                    jetons.forEach(j => {
+                        const key = j.expert;
+                        if (!grouped[key]) grouped[key] = {
+                            id: `expert-${key}`,
+                            expertId: key,
+                            name: j.expert_name || 'Expert',
+                            role: 'Membre CNETP',
+                            structure: '',
+                            presenceCount: 0,
+                            dailyRate: parseMoney(j.montant),
+                            monthlyResearchAllowance: 0,
+                            payoutMethod: 'À renseigner',
+                            accountDetails: '',
+                            status: 'En attente',
+                            fromServer: true,
+                        };
+                        grouped[key].presenceCount += 1;
+                        grouped[key].dailyRate = Math.max(grouped[key].dailyRate, parseMoney(j.montant));
+                        if (j.status === 'PAID') grouped[key].status = 'Traité';
+                    });
+                    finState.payroll = Object.values(grouped);
+                }
+
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    finState.currentProfile = {
+                        id: profile.id || '',
+                        name: profile.user?.full_name || profile.full_name || 'Expert connecté',
+                        role: profile.role || 'Membre CNETP',
+                        structure: profile.structure?.acronym || profile.structure?.name || '',
                         presenceCount: 0,
-                        dailyRate: parseMoney(j.montant),
+                        dailyRate: 0,
                         monthlyResearchAllowance: 0,
                         payoutMethod: 'À renseigner',
                         accountDetails: '',
-                        status: 'En attente',
-                        fromServer: true,
+                        status: 'En attente'
                     };
-                    grouped[key].presenceCount += 1;
-                    grouped[key].dailyRate = Math.max(grouped[key].dailyRate, parseMoney(j.montant));
-                    if (j.status === 'PAID') grouped[key].status = 'Traité';
-                });
-                finState.payroll = Object.values(grouped);
-            }
-
-            if (profileResponse.ok) {
-                const profile = await profileResponse.json();
-                finState.currentProfile = {
-                    id: profile.id || '',
-                    name: profile.user?.full_name || profile.full_name || 'Expert connecté',
-                    role: profile.role || 'Membre CNETP',
-                    structure: profile.structure?.acronym || profile.structure?.name || '',
-                    presenceCount: 0,
-                    dailyRate: 0,
-                    monthlyResearchAllowance: 0,
-                    payoutMethod: 'À renseigner',
-                    accountDetails: '',
-                    status: 'En attente'
-                };
-            }
+                }
+            });
         } catch (error) {
             console.warn('Données financières serveur indisponibles.', error);
         }
@@ -394,8 +396,8 @@
                         </div>
                         <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-white/5 text-[10.5px]">
                             ${rest > 0 ? `
-                                <button onclick="handlePayFee('${f.id}', ${rest/2})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded dark:bg-white/5 dark:hover:bg-white/10 dark:text-white">Enregistrer 50%</button>
-                                <button onclick="handlePayFee('${f.id}', ${rest})" class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded dark:bg-blue-500/15 dark:hover:bg-blue-500/25 dark:text-blue-400">Apurer solde</button>
+                                <button onclick="handlePayFee('${f.id}', ${rest/2}, this)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded dark:bg-white/5 dark:hover:bg-white/10 dark:text-white">Enregistrer 50%</button>
+                                <button onclick="handlePayFee('${f.id}', ${rest}, this)" class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded dark:bg-blue-500/15 dark:hover:bg-blue-500/25 dark:text-blue-400">Apurer solde</button>
                                 <button onclick="notifyFin('Rappel réglementaire transmis automatiquement !', 'info')" class="px-2 py-1 ml-auto text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Relance"><i data-lucide="bell-ring" class="h-3.5 w-3.5"></i></button>
                             ` : `
                                 <div class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-medium font-sans"><i data-lucide="check-circle-2" class="h-4 w-4"></i><span>Trésor apuré sur l'exercice 2026</span></div>
@@ -612,29 +614,31 @@
     // =========================================================================
     // ACTIONS ET MODALES
     // =========================================================================
-    async function handlePayFee(id, amt) {
+    async function handlePayFee(id, amt, btn) {
         const fee = finState.fees.find(f => String(f.id) === String(id));
         if (!fee) return;
-        if (fee.fromServer) {
-            const response = await fetch('/api/v1/paiements/', {
-                method: 'POST',
-                headers: finApiHeaders(true),
-                body: JSON.stringify({
-                    cotisation: fee.id,
-                    montant: amt,
-                    methode_paiement: 'VIREMENT',
-                    numero_transaction: `CNETP-${Date.now()}`,
-                    payment_date: new Date().toISOString().slice(0, 10),
-                })
-            });
-            if (!response.ok) return notifyFin("Enregistrement serveur refusé. Vérifiez vos droits ou les champs paiement.", "info");
-        } else {
-            fee.paidAmount = Math.min(fee.paidAmount + amt, fee.annualFee);
-            fee.status = fee.paidAmount >= fee.annualFee ? "Payé" : "Partiellement payé";
-        }
-        await loadFinancialData();
-        renderAdminKpis(); setFinAdminTab('structure');
-        notifyFin(`Contribution de ${fee.name} enregistrée !`, "success");
+        await window.withButtonLoading(btn, async () => {
+            if (fee.fromServer) {
+                const response = await window.fetchWithTimeout('/api/v1/paiements/', {
+                    method: 'POST',
+                    headers: finApiHeaders(true),
+                    body: JSON.stringify({
+                        cotisation: fee.id,
+                        montant: amt,
+                        methode_paiement: 'VIREMENT',
+                        numero_transaction: `CNETP-${Date.now()}`,
+                        payment_date: new Date().toISOString().slice(0, 10),
+                    })
+                });
+                if (!response.ok) return notifyFin("Enregistrement serveur refusé. Vérifiez vos droits ou les champs paiement.", "info");
+            } else {
+                fee.paidAmount = Math.min(fee.paidAmount + amt, fee.annualFee);
+                fee.status = fee.paidAmount >= fee.annualFee ? "Payé" : "Partiellement payé";
+            }
+            await loadFinancialData();
+            renderAdminKpis(); setFinAdminTab('structure');
+            notifyFin(`Contribution de ${fee.name} enregistrée !`, "success");
+        });
     }
 
     function processExpertPayment(id) {

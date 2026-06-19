@@ -241,7 +241,7 @@
     }
 
     async function loadCTMs() {
-        const response = await fetch('/api/v1/ctm/', { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout('/api/v1/ctm/', { headers: apiHeaders() });
         if (!response.ok) throw new Error('Chargement CTM impossible');
         appState.ctms = asArray(await response.json());
         document.getElementById('meet-new-ctm').innerHTML = '<option value="">-- CTM --</option>' + appState.ctms.map(ctm => `<option value="${ctm.id}">CTM ${ctm.number || ''} - ${ctm.name}</option>`).join('');
@@ -251,7 +251,7 @@
         const select = document.getElementById('meet-new-wg');
         select.innerHTML = '<option value="">-- WG --</option>';
         if (!ctmId) return;
-        const response = await fetch('/api/v1/wg/', { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout('/api/v1/wg/', { headers: apiHeaders() });
         if (!response.ok) throw new Error('Chargement WG impossible');
         appState.wgs = asArray(await response.json());
         const filtered = appState.wgs.filter(wg => sameId(wg.ctm?.id || wg.ctm, ctmId));
@@ -259,7 +259,7 @@
     }
 
     async function loadMyProfile() {
-        const response = await fetch('/api/v1/experts/me/', { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout('/api/v1/experts/me/', { headers: apiHeaders() });
         if (!response.ok) return;
         const data = await response.json();
         appState.myExpertId = data.id;
@@ -282,7 +282,7 @@
             container.innerHTML = '<p class="text-slate-500 italic text-center py-3">Aucun CTM rattaché à votre profil.</p>';
             return;
         }
-        const response = await fetch(`/api/v1/norms/?ctm__id=${appState.myCtmId}`, { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout(`/api/v1/norms/?ctm__id=${appState.myCtmId}`, { headers: apiHeaders() });
         if (!response.ok) {
             container.innerHTML = '<p class="text-red-500 italic text-center py-3">Chargement des votes impossible.</p>';
             return;
@@ -318,7 +318,7 @@
     }
 
     async function fetchMeetings() {
-        const response = await fetch('/api/v1/reunions/?ordering=-date', { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout('/api/v1/reunions/?ordering=-date', { headers: apiHeaders() });
         if (!response.ok) throw new Error('Chargement réunions impossible');
         appState.meetings = asArray(await response.json());
         if (!appState.activeMeetingId || !appState.meetings.some(m => sameId(m.id, appState.activeMeetingId))) {
@@ -332,7 +332,7 @@
             renderActiveMeeting();
             return;
         }
-        const response = await fetch(`/api/v1/reunions/${meetingId}/details/`, { headers: apiHeaders() });
+        const response = await window.fetchWithTimeout(`/api/v1/reunions/${meetingId}/details/`, { headers: apiHeaders() });
         if (!response.ok) throw new Error('Chargement détails réunion impossible');
         const detail = await response.json();
         appState.currentMeetingDetails = { presences: detail.presences || [], votes: detail.votes || [], pv: detail.pv || null, detail };
@@ -358,12 +358,12 @@
         const label = (meeting.document_reglementaire || '').trim();
         if (!meeting.id || !label || (meeting.votes || []).length) return;
         try {
-            const normsResponse = await fetch(`/api/v1/norms/?search=${encodeURIComponent(label)}`, { headers: apiHeaders() });
+            const normsResponse = await window.fetchWithTimeout(`/api/v1/norms/?search=${encodeURIComponent(label)}`, { headers: apiHeaders() });
             if (!normsResponse.ok) return;
             const norms = asArray(await normsResponse.json());
             const norm = norms.find(n => label.includes(n.reference_number) || n.reference_number?.includes(label) || label.toLowerCase().includes((n.title || '').toLowerCase())) || norms[0];
             if (!norm?.id) return;
-            const votesResponse = await fetch(`/api/v1/norms/${norm.id}/votes/`, { headers: apiHeaders() });
+            const votesResponse = await window.fetchWithTimeout(`/api/v1/norms/${norm.id}/votes/`, { headers: apiHeaders() });
             if (!votesResponse.ok) return;
             appState.normVotesByMeeting[meeting.id] = (await votesResponse.json()).map(v => normalizeMeetingVote({ ...v, source: 'norme' }));
         } catch (error) {
@@ -395,33 +395,36 @@
 
     async function handleCreateMeeting(event) {
         event.preventDefault();
-        const time = document.getElementById('meet-new-time').value || '10:00';
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const payload = {
-            titre: document.getElementById('meet-new-title').value,
-            type: document.getElementById('meet-new-type').value,
-            ctm: document.getElementById('meet-new-ctm').value || null,
-            wg: document.getElementById('meet-new-wg').value || null,
-            date: `${tomorrow.toISOString().slice(0,10)}T${time}:00`,
-            lieu: 'Visioconférence',
-            lien_reunion_virtuelle: document.getElementById('meet-new-active').checked ? `https://meet.google.com/cnetp-${Date.now()}` : '',
-            document_reglementaire: document.getElementById('meet-new-law').value,
-            description: document.getElementById('meet-new-law').value,
-            ordre_jour: document.getElementById('meet-new-desc').value,
-        };
-        const response = await fetch('/api/v1/reunions/', { method: 'POST', headers: apiHeaders(true), body: JSON.stringify(payload) });
-        if (!response.ok) {
-            console.error(await response.json());
-            return window.showAppToast?.('Création de réunion impossible.', 'error');
-        }
-        const meeting = await response.json();
-        appState.activeMeetingId = meeting.id;
-        document.getElementById('form-create-meet').reset();
-        await fetchMeetings();
-        renderMeetingsList();
-        await fetchMeetingDetails(meeting.id);
-        window.showAppToast?.('Réunion créée et participants invités.', 'success');
+        const btn = event.submitter || document.querySelector('#form-create-meet button[type="submit"]');
+        await window.withButtonLoading(btn, async () => {
+            const time = document.getElementById('meet-new-time').value || '10:00';
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const payload = {
+                titre: document.getElementById('meet-new-title').value,
+                type: document.getElementById('meet-new-type').value,
+                ctm: document.getElementById('meet-new-ctm').value || null,
+                wg: document.getElementById('meet-new-wg').value || null,
+                date: `${tomorrow.toISOString().slice(0,10)}T${time}:00`,
+                lieu: 'Visioconférence',
+                lien_reunion_virtuelle: document.getElementById('meet-new-active').checked ? `https://meet.google.com/cnetp-${Date.now()}` : '',
+                document_reglementaire: document.getElementById('meet-new-law').value,
+                description: document.getElementById('meet-new-law').value,
+                ordre_jour: document.getElementById('meet-new-desc').value,
+            };
+            const response = await window.fetchWithTimeout('/api/v1/reunions/', { method: 'POST', headers: apiHeaders(true), body: JSON.stringify(payload) });
+            if (!response.ok) {
+                console.error(await response.json());
+                return window.showAppToast?.('Création de réunion impossible.', 'error');
+            }
+            const meeting = await response.json();
+            appState.activeMeetingId = meeting.id;
+            document.getElementById('form-create-meet').reset();
+            await fetchMeetings();
+            renderMeetingsList();
+            await fetchMeetingDetails(meeting.id);
+            window.showAppToast?.('Réunion créée et participants invités.', 'success');
+        });
     }
 
     function renderMeetingsList() {
@@ -433,19 +436,21 @@
         container.innerHTML = appState.meetings.map(m => {
             const selected = sameId(m.id, appState.activeMeetingId);
             const parts = meetingDateParts(m.date);
-            return `<button onclick="selectMeeting('${m.id}')" class="w-full text-left p-3.5 rounded-xl border transition-all flex flex-col gap-2 cursor-pointer ${selected ? 'bg-slate-200/50 border-blue-500 dark:bg-white/[0.07] dark:border-blue-500/50' : 'border-slate-200/60 hover:bg-slate-100 dark:border-white/5 dark:hover:bg-white/5'}">
+            return `<button onclick="selectMeeting('${m.id}', this)" class="w-full text-left p-3.5 rounded-xl border transition-all flex flex-col gap-2 cursor-pointer ${selected ? 'bg-slate-200/50 border-blue-500 dark:bg-white/[0.07] dark:border-blue-500/50' : 'border-slate-200/60 hover:bg-slate-100 dark:border-white/5 dark:hover:bg-white/5'}">
                 <div class="flex items-center justify-between gap-2 w-full"><span class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">${typeLabel(m.type)}</span><span class="text-[9.5px] font-bold px-2 py-0.5 rounded ${m.status === 'COMPLETED' ? 'bg-blue-500/15 text-blue-600' : 'bg-amber-500/15 text-amber-500 border border-amber-500/30'}">${statusLabel(m.status)}</span></div>
                 <div class="min-w-0"><p class="text-xs font-bold leading-snug text-slate-800 dark:text-slate-200">${m.titre}</p><p class="text-[10px] text-slate-500 font-semibold font-mono mt-1">${parts.date} - ${parts.time}</p></div>
             </button>`;
         }).join('');
     }
 
-    async function selectMeeting(id) {
-        appState.activeMeetingId = id;
-        appState.activeSubTab = 'meet';
-        renderMeetingsList();
-        setMeetSubTab('meet');
-        await fetchMeetingDetails(id);
+    async function selectMeeting(id, btn) {
+        await window.withButtonLoading(btn || null, async () => {
+            appState.activeMeetingId = id;
+            appState.activeSubTab = 'meet';
+            renderMeetingsList();
+            setMeetSubTab('meet');
+            await fetchMeetingDetails(id);
+        });
     }
 
     function setMeetSubTab(tab) {
@@ -539,7 +544,7 @@
         document.getElementById('meet-attendance-role-banner').innerHTML = `<div class="p-3 rounded-xl border text-xs ${canEdit ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10'}">${canEdit ? 'Vous êtes l’organisateur : vous pouvez modifier les émargements.' : 'Émargement en lecture seule (réservé à l’organisateur de la réunion).'}</div>`;
         document.getElementById('meet-attendance-list').innerHTML = presences.length ? presences.map(p => {
             const ok = p.status === 'PRESENT';
-            return `<div class="p-3 rounded-xl border flex items-center justify-between gap-3 ${ok ? 'bg-blue-50 border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/25' : 'bg-slate-50 border-slate-200 opacity-80 dark:bg-black/25 dark:border-white/5'}"><div class="flex items-center gap-3 min-w-0"><div class="h-8 w-8 rounded-lg bg-slate-200 dark:bg-black/40 border border-slate-300 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0">${(p.expert_name || 'EX').substring(0,2)}</div><div class="min-w-0"><p class="text-xs font-bold text-slate-900 dark:text-white truncate">${p.expert_name || 'Expert'}</p><p class="text-[9.5px] text-slate-500">${p.expert_structure || ''}</p></div></div><button ${canEdit ? '' : 'disabled'} onclick="toggleAttendance('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-md text-[10.5px] font-bold ${ok ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'} ${canEdit ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}">${ok ? 'Présent' : 'Absent'}</button></div>`;
+            return `<div class="p-3 rounded-xl border flex items-center justify-between gap-3 ${ok ? 'bg-blue-50 border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/25' : 'bg-slate-50 border-slate-200 opacity-80 dark:bg-black/25 dark:border-white/5'}"><div class="flex items-center gap-3 min-w-0"><div class="h-8 w-8 rounded-lg bg-slate-200 dark:bg-black/40 border border-slate-300 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0">${(p.expert_name || 'EX').substring(0,2)}</div><div class="min-w-0"><p class="text-xs font-bold text-slate-900 dark:text-white truncate">${p.expert_name || 'Expert'}</p><p class="text-[9.5px] text-slate-500">${p.expert_structure || ''}</p></div></div><button ${canEdit ? '' : 'disabled'} onclick="toggleAttendance('${p.id}', '${p.status}', this)" class="px-3 py-1.5 rounded-md text-[10.5px] font-bold ${ok ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'} ${canEdit ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}">${ok ? 'Présent' : 'Absent'}</button></div>`;
         }).join('') : '<p class="text-xs text-slate-500 text-center col-span-2">Aucun participant invité.</p>';
         document.getElementById('meet-quorum-verdict').innerHTML = `<i data-lucide="${document.getElementById('meet-quorum-badge').textContent === 'Quorum atteint' ? 'check-circle' : 'alert-triangle'}" class="h-5 w-5 text-blue-500"></i><div class="text-xs"><strong>Verdict quorum :</strong> ${document.getElementById('meet-quorum-badge').textContent}</div>`;
     }
@@ -560,8 +565,8 @@
         document.getElementById('vote-bars-container').innerHTML = `<div>Pour (${pour})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-500" style="width:${cast ? (pour/cast)*100 : 0}%"></div></div></div><div>Contre (${contre})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-red-500" style="width:${cast ? (contre/cast)*100 : 0}%"></div></div></div><div>Abstention (${abs})<div class="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-slate-500" style="width:${cast ? (abs/cast)*100 : 0}%"></div></div></div>`;
         document.getElementById('vote-verdict-box').textContent = quorumOk && rate >= 50 ? 'Résolution adoptable' : 'Résolution non adoptable à ce stade';
         document.getElementById('vote-verdict-box').className = `p-3 rounded-lg text-[11px] font-mono text-center font-bold ${quorumOk && rate >= 50 ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'}`;
-        document.getElementById('vote-expert-block').innerHTML = fromNorme ? '<div class="p-4 rounded-xl border text-xs text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300">Ce résultat provient du vote effectué dans l’éditeur de norme.</div>' : (meeting.status === 'COMPLETED' ? '<div class="p-4 rounded-xl border text-xs text-slate-500">Scrutin clos.</div>' : `<div class="p-4 rounded-xl border bg-slate-50 dark:bg-black/35 border-slate-200 dark:border-white/5 text-xs space-y-3"><p class="font-bold uppercase">Votre vote</p><div class="flex flex-wrap gap-2"><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('POUR')" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold disabled:opacity-40">Pour</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('CONTRE')" class="px-4 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-40">Contre</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('ABSTENTION')" class="px-4 py-2 rounded-lg bg-slate-600 text-white font-bold disabled:opacity-40">Abstention</button></div><p class="text-[10px] text-slate-500">${myPresenceOk ? 'Présence confirmée : vote autorisé.' : 'Vous devez être marqué présent pour voter.'}</p></div>`);
-        document.getElementById('vote-close-action').innerHTML = canManageMeeting() && meeting.status !== 'COMPLETED' ? '<button onclick="closeScrutin()" class="px-4 py-2.5 rounded-lg bg-blue-600 text-white font-extrabold text-xs">Clore le scrutin et générer le PV</button>' : '';
+        document.getElementById('vote-expert-block').innerHTML = fromNorme ? '<div class="p-4 rounded-xl border text-xs text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300">Ce résultat provient du vote effectué dans l’éditeur de norme.</div>' : (meeting.status === 'COMPLETED' ? '<div class="p-4 rounded-xl border text-xs text-slate-500">Scrutin clos.</div>' : `<div class="p-4 rounded-xl border bg-slate-50 dark:bg-black/35 border-slate-200 dark:border-white/5 text-xs space-y-3"><p class="font-bold uppercase">Votre vote</p><div class="flex flex-wrap gap-2"><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('POUR', this)" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold disabled:opacity-40">Pour</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('CONTRE', this)" class="px-4 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-40">Contre</button><button ${myPresenceOk ? '' : 'disabled'} onclick="castVote('ABSTENTION', this)" class="px-4 py-2 rounded-lg bg-slate-600 text-white font-bold disabled:opacity-40">Abstention</button></div><p class="text-[10px] text-slate-500">${myPresenceOk ? 'Présence confirmée : vote autorisé.' : 'Vous devez être marqué présent pour voter.'}</p></div>`);
+        document.getElementById('vote-close-action').innerHTML = canManageMeeting() && meeting.status !== 'COMPLETED' ? '<button onclick="closeScrutin(this)" class="px-4 py-2.5 rounded-lg bg-blue-600 text-white font-extrabold text-xs">Clore le scrutin et générer le PV</button>' : '';
     }
 
     function renderPv(meeting) {
@@ -569,28 +574,34 @@
         document.getElementById('pv-container').innerHTML = pv ? `<div class="rounded-xl border p-4 bg-white dark:bg-black/30 border-slate-200 dark:border-white/10"><h4 class="text-xs font-bold mb-2">${pv.titre}</h4><pre class="whitespace-pre-wrap text-[11px] text-slate-600 dark:text-slate-300">${pv.contenu}</pre><button onclick="openPvModal()" class="mt-3 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold">Aperçu officiel</button></div>` : `<div class="rounded-xl border p-4 text-xs text-slate-500">Aucun PV généré. ${meeting.status === 'COMPLETED' ? '' : 'Clôturez le scrutin pour générer le PV.'}</div>`;
     }
 
-    async function toggleAttendance(id, currentStatus) {
-        const next = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';
-        const response = await fetch(`/api/v1/presences/${id}/`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ status: next }) });
-        if (!response.ok) return window.showAppToast?.('Mise à jour présence impossible.', 'error');
-        await fetchMeetingDetails(appState.activeMeetingId);
+    async function toggleAttendance(id, currentStatus, btn) {
+        await window.withButtonLoading(btn || null, async () => {
+            const next = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';
+            const response = await window.fetchWithTimeout(`/api/v1/presences/${id}/`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ status: next }) });
+            if (!response.ok) return window.showAppToast?.('Mise à jour présence impossible.', 'error');
+            await fetchMeetingDetails(appState.activeMeetingId);
+        });
     }
 
-    async function castVote(choice) {
-        const response = await fetch(`/api/v1/reunions/${appState.activeMeetingId}/vote/`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ choix: choice }) });
-        if (!response.ok) return window.showAppToast?.((await response.json()).detail || 'Vote impossible.', 'error');
-        await fetchMeetingDetails(appState.activeMeetingId);
-        window.showAppToast?.('Vote enregistré.', 'success');
+    async function castVote(choice, btn) {
+        await window.withButtonLoading(btn || null, async () => {
+            const response = await window.fetchWithTimeout(`/api/v1/reunions/${appState.activeMeetingId}/vote/`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ choix: choice }) });
+            if (!response.ok) return window.showAppToast?.((await response.json()).detail || 'Vote impossible.', 'error');
+            await fetchMeetingDetails(appState.activeMeetingId);
+            window.showAppToast?.('Vote enregistré.', 'success');
+        });
     }
 
-    async function closeScrutin() {
+    async function closeScrutin(btn) {
         if (!confirm('Clore ce scrutin et générer le PV ?')) return;
-        const response = await fetch(`/api/v1/reunions/${appState.activeMeetingId}/close/`, { method: 'POST', headers: apiHeaders(true) });
-        if (!response.ok) return window.showAppToast?.('Clôture impossible.', 'error');
-        await fetchMeetings();
-        renderMeetingsList();
-        await fetchMeetingDetails(appState.activeMeetingId);
-        window.showAppToast?.('Scrutin clos et PV généré.', 'success');
+        await window.withButtonLoading(btn || null, async () => {
+            const response = await window.fetchWithTimeout(`/api/v1/reunions/${appState.activeMeetingId}/close/`, { method: 'POST', headers: apiHeaders(true) }, 45000);
+            if (!response.ok) return window.showAppToast?.('Clôture impossible.', 'error');
+            await fetchMeetings();
+            renderMeetingsList();
+            await fetchMeetingDetails(appState.activeMeetingId);
+            window.showAppToast?.('Scrutin clos et PV généré.', 'success');
+        });
     }
 
     function openPvModal() {
@@ -618,7 +629,7 @@
 
     async function renderLegislativeStats() {
         try {
-            const response = await fetch('/api/v1/reunions/stats/', { headers: apiHeaders() });
+            const response = await window.fetchWithTimeout('/api/v1/reunions/stats/', { headers: apiHeaders() });
             if (response.ok) console.debug('Réunions stats', await response.json());
         } catch (error) {
             console.warn(error);

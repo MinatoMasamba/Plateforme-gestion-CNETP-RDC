@@ -1,0 +1,20 @@
+{
+    "name": "Portail CNETP RDC",
+    "short_name": "CNETP",
+    "description": "Commission Nationale pour l'Élaboration des Normes de Construction, des Infrastructures et des Travaux Publics — République Démocratique du Congo",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#0095c9",
+    "lang": "fr",
+    "icons": [
+        {
+            "src": "/static/img/logo-cnetp.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

@@ -1,467 +1,307 @@
+{% extends "base.html" %}
+{% load static %}
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNETP Plateforme</title>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+{% block title %}CNETP — Portail National des Normes{% endblock %}
 
-    <style>
-        /* Custom styles for animations replacing Framer Motion */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-        
-        .reveal.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+{% block extra_css %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
 
-        .reveal-scale {
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
+    .reveal-scale {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .reveal-scale.is-visible { opacity: 1; transform: scale(1); }
 
-        .reveal-scale.is-visible {
-            opacity: 1;
-            transform: scale(1);
-        }
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+    .delay-400 { transition-delay: 400ms; }
 
-        .reveal-blur {
-            opacity: 0;
-            transform: scale(0.95);
-            filter: blur(10px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out;
-        }
+    html { scroll-behavior: smooth; }
+</style>
+{% endblock %}
 
-        .reveal-blur.is-visible {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0px);
-        }
+{% block content %}
 
-        /* Stagger Delays */
-        .delay-100 { transition-delay: 100ms; }
-        .delay-200 { transition-delay: 200ms; }
-        .delay-300 { transition-delay: 300ms; }
-        .delay-400 { transition-delay: 400ms; }
-        
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO — grande photo de groupe, responsive, jamais déformée
+═══════════════════════════════════════════════════════════════════ -->
+<section class="relative">
+    <div class="w-full h-64 sm:h-96 md:h-[420px] lg:h-[520px] overflow-hidden">
+        <img src="{% static 'img/HKoX2yXXYAAjyrr.jpg' %}" alt="Comité National pour l'Élaboration des Normes — RDC"
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0a2540]/80 via-[#0a2540]/20 to-transparent"></div>
+    </div>
 
-        /* ── Light mode (défaut — pas de class="dark" sur <html>) ─────────── */
-        html:not(.dark) body {
-            background-color: #f8fafc !important;
-            color: #1e293b !important;
-        }
-        html:not(.dark) [class~="text-white"] { color: #1e293b !important; }
-        html:not(.dark) [class~="text-slate-300"],
-        html:not(.dark) [class~="text-slate-400"] { color: #475569 !important; }
-        html:not(.dark) [class~="text-slate-500"] { color: #64748b !important; }
-        html:not(.dark) [class~="bg-black/20"],
-        html:not(.dark) [class~="bg-black/40"],
-        html:not(.dark) [class~="bg-black/50"],
-        html:not(.dark) [class~="bg-black/60"] { background-color: rgba(241,245,249,0.9) !important; }
-        html:not(.dark) [class~="bg-black/90"] { background-color: rgba(248,250,252,0.97) !important; }
-        html:not(.dark) [class~="bg-white/5"]  { background-color: rgba(241,245,249,1) !important; }
-        html:not(.dark) [class~="border-white/5"]  { border-color: #e2e8f0 !important; }
-        html:not(.dark) [class~="border-white/10"] { border-color: #cbd5e1 !important; }
-        html:not(.dark) #navbar {
-            background-color: rgba(248,250,252,0.95) !important;
-            backdrop-filter: blur(12px) !important;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        html:not(.dark) footer {
-            background-color: #f1f5f9 !important;
-            border-color: #e2e8f0 !important;
-        }
-    </style>
-</head>
-<body class="w-full min-h-screen bg-[#06060c] text-slate-300 relative z-0 overflow-x-hidden font-sans">
-    
-    <div class="fixed inset-0 bg-gradient-to-br from-teal-900/10 via-black to-slate-900/20 pointer-events-none -z-10"></div>
-
-    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent py-4 reveal is-visible" style="transform: translateY(0);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-12">
-                <div class="flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform duration-300" onclick="window.location.href='{% url "web:app" %}'">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-500/20 border border-teal-500/30">
-                        <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
-                    </div>
-                    <span class="text-xl font-bold text-white tracking-widest">CNE-ITP</span>
+    <div class="absolute inset-0 flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="max-w-2xl reveal is-visible">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 text-[#0a2540] text-[10px] font-bold uppercase tracking-widest mb-5">
+                    République Démocratique du Congo
                 </div>
-                
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-xs font-bold tracking-wider uppercase text-slate-400 hover:text-white transition-colors">La Plateforme</a>
-                    <a href="#modules" class="text-xs font-bold tracking-wider uppercase text-slate-400 hover:text-white transition-colors">Modules</a>
-                    <a href="#audience" class="text-xs font-bold tracking-wider uppercase text-slate-400 hover:text-white transition-colors">Pour Qui ?</a>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleTheme()"
-                            class="p-2 rounded-full border border-slate-300 bg-white/70 text-slate-600 hover:bg-slate-100 transition-all dark:border-white/10 dark:bg-white/5 dark:text-yellow-400 dark:hover:bg-white/10"
-                            title="Changer de thème">
-                        <i id="theme-icon-index" data-lucide="moon" class="w-4 h-4"></i>
-                    </button>
-                    {% if not user.is_authenticated %}
-                    <button onclick="window.location.href='{% url "web:expert_login" %}'" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-teal-400 transition-colors cursor-pointer">
-                        Se Connecter
-                    </button>
-                    {% else %}
-                    <button onclick="window.location.href='{% url "web:app" %}'" class="px-5 py-2.5 bg-teal-500 text-black rounded font-bold uppercase tracking-wider text-xs hover:bg-teal-400 hover:scale-105 hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] active:scale-95 transition-all duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(20,184,166,0.3)] cursor-pointer">
-                        Accès <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <section class="pt-40 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center reveal-blur">
-                <div class="reveal delay-200 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest mb-8">
-                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                    Plateforme Ouverte • Version 1.0
-                </div>
-                
-                <h1 class="text-5xl sm:text-7xl font-bold text-white mb-8 leading-[1.1] tracking-tight">
-                    Commission Nationale pour l'Élaboration des Normes <br/>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-300">  de Construction
-des Infrastructures et des Travaux Publics (CNE-ITP)</span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight drop-shadow">
+                    Commission Nationale pour l'Élaboration des Normes
+                    de Construction, des Infrastructures et des Travaux Publics
                 </h1>
-                
-                <p class="text-lg sm:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-                    Une plateforme souveraine pour orchestrer la rédaction, la validation et la publication de normes techniques, en réunissant l'élite scientifique et industrielle du pays.
+                <p class="text-base sm:text-lg text-slate-100 mb-8 leading-relaxed drop-shadow">
+                    Une plateforme souveraine pour orchestrer la rédaction, la validation et la
+                    publication des normes techniques nationales.
                 </p>
-                
-                <div class="flex gap-4 justify-center flex-wrap reveal delay-400">
-                    <button onclick="window.location.href='{% url "web:app" %}'" class="px-8 py-4 bg-teal-500 text-black rounded font-bold uppercase tracking-widest text-xs hover:bg-teal-400 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.6)] active:scale-95 transition-all duration-300 shadow-[0_0_20px_rgba(20,184,166,0.4)] flex items-center gap-2">
-                        Accéder à l'Espace de Travail <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="document.getElementById('features').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 bg-white/5 text-white border border-white/10 rounded font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:scale-105 active:scale-95 transition-all duration-300">
+                <div class="flex gap-3 flex-wrap">
+                    <a href="{% url 'web:app' %}" class="px-6 py-3 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-xs hover:bg-yellow-300 transition-colors shadow-lg">
+                        Accéder à l'Espace de Travail
+                    </a>
+                    <a href="#features" class="px-6 py-3 bg-white/10 text-white border border-white/40 rounded font-bold uppercase tracking-widest text-xs hover:bg-white/20 transition-colors backdrop-blur-sm">
                         Découvrir le Fonctionnement
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-24 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="reveal bg-black/40 rounded-2xl p-6 border border-white/5 backdrop-blur-md text-center hover:border-teal-500/30 transition-colors duration-300 delay-100">
-                    <div class="text-3xl mb-3 opacity-90">📚</div>
-                    <div class="text-4xl font-black text-white">25+</div>
-                    <div class="text-teal-500 text-[10px] uppercase tracking-wider font-bold mt-2">Normes Éditées</div>
-                </div>
-                <div class="reveal bg-black/40 rounded-2xl p-6 border border-white/5 backdrop-blur-md text-center hover:border-teal-500/30 transition-colors duration-300 delay-200">
-                    <div class="text-3xl mb-3 opacity-90">👥</div>
-                    <div class="text-4xl font-black text-white">200</div>
-                    <div class="text-teal-500 text-[10px] uppercase tracking-wider font-bold mt-2">Experts Actifs</div>
-                </div>
-                <div class="reveal bg-black/40 rounded-2xl p-6 border border-white/5 backdrop-blur-md text-center hover:border-teal-500/30 transition-colors duration-300 delay-300">
-                    <div class="text-3xl mb-3 opacity-90">📊</div>
-                    <div class="text-4xl font-black text-white">8</div>
-                    <div class="text-teal-500 text-[10px] uppercase tracking-wider font-bold mt-2">Comités (CTM)</div>
-                </div>
-                <div class="reveal bg-black/40 rounded-2xl p-6 border border-white/5 backdrop-blur-md text-center hover:border-teal-500/30 transition-colors duration-300 delay-400">
-                    <div class="text-3xl mb-3 opacity-90">🎯</div>
-                    <div class="text-4xl font-black text-white">24</div>
-                    <div class="text-teal-500 text-[10px] uppercase tracking-wider font-bold mt-2">Groupes (WG)</div>
+                    </a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section id="features" class="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-white/5 bg-black/20">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16 reveal">
-                <h2 class="text-3xl font-bold text-white tracking-wider mb-4">L'AVENIR DE LA NORMALISATION</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto text-sm">
-                    Fini les documents perdus, les échanges par e-mail interminables et les procédures opaques. 
-                    La plateforme centralise et certifie chaque étape de création d'une norme.
-                </p>
+<!-- ── Bandeau statistiques ────────────────────────────────────────────── -->
+<section class="py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="reveal delay-100 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">25+</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Normes Éditées</div>
+        </div>
+        <div class="reveal delay-200 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">200</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Experts Actifs</div>
+        </div>
+        <div class="reveal delay-300 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">8</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Comités (CTM)</div>
+        </div>
+        <div class="reveal delay-400 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">24</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Groupes (WG)</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────────────────────── -->
+<section id="features" class="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">L'AVENIR DE LA NORMALISATION</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
+                Fini les documents perdus, les échanges par e-mail interminables et les procédures opaques.
+                La plateforme centralise et certifie chaque étape de création d'une norme.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="reveal delay-100 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
+                    <i data-lucide="file-text" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-sm font-bold mb-3 text-slate-800">Édition Collaborative</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Travaillez ensemble sur les textes normatifs avec un support d'Intelligence Artificielle et un suivi rigoureux des versions.</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="reveal delay-100 rounded-2xl p-8 bg-black/50 border border-white/5 shadow-2xl backdrop-blur-sm group hover:-translate-y-1 hover:border-teal-500/20 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                        <i data-lucide="file-text" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold mb-3 text-white">Édition Collaborative</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Travaillez ensemble sur les textes normatifs avec un support d'Intelligence Artificielle et un suivi rigoureux des versions.</p>
+            <div class="reveal delay-200 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                    <i data-lucide="users" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-200 rounded-2xl p-8 bg-black/50 border border-white/5 shadow-2xl backdrop-blur-sm group hover:-translate-y-1 hover:border-teal-500/20 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                        <i data-lucide="users" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold mb-3 text-white">Gouvernance Structurée</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Organisation claire autour de 8 Comités Techniques (CTM) et 24 Groupes de Travail (WG) pour une élaboration démocratique.</p>
+                <h3 class="text-sm font-bold mb-3 text-slate-800">Gouvernance Structurée</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Organisation claire autour de 8 Comités Techniques (CTM) et 24 Groupes de Travail (WG) pour une élaboration démocratique.</p>
+            </div>
+            <div class="reveal delay-300 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-300 rounded-2xl p-8 bg-black/50 border border-white/5 shadow-2xl backdrop-blur-sm group hover:-translate-y-1 hover:border-teal-500/20 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                        <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold mb-3 text-white">Transparence & Suivi</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Vote électronique, émargement numérique et génération automatique de procès-verbaux pour chaque réunion.</p>
+                <h3 class="text-sm font-bold mb-3 text-slate-800">Transparence &amp; Suivi</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Vote électronique, émargement numérique et génération automatique de procès-verbaux pour chaque réunion.</p>
+            </div>
+            <div class="reveal delay-400 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-red-500/10 text-red-600 border border-red-500/20">
+                    <i data-lucide="shield" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-400 rounded-2xl p-8 bg-black/50 border border-white/5 shadow-2xl backdrop-blur-sm group hover:-translate-y-1 hover:border-teal-500/20 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 bg-pink-500/10 text-pink-400 border border-pink-500/20">
-                        <i data-lucide="shield" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold mb-3 text-white">Validation & Sécurité</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Un parcours de validation strict (toilettage, enquête publique, ministère) garantissant la souveraineté et l'intégrité.</p>
-                </div>
+                <h3 class="text-sm font-bold mb-3 text-slate-800">Validation &amp; Sécurité</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Un parcours de validation strict (toilettage, enquête publique, ministère) garantissant la souveraineté et l'intégrité.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section id="modules" class="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-white/5">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16 reveal">
-                <h2 class="text-3xl font-bold text-white tracking-wider mb-4">DES OUTILS SUR-MESURE</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto text-sm">
-                    Six modules interconnectés couvrant l'ensemble des besoins administratifs, 
-                    financiers, légaux et collaboratifs de votre gouvernance.
-                </p>
+<!-- ── Modules ──────────────────────────────────────────────────────────── -->
+<section id="modules" class="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">DES OUTILS SUR-MESURE</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
+                Six modules interconnectés couvrant l'ensemble des besoins administratifs,
+                financiers, légaux et collaboratifs de votre gouvernance.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="reveal delay-100 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-blue-600 bg-blue-500/10 border-blue-500/20">
+                    <i data-lucide="globe" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Bibliothèque Publique</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Accédez aux normes officielles publiées, participez aux enquêtes publiques ou téléchargez les textes homologués.</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="reveal delay-100 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-indigo-400 bg-indigo-500/10 border-indigo-500/20">
-                        <i data-lucide="globe" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Bibliothèque Publique</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Accédez aux normes officielles publiées, participez aux enquêtes publiques ou téléchargez les textes homologués.</p>
+            <div class="reveal delay-200 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-[#0095c9] bg-[#0095c9]/10 border-[#0095c9]/20">
+                    <i data-lucide="file-text" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-200 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-teal-400 bg-teal-500/10 border-teal-500/20">
-                        <i data-lucide="file-text" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Éditeur de Normes</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">L'atelier de rédaction où les experts débattent, amendent et finalisent le corps technique des normes.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Éditeur de Normes</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">L'atelier de rédaction où les experts débattent, amendent et finalisent le corps technique des normes.</p>
+            </div>
+            <div class="reveal delay-300 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-blue-600 bg-blue-500/10 border-blue-500/20">
+                    <i data-lucide="users" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-300 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-blue-400 bg-blue-500/10 border-blue-500/20">
-                        <i data-lucide="users" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Réseau d'Experts</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Un annuaire exclusif regroupant les plus grands ingénieurs, chercheurs et légistes de la nation.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Réseau d'Experts</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Un annuaire exclusif regroupant les plus grands ingénieurs, chercheurs et légistes de la nation.</p>
+            </div>
+            <div class="reveal delay-100 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-amber-600 bg-amber-500/10 border-amber-500/20">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-100 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-purple-400 bg-purple-500/10 border-purple-500/20">
-                        <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Réunions & Scrutins</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Gérez les convocations, les quorums, et lancez des scrutins officiels à majorité qualifiée en un clic.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Réunions &amp; Scrutins</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Gérez les convocations, les quorums, et lancez des scrutins officiels à majorité qualifiée en un clic.</p>
+            </div>
+            <div class="reveal delay-200 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-red-600 bg-red-500/10 border-red-500/20">
+                    <i data-lucide="lock" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-200 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-pink-400 bg-pink-500/10 border-pink-500/20">
-                        <i data-lucide="lock" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Bureau Légistique</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Espace réservé à la vérification juridique pour garantir que chaque terme respecte la législation en vigueur.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Bureau Légistique</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Espace réservé à la vérification juridique pour garantir que chaque terme respecte la législation en vigueur.</p>
+            </div>
+            <div class="reveal delay-300 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-amber-600 bg-amber-500/10 border-amber-500/20">
+                    <i data-lucide="zap" class="w-8 h-8"></i>
                 </div>
-                <div class="reveal delay-300 group bg-black/40 rounded-2xl p-8 border border-white/5 hover:bg-white/5 transition-all backdrop-blur-sm cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border transition-all duration-300 group-hover:shadow-[0_0_15px_currentColor] text-amber-400 bg-amber-500/10 border-amber-500/20">
-                        <i data-lucide="zap" class="w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 group-hover:text-teal-400 transition-colors">Gestion & Allocations</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Suivi des cotisations institutionnelles et automatisation du paiement des jetons de présence pour les experts.</p>
-                </div>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Gestion &amp; Allocations</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">Suivi des cotisations institutionnelles et automatisation du paiement des jetons de présence pour les experts.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section id="audience" class="py-32 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-white/5 bg-gradient-to-t from-teal-950/20 to-black/20">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-20 reveal-scale">
-                <h2 class="text-3xl font-bold text-white tracking-wider mb-4 uppercase">Qui Devrait S'Inscrire ?</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto text-sm">
-                    La plateforme est un espace professionnel sécurisé nécessitant une accréditation. 
-                    Elle rassemble les acteurs majeurs du développement technique national.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="reveal flex flex-col sm:flex-row gap-6 bg-black/60 border border-white/5 p-8 rounded-2xl hover:border-teal-500/20 transition-colors" style="transform: translateX(-30px);">
-                    <div class="shrink-0">
-                        <i data-lucide="briefcase" class="w-10 h-10 mb-4 text-blue-400 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-3">Experts & Ingénieurs</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Pour co-rédiger les standards, influencer la réglementation technique et valoriser votre expertise au sein de comités prestigieux de niveau national.</p>
-                        <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-teal-500 font-bold">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
-                        </div>
-                    </div>
-                </div>
-                <div class="reveal flex flex-col sm:flex-row gap-6 bg-black/60 border border-white/5 p-8 rounded-2xl hover:border-teal-500/20 transition-colors delay-100" style="transform: translateX(30px);">
-                    <div class="shrink-0">
-                        <i data-lucide="graduation-cap" class="w-10 h-10 mb-4 text-purple-400 bg-purple-500/10 p-2 rounded-xl border border-purple-500/20"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-3">Universités & Chercheurs</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Pour connecter la recherche académique au monde industriel, et s'assurer que les normes nationales reflètent l'état de l'art scientifique.</p>
-                        <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-teal-500 font-bold">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
-                        </div>
-                    </div>
-                </div>
-                <div class="reveal flex flex-col sm:flex-row gap-6 bg-black/60 border border-white/5 p-8 rounded-2xl hover:border-teal-500/20 transition-colors delay-200" style="transform: translateX(-30px);">
-                    <div class="shrink-0">
-                        <i data-lucide="building-2" class="w-10 h-10 mb-4 text-indigo-400 bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-3">Industries & Entreprises</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Pour anticiper les nouvelles réglementations, participer aux enquêtes publiques, et garantir la pleine conformité légale de vos réalisations.</p>
-                        <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-teal-500 font-bold">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
-                        </div>
-                    </div>
-                </div>
-                <div class="reveal flex flex-col sm:flex-row gap-6 bg-black/60 border border-white/5 p-8 rounded-2xl hover:border-teal-500/20 transition-colors delay-300" style="transform: translateX(30px);">
-                    <div class="shrink-0">
-                        <i data-lucide="landmark" class="w-10 h-10 mb-4 text-pink-400 bg-pink-500/10 p-2 rounded-xl border border-pink-500/20"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-3">Institutions Publiques</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Pour superviser l'élaboration des textes de loi, valider leur homologation et piloter la stratégie normative pour le développement du pays.</p>
-                        <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-teal-500 font-bold">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ── Pour qui ? ───────────────────────────────────────────────────────── -->
+<section id="audience" class="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-slate-200">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16 reveal-scale">
+            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4 uppercase">Qui Devrait S'Inscrire ?</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
+                La plateforme est un espace professionnel sécurisé nécessitant une accréditation.
+                Elle rassemble les acteurs majeurs du développement technique national.
+            </p>
         </div>
-    </section>
 
-    <section class="py-32 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-white/5">
-        <div class="max-w-4xl mx-auto text-center">
-            <div class="reveal">
-                <h2 class="text-4xl sm:text-5xl font-bold mb-6 text-white tracking-tight">Intégrez le Cercle d'Excellence</h2>
-                <p class="text-slate-400 mb-10 text-lg">
-                    Devenez acteur de la standardisation nationale. Publiez des textes qui façonneront l'avenir technique de nos infrastructures et industries.
-                </p>
-                <div class="flex gap-4 justify-center flex-wrap">
-                    <button onclick="window.location.href='{% url "web:expert_login" %}'" class="px-8 py-4 bg-teal-500 text-black rounded font-bold uppercase tracking-widest text-xs hover:bg-teal-400 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all duration-300 flex items-center gap-2">
-                        Se Connecter <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="window.location.href='{% url "web:app" %}'" class="px-8 py-4 bg-white/5 text-white border border-white/10 rounded font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:scale-105 active:scale-95 transition-all duration-300">
-                        Naviguer sur la Plateforme
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="bg-black/90 border-t border-white/5 py-12 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="max-w-6xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                <div>
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Plateforme</h3>
-                    <ul class="space-y-3 text-xs text-slate-400">
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Fonctionnalités de l'Éditeur</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Bibliothèque des Normes</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Portail Enquête Publique</a></li>
-                    </ul>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="reveal flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+                <div class="shrink-0">
+                    <i data-lucide="briefcase" class="w-10 h-10 text-blue-600 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20"></i>
                 </div>
                 <div>
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Ressources</h3>
-                    <ul class="space-y-3 text-xs text-slate-400">
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Documentation</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Manuel Opérationnel</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Assistance Technique</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Légal</h3>
-                    <ul class="space-y-3 text-xs text-slate-400">
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Mentions Légales</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Politique de Confidentialité</a></li>
-                        <li><a href="#" class="hover:text-teal-400 transition-colors">Conditions d'Accréditation</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Contact</h3>
-                    <ul class="space-y-3 text-xs text-slate-400">
-                        <li class="flex items-center gap-2">support@cnetp.cd</li>
-                        <li class="flex items-center gap-2">+243 81 234 56 78</li>
-                    </ul>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">Experts &amp; Ingénieurs</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Pour co-rédiger les standards, influencer la réglementation technique et valoriser votre expertise au sein de comités prestigieux de niveau national.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    </div>
                 </div>
             </div>
-            <div class="border-t border-white/5 pt-8 flex justify-between items-center flex-wrap gap-4">
-                <p class="text-xs text-slate-500">&copy; 2026 CNETP. Tous droits réservés.</p>
-                <div class="flex items-center gap-6 text-xs text-slate-500">
-                    <a href="#" class="hover:text-teal-400 transition-colors">Twitter</a>
-                    <a href="#" class="hover:text-teal-400 transition-colors">LinkedIn</a>
+            <div class="reveal delay-100 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+                <div class="shrink-0">
+                    <i data-lucide="graduation-cap" class="w-10 h-10 text-blue-600 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">Universités &amp; Chercheurs</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Pour connecter la recherche académique au monde industriel, et s'assurer que les normes nationales reflètent l'état de l'art scientifique.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    </div>
+                </div>
+            </div>
+            <div class="reveal delay-200 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+                <div class="shrink-0">
+                    <i data-lucide="building-2" class="w-10 h-10 text-amber-600 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">Industries &amp; Entreprises</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Pour anticiper les nouvelles réglementations, participer aux enquêtes publiques, et garantir la pleine conformité légale de vos réalisations.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    </div>
+                </div>
+            </div>
+            <div class="reveal delay-300 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+                <div class="shrink-0">
+                    <i data-lucide="landmark" class="w-10 h-10 text-red-600 bg-red-500/10 p-2 rounded-xl border border-red-500/20"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">Institutions Publiques</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Pour superviser l'élaboration des textes de loi, valider leur homologation et piloter la stratégie normative pour le développement du pays.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    </div>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script>
-        // Thème : applique la préférence sauvegardée (dark si précédemment activé)
-        (function() {
-            if (localStorage.getItem('cnetp_theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-        })();
+<!-- ── CTA finale ───────────────────────────────────────────────────────── -->
+<section class="py-24 px-4 sm:px-6 lg:px-8 bg-[#0a2540]">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="reveal">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-white tracking-tight">Intégrez le Cercle d'Excellence</h2>
+            <p class="text-slate-300 mb-10 text-base">
+                Devenez acteur de la standardisation nationale. Publiez des textes qui façonneront l'avenir technique de nos infrastructures et industries.
+            </p>
+            <div class="flex gap-4 justify-center flex-wrap">
+                <a href="{% url 'web:expert_login' %}" class="px-8 py-4 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-xs hover:bg-yellow-300 transition-colors shadow-lg flex items-center gap-2">
+                    Se Connecter
+                </a>
+                <a href="{% url 'web:app' %}" class="px-8 py-4 bg-white/10 text-white border border-white/20 rounded font-bold uppercase tracking-widest text-xs hover:bg-white/20 transition-colors">
+                    Naviguer sur la Plateforme
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('cnetp_theme', isDark ? 'dark' : 'light');
-            const icon = document.getElementById('theme-icon-index');
-            if (icon) {
-                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-                lucide.createIcons();
-            }
-        }
+{% endblock %}
 
-        // Initialisation des icônes Lucide
-        lucide.createIcons();
+{% block extra_js %}
+<script>
+    // Icônes Lucide : best-effort. Si le CDN échoue/tarde, on ne doit surtout pas
+    // bloquer la suite du script (sinon les éléments .reveal restent invisibles).
+    try { if (window.lucide) lucide.createIcons(); } catch (e) {}
 
-        // Gestion du scroll de la Navbar
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.classList.add('bg-black/60', 'backdrop-blur-xl', 'border-b', 'border-white/5', 'py-2');
-                navbar.classList.remove('bg-transparent', 'py-4');
-            } else {
-                navbar.classList.add('bg-transparent', 'py-4');
-                navbar.classList.remove('bg-black/60', 'backdrop-blur-xl', 'border-b', 'border-white/5', 'py-2');
-            }
-        });
+    const revealEls = document.querySelectorAll('.reveal, .reveal-scale');
 
-        // Gestion des animations d'apparition au scroll (remplacement de Framer Motion 'whileInView')
-        const observerOptions = {
-            root: null,
-            rootMargin: '-50px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('is-visible');
-                   // Facultatif : arrêter d'observer une fois affiché (équivalent à viewport={ once: true })
-                    observer.unobserve(entry.target);
+                    obs.unobserve(entry.target);
                 }
             });
-        }, observerOptions);
+        }, { root: null, rootMargin: '-50px', threshold: 0.1 });
+        revealEls.forEach((el) => observer.observe(el));
+    } else {
+        revealEls.forEach((el) => el.classList.add('is-visible'));
+    }
 
-        // Cibler tous les éléments ayant des classes d'animation 'reveal'
-        document.querySelectorAll('.reveal, .reveal-scale, .reveal-blur').forEach((el) => {
-            observer.observe(el);
-        });
-    </script>
-</body>
-</html>
-
+    // Filet de sécurité : un contenu ne doit jamais rester invisible plus de
+    // quelques secondes, même si une ressource externe a empêché l'animation.
+    setTimeout(() => revealEls.forEach((el) => el.classList.add('is-visible')), 2500);
+</script>
+{% endblock %}

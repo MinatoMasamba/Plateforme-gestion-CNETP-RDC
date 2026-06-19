@@ -97,7 +97,7 @@
         }
         if (!historyState.normeId) return;
         try {
-            const response = await fetch(`/api/v1/norms/${historyState.normeId}/versions/`, {
+            const response = await window.fetchWithTimeout(`/api/v1/norms/${historyState.normeId}/versions/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Impossible de charger l\'historique des versions');
@@ -180,8 +180,8 @@
                         </span>
                     </div>
                     <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5 text-[10.5px] font-bold">
-                        <button onclick="quickCompare(${ver.version_number})" class="hover:underline bg-transparent border-none cursor-pointer text-blue-600 dark:text-blue-400">Comparer</button>
-                        <button onclick="rollbackVersion(${ver.version_number})" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 cursor-pointer">
+                        <button onclick="quickCompare(${ver.version_number}, this)" class="hover:underline bg-transparent border-none cursor-pointer text-blue-600 dark:text-blue-400">Comparer</button>
+                        <button onclick="rollbackVersion(${ver.version_number}, this)" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 cursor-pointer">
                             <i data-lucide="rotate-ccw" class="h-2.5 w-2.5"></i> Restaurer
                         </button>
                     </div>
@@ -205,11 +205,33 @@
     }
 
     async function updateDiffView() {
+        renderTimeline();
+        const viewer = document.getElementById('diff-viewer');
+
+        // Court-circuit avant de lire les <select> : avec moins de 2 versions,
+        // il n'y a rien à comparer (évite tout calcul NaN envoyé à l'API).
+        if (historyState.versions.length < 2) {
+            viewer.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center py-20 text-slate-500 font-bold text-xs text-center space-y-2">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto text-slate-400"></i>
+                    <p class="text-slate-700 dark:text-slate-300">Pas assez de versions enregistrées pour comparer.</p>
+                </div>`;
+            lucide.createIcons();
+            return;
+        }
+
         historyState.v1Num = parseInt(document.getElementById('select-v1').value);
         historyState.v2Num = parseInt(document.getElementById('select-v2').value);
-        renderTimeline();
 
-        const viewer = document.getElementById('diff-viewer');
+        if (isNaN(historyState.v1Num) || isNaN(historyState.v2Num)) {
+            viewer.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center py-20 text-slate-500 font-bold text-xs text-center space-y-2">
+                    <i data-lucide="info" class="h-6 w-6 mx-auto text-slate-400"></i>
+                    <p class="text-slate-700 dark:text-slate-300">Pas assez de versions enregistrées pour comparer.</p>
+                </div>`;
+            lucide.createIcons();
+            return;
+        }
 
         if (historyState.v1Num === historyState.v2Num) {
             viewer.innerHTML = `
@@ -223,7 +245,7 @@
         }
 
         try {
-            const response = await fetch(`/api/v1/norms/${historyState.normeId}/diff/?v1=${historyState.v1Num}&v2=${historyState.v2Num}`, {
+            const response = await window.fetchWithTimeout(`/api/v1/norms/${historyState.normeId}/diff/?v1=${historyState.v1Num}&v2=${historyState.v2Num}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Impossible de charger les différences de version');
@@ -253,56 +275,55 @@
         }
     }
 
-    function quickCompare(targetVersion) {
+    async function quickCompare(targetVersion, btn) {
         historyState.v1Num = targetVersion;
-        if(historyState.versions.length > 0) {
-            historyState.v2Num = historyState.versions[0].version_number === targetVersion ? historyState.versions[1]?.version_number : historyState.versions[0].version_number;
+        if (historyState.versions.length > 1) {
+            const other = historyState.versions.find(v => v.version_number !== targetVersion);
+            historyState.v2Num = other ? other.version_number : null;
         }
-        document.getElementById('select-v1').value = historyState.v1Num;
-        document.getElementById('select-v2').value = historyState.v2Num;
-        updateDiffView();
+        if (historyState.v1Num != null) document.getElementById('select-v1').value = historyState.v1Num;
+        if (historyState.v2Num != null) document.getElementById('select-v2').value = historyState.v2Num;
+        await window.withButtonLoading(btn, () => updateDiffView());
     }
 
-    async function rollbackVersion(versionNum) {
+    async function rollbackVersion(versionNum, btn) {
         if (!confirm(`Êtes-vous sûr de vouloir restaurer le contenu de la version v${versionNum} ?\nCette action créera une nouvelle version qui sera une copie de la v${versionNum}.`)) {
             return;
         }
 
-        if(window.showAppToast) window.showAppToast(`Restauration vers la v${versionNum} en cours...`, "info");
-        
         try {
-            const response = await fetch(`/api/v1/norms/${historyState.normeId}/rollback-version/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ version_number: versionNum })
+            await window.withButtonLoading(btn, async () => {
+                const response = await window.fetchWithTimeout(`/api/v1/norms/${historyState.normeId}/rollback-version/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ version_number: versionNum })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erreur lors de la restauration: ${response.status} - ${JSON.stringify(errorData)}`);
+                }
+
+                const newVersion = await response.json();
+
+                // Mettre à jour l'éditeur avec le contenu restauré
+                if(typeof window.updateEditorContent === 'function') {
+                    window.updateEditorContent(newVersion.content);
+                }
+
+                if(window.showAppToast) window.showAppToast(`Version v${versionNum} restaurée avec succès en tant que nouvelle version v${newVersion.version_number}.`, "success");
+
+                // Recharger l'historique pour afficher la nouvelle version
+                await loadHistoryData();
+                populateDropdowns();
+                renderTimeline();
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Erreur lors de la restauration: ${response.status} - ${JSON.stringify(errorData)}`);
-            }
-
-            const newVersion = await response.json();
-            
-            // Mettre à jour l'éditeur avec le contenu restauré
-            if(typeof window.updateEditorContent === 'function') {
-                window.updateEditorContent(newVersion.content);
-            }
-
-            if(window.showAppToast) window.showAppToast(`Version v${versionNum} restaurée avec succès en tant que nouvelle version v${newVersion.version_number}.`, "success");
-            
-            // Recharger l'historique pour afficher la nouvelle version
-            await loadHistoryData();
-            populateDropdowns();
-            renderTimeline();
-
         } catch (error) {
             console.error("Erreur lors de la restauration de la version:", error);
-            if(window.showAppToast) window.showAppToast("Erreur lors de la restauration.", "error");
         }
     }
 
@@ -311,13 +332,7 @@
         renderTimeline();
     }
 
-    // L'initialisation sera appelée depuis editor_area.html
-
-    // Auto-initialisation du module Historique
-    setTimeout(() => {
-        // Vérifier si sidebarState est défini et qu'un document est sélectionné
-        if (typeof sidebarState !== 'undefined' && sidebarState.selectedDocId) {
-            initHistoryModule(sidebarState.selectedDocId);
-        }
-    }, 100);
+    // L'initialisation est appelée explicitement par loadModule() dans app.html
+    // juste après l'injection de ce template (pas d'auto-init ici, pour éviter
+    // un double appel concurrent à initHistoryModule() au premier chargement).
 </script>

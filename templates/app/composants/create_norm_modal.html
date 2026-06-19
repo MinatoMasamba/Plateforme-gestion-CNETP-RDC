@@ -36,7 +36,8 @@
                     </div>
                 </button>
 
-                <div 
+                <div
+                    id="cnm-upload-area"
                     onclick="document.getElementById('cnm-file-upload').click()"
                     ondragover="event.preventDefault();"
                     ondrop="handleFileDrop(event)"
@@ -273,32 +274,36 @@
         const formData = new FormData();
         formData.append('document', file);
 
-        try {
-            const response = await fetch('/api/v1/norms/extract_document/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: formData
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.detail || data.error || `HTTP ${response.status}`);
-            }
+        const uploadArea = document.getElementById('cnm-upload-area');
 
-            document.getElementById('cnm-content').value = preserveDocumentText(data.content);
-            setImportedDefaults(file);
-            showImportedForm(true);
-            if (window.showAppToast) {
-                window.showAppToast(`Extraction réussie: ${data.characters} caractères, ${data.lines} lignes.`);
+        await window.withButtonLoading(uploadArea, async () => {
+            try {
+                const response = await window.fetchWithTimeout('/api/v1/norms/extract_document/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: formData
+                }, 60000);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || data.error || `HTTP ${response.status}`);
+                }
+
+                document.getElementById('cnm-content').value = preserveDocumentText(data.content);
+                setImportedDefaults(file);
+                showImportedForm(true);
+                if (window.showAppToast) {
+                    window.showAppToast(`Extraction réussie: ${data.characters} caractères, ${data.lines} lignes.`);
+                }
+            } catch (error) {
+                console.error("Erreur extraction document:", error);
+                document.getElementById('cnm-content').value = "";
+                setImportedDefaults(file);
+                showImportedForm(false);
+                if (window.showAppToast) {
+                    window.showAppToast("Extraction texte impossible. Le fichier original sera joint; ajoutez ou corrigez le contenu manuellement.", "warning");
+                }
             }
-        } catch (error) {
-            console.error("Erreur extraction document:", error);
-            document.getElementById('cnm-content').value = "";
-            setImportedDefaults(file);
-            showImportedForm(false);
-            if (window.showAppToast) {
-                window.showAppToast("Extraction texte impossible. Le fichier original sera joint; ajoutez ou corrigez le contenu manuellement.", "warning");
-            }
-        }
+        }, {});
     }
 
     function preserveDocumentText(rawText) {
@@ -350,70 +355,64 @@
         const content = document.getElementById('cnm-content').value;
         const ctm = document.getElementById('cnm-ctm').value;
         const wg = document.getElementById('cnm-wg').value;
-        
+
         if (!ctm || !wg) {
             if (window.showAppToast) window.showAppToast("Veuillez sélectionner un CTM et un WG.", "warning");
             return;
         }
 
-        const originalBtnHtml = btn.innerHTML;
-        btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Création...`;
-        btn.disabled = true;
-        if(window.safeCreateIcons) window.safeCreateIcons(); else if(window.lucide) lucide.createIcons();
+        await window.withButtonLoading(btn, async () => {
+            try {
+                // 1. Créer la norme
+                const normData = {
+                    reference_number: code,
+                    title: title,
+                    description: desc,
+                    ctm: parseInt(ctm),
+                    wg: parseInt(wg),
+                    is_public: true
+                };
 
-        try {
-            // 1. Créer la norme
-            const normData = {
-                reference_number: code,
-                title: title,
-                description: desc,
-                ctm: parseInt(ctm),
-                wg: parseInt(wg),
-                is_public: true
-            };
-            
-            const newNorm = await apiFetch('/api/v1/norms/', {
-                method: 'POST',
-                body: JSON.stringify(normData)
-            });
+                const newNorm = await apiFetch('/api/v1/norms/', {
+                    method: 'POST',
+                    body: JSON.stringify(normData)
+                });
 
-            const versionForm = new FormData();
-            versionForm.append('title', "Version initiale");
-            versionForm.append('content', content);
-            versionForm.append('comment', cnmImportedFile ? `Importation initiale depuis ${cnmImportedFile.name}.` : "Création manuelle initiale.");
-            if (cnmImportedFile) versionForm.append('document', cnmImportedFile);
+                const versionForm = new FormData();
+                versionForm.append('title', "Version initiale");
+                versionForm.append('content', content);
+                versionForm.append('comment', cnmImportedFile ? `Importation initiale depuis ${cnmImportedFile.name}.` : "Création manuelle initiale.");
+                if (cnmImportedFile) versionForm.append('document', cnmImportedFile);
 
-            const versionResponse = await fetch(`/api/v1/norms/${newNorm.id}/create_version/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: versionForm
-            });
-            if (!versionResponse.ok) {
-                const errorText = await versionResponse.text();
-                throw new Error(`Erreur version initiale: ${errorText}`);
+                const versionResponse = await window.fetchWithTimeout(`/api/v1/norms/${newNorm.id}/create_version/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: versionForm
+                });
+                if (!versionResponse.ok) {
+                    const errorText = await versionResponse.text();
+                    throw new Error(`Erreur version initiale: ${errorText}`);
+                }
+
+                if (window.showAppToast) window.showAppToast(`Norme ${code} créée avec succès !`);
+
+                closeCreateNormModal();
+
+                // Recharger la sidebar pour voir la nouvelle norme
+                if (typeof fetchSidebarData === 'function') {
+                    await fetchSidebarData();
+                }
+
+                // Charger la nouvelle norme dans l'éditeur
+                if (typeof loadDocumentDetails === 'function') {
+                    loadDocumentDetails(newNorm.id);
+                }
+            } catch (error) {
+                console.error("Erreur lors de la création de la norme:", error);
+                throw new Error("Erreur lors de la création de la norme.");
             }
-
-            if (window.showAppToast) window.showAppToast(`Norme ${code} créée avec succès !`);
-            
-            closeCreateNormModal();
-            
-            // Recharger la sidebar pour voir la nouvelle norme
-            if (typeof fetchSidebarData === 'function') {
-                await fetchSidebarData();
-            }
-            
-            // Charger la nouvelle norme dans l'éditeur
-            if (typeof loadDocumentDetails === 'function') {
-                loadDocumentDetails(newNorm.id);
-            }
-
-        } catch (error) {
-            console.error("Erreur lors de la création de la norme:", error);
-            if (window.showAppToast) window.showAppToast("Erreur lors de la création de la norme.", "error");
-        } finally {
-            btn.innerHTML = originalBtnHtml;
-            btn.disabled = false;
-            if(window.safeCreateIcons) window.safeCreateIcons(); else if(window.lucide) lucide.createIcons();
-        }
+        }, {
+            loadingHtml: `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Création...`
+        });
     }
 </script>

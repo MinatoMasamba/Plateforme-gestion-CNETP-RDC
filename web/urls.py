@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (AboutView, App, ContactView, ExpertLoginView, HomeView,
                     ExpertRegistrationView, User_RegistrationView, UserLoginView,
-                    component_api_view, wg_redirect,
+                    component_api_view, wg_redirect, service_worker_view,
                     password_reset_request, password_reset_confirm)
 from .pilotage_views import (
     PilotageDashboardView,
@@ -34,6 +34,7 @@ app_name = 'web'
 urlpatterns = [
     # ========== Pages Principales ==========
     path('', HomeView.as_view(), name='home'),
+    path('sw.js', service_worker_view, name='service_worker'),
     path('app/', App.as_view(), name='app'),
     path('about/', AboutView.as_view(), name='about'),
     path('contact/', ContactView.as_view(), name='contact'),

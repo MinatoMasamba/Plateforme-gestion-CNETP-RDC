@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}À Propos — CNETP{% endblock %}
+
+{% block extra_css %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── En-tête ─────────────────────────────────────────────────────────── -->
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-[#0a2540]">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest mb-5">
+            République Démocratique du Congo
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">
+            Commission Nationale pour l'Élaboration des Normes
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            de Construction, des Infrastructures et des Travaux Publics (CNE-ITP) — sous la haute coordination
+            du Ministère des Infrastructures et Travaux Publics.
+        </p>
+    </div>
+</section>
+
+<!-- ── Mission ──────────────────────────────────────────────────────────── -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="max-w-5xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-4 tracking-tight">Notre Mission</h2>
+                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                    Le présent manuel d'organisation formalise les modalités opérationnelles, l'organigramme
+                    détaillé et l'affectation nominative des postes pour le déploiement de la Commission
+                    Nationale pour l'Élaboration des Normes de Construction des Infrastructures et des Travaux
+                    Publics (CNE-ITP) en République Démocratique du Congo.
+                </p>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Elle sert de guide pour l'ensemble des administrations, offices, institutions académiques,
+                    ordres professionnels, associations professionnelles du secteur et acteurs du secteur privé
+                    concourant à la production du référentiel sectoriel normatif national.
+                </p>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-4 tracking-tight">Cadre Juridique</h2>
+                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                    Le fonctionnement de la CNETP s'adosse sur l'Arrêté Ministériel portant création,
+                    organisation et fonctionnement d'une Commission Nationale pour l'Élaboration des Normes de
+                    Construction des Infrastructures et des Travaux Publics en RDC.
+                </p>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    En vertu de son <strong class="text-slate-800">Article 5</strong>, la haute coordination
+                    générale est dévolue au Ministre ayant les Infrastructures et Travaux Publics dans ses
+                    attributions, avec un relais de gestion quotidienne permanente délégué au Secrétaire
+                    Général aux ITP et au Directeur de Cabinet.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Bandeau statistiques ────────────────────────────────────────────── -->
+<section class="py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 border-y border-slate-200">
+    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">200</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Experts Mobilisés</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">8</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Sous-Commissions Techniques</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">27</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Postes — Comité de Pilotage</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
+            <div class="text-4xl font-black text-[#0095c9]">17</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Structures Membres</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Gouvernance ──────────────────────────────────────────────────────── -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">GOUVERNANCE</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
+                L'administration et la supervision stratégique de la CNE-ITP reposent sur deux organes
+                sommitaux, appuyés par 8 sous-commissions techniques de production.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="rounded-2xl p-8 bg-slate-50 border border-slate-200">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-base font-bold mb-3 text-slate-800">Comité de Pilotage Élargi (27 postes)</h3>
+                <p class="text-slate-500 text-xs leading-relaxed mb-3">
+                    Formule les orientations stratégiques, assure le suivi rigoureux du chronogramme et valide
+                    le mandat opérationnel de chaque expert.
+                </p>
+                <ul class="text-xs text-slate-600 space-y-1.5">
+                    <li>• Bureau Directoire (5 postes)</li>
+                    <li>• Collège des Conseillers Institutionnels et Politiques (12 postes)</li>
+                    <li>• Collège des Administrateurs Techniques et Financiers (5 postes)</li>
+                    <li>• Collège des Partenaires Sectoriels et de la Société Civile (5 postes)</li>
+                </ul>
+            </div>
+
+            <div class="rounded-2xl p-8 bg-slate-50 border border-slate-200">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                    <i data-lucide="settings" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-base font-bold mb-3 text-slate-800">Cellule Technique de Coordination (20 postes)</h3>
+                <p class="text-slate-500 text-xs leading-relaxed mb-3">
+                    Assure la gestion opérationnelle journalière, centralise les livrables techniques, pilote
+                    l'ingénierie documentaire et organise réglementairement l'enquête publique.
+                </p>
+                <ul class="text-xs text-slate-600 space-y-1.5">
+                    <li>• Direction des Opérations (3 postes)</li>
+                    <li>• Pôle d'Analyse et d'Ingénierie Documentaire (7 postes)</li>
+                    <li>• Pôle Logistique, Communication et Relations Extérieures (4 postes)</li>
+                    <li>• Bureau d'Appui Technique et Numérique (6 postes)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 8 sous-commissions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for sc in sous_commissions %}
+            <div class="rounded-xl p-4 bg-white border border-slate-200 hover:border-[#0095c9]/40 transition-all">
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0095c9]/10 text-[#0095c9] uppercase">SC {{ forloop.counter }}</span>
+                <p class="text-xs font-semibold text-slate-700 mt-2 leading-snug">{{ sc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── Processus de validation ──────────────────────────────────────────── -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">PROCESSUS DE VALIDATION</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
+                Toute norme suit obligatoirement un circuit de contrôle hiérarchisé destiné à lui conférer une
+                force exécutoire incontestable.
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">1</div>
+                <div><p class="text-sm font-bold text-slate-800">Production de base</p><p class="text-xs text-slate-500 mt-1">La sous-commission finalise la version corrigée postenquête publique et la transmet à la Cellule Technique de Coordination.</p></div>
+            </div>
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">2</div>
+                <div><p class="text-sm font-bold text-slate-800">Vérification de forme</p><p class="text-xs text-slate-500 mt-1">La Cellule Technique, via son Pôle d'Analyse Documentaire et ses légistes, procède au toilettage textuel et réglementaire du projet.</p></div>
+            </div>
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">3</div>
+                <div><p class="text-sm font-bold text-slate-800">Contrôle de conformité stratégique</p><p class="text-xs text-slate-500 mt-1">Le Comité de Pilotage Élargi examine le projet pour s'assurer du respect des budgets, du chronogramme et des politiques publiques de l'État.</p></div>
+            </div>
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">4</div>
+                <div><p class="text-sm font-bold text-slate-800">Adoption plénière</p><p class="text-xs text-slate-500 mt-1">Le projet est présenté devant l'Assemblée Plénière de la Commission pour adoption par consensus ou par vote à la majorité qualifiée.</p></div>
+            </div>
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#db3832] text-white text-xs font-bold flex items-center justify-center shrink-0">5</div>
+                <div><p class="text-sm font-bold text-slate-800">Sanction et Homologation</p><p class="text-xs text-slate-500 mt-1">Le dossier est transmis au Ministre des Infrastructures et Travaux Publics qui signe l'Arrêté d'Homologation, ordonnant l'insertion de la norme dans le Référentiel National Obligatoire de la Construction en RDC.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Siège ────────────────────────────────────────────────────────────── -->
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-white text-center">
+    <i data-lucide="map-pin" class="w-8 h-8 text-[#0095c9] mx-auto mb-3"></i>
+    <p class="text-sm font-semibold text-slate-700">Secrétariat Général aux ITP — Direction Réglementation et Normes</p>
+    <p class="text-xs text-slate-500 mt-1">Commune de Lingwala, Kinshasa, République Démocratique du Congo</p>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>lucide.createIcons();</script>
+{% endblock %}

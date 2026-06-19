@@ -42,7 +42,7 @@
                 {% endif %}
             </p>
         </div>
-        <button id="platform-freeze-btn" onclick="togglePlatformFreeze()"
+        <button id="platform-freeze-btn" onclick="togglePlatformFreeze(this)"
                 class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition-colors shadow-lg w-full sm:w-auto
                        {% if platform_locked %}bg-red-500 hover:bg-red-400{% else %}bg-indigo-500 hover:bg-indigo-400{% endif %} text-white">
             <i data-lucide="{% if platform_locked %}unlock{% else %}lock{% endif %}" class="w-4 h-4"></i>
@@ -109,10 +109,10 @@
 
 {% if user_sub_role == 'president' %}
 <script>
-function togglePlatformFreeze() {
+function togglePlatformFreeze(btn) {
     const verb = {{ platform_locked|yesno:"true,false" }} ? 'déverrouiller' : 'verrouiller';
     if (!confirm(`Confirmez-vous vouloir ${verb} la plateforme CTC/CTM ?`)) return;
-    fetch("{% url 'web:pilotage_platform_freeze_toggle' %}", {
+    window.withButtonLoading(btn, () => window.fetchWithTimeout("{% url 'web:pilotage_platform_freeze_toggle' %}", {
         method: 'POST',
         headers: { 'X-CSRFToken': '{{ csrf_token }}' },
     })
@@ -122,10 +122,9 @@ function togglePlatformFreeze() {
             showToast(data.message, 'success');
             setTimeout(() => location.reload(), 800);
         } else {
-            showToast(data.error || 'Une erreur est survenue.', 'error');
+            throw new Error(data.error || 'Une erreur est survenue.');
         }
-    })
-    .catch(() => showToast('Erreur réseau.', 'error'));
+    }));
 }
 </script>
 {% endif %}

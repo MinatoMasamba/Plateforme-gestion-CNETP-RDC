@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,6 +7,7 @@
     <title>Gestion des Accès Experts | CNETP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
         if (theme === 'light') document.documentElement.classList.remove('dark');
@@ -118,7 +120,7 @@
                                               class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
                                                      bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
                                             CTM {{ a.ctm.number }} / WG {{ a.ctm.number }}.{{ a.wg.number }} — {{ a.role }}
-                                            <button onclick="excludeAffectation({{ a.pk }}, document.getElementById('affectation-{{ a.pk }}'))"
+                                            <button onclick="excludeAffectation({{ a.pk }}, document.getElementById('affectation-{{ a.pk }}'), this)"
                                                     title="Exclure de ce WG / CTM"
                                                     class="hover:text-red-400 transition-colors">
                                                 <i data-lucide="x" class="w-3 h-3"></i>
@@ -208,64 +210,53 @@
         // ── Débloquer / suspendre l'accès d'un expert ───────────────────────────
         async function toggleExpertAccess(expertId, btn) {
             const action = btn.dataset.action;
-            btn.disabled = true;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '…';
 
-            try {
-                const resp = await fetch(`/pilotage/gestion-acces/expert/${expertId}/statut/`, {
+            await window.withButtonLoading(btn, async () => {
+                const resp = await window.fetchWithTimeout(`/pilotage/gestion-acces/expert/${expertId}/statut/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ action })
                 });
                 const data = await resp.json();
-                if (data.ok) {
-                    showToast(data.message, 'success');
-
-                    const badge = document.getElementById(`status-badge-${expertId}`);
-                    badge.textContent = data.new_status_label;
-                    badge.className = STATUS_BADGE_CLASSES[data.new_status] || STATUS_BADGE_DEFAULT;
-
-                    if (data.new_status === 'SUSPENDED') {
-                        btn.dataset.action = 'activate';
-                        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20";
-                        btn.innerHTML = "Débloquer l'accès";
-                    } else {
-                        btn.dataset.action = 'suspend';
-                        btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20";
-                        btn.innerHTML = "Suspendre l'accès";
-                    }
-                } else {
-                    showToast(data.error || 'Erreur.', 'error');
-                    btn.innerHTML = originalHtml;
+                if (!data.ok) {
+                    throw new Error(data.error || 'Erreur.');
                 }
-            } catch (err) {
-                showToast('Erreur réseau.', 'error');
-                btn.innerHTML = originalHtml;
-            } finally {
-                btn.disabled = false;
-            }
+
+                showToast(data.message, 'success');
+
+                const badge = document.getElementById(`status-badge-${expertId}`);
+                badge.textContent = data.new_status_label;
+                badge.className = STATUS_BADGE_CLASSES[data.new_status] || STATUS_BADGE_DEFAULT;
+
+                if (data.new_status === 'SUSPENDED') {
+                    btn.dataset.action = 'activate';
+                    btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20";
+                    btn.innerHTML = "Débloquer l'accès";
+                } else {
+                    btn.dataset.action = 'suspend';
+                    btn.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-colors bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20";
+                    btn.innerHTML = "Suspendre l'accès";
+                }
+            });
         }
 
         // ── Exclure un expert d'un WG / CTM ─────────────────────────────────────
-        async function excludeAffectation(affectationId, chipEl) {
+        async function excludeAffectation(affectationId, chipEl, btn) {
             if (!confirm("Confirmer l'exclusion de cet expert de ce Groupe de Travail / CTM ?")) return;
 
-            try {
-                const resp = await fetch(`/pilotage/gestion-acces/affectation/${affectationId}/exclure/`, {
+            await window.withButtonLoading(btn, async () => {
+                const resp = await window.fetchWithTimeout(`/pilotage/gestion-acces/affectation/${affectationId}/exclure/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                 });
                 const data = await resp.json();
-                if (data.ok) {
-                    showToast(data.message, 'success');
-                    chipEl.remove();
-                } else {
-                    showToast(data.error || 'Erreur.', 'error');
+                if (!data.ok) {
+                    throw new Error(data.error || 'Erreur.');
                 }
-            } catch (err) {
-                showToast('Erreur réseau.', 'error');
-            }
+
+                showToast(data.message, 'success');
+                chipEl.remove();
+            });
         }
 
         // ── Toast notification ──────────────────────────────────────────────────

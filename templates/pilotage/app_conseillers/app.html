@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';

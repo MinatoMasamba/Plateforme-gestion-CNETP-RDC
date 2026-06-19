@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
         // Restaure la préférence de thème avant le rendu (par défaut : sombre)
@@ -134,7 +136,7 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 }
             };
-            const response = await fetch(url, {
+            const response = await window.fetchWithTimeout(url, {
                 ...defaults,
                 ...options,
                 headers: { ...defaults.headers, ...options.headers }

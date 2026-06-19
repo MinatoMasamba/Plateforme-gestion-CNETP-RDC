@@ -1194,11 +1194,11 @@ class PilotageConseillersAppView(View):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ESPACE ADMINISTRATIF DU COLLÈGE DES ADMINISTRATEURS TECHNIQUES ET FINANCIERS
-# (Postes 18 à 20)
+# (Postes 18 à 22)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Métadonnées d'identité et de mission pour les Postes 18 à 20 du Collège des
-# Administrateurs Techniques et Financiers (5 postes au total, 21-22 à venir),
+# Métadonnées d'identité et de mission pour les Postes 18 à 22 du Collège des
+# Administrateurs Techniques et Financiers (5 postes, collège complet),
 # utilisées par l'interface `pilotage/app_atf/` (sidebar + composant_post_n).
 # Tous ces postes partagent le sous-rôle dérivé de leur structure d'origine via
 # `_STRUCTURE_ACRONYM_TO_SUB` (Profil 3) : lecture seule sur CTM/WG, accès
@@ -1268,6 +1268,48 @@ _ATF_POSTES = [
             "l'accès passe par une demande de permission au Bureau Directoire."
         ),
     },
+    {
+        'n': 21,
+        'title': "Directeur d'Expertise — Bureau Technique de Contrôle (BTC)",
+        'origin': 'Bureau Technique de Contrôle (BTC)',
+        'quota_line': 7,
+        'icon': 'flask-conical',
+        'accent': 'teal',
+        'mission': (
+            "Représente le Bureau Technique de Contrôle, organisme chargé de la "
+            "vérification des protocoles d'essais de laboratoire (mécaniques, "
+            "thermiques, hydrauliques), au sein du Comité de Pilotage Élargi. "
+            "Garantit la conformité des essais réalisés aux normes de référence "
+            "ISO/ARSO sur l'ensemble des Comités Techniques Métiers."
+        ),
+        'interface_role': (
+            "Dispose d'un accès de contrôle transverse sur les 8 CTM via le "
+            "Module Contrôle BTC : vérifie les protocoles d'essais de "
+            "laboratoire CTM par CTM. N'intervient pas sur l'édition des "
+            "textes normatifs ni sur la validation financière (exclusive au "
+            "FONER)."
+        ),
+    },
+    {
+        'n': 22,
+        'title': "Directeur des Études Financières — Fonds National d'Entretien Routier (FONER)",
+        'origin': "Fonds National d'Entretien Routier (FONER)",
+        'quota_line': 8,
+        'icon': 'calculator',
+        'accent': 'emerald',
+        'mission': (
+            "Représente le Fonds National d'Entretien Routier au sein du "
+            "Comité de Pilotage Élargi. Seul habilité à évaluer et valider les "
+            "études d'impact financier du cycle de vie des chaussées produites "
+            "par les Groupes de Travail."
+        ),
+        'interface_role': (
+            "Dispose du Widget de Validation Financière : évalue, valide ou "
+            "rejette les études de coût soumises par les WG. N'a pas d'accès "
+            "CTM direct (rôle financier transverse) et n'intervient ni sur "
+            "l'ingénierie ni sur la légistique."
+        ),
+    },
 ]
 
 
@@ -1275,11 +1317,12 @@ _ATF_POSTES = [
 class PilotageATFAppView(View):
     """
     Interface administrative dédiée au Collège des Administrateurs Techniques
-    et Financiers : navigation par sidebar entre les Postes 18 à 20 (Office des
+    et Financiers : navigation par sidebar entre les Postes 18 à 22 (Office des
     Routes, Office des Voiries et Drainage, Agence Congolaise des Grands
-    Travaux), chacun affichant sa mission, son cadre d'intervention (Profil 3 :
-    lecture seule WG/CTM, accès privilégié sur ses CTM de spécialité) et la
-    Console d'Audit Technique propre à l'expert connecté.
+    Travaux, Bureau Technique de Contrôle, FONER), chacun affichant sa
+    mission, son cadre d'intervention (Profil 3 : lecture seule WG/CTM, accès
+    privilégié sur ses CTM de spécialité) et sa console spécialisée (Audit
+    Technique / Module Contrôle BTC / Validation Financière FONER).
     """
     template_name = 'pilotage/app_atf/app.html'
 

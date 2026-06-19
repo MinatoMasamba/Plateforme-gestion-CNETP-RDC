@@ -183,8 +183,7 @@
     }
 
     function handleReceptionAction(processusId, action, btn) {
-        btn.disabled = true;
-        fetch(`/ctc/dossiers/${processusId}/reception/`, {
+        window.withButtonLoading(btn, () => window.fetchWithTimeout(`/ctc/dossiers/${processusId}/reception/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -198,13 +197,8 @@
                 if (typeof window.showAppToast === 'function') window.showAppToast(data.message, 'success');
                 location.reload();
             } else {
-                btn.disabled = false;
                 if (typeof window.showAppToast === 'function') window.showAppToast(data.error || 'Erreur.', 'error');
             }
-        })
-        .catch(() => {
-            btn.disabled = false;
-            if (typeof window.showAppToast === 'function') window.showAppToast('Erreur réseau.', 'error');
-        });
+        }));
     }
 </script>

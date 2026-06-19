@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,6 +7,7 @@
     <title>CTM {{ ctm.number }} — {{ ctm.name }} | CNETP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
         if (theme === 'light') document.documentElement.classList.remove('dark');

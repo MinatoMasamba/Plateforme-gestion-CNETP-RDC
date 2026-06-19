@@ -176,7 +176,7 @@
 
     // ── Init : vérifie si l'utilisateur est leader CTM ──
     function initPendingExpertsWidget() {
-        fetch('/api/v1/experts/pending-count-for-my-ctm/', {
+        window.fetchWithTimeout('/api/v1/experts/pending-count-for-my-ctm/', {
             headers: _getHeaders(), credentials: 'include'
         })
         .then(r => {
@@ -216,7 +216,7 @@
         empty.style.display   = 'none';
         list.querySelectorAll('.pending-expert-card').forEach(c => c.remove());
 
-        fetch('/api/v1/experts/pending-for-my-ctm/', {
+        window.fetchWithTimeout('/api/v1/experts/pending-for-my-ctm/', {
             headers: _getHeaders(), credentials: 'include'
         })
         .then(r => r.ok ? r.json() : [])
@@ -254,7 +254,7 @@
             if (_ctmWgs[ctmId]) {
                 _populateWgSelect(select, _ctmWgs[ctmId]);
             } else {
-                fetch(`/api/v1/wg/?ctm=${ctmId}`, {
+                window.fetchWithTimeout(`/api/v1/wg/?ctm=${ctmId}`, {
                     headers: _getHeaders(), credentials: 'include'
                 })
                 .then(r => r.ok ? r.json() : { results: [] })
@@ -313,11 +313,7 @@
             return;
         }
 
-        btn.disabled = true;
-        const icon = btn.querySelector('i');
-        if (icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); lucide.createIcons(); }
-
-        fetch(`/api/v1/experts/${expertId}/admit-to-ctm/`, {
+        window.withButtonLoading(btn, () => window.fetchWithTimeout(`/api/v1/experts/${expertId}/admit-to-ctm/`, {
             method: 'POST',
             headers: _getHeaders(true),
             credentials: 'include',
@@ -332,10 +328,9 @@
             _toast('Expert approuvé et rattaché avec succès !', 'success');
         })
         .catch(err => {
-            btn.disabled = false;
-            if (icon) { icon.setAttribute('data-lucide', 'check'); icon.classList.remove('animate-spin'); lucide.createIcons(); }
-            _toast(err?.detail || 'Erreur lors de l\'approbation.', 'error');
-        });
+            if (err?.detail) { _toast(err.detail, 'error'); return; }
+            throw err;
+        }));
     };
 
     // ── Rejeter un expert ──
@@ -346,11 +341,7 @@
         const card     = btn.closest('.pending-expert-card');
         const expertId = card.dataset.expertId;
 
-        btn.disabled = true;
-        const icon = btn.querySelector('i');
-        if (icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); lucide.createIcons(); }
-
-        fetch(`/api/v1/experts/${expertId}/reject/`, {
+        window.withButtonLoading(btn, () => window.fetchWithTimeout(`/api/v1/experts/${expertId}/reject/`, {
             method: 'POST',
             headers: _getHeaders(true),
             credentials: 'include',
@@ -365,10 +356,9 @@
             _toast('Demande d\'adhésion rejetée.', 'info');
         })
         .catch(err => {
-            btn.disabled = false;
-            if (icon) { icon.setAttribute('data-lucide', 'x'); icon.classList.remove('animate-spin'); lucide.createIcons(); }
-            _toast(err?.detail || 'Erreur lors du rejet.', 'error');
-        });
+            if (err?.detail) { _toast(err.detail, 'error'); return; }
+            throw err;
+        }));
     };
 
     if (document.readyState === 'loading') {

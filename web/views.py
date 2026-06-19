@@ -4,16 +4,30 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, PilotageMembreship, CTCMembership
 from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm
 from django.contrib.auth import login as auth_login, get_user_model
+
+
+def service_worker_view(request):
+    """
+    Sert sw.js à la racine (/sw.js) plutôt que sous /static/, pour que le
+    scope par défaut du Service Worker couvre tout le site (et pas seulement
+    /static/).
+    """
+    path = finders.find('sw.js')
+    if not path:
+        raise Http404
+    with open(path, 'r', encoding='utf-8') as f:
+        return HttpResponse(f.read(), content_type='application/javascript')
 
 
 def wg_redirect(request, wg_id=None):
@@ -123,9 +137,19 @@ class AboutView(View):
     def get(self, request):
         context = {
             'siteName': 'CNETP - Plateforme Normative',
+            'sous_commissions': [
+                "Géotechnique",
+                "Ouvrages d'art — Barrages, ponts, portiques",
+                "Bâtiments — Habitation, administratifs, industriels",
+                "Aéroports",
+                "Routes, Chemins de fer et Ports",
+                "Ressources en eau et Ingénierie hydraulique",
+                "Assainissement",
+                "Recherche, Simulation et Sciences des matériaux",
+            ],
         }
         return render(request, self.template_name, context)
-    
+
 
 class ContactView(View):
     """
@@ -134,12 +158,36 @@ class ContactView(View):
     URL: /contact/
     """
     template_name = 'contact.html'
-    
+
     def get(self, request):
         context = {
             'siteName': 'CNETP - Plateforme Normative',
         }
         return render(request, self.template_name, context)
+
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not (name and email and message):
+            messages.error(request, "Merci de remplir tous les champs obligatoires.")
+            return redirect('web:contact')
+
+        try:
+            send_mail(
+                subject=f"[Contact CNETP] {subject or 'Nouveau message'}",
+                message=f"De : {name} <{email}>\n\n{message}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
+            messages.success(request, "Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.")
+        except Exception:
+            messages.error(request, "Erreur lors de l'envoi du message. Veuillez réessayer plus tard.")
+
+        return redirect('web:contact')
 
 class User_RegistrationView(View):
     """

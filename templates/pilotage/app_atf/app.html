@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -66,6 +68,12 @@
                 </div>
                 <div id="view-post-20" class="view-container hidden">
                     {% include "pilotage/app_atf/components/composant_post_20.html" %}
+                </div>
+                <div id="view-post-21" class="view-container hidden">
+                    {% include "pilotage/app_atf/components/composant_post_21.html" %}
+                </div>
+                <div id="view-post-22" class="view-container hidden">
+                    {% include "pilotage/app_atf/components/composant_post_22.html" %}
                 </div>
 
             </div>

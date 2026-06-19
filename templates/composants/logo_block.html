@@ -1,0 +1,27 @@
+{% load static %}
+<!-- ═══════════════════════════════════════════════════════════════════
+     BLOC LOGO — Armoiries RDC + barre tricolore + identité CNETP
+     Variables attendues : size (px, défaut 44), on_dark (true/false)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="flex items-center gap-2.5 shrink-0 select-none">
+    <div class="rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white dark:bg-[#171717]" style="width:{{ size|default:44 }}px;height:{{ size|default:44 }}px;">
+        <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+             width="{{ size|default:44 }}" height="{{ size|default:44 }}" class="w-full h-full object-cover">
+    </div>
+    <div class="w-[3px] h-[30px] flex flex-col rounded-sm overflow-hidden shrink-0">
+        <div class="flex-1 bg-[#0095c9]"></div>
+        <div class="h-[25%] bg-[#fff24b]"></div>
+        <div class="flex-1 bg-[#db3832]"></div>
+    </div>
+    <div class="min-w-0 leading-tight">
+        {% if on_dark %}
+        <p class="text-[10px] uppercase tracking-wider font-bold text-slate-300">Sécrétariat Technique</p>
+        <p class="text-xs font-black tracking-tight uppercase text-white mt-0.5">Portail CNETP RDC</p>
+        <p class="text-[9px] text-slate-400 font-mono font-semibold uppercase tracking-tight mt-0.5">M.I.T.P. &amp; Numérique</p>
+        {% else %}
+        <p class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Sécrétariat Technique</p>
+        <p class="text-xs font-black tracking-tight uppercase text-blue-700 mt-0.5">Portail CNETP RDC</p>
+        <p class="text-[9px] text-slate-500 font-mono font-semibold uppercase tracking-tight mt-0.5">M.I.T.P. &amp; Numérique</p>
+        {% endif %}
+    </div>
+</div>

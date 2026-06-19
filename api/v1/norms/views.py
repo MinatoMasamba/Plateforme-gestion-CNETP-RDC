@@ -346,8 +346,17 @@ class NormeViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            version1 = norme.versions.get(version_number=int(v1))
-            version2 = norme.versions.get(version_number=int(v2))
+            v1_int = int(v1)
+            v2_int = int(v2)
+        except (TypeError, ValueError):
+            return Response(
+                {'detail': 'Paramètres v1 et v2 doivent être des numéros de version valides'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            version1 = norme.versions.get(version_number=v1_int)
+            version2 = norme.versions.get(version_number=v2_int)
         except NormeVersion.DoesNotExist:
             return Response(
                 {'detail': 'Une ou plusieurs versions non trouvées'},

@@ -388,7 +388,7 @@
 
     async function loadWorkingGroups() {
         try {
-            const response = await fetch('/api/v1/wg/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const response = await window.fetchWithTimeout('/api/v1/wg/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (!response.ok) throw new Error('Impossible de charger les groupes de travail');
             const data = await response.json();
             expState.workingGroups = asArray(data).map(normalizeWg);
@@ -401,7 +401,7 @@
 
     async function loadExperts() {
         try {
-            const response = await fetch('/api/v1/experts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const response = await window.fetchWithTimeout('/api/v1/experts/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (!response.ok) throw new Error('Impossible de charger les experts');
             const data = await response.json();
             expState.experts = asArray(data);
@@ -418,7 +418,7 @@
             if (typeof sidebarState !== 'undefined' && sidebarState.ctms && sidebarState.ctms.length > 0) {
                 expState.ctms = sidebarState.ctms;
             } else {
-                const response = await fetch('/api/v1/ctm/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                const response = await window.fetchWithTimeout('/api/v1/ctm/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
                 if (!response.ok) throw new Error('Impossible de charger les CTMs');
                 const data = await response.json();
                 expState.ctms = asArray(data);
@@ -442,7 +442,7 @@
 
     async function initExpertsModule() {
         try {
-            const profileResponse = await fetch('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const profileResponse = await window.fetchWithTimeout('/api/v1/experts/me/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
             if (profileResponse.ok) {
                 const profileData = await profileResponse.json();
                 const primaryAff = getExpertPrimaryAffectation(profileData);
@@ -553,7 +553,7 @@
         // --- Norms Count ---
         try {
             const normsUrl = ctmId ? `/api/v1/norms/?ctm__id=${ctmId}` : '/api/v1/norms/';
-            const normsResponse = await fetch(normsUrl, { headers: baseHeaders });
+            const normsResponse = await window.fetchWithTimeout(normsUrl, { headers: baseHeaders });
             const normsData = await normsResponse.json();
             const activeNorms = (normsData.results || normsData).filter(n => n.status === 'PUBLISHED' || n.status === 'DRAFT').length;
             document.getElementById('indicator-norms-count').textContent = `${activeNorms} Normes`;
@@ -569,7 +569,7 @@
 
         // --- Meetings Count ---
         try {
-            const meetingsResponse = await fetch('/api/v1/reunions/upcoming/', { headers: baseHeaders });
+            const meetingsResponse = await window.fetchWithTimeout('/api/v1/reunions/upcoming/', { headers: baseHeaders });
             const meetingsData = await meetingsResponse.json();
             const plannedMeetings = (meetingsData.results || meetingsData).filter(m => m.status === 'PLANNED' || m.status === 'ACTIVE').length;
             document.getElementById('indicator-meetings-count').textContent = `${plannedMeetings} Réunions`;
@@ -753,7 +753,7 @@
                 ? `Votre rôle CTM permet de préparer l'admission de cet expert et son affectation WG. L'interface détaillée sera ajoutée ensuite.`
                 : `Cet expert est consultable, mais seuls les membres ayant un rôle dans ce CTM peuvent accepter son adhésion et préparer son affectation WG.`;
             btnContainer.innerHTML = canApprove
-                ? `<button onclick="approveExpert('${exp.id}')" class="px-4.5 py-2.5 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${isDark?'bg-blue-500 hover:bg-blue-400 text-black':'bg-blue-600 hover:bg-blue-700 text-white'}"><i data-lucide="shield-check" class="h-4 w-4"></i> Accepter l'adhésion CTM</button>`
+                ? `<button onclick="approveExpert(this, '${exp.id}')" class="px-4.5 py-2.5 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${isDark?'bg-blue-500 hover:bg-blue-400 text-black':'bg-blue-600 hover:bg-blue-700 text-white'}"><i data-lucide="shield-check" class="h-4 w-4"></i> Accepter l'adhésion CTM</button>`
                 : `<div class="p-3.5 rounded-lg flex items-center gap-2 w-full text-xs font-bold border ${isDark?'bg-white/5 border-white/10 text-slate-400':'bg-slate-100 border-slate-200 text-slate-600'}"><i data-lucide="lock" class="h-4 w-4"></i> Accès réservé aux rôles CTM.</div>`;
         }
     }
@@ -794,7 +794,7 @@
         }
     }
 
-    async function approveExpert(id) {
+    async function approveExpert(btn, id) {
         const expert = expState.experts.find(e => sameId(e.id, id));
         const affectation = getExpertPrimaryAffectation(expert);
         if (!affectation || !hasCtmRoleAccess(affectation.ctm)) {
@@ -802,9 +802,8 @@
             return;
         }
 
-        if(window.showAppToast) window.showAppToast(`Accréditation de l'expert ${id} en cours...`, "info");
-        try {
-            const response = await fetch(`/api/v1/experts/${id}/`, {
+        await window.withButtonLoading(btn, async () => {
+            const response = await window.fetchWithTimeout(`/api/v1/experts/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -827,11 +826,7 @@
             renderExpertView();
             renderFooterStats();
             if(window.showAppToast) window.showAppToast(`L'expert est désormais actif dans le CTM.`, "success");
-
-        } catch (error) {
-            console.error("Erreur lors de l'accréditation de l'expert:", error);
-            if(window.showAppToast) window.showAppToast("Erreur lors de l'accréditation de l'expert.", "error");
-        }
+        });
     }
 
     function triggerExpertDelete() {
@@ -864,7 +859,7 @@
     // =========================================================================
     async function loadAndRenderWGNorms(wgId) {
         try {
-            const response = await fetch(`/api/v1/wg/${wgId}/`, {
+            const response = await window.fetchWithTimeout(`/api/v1/wg/${wgId}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!response.ok) throw new Error('Failed to load WG details');

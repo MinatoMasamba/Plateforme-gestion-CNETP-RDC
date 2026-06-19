@@ -148,29 +148,31 @@
     // =========================================================================
     async function loadContacts() {
         try {
-            var r = await fetch('/api/v1/messages/contacts/', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            await window.withButtonLoading(null, async function() {
+                var r = await window.fetchWithTimeout('/api/v1/messages/contacts/', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!r.ok) return;
+                var data = await r.json();
+                chatState.contacts = data.map(function(e) {
+                    return {
+                        id: e.user_id || (e.user && e.user.id),
+                        name: e.user_name || (e.user && e.user.full_name) || 'Expert',
+                        role: e.role || 'Expert CTM',
+                        structure: (e.structure && e.structure.acronym) || e.structure_name || '',
+                        isOnline: (e.user && e.user.is_online) || false,
+                        avatarColor: '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'),
+                    };
+                }).filter(function(c) { return c.id; });
+                renderContacts();
             });
-            if (!r.ok) return;
-            var data = await r.json();
-            chatState.contacts = data.map(function(e) {
-                return {
-                    id: e.user_id || (e.user && e.user.id),
-                    name: e.user_name || (e.user && e.user.full_name) || 'Expert',
-                    role: e.role || 'Expert CTM',
-                    structure: (e.structure && e.structure.acronym) || e.structure_name || '',
-                    isOnline: (e.user && e.user.is_online) || false,
-                    avatarColor: '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'),
-                };
-            }).filter(function(c) { return c.id; });
-            renderContacts();
         } catch(e) { console.error('loadContacts:', e); }
     }
 
     async function loadMessages(contactId) {
         if (!contactId) return;
         try {
-            var r = await fetch('/api/v1/messages/?participant_id=' + contactId, {
+            var r = await window.fetchWithTimeout('/api/v1/messages/?participant_id=' + contactId, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!r.ok) return;
@@ -189,7 +191,7 @@
     async function markConversationAsRead(contactId) {
         if (!contactId) return;
         try {
-            await fetch('/api/v1/messages/mark_conversation_as_read/', {
+            await window.fetchWithTimeout('/api/v1/messages/mark_conversation_as_read/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -203,7 +205,7 @@
 
     async function loadUnreadCount() {
         try {
-            var r = await fetch('/api/v1/messages/unread_count/', {
+            var r = await window.fetchWithTimeout('/api/v1/messages/unread_count/', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             var data = r.ok ? await r.json() : {};
@@ -429,32 +431,31 @@
         if (!text || !chatState.activeContactId) return;
 
         var btn = document.getElementById('send-msg-btn');
-        btn.disabled = true;
 
         try {
-            var r = await fetch('/api/v1/messages/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    receiver_id: chatState.activeContactId,
-                    content: text,
-                }),
+            await window.withButtonLoading(btn, async function() {
+                var r = await window.fetchWithTimeout('/api/v1/messages/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        receiver_id: chatState.activeContactId,
+                        content: text,
+                    }),
+                });
+                if (!r.ok) throw new Error('Échec envoi');
+                var msg = await r.json();
+                if (!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
+                chatState.messages[chatState.activeContactId].push(msg);
+                input.value = '';
+                renderMessages();
+                await loadUnreadCount();
             });
-            if (!r.ok) throw new Error('Échec envoi');
-            var msg = await r.json();
-            if (!chatState.messages[chatState.activeContactId]) chatState.messages[chatState.activeContactId] = [];
-            chatState.messages[chatState.activeContactId].push(msg);
-            input.value = '';
-            renderMessages();
-            await loadUnreadCount();
         } catch(err) {
             console.error(err);
-            if (window.showAppToast) window.showAppToast("Erreur d'envoi.", 'error');
-            btn.disabled = false;
         }
     }
 
@@ -474,7 +475,7 @@
         if (excerpt && excerpt.trim()) parts.push('\n« ' + excerpt.trim() + ' »');
 
         try {
-            var r = await fetch('/api/v1/messages/', {
+            var r = await window.fetchWithTimeout('/api/v1/messages/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

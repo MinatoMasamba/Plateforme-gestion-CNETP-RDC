@@ -1,12 +1,15 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace de Travail - CNETP</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo-cnetp.png' %}">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
         // Restore dark mode preference before page renders
@@ -204,35 +207,10 @@
 
         <div class="p-4 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black/15">
             <div class="flex items-center gap-2 shrink-0 select-none">
-                <svg width="46" height="46" viewBox="0 0 100 100" class="shrink-0 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.2)]">
-                    <circle cx="50" cy="50" r="46" class="fill-[#ffffff] dark:fill-[#171717]" stroke="#d4af37" stroke-width="1.5" />
-                    <circle cx="50" cy="50" r="41" fill="none" stroke="#d4af37" stroke-width="0.5" stroke-dasharray="3 2" />
-                    <path id="textPathTop" d="M 12 52 A 38 38 0 0 1 88 52" fill="none" />
-                    <text font-family="sans-serif" font-weight="800" font-size="5.2" class="fill-[#334155] dark:fill-[#e2e8f0]" letter-spacing="0.2">
-                        <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">REP. DEM. DU CONGO</textPath>
-                    </text>
-                    <path id="textPathBottom" d="M 88 48 A 38 38 0 0 1 12 48" fill="none" />
-                    <text font-family="sans-serif" font-weight="900" font-size="5.5" class="fill-[#0095c9] dark:fill-[#ffd700]" letter-spacing="0.3">
-                        <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">LE GOUVERNEMENT</textPath>
-                    </text>
-                    <g transform="translate(18, 22) scale(0.65)">
-                        <line x1="20" y1="65" x2="70" y2="15" stroke="#78350f" stroke-width="3" stroke-linecap="round" />
-                        <polygon points="70,15 74,10 75,18 70,15" fill="#94a3b8" stroke="#334155" stroke-width="0.5" />
-                        <path d="M 23 72 C 15 50 25 30 35 22 C 30 35 25 55 25 72 Z" fill="#fdfae6" stroke="#cbb281" stroke-width="1" />
-                        <ellipse cx="48" cy="55" rx="14" ry="7" fill="#dc2626" stroke="#991b1b" stroke-width="1" />
-                        <ellipse cx="48" cy="46" rx="15" ry="12" fill="#ffea00" stroke="#000" stroke-width="1" />
-                        <path d="M 36 38 Q 30 30 38 34" fill="#ffea00" stroke="#000" stroke-width="1" />
-                        <path d="M 60 38 Q 66 30 58 34" fill="#ffea00" stroke="#000" stroke-width="1" />
-                        <circle cx="40" cy="42" r="1.5" fill="#000" />
-                        <circle cx="56" cy="42" r="1.5" fill="#000" />
-                        <circle cx="48" cy="38" r="1" fill="#000" />
-                        <path d="M 43 47 Q 48 50 53 47" stroke="#000" stroke-width="1" fill="none" />
-                        <ellipse cx="43" cy="43" rx="2" ry="1.2" fill="#ffea00" stroke="#000" />
-                        <ellipse cx="53" cy="43" rx="2" ry="1.2" fill="#ffea00" stroke="#000" />
-                    </g>
-                    <path d="M 22 74 Q 50 83 78 74 L 75 79 Q 50 87 25 79 Z" fill="#db3832" stroke="#991b1b" stroke-width="0.5" />
-                    <text x="50" y="78.5" font-size="3.8" fill="#ffffff" font-weight="bold" text-anchor="middle" letter-spacing="0.4">PAIX - JUSTICE - TRAVAIL</text>
-                </svg>
+                <div class="w-[46px] h-[46px] rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white dark:bg-[#171717] drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.2)]">
+                    <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+                         width="46" height="46" class="w-full h-full object-cover">
+                </div>
                 <div class="w-[4px] h-[34px] flex flex-col rounded-sm overflow-hidden shrink-0">
                     <div class="flex-1 bg-[#0095c9]"></div>
                     <div class="h-[25%] bg-[#fff24b]"></div>
@@ -375,7 +353,7 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 }
             };
-            const response = await fetch(url, {
+            const response = await window.fetchWithTimeout(url, {
                 ...defaults,
                 ...options,
                 headers: { ...defaults.headers, ...options.headers }
@@ -387,58 +365,8 @@
             return response.json();
         }
 
-        // Afficher le modal de profil quand on clique sur le bouton profil
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('profile-btn');
-            if (!btn) return;
-
-            btn.addEventListener('click', async function() {
-                try {
-                    // Essayer de récupérer le profil utilisateur depuis l'API si disponible
-                    let profileData = null;
-                    if (typeof window.apiFetch === 'function') {
-                        try {
-                            const res = await window.apiFetch('/api/v1/profile/');
-                            if (res && (res.data || res)) {
-                                const d = res.data || res;
-                                profileData = {
-                                    name: (d.first_name || '') + (d.last_name ? ' ' + d.last_name : ''),
-                                    email: d.email || '',
-                                    structure: d.structure_name || d.structure || '',
-                                    payoutMethod: d.bank_name || '',
-                                    accountDetails: d.bank_account || '',
-                                    dailyRate: d.daily_rate || d.dailyRate || '',
-                                    monthlyResearchAllowance: d.monthly_research_allowance || d.monthlyResearchAllowance || '',
-                                    presenceCount: d.presence_count || d.presenceCount || '',
-                                    roleId: d.role_id || d.roleId || '',
-                                };
-
-                                // si l'API renvoie un expert lié, définir currentExpertId
-                                if (d.expert && (d.expert.id || d.expert)) {
-                                    window.currentExpertId = d.expert.id || d.expert;
-                                } else if (d.expert_id) {
-                                    window.currentExpertId = d.expert_id;
-                                }
-                            }
-                        } catch (err) {
-                            // ignore, on ouvrira le modal sans données
-                            console.warn('Impossible de charger le profil:', err);
-                        }
-                    }
-
-                    // Ouvrir le modal fourni dans profil_expert.html
-                    if (typeof openProfileModal === 'function') {
-                        openProfileModal(profileData);
-                    } else {
-                        // fallback: simplement enlever la class hidden si présent
-                        const modal = document.getElementById('profile-modal');
-                        if (modal) modal.classList.remove('hidden');
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            });
-        });
+        // L'ouverture du modal de profil est gérée par showMyProfile() (cf. plus bas),
+        // câblée sur #profile-btn au DOMContentLoaded.
 
         const sidebarState = {
             activeTab: 'editor',
@@ -674,7 +602,15 @@
                         }).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun document trouvé.</p>'}
                     </div>`;
             } else if (sidebarState.activeTab === 'history') {
-                topHtml = `<div class="px-2 mb-3 relative"><i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i><input type="text" placeholder="Rechercher norme..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-white border-white/10 focus:outline-hidden"></div>`;
+                topHtml = `
+                    <div class="flex items-center justify-between mb-3 px-2">
+                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Documents</h2>
+                    </div>
+                    <div class="px-2 mb-3 relative">
+                        <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
+                        <input type="text" value="${sidebarState.searchQuery}" oninput="filterHistorySidebar(this.value)" placeholder="Rechercher une norme..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-slate-800 dark:text-white border-slate-200 dark:border-white/10 focus:outline-hidden">
+                    </div>
+                    <div id="history-doc-list" class="space-y-1"></div>`;
             } else if (sidebarState.activeTab === 'experts') {
                 const ctmLabel = sidebarState.currentCtmName ? `<p class="text-[10px] text-slate-500 px-2 mb-2 truncate">CTM : ${sidebarState.currentCtmName}</p>` : '';
                 topHtml = `${ctmLabel}<div class="space-y-1.5">${sidebarState.workingGroups.length ? sidebarState.workingGroups.map(wg => {
@@ -703,9 +639,35 @@
 
             topSection.innerHTML = topHtml;
             bottomSection.innerHTML = bottomHtml;
+            if (sidebarState.activeTab === 'history') {
+                renderHistoryDocList();
+            }
             safeCreateIcons();
         }
 
+        function renderHistoryDocList() {
+            const container = document.getElementById('history-doc-list');
+            if (!container) return;
+            const query = (sidebarState.searchQuery || '').trim().toLowerCase();
+            const docs = query
+                ? sidebarState.documents.filter(doc => (doc.title || '').toLowerCase().includes(query) || (doc.code || '').toLowerCase().includes(query))
+                : sidebarState.documents;
+
+            container.innerHTML = docs.length ? docs.map(doc => {
+                const isSel = doc.id === sidebarState.selectedDocId;
+                const bgClass = isSel ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 font-bold' : 'bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400';
+                return `<button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
+                    <span class="font-semibold text-xs truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span>${doc.updatedBy}</span></div>
+                </button>`;
+            }).join('') : `<p class="text-[10px] text-center py-4 text-slate-500 italic">${query ? 'Aucune norme ne correspond à la recherche.' : 'Aucun document trouvé.'}</p>`;
+            safeCreateIcons();
+        }
+
+        function filterHistorySidebar(value) {
+            sidebarState.searchQuery = value;
+            renderHistoryDocList();
+        }
 
         function sidebarSelect(type, id) {
             if (type === 'doc') {
@@ -730,22 +692,30 @@
         // =========================================================================
         // 3. LOGIQUE DE PROFIL
         // =========================================================================
-        let currentExpertId = null;
-
         async function showMyProfile() {
             try {
-                const currentUserId = "{{ user.id|default:'' }}";
-                const profileUrl = currentUserId ? `/api/v1/users/${currentUserId}/` : '/api/v1/auth/me/';
-                const expertData = await apiFetch(profileUrl);
-                const userData = expertData.user || expertData;
-                currentExpertId = expertData.id || userData.id;
+                let userData, structureName = '', payoutMethod = 'Equity BCDC', accountDetails = '';
+
+                try {
+                    // Données complètes (expert) : nom, structure ET coordonnées financières réelles
+                    const expertData = await apiFetch('/api/v1/experts/me/');
+                    userData = expertData.user;
+                    window.currentExpertId = expertData.id;
+                    structureName = expertData.structure ? expertData.structure.name : '';
+                    payoutMethod = expertData.bank_name || payoutMethod;
+                    accountDetails = expertData.bank_account || expertData.mobile_money_number || '';
+                } catch (expertError) {
+                    // Utilisateur connecté non-expert (ou sans fiche Expert) : on retombe sur les infos de base
+                    window.currentExpertId = null;
+                    userData = await apiFetch('/api/v1/auth/me/');
+                }
 
                 const profileData = {
-                    name: `${userData.first_name || userData.firstName || ''} ${userData.last_name || userData.lastName || ''}`.trim() || userData.username || 'Utilisateur',
+                    name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'Utilisateur',
                     email: userData.email || '',
-                    structure: expertData.structure ? expertData.structure.name : '',
-                    payoutMethod: expertData.bank_name || 'Equity BCDC',
-                    accountDetails: expertData.bank_account || expertData.mobile_money_number || '',
+                    structure: structureName,
+                    payoutMethod: payoutMethod,
+                    accountDetails: accountDetails,
                     dailyRate: 0,
                     monthlyResearchAllowance: 0,
                     presenceCount: 0,
@@ -861,24 +831,30 @@
                     safeCreateIcons();
                 }
 
-                const response = await fetch(`/api/components/${moduleId}/`);
-                if (!response.ok) throw new Error("Erreur réseau");
+                await window.withButtonLoading(actB, async () => {
+                    const response = await window.fetchWithTimeout(`/api/components/${moduleId}/`);
+                    if (!response.ok) throw new Error("Erreur réseau");
 
-                const html = await response.text();
-                actC.innerHTML = html;
+                    const html = await response.text();
+                    actC.innerHTML = html;
 
-                safeCreateIcons();
-                executeScripts(actC);
-                loadedModules.add(moduleId);
+                    safeCreateIcons();
+                    executeScripts(actC);
+                    loadedModules.add(moduleId);
 
-                if (moduleId === 'editor' && sidebarState.selectedDocId) {
-                    loadDocumentDetails(sidebarState.selectedDocId);
-                }
-                if (moduleId === 'history' && sidebarState.selectedDocId && typeof initHistoryModule === 'function') {
-                    initHistoryModule(sidebarState.selectedDocId);
-                }
+                    if (moduleId === 'editor' && sidebarState.selectedDocId) {
+                        loadDocumentDetails(sidebarState.selectedDocId);
+                    }
+                    if (moduleId === 'history' && sidebarState.selectedDocId && typeof initHistoryModule === 'function') {
+                        initHistoryModule(sidebarState.selectedDocId);
+                    }
+                }, { errorMessage: "Impossible de charger ce module. Vérifiez votre connexion." });
             } catch (error) {
                 console.error("AJAX Error:", error);
+                if (actC) {
+                    actC.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-red-500 h-full gap-2"><i data-lucide="wifi-off" class="w-10 h-10 mb-2"></i><p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Erreur de chargement. Veuillez réessayer.</p></div>`;
+                    safeCreateIcons();
+                }
             }
         }
 

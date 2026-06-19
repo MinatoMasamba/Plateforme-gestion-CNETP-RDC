@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 
     <script>
@@ -200,14 +202,14 @@
             try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
         }
 
-        async function iaApi(url, options) {
+        async function iaApi(url, options, timeoutMs) {
             options = options || {};
             const headers = Object.assign({
                 'Content-Type': 'application/json',
                 'X-CSRFToken': iaCsrf(),
                 'X-Requested-With': 'XMLHttpRequest',
             }, options.headers || {});
-            const response = await fetch(url, Object.assign({}, options, {headers}));
+            const response = await window.fetchWithTimeout(url, Object.assign({}, options, {headers}), timeoutMs);
             if (!response.ok) {
                 const text = await response.text();
                 throw new Error('Agent IA — erreur ' + response.status + ' : ' + text);
@@ -632,7 +634,6 @@
             input.value = '';
             iaSending = true;
             const sendBtn = document.getElementById('ia-send-btn');
-            sendBtn.disabled = true;
 
             const thinking = document.createElement('div');
             thinking.className = 'flex justify-start';
@@ -641,13 +642,13 @@
             iaScrollToBottom();
             iaIcons();
 
-            (async function() {
+            window.withButtonLoading(sendBtn, async function() {
                 try {
                     await iaEnsureSession();
                     const result = await iaApi('/api/v1/ia-agent/sessions/' + iaSessionId + '/send/', {
                         method: 'POST',
                         body: JSON.stringify({content: text}),
-                    });
+                    }, 30000);
                     thinking.remove();
                     iaRenderMessage(result.assistant_message);
                     (result.artifacts || []).forEach(iaRenderArtifact);
@@ -657,11 +658,11 @@
                     thinking.remove();
                     iaRenderMessage({role: 'assistant', content: "Une erreur est survenue. Réessaie dans un instant."});
                     iaScrollToBottom();
+                    throw e;
                 } finally {
                     iaSending = false;
-                    sendBtn.disabled = false;
                 }
-            })();
+            }).catch(function() {});
 
             return false;
         };

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -154,10 +156,9 @@
         async function acknowledgeReception(processusId, posteN) {
             const rowId = `reception-row-${processusId}-${posteN}`;
             const btn = document.getElementById(`btn-receive-${processusId}-${posteN}`);
-            if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
-            try {
-                const resp = await fetch(`/pilotage/processus/${processusId}/receptionner/`, {
+            await window.withButtonLoading(btn, async () => {
+                const resp = await window.fetchWithTimeout(`/pilotage/processus/${processusId}/receptionner/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
                 });
@@ -166,13 +167,9 @@
                     showToast(data.message, 'success');
                     document.getElementById(rowId)?.remove();
                 } else {
-                    showToast(data.error || 'Erreur.', 'error');
-                    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
+                    throw new Error(data.error || 'Erreur.');
                 }
-            } catch (err) {
-                showToast('Erreur réseau.', 'error');
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Accuser réception'; lucide.createIcons(); }
-            }
+            });
         }
 
         // ── Cadrage Bureau Directoire (Phases 1 & 2) ──────────────────────────
@@ -191,11 +188,6 @@
         async function submitCadrageAction(cadrageId, action) {
             const rowId = `cadrage-row-${cadrageId}-${action}`;
             const btn = document.getElementById(`btn-cadrage-${cadrageId}-${action}`);
-            if (btn) {
-                btn.dataset.originalHtml = btn.dataset.originalHtml || btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '…';
-            }
 
             const body = new URLSearchParams({ action });
             (CADRAGE_FIELDS[action] || []).forEach(field => {
@@ -203,8 +195,8 @@
                 if (el) body.append(field, el.value);
             });
 
-            try {
-                const resp = await fetch(`/pilotage/cadrage/${cadrageId}/action/`, {
+            await window.withButtonLoading(btn, async () => {
+                const resp = await window.fetchWithTimeout(`/pilotage/cadrage/${cadrageId}/action/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
                     body
@@ -214,13 +206,9 @@
                     showToast(data.message, 'success');
                     document.getElementById(rowId)?.remove();
                 } else {
-                    showToast(data.error || 'Erreur.', 'error');
-                    if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
+                    throw new Error(data.error || 'Erreur.');
                 }
-            } catch (err) {
-                showToast('Erreur réseau.', 'error');
-                if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml; lucide.createIcons(); }
-            }
+            });
         }
 
         // ── Toast notification ────────────────────────────────────────────────

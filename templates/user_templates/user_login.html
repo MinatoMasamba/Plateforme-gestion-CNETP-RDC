@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="dark">
 <head>
@@ -6,6 +7,7 @@
     <title>CNETP - Connexion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -314,7 +316,7 @@
             if (!email) { showError('reset-step1-error', 'Veuillez entrer votre adresse email.'); return; }
             setLoading('btn-send-code', true);
             try {
-                var res = await fetch('{% url "web:password_reset_request" %}', {
+                var res = await window.fetchWithTimeout('{% url "web:password_reset_request" %}', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
                     body: JSON.stringify({email: email})
@@ -329,7 +331,7 @@
                     showError('reset-step1-error', data.error || 'Une erreur est survenue.');
                 }
             } catch(e) {
-                showError('reset-step1-error', 'Erreur réseau. Vérifiez votre connexion.');
+                showError('reset-step1-error', e && e.message === 'TIMEOUT' ? 'Connexion instable. Veuillez réessayer.' : 'Erreur réseau. Vérifiez votre connexion.');
             } finally {
                 setLoading('btn-send-code', false);
             }
@@ -345,7 +347,7 @@
             if (pwd.length < 8) { showError('reset-step2-error', 'Mot de passe trop court (min. 8 caractères).'); return; }
             setLoading('btn-confirm', true);
             try {
-                var res = await fetch('{% url "web:password_reset_confirm" %}', {
+                var res = await window.fetchWithTimeout('{% url "web:password_reset_confirm" %}', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
                     body: JSON.stringify({email: _resetEmail, code: code, password: pwd, password2: pwd2})
@@ -357,7 +359,7 @@
                     showError('reset-step2-error', data.error || 'Une erreur est survenue.');
                 }
             } catch(e) {
-                showError('reset-step2-error', 'Erreur réseau. Vérifiez votre connexion.');
+                showError('reset-step2-error', e && e.message === 'TIMEOUT' ? 'Connexion instable. Veuillez réessayer.' : 'Erreur réseau. Vérifiez votre connexion.');
             } finally {
                 setLoading('btn-confirm', false);
             }

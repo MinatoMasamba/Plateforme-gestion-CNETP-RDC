@@ -100,35 +100,29 @@ document.querySelectorAll('.ctc-methodo-form').forEach(function(form) {
         const msgEl = form.querySelector('.ctc-methodo-msg');
         const submitBtn = form.querySelector('[type="submit"]');
 
-        submitBtn.disabled = true;
-
-        fetch(`/ctc/methodologie/${reviewId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: new URLSearchParams({ notes, status })
-        })
-        .then(r => r.json())
-        .then(data => {
-            submitBtn.disabled = false;
-            msgEl.classList.remove('hidden');
-            if (data.ok) {
-                msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-emerald-400/10 text-emerald-400';
-                msgEl.textContent = data.message;
-                if (typeof window.showAppToast === 'function') window.showAppToast(data.message, 'success');
-            } else {
-                msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-red-400/10 text-red-400';
-                msgEl.textContent = data.error || 'Erreur.';
-                if (typeof window.showAppToast === 'function') window.showAppToast(data.error || 'Erreur.', 'error');
-            }
-        })
-        .catch(() => {
-            submitBtn.disabled = false;
+        window.withButtonLoading(submitBtn, function() {
+            return window.fetchWithTimeout(`/ctc/methodologie/${reviewId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams({ notes, status })
+            })
+            .then(r => r.json())
+            .then(data => {
+                msgEl.classList.remove('hidden');
+                if (data.ok) {
+                    msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-emerald-400/10 text-emerald-400';
+                    msgEl.textContent = data.message;
+                } else {
+                    throw new Error(data.error || 'Erreur.');
+                }
+            });
+        }).catch(err => {
             msgEl.classList.remove('hidden');
             msgEl.className = 'ctc-methodo-msg text-[10px] font-semibold text-center rounded-lg py-1.5 bg-red-400/10 text-red-400';
-            msgEl.textContent = 'Erreur réseau.';
+            msgEl.textContent = err.message;
         });
     });
 });
