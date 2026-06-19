@@ -549,13 +549,14 @@
     }
 
     function validateSaveBtn() {
+        const hasContent = editorState.text && editorState.text.trim().length > 0;
         const isModified = editorState.document && editorState.text !== getDocumentContent(editorState.document);
         const commentEl = document.getElementById('ed-edit-comment');
         const comment = commentEl ? commentEl.value.trim() : "";
         const saveBtn = document.getElementById('ed-save-btn');
         const resetBtn = document.getElementById('ed-reset-btn');
-        
-        if (saveBtn) saveBtn.disabled = !(isModified || comment.length > 0);
+
+        if (saveBtn) saveBtn.disabled = !(hasContent && (isModified || comment.length > 0));
         if (resetBtn) resetBtn.disabled = !(isModified || comment.length > 0);
     }
 
@@ -586,6 +587,11 @@
             return;
         }
 
+        if (!editorState.text || !editorState.text.trim()) {
+            if(window.showAppToast) window.showAppToast("Le contenu de la norme ne peut pas être vide.", "warning");
+            return;
+        }
+
         const payload = {
             title: editorState.document.title,
             content: editorState.text,
@@ -613,8 +619,12 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`Erreur HTTP: ${response.status} - ${JSON.stringify(errorData)}`);
+                        const errorData = await response.json().catch(() => ({}));
+                        const firstFieldError = Object.values(errorData)[0];
+                        const message = errorData.detail
+                            || (Array.isArray(firstFieldError) ? firstFieldError[0] : firstFieldError)
+                            || "Erreur lors de la sauvegarde de la version.";
+                        throw new Error(message);
                     }
 
                     const newVersion = await response.json();
@@ -632,7 +642,7 @@
                     }
                 } catch (error) {
                     console.error("Erreur lors de la sauvegarde de la version:", error);
-                    throw new Error("Erreur lors de la sauvegarde de la version.");
+                    throw error;
                 } finally {
                     // Réinitialiser l'icône, qu'il y ait succès ou échec
                     if (icon) {

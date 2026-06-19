@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cnetp-portail-v2';
+const CACHE_NAME = 'cnetp-portail-v3';
 
 const PRECACHE_URLS = [
     '/',
@@ -34,6 +34,13 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(request.url);
     if (url.origin !== self.location.origin) return;
+
+    // Données dynamiques (API REST + fragments AJAX des modules) : toujours réseau,
+    // jamais de cache — sinon le navigateur ressert indéfiniment une réponse périmée.
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(fetch(request));
+        return;
+    }
 
     if (request.mode === 'navigate') {
         event.respondWith(
