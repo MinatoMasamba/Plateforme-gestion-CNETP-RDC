@@ -1,14 +1,22 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNETP - Connexion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
+        // Restaure la préférence de thème avant le rendu (évite le flash)
+        const theme = localStorage.getItem('theme-preference') || 'light';
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -17,6 +25,11 @@
                         dark: {
                             100: '#06060c',
                             200: '#020204',
+                        },
+                        brand: {
+                            50: '#E6F6FD', 100: '#CCEDFB', 200: '#99DBF7', 300: '#66C9F3',
+                            400: '#33B7EF', 500: '#009FE3', 600: '#0080B8', 700: '#00608A',
+                            800: '#00405C', 900: '#00202E',
                         }
                     }
                 }
@@ -35,35 +48,46 @@
         .animate-slideIn { animation: slideIn 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="bg-[#020204] text-slate-300 min-h-screen flex relative overflow-x-hidden">
+<body class="bg-white text-slate-800 dark:bg-[#020204] dark:text-slate-300 min-h-screen flex relative overflow-x-hidden transition-colors duration-300">
 
-    <div class="fixed inset-0 bg-[#06060c]/40 pointer-events-none z-0"></div>
-    <div class="fixed top-0 inset-x-0 h-96 bg-gradient-to-b from-blue-500/10 via-blue-500/5 to-transparent pointer-events-none z-0"></div>
-    
-    <div class="fixed top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
-    <div class="fixed bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+    <div class="fixed top-0 inset-x-0 h-1 flex z-30">
+        <div class="flex-1 bg-[#009FE3]"></div>
+        <div class="flex-1 bg-[#FFED00]"></div>
+        <div class="flex-1 bg-[#E30613]"></div>
+    </div>
+
+    <button id="theme-toggle" type="button" title="Changer de thème"
+        class="fixed top-4 right-4 z-20 h-10 w-10 rounded-full border flex items-center justify-center cursor-pointer transition-all backdrop-blur-md shadow-sm border-slate-200 bg-white/80 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10">
+        <i data-lucide="moon" id="theme-toggle-icon" class="w-4.5 h-4.5"></i>
+    </button>
+
+    <div class="hidden dark:block fixed inset-0 bg-[#06060c]/40 pointer-events-none z-0"></div>
+    <div class="hidden dark:block fixed top-0 inset-x-0 h-96 bg-gradient-to-b from-brand-500/10 via-brand-500/5 to-transparent pointer-events-none z-0"></div>
+
+    <div class="hidden dark:block fixed top-1/4 left-1/4 w-96 h-96 bg-brand-600/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
+    <div class="hidden dark:block fixed bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
     <main class="flex-1 flex flex-col items-center justify-center min-h-screen w-full relative z-10 py-12 px-4 sm:px-6">
-        
+
         <div class="mb-8 text-center animate-slideIn mt-8">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                <i data-lucide="user" class="w-6 h-6 text-blue-400"></i>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-50 border border-brand-200 dark:bg-brand-500/10 dark:border-brand-500/20 mb-4 shadow-[0_0_15px_rgba(0,159,227,0.15)] dark:shadow-[0_0_15px_rgba(0,159,227,0.2)]">
+                <i data-lucide="user" class="w-6 h-6 text-brand-600 dark:text-brand-400"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Connexion</h1>
-            <p class="text-slate-400 mt-2 text-sm">Accédez à votre espace public CNETP.</p>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Connexion</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Accédez à votre espace public CNETP.</p>
         </div>
 
         <div class="w-full max-w-md animate-slideIn mb-8" style="animation-delay: 0.1s; opacity: 0;">
-            <section class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-xl relative overflow-hidden">
-                
-                <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            <section class="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5 p-8 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] dark:backdrop-blur-xl relative overflow-hidden">
+
+                <div class="hidden dark:block absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
                 <form method="post" class="space-y-6">
                     {% csrf_token %}
-                    
+
                     {% if form.non_field_errors %}
-                        <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 flex items-start gap-3">
-                            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 text-rose-400"></i>
+                        <div class="rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200 px-4 py-3 text-sm flex items-start gap-3">
+                            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 text-rose-500 dark:text-rose-400"></i>
                             <div>{{ form.non_field_errors }}</div>
                         </div>
                     {% endif %}
@@ -71,10 +95,10 @@
                     {% if messages %}
                         <div class="space-y-3">
                             {% for message in messages %}
-                                <div class="rounded-xl border flex items-start gap-3 px-4 py-3 text-sm backdrop-blur-md
-                                    {% if message.tags == 'success' %} border-emerald-500/20 bg-emerald-500/10 text-emerald-200
-                                    {% elif message.tags == 'error' %} border-rose-500/20 bg-rose-500/10 text-rose-200
-                                    {% else %} border-blue-500/20 bg-blue-500/10 text-blue-200 {% endif %}">
+                                <div class="rounded-xl border flex items-start gap-3 px-4 py-3 text-sm dark:backdrop-blur-md
+                                    {% if message.tags == 'success' %} border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200
+                                    {% elif message.tags == 'error' %} border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200
+                                    {% else %} border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-200 {% endif %}">
                                     <i data-lucide="info" class="w-5 h-5 shrink-0 opacity-80"></i>
                                     <p class="mt-0.5">{{ message }}</p>
                                 </div>
@@ -85,13 +109,13 @@
                     <div class="space-y-5">
                         {% for field in form %}
                             <div class="group relative">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 group-focus-within:text-blue-400 transition-colors" for="{{ field.id_for_label }}">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2 group-focus-within:text-brand-600 dark:group-focus-within:text-brand-400 transition-colors" for="{{ field.id_for_label }}">
                                     {{ field.label }}
                                 </label>
-                                
+
                                 <div class="relative">
                                     {{ field }}
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-brand-600 dark:group-focus-within:text-brand-400 transition-colors">
                                         {% if field.name == 'email' %}
                                             <i data-lucide="mail" class="w-4 h-4"></i>
                                         {% elif field.name == 'password' %}
@@ -101,7 +125,7 @@
                                 </div>
 
                                 {% if field.errors %}
-                                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1">
+                                    <p class="mt-1.5 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
                                         <i data-lucide="x" class="w-3 h-3"></i> {{ field.errors|striptags }}
                                     </p>
                                 {% endif %}
@@ -111,60 +135,60 @@
 
                     <div class="flex items-center justify-between mt-2">
                         <div class="flex items-center">
-                            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-0 accent-blue-500">
-                            <label for="remember-me" class="ml-2 block text-xs text-slate-400 cursor-pointer">Se souvenir de moi</label>
+                            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-slate-300 bg-white dark:border-white/20 dark:bg-white/5 text-brand-600 focus:ring-brand-500/50 focus:ring-offset-0 accent-brand-600">
+                            <label for="remember-me" class="ml-2 block text-xs text-slate-600 dark:text-slate-400 cursor-pointer">Se souvenir de moi</label>
                         </div>
                         <div class="text-xs">
-                            <button type="button" onclick="openResetModal()" class="font-medium text-blue-400 hover:text-blue-300 transition-colors">Mot de passe oublié ?</button>
+                            <button type="button" onclick="openResetModal()" class="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors">Mot de passe oublié ?</button>
                         </div>
                     </div>
 
                     <div class="pt-2 pb-2">
-                        <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-blue-500 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:bg-blue-400 hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] active:scale-[0.98] transition-all duration-300">
+                        <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-400 dark:bg-brand-500 dark:hover:bg-brand-400 px-5 py-3.5 text-sm font-semibold text-white shadow-md dark:shadow-[0_0_20px_rgba(0,159,227,0.3)] dark:hover:shadow-[0_0_25px_rgba(0,159,227,0.5)] active:scale-[0.98] transition-all duration-300">
                             Se connecter <i data-lucide="log-in" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </form>
             </section>
-            
+
             <p class="text-center text-xs text-slate-500 mt-6">
-                Pas encore inscrit ? 
-                <a href="{% url 'web:user_registration' %}" class="text-blue-400 hover:text-blue-300 transition-colors font-medium">Créer un compte public</a>
+                Pas encore inscrit ?
+                <a href="{% url 'web:user_registration' %}" class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors font-medium">Créer un compte public</a>
             </p>
         </div>
     </main>
 
     <!-- ===== MODAL RÉINITIALISATION MOT DE PASSE ===== -->
     <div id="reset-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeResetModal()"></div>
-        <div class="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0f1021] shadow-2xl overflow-hidden animate-slideIn">
-            <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent"></div>
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm" onclick="closeResetModal()"></div>
+        <div class="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-[#0f1021] dark:shadow-2xl overflow-hidden animate-slideIn">
+            <div class="hidden dark:block absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent"></div>
 
             <!-- Étape 1 : Email -->
             <div id="step-email" class="p-8">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Mot de passe oublié</h2>
-                        <p class="text-xs text-slate-400 mt-1">Entrez votre email pour recevoir un code</p>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Mot de passe oublié</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Entrez votre email pour recevoir un code</p>
                     </div>
-                    <button onclick="closeResetModal()" class="text-slate-500 hover:text-white transition-colors p-1">
+                    <button onclick="closeResetModal()" class="text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-white transition-colors p-1">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Adresse email</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Adresse email</label>
                         <div class="relative">
                             <input id="reset-email" type="email" placeholder="votre@email.com" autocomplete="email"
-                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all">
-                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-500"><i data-lucide="mail" class="w-4 h-4"></i></span>
+                                class="w-full bg-slate-50 border border-slate-200 dark:bg-white/5 dark:border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500/50 focus:bg-white dark:focus:bg-white/8 transition-all">
+                            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400 dark:text-slate-500"><i data-lucide="mail" class="w-4 h-4"></i></span>
                         </div>
                     </div>
-                    <div id="reset-step1-error" class="hidden rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                    <div id="reset-step1-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200 px-4 py-3 text-sm flex items-start gap-2">
                         <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span id="reset-step1-msg"></span>
                     </div>
                     <button onclick="submitResetEmail()" id="btn-send-code"
-                        class="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-400 active:scale-[0.98] transition-all">
+                        class="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-400 dark:bg-brand-500 dark:hover:bg-brand-400 px-5 py-3 text-sm font-semibold text-white active:scale-[0.98] transition-all">
                         Envoyer le code <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -174,56 +198,56 @@
             <div id="step-code" class="p-8 hidden">
                 <div class="flex items-center justify-between mb-2">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Vérification</h2>
-                        <p class="text-xs text-slate-400 mt-1">Code envoyé à <span id="reset-email-display" class="text-blue-400 font-medium"></span></p>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Vérification</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Code envoyé à <span id="reset-email-display" class="text-brand-600 dark:text-brand-400 font-medium"></span></p>
                     </div>
-                    <button onclick="closeResetModal()" class="text-slate-500 hover:text-white transition-colors p-1">
+                    <button onclick="closeResetModal()" class="text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-white transition-colors p-1">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
                 <div class="flex items-center gap-2 mb-6 mt-4">
-                    <div class="h-1 flex-1 rounded-full bg-blue-500"></div>
-                    <div class="h-1 flex-1 rounded-full bg-blue-500"></div>
+                    <div class="h-1 flex-1 rounded-full bg-brand-600 dark:bg-brand-500"></div>
+                    <div class="h-1 flex-1 rounded-full bg-brand-600 dark:bg-brand-500"></div>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Code à 6 chiffres</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Code à 6 chiffres</label>
                         <input id="reset-code" type="text" inputmode="numeric" maxlength="6" placeholder="• • • • • •"
-                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold tracking-[0.5em] text-blue-400 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all">
+                            class="w-full bg-slate-50 border border-slate-200 dark:bg-white/5 dark:border-white/10 rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold tracking-[0.5em] text-brand-600 dark:text-brand-400 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500/50 transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nouveau mot de passe</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Nouveau mot de passe</label>
                         <div class="relative">
                             <input id="reset-password" type="password" placeholder="Min. 8 caractères"
-                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all">
-                            <button type="button" onclick="togglePwd('reset-password', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300">
+                                class="w-full bg-slate-50 border border-slate-200 dark:bg-white/5 dark:border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500/50 transition-all">
+                            <button type="button" onclick="togglePwd('reset-password', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                                 <i data-lucide="eye" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Confirmer le mot de passe</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Confirmer le mot de passe</label>
                         <div class="relative">
                             <input id="reset-password2" type="password" placeholder="Répétez le mot de passe"
-                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all">
-                            <button type="button" onclick="togglePwd('reset-password2', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300">
+                                class="w-full bg-slate-50 border border-slate-200 dark:bg-white/5 dark:border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500/50 transition-all">
+                            <button type="button" onclick="togglePwd('reset-password2', this)" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                                 <i data-lucide="eye" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
-                    <div id="reset-step2-error" class="hidden rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                    <div id="reset-step2-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200 px-4 py-3 text-sm flex items-start gap-2">
                         <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span id="reset-step2-msg"></span>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="goBackToEmail()" class="flex-1 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-slate-300 hover:bg-white/10 active:scale-[0.98] transition-all">
+                        <button onclick="goBackToEmail()" class="flex-1 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 px-5 py-3 text-sm font-medium active:scale-[0.98] transition-all">
                             Retour
                         </button>
                         <button onclick="submitResetConfirm()" id="btn-confirm"
-                            class="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-400 active:scale-[0.98] transition-all">
+                            class="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-400 dark:bg-brand-500 dark:hover:bg-brand-400 px-5 py-3 text-sm font-semibold text-white active:scale-[0.98] transition-all">
                             Réinitialiser <i data-lucide="check" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <button onclick="submitResetEmail()" class="w-full text-xs text-slate-500 hover:text-blue-400 transition-colors">
+                    <button onclick="submitResetEmail()" class="w-full text-xs text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                         Renvoyer le code
                     </button>
                 </div>
@@ -231,12 +255,12 @@
 
             <!-- Étape 3 : Succès -->
             <div id="step-success" class="p-8 text-center hidden">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-5">
-                    <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400"></i>
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 mb-5">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600 dark:text-emerald-400"></i>
                 </div>
-                <h2 class="text-xl font-bold text-white mb-2">Mot de passe mis à jour</h2>
-                <p class="text-sm text-slate-400 mb-6">Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.</p>
-                <button onclick="closeResetModal()" class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-400 active:scale-[0.98] transition-all">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Mot de passe mis à jour</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.</p>
+                <button onclick="closeResetModal()" class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 px-5 py-3 text-sm font-semibold text-white active:scale-[0.98] transition-all">
                     Se connecter
                 </button>
             </div>
@@ -245,6 +269,23 @@
 
     <script>
         lucide.createIcons();
+
+        function applyThemeToggleIcon() {
+            var isDark = document.documentElement.classList.contains('dark');
+            var icon = document.getElementById('theme-toggle-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                lucide.createIcons();
+            }
+        }
+        applyThemeToggleIcon();
+
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            var isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            applyThemeToggleIcon();
+        });
 
         var _resetEmail = '';
 

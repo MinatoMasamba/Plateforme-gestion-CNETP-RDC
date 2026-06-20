@@ -5,12 +5,12 @@
 
 <!-- KPI Row -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-indigo-400">{{ total_ctms }}</p>
+    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-center">
+        <p class="text-2xl font-black text-[#0095c9]">{{ total_ctms }}</p>
         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">CTM Actifs</p>
     </div>
-    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-indigo-400">{{ total_wgs }}</p>
+    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-center">
+        <p class="text-2xl font-black text-[#0095c9]">{{ total_wgs }}</p>
         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Groupes de Travail</p>
     </div>
     <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center">
@@ -25,10 +25,10 @@
 
 {% if user_sub_role == 'president' %}
 <!-- Verrouillage de la Plateforme — Président uniquement -->
-<div class="mb-6 p-5 rounded-2xl border {% if platform_locked %}border-red-400/30 bg-red-400/5{% else %}border-indigo-400/25 bg-indigo-400/5{% endif %}">
+<div class="mb-6 p-5 rounded-2xl border {% if platform_locked %}border-red-400/30 bg-red-400/5{% else %}border-[#0095c9]/25 bg-[#0095c9]/5{% endif %}">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-extrabold {% if platform_locked %}text-red-400{% else %}text-indigo-400{% endif %} flex items-center gap-2">
+            <h3 class="text-sm font-extrabold {% if platform_locked %}text-red-400{% else %}text-[#0095c9]{% endif %} flex items-center gap-2">
                 <i data-lucide="{% if platform_locked %}lock{% else %}unlock{% endif %}" class="w-4 h-4"></i>
                 Verrouillage de la plateforme — CTC &amp; CTM
             </h3>
@@ -44,7 +44,7 @@
         </div>
         <button id="platform-freeze-btn" onclick="togglePlatformFreeze(this)"
                 class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition-colors shadow-lg w-full sm:w-auto
-                       {% if platform_locked %}bg-red-500 hover:bg-red-400{% else %}bg-indigo-500 hover:bg-indigo-400{% endif %} text-white">
+                       {% if platform_locked %}bg-red-500 hover:bg-red-400{% else %}bg-[#0095c9] hover:bg-[#0095c9]{% endif %} text-white">
             <i data-lucide="{% if platform_locked %}unlock{% else %}lock{% endif %}" class="w-4 h-4"></i>
             {% if platform_locked %}Déverrouiller{% else %}Verrouiller{% endif %}
         </button>
@@ -61,11 +61,11 @@
     <a href="{% url 'web:pilotage_ctm_detail' item.ctm.number %}"
        class="module-card block rounded-xl border p-4
                 border-slate-200 dark:border-white/[8%]
-                bg-white dark:bg-white/[3%] hover:border-indigo-400/30 dark:hover:border-indigo-400/25
+                bg-white dark:bg-white/[3%] hover:border-[#0095c9]/30 dark:hover:border-[#0095c9]/25
                 cursor-pointer">
         <div class="flex items-start justify-between mb-2">
             <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
-                         bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
+                         bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                 CTM {{ item.ctm.number }}
             </span>
             <span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} experts</span>

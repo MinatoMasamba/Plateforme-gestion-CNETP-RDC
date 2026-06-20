@@ -1,3 +1,4 @@
+{% load static %}
 {% comment %}
 Widget flottant "Assistant IA CNETP" — position fixe, ne bouge pas au scroll.
 Paramètres d'inclusion :
@@ -18,22 +19,32 @@ Paramètres d'inclusion :
     .ia-md h3 { font-size: .9em; }
     .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
     .ia-md pre { background: rgba(0,0,0,.07); padding: .4em .6em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
-    .ia-md blockquote { border-left: 3px solid rgba(99,102,241,.4); padding-left: .6em; opacity: .85; }
+    .ia-md blockquote { border-left: 3px solid rgba(0,149,201,.4); padding-left: .6em; opacity: .85; }
 </style>
 
 <div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60]">
     <button onclick="toggleIaAgentPanel()"
-            class="h-14 w-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
+            class="h-14 w-14 rounded-full bg-[#0095c9] hover:brightness-110 text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
             title="Assistant IA CNETP">
         <i data-lucide="sparkles" class="h-6 w-6"></i>
     </button>
 </div>
 
-<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
+<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] max-md:!inset-3 max-md:!bottom-3 max-md:!w-auto max-md:!h-auto max-md:!max-w-none max-md:!max-h-none flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
      data-scope="{{ widget_scope }}">
 
-    <div class="shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-700 to-indigo-700 text-white">
+    <div class="flex h-1 shrink-0">
+        <div class="flex-1 bg-[#0095c9]"></div>
+        <div class="flex-1 bg-[#fff24b]"></div>
+        <div class="flex-1 bg-[#db3832]"></div>
+    </div>
+
+    <div class="shrink-0 flex items-center justify-between px-4 py-3 bg-[#0095c9] text-white">
         <div class="flex items-center gap-2 min-w-0">
+            <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white">
+                <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+                     width="24" height="24" class="w-full h-full object-cover">
+            </div>
             <i data-lucide="bot" class="h-5 w-5 shrink-0"></i>
             <div class="leading-tight min-w-0">
                 <p class="text-sm font-bold">Assistant IA CNETP</p>

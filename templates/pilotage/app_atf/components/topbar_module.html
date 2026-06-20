@@ -1,11 +1,30 @@
+{% load static %}
 <!-- ═══════════════════════════════════════════════════════════════════
      TOPBAR — ESPACE ADMINISTRATIF ADMINISTRATEURS TECHNIQUES ET FINANCIERS
 ═══════════════════════════════════════════════════════════════════ -->
-<header class="sticky top-0 z-30 flex items-center justify-between px-5 py-3
-               bg-white/90 dark:bg-black/80 backdrop-blur border-b
+<header class="sticky top-0 z-30 bg-white/90 dark:bg-black/80 backdrop-blur border-b
                border-slate-200 dark:border-white/[8%] shrink-0">
 
+    <div class="flex h-1">
+        <div class="flex-1 bg-[#0095c9]"></div>
+        <div class="flex-1 bg-[#fff24b]"></div>
+        <div class="flex-1 bg-[#db3832]"></div>
+    </div>
+
+    <div class="flex items-center justify-between px-5 py-3">
+
     <div class="flex items-center gap-3 min-w-0">
+        <div class="hidden sm:flex items-center gap-2.5 shrink-0 select-none">
+            <div class="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.15)]">
+                <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+                     width="36" height="36" class="w-full h-full object-cover">
+            </div>
+            <div class="w-[3px] h-[26px] flex flex-col rounded-sm overflow-hidden shrink-0">
+                <div class="flex-1 bg-[#0095c9]"></div>
+                <div class="h-[25%] bg-[#fff24b]"></div>
+                <div class="flex-1 bg-[#db3832]"></div>
+            </div>
+        </div>
         <button onclick="toggleATFSidebar()"
                 class="lg:hidden p-1.5 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 transition-colors">
             <i data-lucide="menu" class="w-5 h-5"></i>
@@ -43,7 +62,7 @@
         <!-- Assistant IA Pilotage -->
         <a href="{% url 'web:pilotage_ia_console' %}" title="Assistant IA Pilotage"
            class="p-2 rounded-lg border border-slate-200 dark:border-white/10
-                  hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-indigo-500 dark:text-indigo-400">
+                  hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-[#0095c9] dark:text-[#0095c9]">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
         </a>
 
@@ -54,5 +73,6 @@
             <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
             <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
         </button>
+    </div>
     </div>
 </header>

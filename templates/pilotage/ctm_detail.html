@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTM {{ ctm.number }} — {{ ctm.name }} | CNETP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -47,7 +47,7 @@
             </a>
             <span class="text-slate-300 dark:text-white/15">|</span>
             <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase shrink-0
-                         bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
+                         bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                 CTM {{ ctm.number }}
             </span>
             <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white truncate">
@@ -69,10 +69,10 @@
         <div class="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-6">
 
             <!-- ── En-tête CTM ─────────────────────────────────────────────── -->
-            <div class="rounded-3xl border border-indigo-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 module-card animate-up">
+            <div class="rounded-3xl border border-[#0095c9]/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 module-card animate-up">
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-400/15 flex items-center justify-center shrink-0">
-                        <i data-lucide="grid-3x3" class="w-6 h-6 text-indigo-400"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="grid-3x3" class="w-6 h-6 text-[#0095c9]"></i>
                     </div>
                     <div class="min-w-0 flex-1">
                         <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">CTM {{ ctm.number }} — {{ ctm.name }}</h2>
@@ -88,16 +88,16 @@
 
                 <!-- KPI -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-                    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-3 text-center">
-                        <p class="text-xl font-black text-indigo-400">{{ wgs_with_stats|length }}</p>
+                    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-3 text-center">
+                        <p class="text-xl font-black text-[#0095c9]">{{ wgs_with_stats|length }}</p>
                         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Groupes de Travail</p>
                     </div>
-                    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-3 text-center">
-                        <p class="text-xl font-black text-indigo-400">{{ affectations|length }}</p>
+                    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-3 text-center">
+                        <p class="text-xl font-black text-[#0095c9]">{{ affectations|length }}</p>
                         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Experts Membres</p>
                     </div>
-                    <div class="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-3 text-center">
-                        <p class="text-xl font-black text-indigo-400">{{ normes_en_cours|length }}</p>
+                    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-3 text-center">
+                        <p class="text-xl font-black text-[#0095c9]">{{ normes_en_cours|length }}</p>
                         <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Normes en Travail</p>
                     </div>
                     <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-3 text-center">
@@ -131,7 +131,7 @@
 
             <!-- ── Groupes de Travail ──────────────────────────────────────── -->
             <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
-                <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-4">
+                <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="git-branch" class="w-4 h-4"></i> Groupes de Travail
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -139,7 +139,7 @@
                     <div class="rounded-xl border border-slate-200 dark:border-white/[8%] bg-white dark:bg-white/[3%] p-4">
                         <div class="flex items-start justify-between mb-2">
                             <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
-                                         bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
+                                         bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                                 WG {{ ctm.number }}.{{ item.wg.number }}
                             </span>
                             <span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} expert{{ item.member_count|pluralize }}</span>
@@ -161,7 +161,7 @@
 
             <!-- ── Experts membres ─────────────────────────────────────────── -->
             <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
-                <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-4">
+                <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="users" class="w-4 h-4"></i> Experts Membres
                 </h3>
                 {% if affectations %}
@@ -187,7 +187,7 @@
                                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide
                                                  {% if a.expert.status == 'ACTIVE' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
                                                  {% elif a.expert.status == 'SUSPENDED' %}bg-red-400/10 text-red-400 border-red-400/25
-                                                 {% elif a.expert.status == 'PENDING' %}bg-indigo-400/10 text-indigo-400 border-indigo-400/25
+                                                 {% elif a.expert.status == 'PENDING' %}bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/25
                                                  {% else %}bg-slate-400/10 text-slate-400 border-slate-400/25{% endif %}">
                                         {{ a.expert.get_status_display }}
                                     </span>
@@ -206,7 +206,7 @@
 
             <!-- ── Normes en travail ───────────────────────────────────────── -->
             <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
-                <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-4">
+                <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="file-cog" class="w-4 h-4"></i> Normes en Travail
                 </h3>
                 {% if normes_en_cours %}
@@ -228,7 +228,7 @@
                                 <td class="px-2 py-2 text-slate-500">WG {{ ctm.number }}.{{ norme.wg.number }}</td>
                                 <td class="px-2 py-2">
                                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide
-                                                 bg-indigo-400/10 text-indigo-400 border-indigo-400/25">
+                                                 bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/25">
                                         {{ norme.get_status_display }}
                                     </span>
                                 </td>

@@ -13,10 +13,10 @@
 
         <!-- Avatar initiales -->
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-lg
-                    {% if pilotage_college == 'directoire' %}bg-gradient-to-br from-indigo-500 to-indigo-700
+                    {% if pilotage_college == 'directoire' %}bg-gradient-to-br from-[#0095c9] to-[#0095c9]
                     {% elif pilotage_college == 'conseiller_politique' %}bg-gradient-to-br from-blue-500 to-blue-700
                     {% elif pilotage_college == 'atf' %}bg-gradient-to-br from-emerald-500 to-emerald-700
-                    {% else %}bg-gradient-to-br from-purple-500 to-purple-700{% endif %}">
+                    {% else %}bg-gradient-to-br from-[#0095c9] to-[#0095c9]{% endif %}">
             {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
         </div>
 
@@ -69,12 +69,12 @@
         <!-- Résumé des droits (droite) -->
         <div class="flex flex-col gap-2 shrink-0 text-right text-[10.5px]">
             {% if can_trigger_steps %}
-            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
+            <span class="flex items-center gap-1.5 font-semibold text-[#0095c9]">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i> Validation étapes 1–7
             </span>
             {% endif %}
             {% if can_manage_access %}
-            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
+            <span class="flex items-center gap-1.5 font-semibold text-[#0095c9]">
                 <i data-lucide="users" class="w-3.5 h-3.5"></i> Gestion accès experts
             </span>
             {% endif %}
@@ -94,12 +94,12 @@
             </span>
             {% endif %}
             {% if can_avis_prive %}
-            <span class="flex items-center gap-1.5 font-semibold text-purple-400">
+            <span class="flex items-center gap-1.5 font-semibold text-[#0095c9]">
                 <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Avis Secteur Privé (FEC)
             </span>
             {% endif %}
             {% if can_agrement_metro %}
-            <span class="flex items-center gap-1.5 font-semibold text-indigo-400">
+            <span class="flex items-center gap-1.5 font-semibold text-[#0095c9]">
                 <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Agréation Métrologique (OCC)
             </span>
             {% endif %}

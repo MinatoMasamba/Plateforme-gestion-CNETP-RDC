@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comité de Pilotage — CNETP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -43,11 +43,29 @@
     <!-- ═══════════════════════════════════════════
          TOPBAR
     ═══════════════════════════════════════════ -->
-    <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-y-2 gap-x-3 px-3 sm:px-5 py-3
-                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-black/80 backdrop-blur border-b
                    border-slate-200 dark:border-white/[8%] shrink-0">
 
+        <div class="flex h-1">
+            <div class="flex-1 bg-[#0095c9]"></div>
+            <div class="flex-1 bg-[#fff24b]"></div>
+            <div class="flex-1 bg-[#db3832]"></div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-y-2 gap-x-3 px-3 sm:px-5 py-3">
+
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
+            <div class="hidden sm:flex items-center gap-2.5 shrink-0 select-none">
+                <div class="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.15)]">
+                    <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+                         width="36" height="36" class="w-full h-full object-cover">
+                </div>
+                <div class="w-[3px] h-[26px] flex flex-col rounded-sm overflow-hidden shrink-0">
+                    <div class="flex-1 bg-[#0095c9]"></div>
+                    <div class="h-[25%] bg-[#fff24b]"></div>
+                    <div class="flex-1 bg-[#db3832]"></div>
+                </div>
+            </div>
             {% if can_view_global_console or can_trigger_steps or can_acknowledge_reception or can_approve_requests %}
             <button onclick="togglePilotageSidebar()" title="Afficher/masquer le menu"
                     class="p-1.5 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 transition-colors">
@@ -63,8 +81,8 @@
                 Comité de Pilotage Élargi
             </h1>
             <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border hidden sm:inline-block
-                         bg-indigo-50 text-indigo-700 border-indigo-300
-                         dark:bg-indigo-400/10 dark:text-indigo-400 dark:border-indigo-400/25
+                         bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30
+                         dark:bg-[#0095c9]/10 dark:text-[#0095c9] dark:border-[#0095c9]/25
                          uppercase tracking-widest">
                 27 Postes
             </span>
@@ -98,7 +116,7 @@
             <button onclick="switchPilotagePanel('panel-cadrage')"
                     title="{{ pending_cadrages_count }} cadrage{{ pending_cadrages_count|pluralize }} à traiter"
                     class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
-                           bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors">
+                           bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30 hover:bg-[#0095c9]/20 transition-colors">
                 <i data-lucide="compass" class="w-3.5 h-3.5 animate-pulse"></i>
                 {{ pending_cadrages_count }}<span class="hidden sm:inline"> cadrage{{ pending_cadrages_count|pluralize }} à traiter</span>
             </button>
@@ -108,7 +126,7 @@
             {% if can_trigger_steps %}
             <a href="{% url 'web:pilotage_directoire_app' %}" title="Espace Bureau Directoire"
                class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
-                      bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors">
+                      bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30 hover:bg-[#0095c9]/20 transition-colors">
                 <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">Espace Bureau Directoire</span>
             </a>
@@ -137,7 +155,7 @@
             <!-- Assistant IA Pilotage -->
             <a href="{% url 'web:pilotage_ia_console' %}" title="Assistant IA Pilotage"
                class="p-2 rounded-lg border border-slate-200 dark:border-white/10
-                      hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-indigo-500 dark:text-indigo-400">
+                      hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-[#0095c9] dark:text-[#0095c9]">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
             </a>
 
@@ -148,6 +166,7 @@
                 <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
                 <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
             </button>
+        </div>
         </div>
     </header>
 
@@ -183,8 +202,8 @@
                         class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
                                border border-transparent transition-all
                                hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-400/15 flex items-center justify-center shrink-0">
-                        <i data-lucide="grid-3x3" class="w-4 h-4 text-indigo-400"></i>
+                    <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="grid-3x3" class="w-4 h-4 text-[#0095c9]"></i>
                     </div>
                     <p class="text-xs font-bold leading-snug flex-1">État des 8 Comités Techniques Miroirs</p>
                 </button>
@@ -195,12 +214,12 @@
                         class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
                                border border-transparent transition-all
                                hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-400/15 flex items-center justify-center shrink-0">
-                        <i data-lucide="compass" class="w-4 h-4 text-indigo-400"></i>
+                    <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="compass" class="w-4 h-4 text-[#0095c9]"></i>
                     </div>
                     <p class="text-xs font-bold leading-snug flex-1">Cadrage Bureau Directoire — Phases 1 & 2</p>
                     {% if pending_cadrages_count > 0 %}
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-400/15 text-indigo-400 border border-indigo-400/30 shrink-0">
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#0095c9]/15 text-[#0095c9] border border-[#0095c9]/30 shrink-0">
                         {{ pending_cadrages_count }}
                     </span>
                     {% endif %}
@@ -268,8 +287,8 @@
         {% if can_view_global_console %}
         <section id="panel-ctm" class="pilotage-view hidden animate-up" style="animation-delay:.05s">
             <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-400"></i>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
                     Console Globale de Supervision
                 </h2>
             </div>
@@ -346,8 +365,8 @@
         {% if can_avis_prive %}
         <section class="animate-up" style="animation-delay:.2s">
             <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="briefcase" class="w-4 h-4 text-purple-400"></i>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                <i data-lucide="briefcase" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
                     Widget d'Avis du Secteur Privé — FEC
                 </h2>
             </div>
@@ -359,8 +378,8 @@
         {% if can_agrement_metro %}
         <section class="animate-up" style="animation-delay:.25s">
             <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                <i data-lucide="shield-check" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
                     Console d'Agréation Métrologique — OCC
                 </h2>
             </div>
@@ -412,12 +431,12 @@
                 <div class="flex items-center gap-3 p-3 rounded-xl border
                             bg-white dark:bg-white/[3%] border-slate-200 dark:border-white/[8%] text-sm">
                     <span class="w-2 h-2 rounded-full shrink-0
-                        {% if req.status == 'PENDING' %}bg-indigo-400
+                        {% if req.status == 'PENDING' %}bg-[#0095c9]
                         {% elif req.status == 'APPROVED' %}bg-emerald-400
                         {% else %}bg-red-400{% endif %}"></span>
                     <span class="flex-1 font-medium truncate text-xs">{{ req.restricted_resource }}</span>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
-                        {% if req.status == 'PENDING' %}bg-indigo-400/10 text-indigo-400 border-indigo-400/25
+                        {% if req.status == 'PENDING' %}bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/25
                         {% elif req.status == 'APPROVED' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
                         {% else %}bg-red-400/10 text-red-400 border-red-400/25{% endif %}">
                         {{ req.get_status_display }}
@@ -433,13 +452,13 @@
         {% if can_trigger_steps %}
         <section id="panel-cadrage" class="pilotage-view hidden animate-up" style="animation-delay:.4s">
             <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="compass" class="w-4 h-4 text-indigo-400"></i>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                <i data-lucide="compass" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
                     Cadrage Bureau Directoire — Phases 1 & 2
                 </h2>
                 {% if pending_cadrages_count > 0 %}
                 <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
-                             bg-indigo-400/15 text-indigo-400 border border-indigo-400/30">
+                             bg-[#0095c9]/15 text-[#0095c9] border border-[#0095c9]/30">
                     {{ pending_cadrages_count }} en attente
                 </span>
                 {% endif %}
@@ -471,8 +490,8 @@
         {% if can_approve_requests %}
         <section id="panel-requests" class="pilotage-view hidden animate-up" style="animation-delay:.45s">
             <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="inbox" class="w-4 h-4 text-indigo-400"></i>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">
+                <i data-lucide="inbox" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
                     Demandes de Dérogation — À Traiter
                 </h2>
                 {% if pending_requests_count > 0 %}
@@ -657,7 +676,7 @@
             const colors = {
                 success: 'bg-emerald-500 text-white',
                 error:   'bg-red-500 text-white',
-                warning: 'bg-indigo-500 text-white',
+                warning: 'bg-[#0095c9] text-white',
             };
             const t = document.createElement('div');
             t.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-xl ${colors[type] || colors.success}`;

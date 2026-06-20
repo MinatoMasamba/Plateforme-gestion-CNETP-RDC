@@ -10,7 +10,7 @@ class User_Simple(forms.ModelForm):
     """ Formulaire pour inscrire les utilisateurs simples """
     
     # Classes Tailwind Néo-Glassmorphism pour les inputs
-    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300'
+    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#009FE3]/50 focus:border-[#009FE3] transition-all duration-300'
 
     first_name = forms.CharField(
         max_length=150,
@@ -96,7 +96,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Prénom",
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'Votre prénom'
         })
     )
@@ -106,7 +106,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Nom et Post-nom",
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'Votre nom et post-nom'
         })
     )
@@ -115,7 +115,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Email",
         widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'votre.email@exemple.com'
         })
     )
@@ -125,7 +125,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Mot de passe",
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'Min 8 caractères'
         })
     )
@@ -135,7 +135,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Confirmer le mot de passe",
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'Confirmez votre mot de passe'
         })
     )
@@ -146,7 +146,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=True,
         label="Organisation",
         widget=forms.Select(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent'
         })
     )
     
@@ -155,7 +155,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=False,
         label="Domaines de compétence",
         widget=forms.Textarea(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': 'Ex: Géotechnique, Structures en béton, ...',
             'rows': 3
         })
@@ -166,7 +166,7 @@ class ExpertRegistrationForm(forms.ModelForm):
         required=False,
         label="Numéro WhatsApp",
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009FE3] focus:border-transparent',
             'placeholder': '+243 81 234 5678'
         })
     )
@@ -303,9 +303,10 @@ class ExpertRegistrationForm(forms.ModelForm):
             email=self.cleaned_data['email'],
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
-            password=self.cleaned_data['password']
+            password=self.cleaned_data['password'],
+            is_expert=True
         )
-        
+
         # Créer l'expert
         expert = super().save(commit=False)
         expert.user = user
@@ -364,18 +365,18 @@ logger = logging.getLogger(__name__)
 class UserLoginForm(forms.Form):
     """Formulaire de connexion pour les utilisateurs simples"""
     
-    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300'
+    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-300'
 
     email = forms.EmailField(
-        label='Email', 
+        label='Email',
         widget=forms.EmailInput(attrs={
             'class': GLASS_INPUT_CLASSES,
             'placeholder': 'votre.email@exemple.com'
         })
     )
-    
+
     password = forms.CharField(
-        label='Mot de passe', 
+        label='Mot de passe',
         widget=forms.PasswordInput(attrs={
             'class': GLASS_INPUT_CLASSES,
             'placeholder': '••••••••'
@@ -442,18 +443,18 @@ class UserLoginForm(forms.Form):
 class ExpertLoginForm(forms.Form):
     """Formulaire de connexion pour les experts avec diagnostic précis"""
     
-    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300'
+    GLASS_INPUT_CLASSES = 'w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-300'
 
     email = forms.EmailField(
-        label='Email', 
+        label='Email',
         widget=forms.EmailInput(attrs={
             'class': GLASS_INPUT_CLASSES,
             'placeholder': 'expert@cnetp.cd'
         })
     )
-    
+
     password = forms.CharField(
-        label='Mot de passe', 
+        label='Mot de passe',
         widget=forms.PasswordInput(attrs={
             'class': GLASS_INPUT_CLASSES,
             'placeholder': '••••••••'

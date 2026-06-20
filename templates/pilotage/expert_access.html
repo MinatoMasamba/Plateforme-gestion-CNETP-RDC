@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Accès Experts | CNETP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
         const theme = localStorage.getItem('theme-preference') || 'dark';
@@ -63,10 +63,10 @@
         <div class="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
 
             <!-- ── En-tête ──────────────────────────────────────────────────── -->
-            <div class="rounded-3xl border border-indigo-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 animate-up">
+            <div class="rounded-3xl border border-[#0095c9]/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 animate-up">
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-400/15 flex items-center justify-center shrink-0">
-                        <i data-lucide="key" class="w-6 h-6 text-indigo-400"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="key" class="w-6 h-6 text-[#0095c9]"></i>
                     </div>
                     <div class="min-w-0 flex-1">
                         <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Gestion des Accès Experts</h2>
@@ -85,7 +85,7 @@
                                class="w-full pl-9 pr-3 py-2 rounded-lg text-xs border
                                       border-slate-300 dark:border-white/10 bg-white dark:bg-white/[3%]
                                       text-slate-700 dark:text-slate-200 placeholder-slate-400
-                                      focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                                      focus:outline-none focus:ring-1 focus:ring-[#0095c9]">
                     </div>
                 </div>
             </div>
@@ -118,7 +118,7 @@
                                         {% for a in e.governance_affectations.all %}
                                         <span id="affectation-{{ a.pk }}"
                                               class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
-                                                     bg-indigo-400/10 text-indigo-400 border border-indigo-400/20">
+                                                     bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                                             CTM {{ a.ctm.number }} / WG {{ a.ctm.number }}.{{ a.wg.number }} — {{ a.role }}
                                             <button onclick="excludeAffectation({{ a.pk }}, document.getElementById('affectation-{{ a.pk }}'), this)"
                                                     title="Exclure de ce WG / CTM"
@@ -136,7 +136,7 @@
                                           class="text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide
                                                  {% if e.status == 'ACTIVE' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/25
                                                  {% elif e.status == 'SUSPENDED' %}bg-red-400/10 text-red-400 border-red-400/25
-                                                 {% elif e.status == 'PENDING' %}bg-indigo-400/10 text-indigo-400 border-indigo-400/25
+                                                 {% elif e.status == 'PENDING' %}bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/25
                                                  {% else %}bg-slate-400/10 text-slate-400 border-slate-400/25{% endif %}">
                                         {{ e.get_status_display }}
                                     </span>
@@ -203,7 +203,7 @@
         const STATUS_BADGE_CLASSES = {
             ACTIVE:    'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-emerald-400/10 text-emerald-400 border-emerald-400/25',
             SUSPENDED: 'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-red-400/10 text-red-400 border-red-400/25',
-            PENDING:   'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-indigo-400/10 text-indigo-400 border-indigo-400/25',
+            PENDING:   'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/25',
         };
         const STATUS_BADGE_DEFAULT = 'text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide bg-slate-400/10 text-slate-400 border-slate-400/25';
 

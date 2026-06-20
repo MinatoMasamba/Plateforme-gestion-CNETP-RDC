@@ -9,8 +9,7 @@
             {% elif module_color == 'blue' %}border-blue-400/15 bg-blue-400/[3%]
             {% elif module_color == 'emerald' %}border-emerald-400/15 bg-emerald-400/[3%]
             {% elif module_color == 'teal' %}border-teal-400/15 bg-teal-400/[3%]
-            {% elif module_color == 'purple' %}border-purple-400/15 bg-purple-400/[3%]
-            {% elif module_color == 'indigo' %}border-indigo-400/15 bg-indigo-400/[3%]
+            {% elif module_color == 'purple' or module_color == 'indigo' %}border-[#0095c9]/15 bg-[#0095c9]/[3%]
             {% else %}border-slate-200 dark:border-white/[8%] bg-white dark:bg-white/[2%]{% endif %}
             p-5 opacity-80">
 
@@ -21,8 +20,7 @@
                     {% elif module_color == 'blue' %}bg-blue-400/15
                     {% elif module_color == 'emerald' %}bg-emerald-400/15
                     {% elif module_color == 'teal' %}bg-teal-400/15
-                    {% elif module_color == 'purple' %}bg-purple-400/15
-                    {% elif module_color == 'indigo' %}bg-indigo-400/15
+                    {% elif module_color == 'purple' or module_color == 'indigo' %}bg-[#0095c9]/15
                     {% else %}bg-slate-400/15{% endif %}">
             <i data-lucide="{{ module_icon|default:'lock' }}"
                class="w-5 h-5
@@ -30,8 +28,7 @@
                       {% elif module_color == 'blue' %}text-blue-400/50
                       {% elif module_color == 'emerald' %}text-emerald-400/50
                       {% elif module_color == 'teal' %}text-teal-400/50
-                      {% elif module_color == 'purple' %}text-purple-400/50
-                      {% elif module_color == 'indigo' %}text-indigo-400/50
+                      {% elif module_color == 'purple' or module_color == 'indigo' %}text-[#0095c9]/50
                       {% else %}text-slate-400/50{% endif %}"></i>
         </div>
         <div class="flex-1 min-w-0">
@@ -53,8 +50,8 @@
     <button onclick="openPermissionModal('{{ module_name }}')"
             class="w-full py-2 px-3 rounded-xl border text-[10.5px] font-extrabold uppercase tracking-wide
                    transition-colors flex items-center justify-center gap-2
-                   border-indigo-400/30 bg-indigo-400/[8%] text-indigo-400
-                   hover:bg-indigo-400/15 hover:border-indigo-400/50">
+                   border-[#0095c9]/30 bg-[#0095c9]/[8%] text-[#0095c9]
+                   hover:bg-[#0095c9]/15 hover:border-[#0095c9]/50">
         <i data-lucide="key" class="w-3.5 h-3.5"></i>
         Demander une Dérogation au Directoire
     </button>

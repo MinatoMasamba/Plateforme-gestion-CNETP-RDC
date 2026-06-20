@@ -79,7 +79,7 @@ class UserAdmin(BaseUserAdmin):
         ('Informations CNETP', {'fields': ('phone', 'province', 'bio', 'profile_picture')}),
         ('Permissions CNETP', {'fields': ('is_expert', 'is_ctc_staff', 'is_minister')}),
     )
-    list_display = ('username', 'get_full_name', 'email', 'is_expert', 'is_ctc_staff', 'is_minister', 'created_at')
+    list_display = ('username', 'get_full_name', 'email', 'phone', 'province', 'is_expert', 'is_ctc_staff', 'is_minister', 'created_at')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     list_filter = ('is_expert', 'is_ctc_staff', 'is_minister', 'created_at')
     inlines = [ExpertInline]

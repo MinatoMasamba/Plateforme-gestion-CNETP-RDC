@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bureau Directoire — Espace Administratif | CNETP</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
 
     <script>
@@ -224,7 +224,7 @@
                 iconEl.className = 'h-5 w-5 text-red-400';
             } else if (type === 'warning') {
                 iconEl.setAttribute('data-lucide', 'alert-triangle');
-                iconEl.className = 'h-5 w-5 text-indigo-400';
+                iconEl.className = 'h-5 w-5 text-[#0095c9]';
             } else {
                 iconEl.setAttribute('data-lucide', 'check-circle-2');
                 iconEl.className = 'h-5 w-5 text-blue-400';

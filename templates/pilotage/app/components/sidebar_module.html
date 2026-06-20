@@ -26,8 +26,8 @@
                 class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
                        border border-transparent transition-all
                        hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
-            <div class="w-9 h-9 rounded-xl bg-indigo-400/15 flex items-center justify-center shrink-0">
-                <i data-lucide="play-circle" class="w-4 h-4 text-indigo-400"></i>
+            <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+                <i data-lucide="play-circle" class="w-4 h-4 text-[#0095c9]"></i>
             </div>
             <p class="text-xs font-bold leading-snug">{{ my_poste.phase1_title }}</p>
         </button>
@@ -37,12 +37,12 @@
                        border border-transparent transition-all
                        hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
             <div class="w-9 h-9 rounded-xl
-                        {% if my_poste.n == 5 %}bg-emerald-400/15{% else %}bg-indigo-400/15{% endif %}
+                        {% if my_poste.n == 5 %}bg-emerald-400/15{% else %}bg-[#0095c9]/15{% endif %}
                         flex items-center justify-center shrink-0">
                 {% if my_poste.n == 5 %}
                 <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
                 {% else %}
-                <i data-lucide="flag" class="w-4 h-4 text-indigo-400"></i>
+                <i data-lucide="flag" class="w-4 h-4 text-[#0095c9]"></i>
                 {% endif %}
             </div>
             <p class="text-xs font-bold leading-snug">{{ my_poste.phase2_title }}</p>

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pilotage IA — CNETP</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
@@ -43,29 +43,48 @@
         .ia-md h3 { font-size: .95em; }
         .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
         .ia-md pre { background: rgba(0,0,0,.07); padding: .5em .75em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
-        .ia-md blockquote { border-left: 3px solid rgba(99,102,241,.4); padding-left: .75em; opacity: .85; }
+        .ia-md blockquote { border-left: 3px solid rgba(0,149,201,.4); padding-left: .75em; opacity: .85; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
 
-    <header class="sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3
-                   bg-white/90 dark:bg-black/80 backdrop-blur border-b
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-black/80 backdrop-blur border-b
                    border-slate-200 dark:border-white/[8%] shrink-0">
+
+        <div class="flex h-1">
+            <div class="flex-1 bg-[#0095c9]"></div>
+            <div class="flex-1 bg-[#fff24b]"></div>
+            <div class="flex-1 bg-[#db3832]"></div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 px-5 py-3">
+
         <div class="flex items-center gap-3 min-w-0">
+            <div class="hidden sm:flex items-center gap-2.5 shrink-0 select-none">
+                <div class="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.15)]">
+                    <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo"
+                         width="36" height="36" class="w-full h-full object-cover">
+                </div>
+                <div class="w-[3px] h-[26px] flex flex-col rounded-sm overflow-hidden shrink-0">
+                    <div class="flex-1 bg-[#0095c9]"></div>
+                    <div class="h-[25%] bg-[#fff24b]"></div>
+                    <div class="flex-1 bg-[#db3832]"></div>
+                </div>
+            </div>
             <a href="{% url 'web:pilotage_dashboard' %}"
                class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors shrink-0">
                 <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Pilotage
             </a>
             <span class="text-slate-300 dark:text-white/15">|</span>
             <div class="flex items-center gap-2 min-w-0">
-                <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+                <i data-lucide="sparkles" class="w-4 h-4 text-[#0095c9] shrink-0"></i>
                 <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase truncate">
                     Assistant IA — Pilotage
                 </h1>
             </div>
             <span class="hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border
-                         bg-indigo-50 text-indigo-700 border-indigo-300
-                         dark:bg-indigo-400/10 dark:text-indigo-400 dark:border-indigo-400/25
+                         bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30
+                         dark:bg-[#0095c9]/10 dark:text-[#0095c9] dark:border-[#0095c9]/25
                          uppercase tracking-widest shrink-0">
                 Comité de Pilotage
             </span>
@@ -77,6 +96,7 @@
             <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
             <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
         </button>
+        </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
@@ -86,7 +106,7 @@
             <div class="p-3 shrink-0 space-y-2">
                 <button type="button" onclick="iaNewSession()"
                         class="w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg
-                               bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+                               bg-[#0095c9] hover:brightness-110 text-white transition-colors">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouvelle session
                 </button>
                 <div class="flex gap-1.5">
@@ -133,9 +153,9 @@
                               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('ia-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}"
                               class="flex-1 resize-none text-sm rounded-xl border border-slate-200 dark:border-white/10
                                      bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-3 py-2
-                                     focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                     focus:outline-none focus:ring-2 focus:ring-[#0095c9]"></textarea>
                     <button type="submit" id="ia-send-btn"
-                            class="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white
+                            class="h-10 w-10 shrink-0 rounded-xl bg-[#0095c9] hover:brightness-110 text-white
                                    flex items-center justify-center transition-colors">
                         <i data-lucide="send" class="h-4 w-4"></i>
                     </button>
@@ -229,7 +249,7 @@
             wrap.className = 'flex ia-animate ' + (isUser ? 'justify-end' : 'justify-start');
             const bubble = document.createElement('div');
             if (isUser) {
-                bubble.className = 'bg-indigo-600 text-white rounded-2xl px-4 py-2.5 max-w-[80%] whitespace-pre-wrap break-words';
+                bubble.className = 'bg-[#0095c9] text-white rounded-2xl px-4 py-2.5 max-w-[80%] whitespace-pre-wrap break-words';
                 bubble.innerHTML = iaEsc(msg.content);
             } else {
                 bubble.className = 'ia-md bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-4 py-2.5 max-w-[80%] break-words';
@@ -275,7 +295,7 @@
             const input = document.createElement(tag);
             if (tag === 'input') { input.type = type || 'text'; input.value = value || ''; }
             else { input.value = value || ''; input.rows = 4; }
-            input.className = 'w-full text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+            input.className = 'w-full text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#020204] dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#0095c9]';
             wrap.appendChild(span);
             wrap.appendChild(input);
             return {wrap, input};
@@ -305,7 +325,7 @@
             footer.className = 'flex items-center gap-2 pt-1';
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center gap-1';
+            btn.className = 'px-3 py-1.5 rounded-lg bg-[#0095c9] hover:brightness-110 text-white font-semibold text-xs flex items-center gap-1';
             btn.innerHTML = '<i data-lucide="send" class="h-3 w-3"></i> Envoyer';
             const status = document.createElement('span');
             status.className = 'text-[11px] text-slate-400';
@@ -413,7 +433,7 @@
             const link = document.createElement('a');
             link.href = '/api/v1/ia-agent/artifacts/' + artifact.id + '/download-pdf/';
             link.target = '_blank';
-            link.className = 'inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-semibold';
+            link.className = 'inline-flex items-center gap-1 text-[#0095c9] hover:underline text-xs font-semibold';
             link.innerHTML = '<i data-lucide="download" class="h-3.5 w-3.5"></i> Télécharger la demande (PDF)';
             wrap.appendChild(link);
             return wrap;
@@ -436,7 +456,7 @@
             header.className = 'w-full flex items-center gap-2 px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-left';
 
             const iconSpan = document.createElement('span');
-            iconSpan.className = 'shrink-0 text-indigo-500 dark:text-indigo-400';
+            iconSpan.className = 'shrink-0 text-[#0095c9]';
             iconSpan.innerHTML = iaArtifactIcon(artifact.artifact_type);
             header.appendChild(iconSpan);
 
@@ -512,10 +532,10 @@
         function iaHighlightSession(id) {
             document.querySelectorAll('.ia-session-item').forEach(btn => {
                 const active = String(btn.dataset.sessionId) === String(id);
-                btn.classList.toggle('bg-indigo-50', active);
-                btn.classList.toggle('dark:bg-indigo-500/10', active);
-                btn.classList.toggle('text-indigo-700', active);
-                btn.classList.toggle('dark:text-indigo-400', active);
+                btn.classList.toggle('bg-[#0095c9]/10', active);
+                btn.classList.toggle('dark:bg-[#0095c9]/10', active);
+                btn.classList.toggle('text-[#0095c9]', active);
+                btn.classList.toggle('dark:text-[#0095c9]', active);
                 btn.classList.toggle('font-extrabold', active);
             });
         }

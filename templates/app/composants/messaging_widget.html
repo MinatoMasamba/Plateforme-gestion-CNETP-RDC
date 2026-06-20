@@ -1,9 +1,9 @@
 <div id="messaging-widget-container" class="fixed bottom-6 right-6 z-50">
     
-    <button 
-        id="toggle-messaging-floating" 
-        onclick="openMessagingWidget()" 
-        class="font-bold px-4 py-3 rounded-full flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer group hover:scale-105 transition-all text-xs tracking-wider uppercase backdrop-blur-md bg-white border border-blue-300 text-blue-600 hover:border-blue-400 hover:text-blue-700 dark:bg-[#020204] dark:border-blue-500/30 dark:text-blue-400 dark:hover:border-blue-400 dark:hover:text-blue-300"
+    <button
+        id="toggle-messaging-floating"
+        onclick="openMessagingWidget()"
+        class="font-bold h-14 w-14 justify-center md:w-auto md:justify-start md:px-4 md:py-3 rounded-full flex items-center gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer group hover:scale-105 transition-all text-xs tracking-wider uppercase backdrop-blur-md bg-white border border-blue-300 text-blue-600 hover:border-blue-400 hover:text-blue-700 dark:bg-[#020204] dark:border-blue-500/30 dark:text-blue-400 dark:hover:border-blue-400 dark:hover:text-blue-300"
     >
         <div class="relative">
             <i data-lucide="message-square" class="h-5 w-5 fill-blue-100 dark:fill-blue-500/10 group-hover:animate-pulse"></i>
@@ -11,13 +11,13 @@
                 0
             </span>
         </div>
-        <span class="font-sans font-bold select-none">Messagerie CNETP</span>
-        <span class="h-2 w-2 rounded-full animate-pulse inline-block bg-blue-500"></span>
+        <span class="hidden md:inline font-sans font-bold select-none">Messagerie CNETP</span>
+        <span class="hidden md:inline-block h-2 w-2 rounded-full animate-pulse bg-blue-500"></span>
     </button>
 
-    <div 
-        id="messaging-window" 
-        class="hidden border rounded-2xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex-col backdrop-blur-xl transition-all duration-300 fixed bottom-6 right-6 w-[700px] h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] bg-white/95 border-blue-200 text-blue-900 dark:bg-[#020204]/95 dark:border-white/10 dark:text-slate-300 z-50"
+    <div
+        id="messaging-window"
+        class="hidden border rounded-2xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex-col backdrop-blur-xl transition-all duration-300 fixed bottom-6 right-6 w-[700px] h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] max-md:!inset-3 max-md:!w-auto max-md:!h-auto max-md:!max-w-none max-md:!max-h-none bg-white/95 border-blue-200 text-blue-900 dark:bg-[#020204]/95 dark:border-white/10 dark:text-slate-300 z-50"
     >
         <div class="h-14 border-b px-4.5 flex items-center justify-between shrink-0 rounded-t-2xl border-blue-200 bg-blue-50/80 dark:border-white/10 dark:bg-black/40">
             <div class="flex items-center gap-2.5">
@@ -46,7 +46,7 @@
 
         <div id="messaging-content" class="flex-1 min-h-0 flex bg-transparent">
             
-            <div class="w-64 border-r border-slate-200 dark:border-white/10 flex flex-col h-full bg-slate-50/50 dark:bg-black/25 shrink-0">
+            <div id="messaging-contacts-panel" class="w-64 max-md:w-full border-r border-slate-200 dark:border-white/10 flex flex-col h-full bg-slate-50/50 dark:bg-black/25 shrink-0">
                 <div class="p-3 border-b border-slate-200 dark:border-white/10">
                     <div class="relative">
                         <i data-lucide="search" class="absolute left-2.5 top-2.5 h-3 w-3 text-slate-500"></i>
@@ -62,18 +62,23 @@
                     </div>
             </div>
 
-            <div class="flex-1 flex flex-col h-full bg-white dark:bg-black/10">
-                
+            <div id="messaging-chat-panel" class="flex-1 flex flex-col h-full bg-white dark:bg-black/10">
+
                 <div class="px-4.5 py-3 border-b border-blue-100 bg-white/50 dark:bg-black/15 dark:border-white/5 flex items-center justify-between shrink-0">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <h4 id="active-contact-name" class="text-xs font-extrabold truncate text-slate-900 dark:text-white">...</h4>
-                            <span id="active-contact-status-dot" class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
-                            <span id="active-contact-status-text" class="text-[9px] font-mono font-bold uppercase text-slate-500">Hors ligne</span>
+                    <div class="min-w-0 flex items-center gap-2">
+                        <button onclick="setMessagingMobileView('contacts')" class="md:hidden shrink-0 p-1.5 -ml-1 rounded-md text-slate-500 hover:bg-slate-200 dark:hover:bg-white/5 transition-all cursor-pointer" title="Retour aux contacts">
+                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                        </button>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h4 id="active-contact-name" class="text-xs font-extrabold truncate text-slate-900 dark:text-white">...</h4>
+                                <span id="active-contact-status-dot" class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+                                <span id="active-contact-status-text" class="text-[9px] font-mono font-bold uppercase text-slate-500">Hors ligne</span>
+                            </div>
+                            <p class="text-[10px] truncate mt-0.5 font-medium text-slate-600 dark:text-slate-400">
+                                <span id="active-contact-role"></span> • <span id="active-contact-struct" class="font-semibold text-blue-700 dark:text-blue-400"></span>
+                            </p>
                         </div>
-                        <p class="text-[10px] truncate mt-0.5 font-medium text-slate-600 dark:text-slate-400">
-                            <span id="active-contact-role"></span> • <span id="active-contact-struct" class="font-semibold text-blue-700 dark:text-blue-400"></span>
-                        </p>
                     </div>
                 </div>
 
@@ -142,6 +147,26 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
     }
+
+    // Sous 768px, contacts et conversation se partagent l'écran à tour de rôle
+    // (sinon la colonne de contacts fixe écrase la conversation en largeur).
+    window.setMessagingMobileView = function(view) {
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+        var contactsPanel = document.getElementById('messaging-contacts-panel');
+        var chatPanel = document.getElementById('messaging-chat-panel');
+        if (!contactsPanel || !chatPanel) return;
+        if (view === 'contacts') {
+            contactsPanel.classList.remove('hidden');
+            contactsPanel.classList.add('flex');
+            chatPanel.classList.add('hidden');
+            chatPanel.classList.remove('flex');
+        } else {
+            contactsPanel.classList.add('hidden');
+            contactsPanel.classList.remove('flex');
+            chatPanel.classList.remove('hidden');
+            chatPanel.classList.add('flex');
+        }
+    };
 
     // =========================================================================
     // APPELS API
@@ -361,6 +386,7 @@
         } else if (chatState.contacts.length > 0) {
             await setActiveContact(chatState.contacts[0].id);
         } else {
+            window.setMessagingMobileView('contacts');
             renderContacts();
             renderMessages();
         }
@@ -418,6 +444,7 @@
             if (chatState.isMinimized) {
                 document.getElementById('messaging-minimized-title').textContent = 'Discuter avec ' + contact.name.split(' ')[0];
             }
+            window.setMessagingMobileView('chat');
         }
 
         renderContacts();

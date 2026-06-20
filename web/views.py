@@ -1,4 +1,5 @@
 import json
+import logging
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.decorators import login_required
@@ -15,6 +16,8 @@ from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, PilotageMembreship, CTCMembership
 from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm
 from django.contrib.auth import login as auth_login, get_user_model
+
+logger = logging.getLogger(__name__)
 
 
 def service_worker_view(request):
@@ -380,7 +383,9 @@ def password_reset_request(request):
     try:
         user = User.objects.get(email__iexact=email)
     except User.DoesNotExist:
-        # Réponse neutre pour ne pas révéler l'existence du compte
+        # Réponse neutre pour ne pas révéler l'existence du compte,
+        # mais on log côté serveur pour pouvoir diagnostiquer les "code jamais reçu".
+        logger.warning('[password_reset_request] Aucun compte pour cet email: %s', email)
         return JsonResponse({'ok': True})
 
     from apps.core.models import PasswordResetCode
@@ -411,10 +416,10 @@ def password_reset_request(request):
             fail_silently=False,
         )
     except Exception as exc:
-        import logging
-        logging.getLogger(__name__).exception('Erreur envoi code reset: %s', exc)
+        logger.exception('[password_reset_request] Erreur envoi code reset pour %s: %s', user.email, exc)
         return JsonResponse({'ok': False, 'error': 'Impossible d\'envoyer l\'email. Réessayez.'}, status=500)
 
+    logger.info('[password_reset_request] Code envoyé avec succès à %s', user.email)
     return JsonResponse({'ok': True})
 
 

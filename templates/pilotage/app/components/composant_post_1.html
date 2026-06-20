@@ -16,7 +16,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">{{ poste.title }}</h2>
                     {% if poste.is_mine %}
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-400/15 text-indigo-400 uppercase tracking-wide">Mon poste</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#0095c9]/15 text-[#0095c9] uppercase tracking-wide">Mon poste</span>
                     {% endif %}
                 </div>
                 <p class="text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">{{ poste.origin }}</p>
@@ -27,7 +27,7 @@
 
     <!-- ── Phase 1.1 — Cadrage stratégique ─────────────────────────────── -->
     <div id="post-1-phase1" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
-        <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-1">
             <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
         </h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase1_description }}</p>
@@ -40,7 +40,7 @@
 
     <!-- ── Phase 2.3 — Validation finale & signature ───────────────────── -->
     <div id="post-1-phase2" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
-        <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-2 mb-1">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-1">
             <i data-lucide="flag" class="w-4 h-4"></i> {{ poste.phase2_title }}
         </h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase2_description }}</p>
