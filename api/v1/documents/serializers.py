@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from apps.documents.models import DocumentFile
-from apps.experts.models import Expert
-from apps.core.models import User
 
 
 class DocumentFileSerializer(serializers.ModelSerializer):
@@ -11,14 +9,15 @@ class DocumentFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentFile
         fields = [
-            'id', 'expert', 'expert_name', 'file', 'filename',
-            'file_type', 'category', 'description', 'created_at'
+            'id', 'expert', 'expert_name', 'file', 'title',
+            'file_type', 'category', 'description', 'norme', 'is_public',
+            'file_size', 'created_at',
         ]
-        read_only_fields = ['id', 'expert_name', 'created_at']
+        read_only_fields = ['id', 'expert_name', 'file_size', 'created_at']
 
     def create(self, validated_data):
-        # Extract the file to get the filename
         file_obj = validated_data.get('file')
         if file_obj:
-            validated_data['filename'] = file_obj.name
+            validated_data['file_size'] = file_obj.size
+            validated_data['mime_type'] = getattr(file_obj, 'content_type', '') or ''
         return super().create(validated_data)

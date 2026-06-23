@@ -81,8 +81,9 @@ router.register(r'jetons', JetonPresenceViewSet, basename='jetons')
 # Validation routes (Legistic review)
 router.register(r'legistic-reviews', LegisticReviewViewSet, basename='legistic-reviews')
 
-# Documents routes
-router.register(r'documents', DocumentsAPIView, basename='documents')
+# Documents routes (upload / gestion experts)
+router.register(r'documents', DocumentFileViewSet, basename='documents')
+router.register(r'documents-bridge', DocumentsAPIView, basename='documents-bridge')
 router.register(r'collaborators', CollaboratorsAPIView, basename='collaborators')
 
 # Messaging routes
@@ -97,10 +98,10 @@ router.register(r'ia-agent/artifacts', AgentArtifactViewSet, basename='ia-agent-
 
 # SIDEBAR API ROUTES (Cahier des Charges Co-Gouvernance)
 router.register(r'working-groups', WorkingGroupSidebarViewSet, basename='working-groups-sidebar')
-router.register(r'experts', ExpertSidebarViewSet, basename='experts-sidebar')
-router.register(r'documents', DocumentSidebarViewSet, basename='documents-sidebar')
-router.register(r'meetings', MeetingSidebarViewSet, basename='meetings-sidebar')
-router.register(r'budgets', BudgetSidebarViewSet, basename='budgets-sidebar')
+router.register(r'sidebar/experts', ExpertSidebarViewSet, basename='experts-sidebar')
+router.register(r'sidebar/documents', DocumentSidebarViewSet, basename='documents-sidebar')
+router.register(r'sidebar/meetings', MeetingSidebarViewSet, basename='meetings-sidebar')
+router.register(r'sidebar/budgets', BudgetSidebarViewSet, basename='budgets-sidebar')
 router.register(r'dashboard/kpis', DashboardKPIsViewSet, basename='dashboard-kpis')
 router.register(r'tasks', TaskDetailViewSet, basename='tasks-sidebar')
 router.register(r'document-history', DocumentHistoryViewSet, basename='document-history')
