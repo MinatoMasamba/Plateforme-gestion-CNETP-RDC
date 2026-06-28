@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f4f4f4; }
+        .header { background: #1E40AF; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background: white; padding: 20px; }
+        .footer { background: #333; color: white; padding: 10px; text-align: center; border-radius: 0 0 5px 5px; font-size: 12px; }
+        .role-block { border-left: 3px solid #1E40AF; padding: 10px 15px; margin: 12px 0; background: #f8f9fa; }
+        .role-title { font-weight: bold; color: #1E40AF; margin-bottom: 6px; }
+        .role-block ul { margin: 0; padding-left: 18px; }
+        .contact-box { margin-top: 20px; padding: 12px 15px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 5px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 {{ title }}</h1>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ user.get_full_name|default:user.email }},</p>
+
+            <p>Dans le cadre de votre engagement au sein du CNETP, voici le récapitulatif de ce que vous devez faire selon le(s) poste(s) qui vous ont été confiés :</p>
+
+            {% for block in data.role_blocks %}
+            <div class="role-block">
+                <div class="role-title">{{ block.label }}</div>
+                <ul>
+                    {% for duty in block.duties %}
+                    <li>{{ duty }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+
+            <p>Merci de vous connecter régulièrement à la plateforme pour suivre vos dossiers, voter sur les normes en cours et participer aux réunions de votre comité.</p>
+
+            {% if data.dev_contact %}
+            <div class="contact-box">
+                📞 Pour toute question technique sur la plateforme, contactez le développeur au <strong>{{ data.dev_contact }}</strong>.
+            </div>
+            {% endif %}
+
+            <p>Cordialement,<br>L'équipe CNETP</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 CNETP. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>
