@@ -13,9 +13,9 @@
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Poste {{ poste.n }} — {{ poste.title }}</h2>
+                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">{{ poste.title }}</h2>
                     {% if poste.is_mine %}
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-400/15 text-blue-400 uppercase tracking-wide">Mon poste</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#0095c9]/15 text-[#0095c9] uppercase tracking-wide">Mon poste</span>
                     {% endif %}
                 </div>
                 <p class="text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">{{ poste.origin }}</p>
@@ -23,6 +23,15 @@
             </div>
         </div>
     </div>
+
+    <!-- ── Phase 1 — Vue d'ensemble ─────────────────────────────────────── -->
+    <div id="post-8-phase1" class="poste-section space-y-6">
+        <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-1">
+                <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ poste.phase1_description }}</p>
+        </div>
 
     <!-- ── Cadre d'intervention ─────────────────────────────────────────── -->
     <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
@@ -78,5 +87,6 @@
         {% include "pilotage/composants/widget_planification.html" %}
     </div>
 
+    </div>
 </div>
 {% endwith %}

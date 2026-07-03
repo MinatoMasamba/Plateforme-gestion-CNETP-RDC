@@ -13,9 +13,9 @@
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Poste {{ poste.n }} — {{ poste.title }}</h2>
+                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">{{ poste.title }}</h2>
                     {% if poste.is_mine %}
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-400/15 text-blue-400 uppercase tracking-wide">Mon poste</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#0095c9]/15 text-[#0095c9] uppercase tracking-wide">Mon poste</span>
                     {% endif %}
                 </div>
                 <p class="text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">{{ poste.origin }}</p>
@@ -68,6 +68,33 @@
                 </ul>
             </div>
         </div>
+    </div>
+
+    <!-- ── Phase 1 — Production ─────────────────────────────────────────── -->
+    <div id="post-6-phase1" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.08s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-1">
+            <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase1_description }}</p>
+        {% include "pilotage/composants/parcours_norme_phase1.html" %}
+    </div>
+
+    <!-- ── Phase 2 — Contrôle et Validation ─────────────────────────────── -->
+    <div id="post-6-phase2" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-500 flex items-center gap-2 mb-1">
+            <i data-lucide="flag" class="w-4 h-4"></i> {{ poste.phase2_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase2_description }}</p>
+        {% include "pilotage/composants/parcours_norme_phase2.html" %}
+    </div>
+
+    <!-- ── Phase 3 — Sanction et Vulgarisation ───────────────────────────── -->
+    <div id="post-6-phase3" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.12s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2 mb-1">
+            <i data-lucide="file-check-2" class="w-4 h-4"></i> {{ poste.phase3_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase3_description }}</p>
+        {% include "pilotage/composants/parcours_norme_phase3.html" %}
     </div>
 
     <!-- ── Widget Planification — Enquête Publique Nationale ───────────── -->

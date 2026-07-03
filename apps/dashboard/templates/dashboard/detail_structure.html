@@ -1,0 +1,170 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ structure.acronym }} — CNETP{% endblock %}
+{% block page_title %}{{ structure.name }}{% endblock %}
+{% block page_subtitle %}Fiche détaillée de la structure — {{ structure.acronym }}{% endblock %}
+
+{% block content %}
+
+<!-- Retour -->
+<div class="mb-4">
+  <a href="{% url 'dashboard:par_structure' %}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800">
+    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Retour aux structures
+  </a>
+</div>
+
+<!-- Header structure -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-5 flex flex-col sm:flex-row sm:items-center gap-4">
+  <div class="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold" style="background:#1a3a6b;">
+    {{ structure.acronym|slice:":2" }}
+  </div>
+  <div class="flex-1">
+    <h3 class="text-base font-bold text-slate-900">{{ structure.name }}</h3>
+    <p class="text-xs text-slate-500 mt-0.5">{{ structure.get_category_display }} • {{ structure.acronym }}</p>
+    {% if structure.contact_person %}<p class="text-xs text-slate-500">Contact : {{ structure.contact_person }}</p>{% endif %}
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+    <div class="bg-slate-50 rounded-lg p-3">
+      <div class="text-xl font-bold text-slate-900">{{ total }}</div>
+      <div class="text-xs text-slate-500">Total</div>
+    </div>
+    <div class="bg-emerald-50 rounded-lg p-3">
+      <div class="text-xl font-bold text-emerald-700">{{ status_counts.active }}</div>
+      <div class="text-xs text-emerald-600">Actifs</div>
+    </div>
+    <div class="bg-amber-50 rounded-lg p-3">
+      <div class="text-xl font-bold text-amber-700">{{ status_counts.pending }}</div>
+      <div class="text-xs text-amber-600">En attente</div>
+    </div>
+    <div class="bg-red-50 rounded-lg p-3">
+      <div class="text-xl font-bold text-red-600">{{ status_counts.rejected }}</div>
+      <div class="text-xs text-red-500">Rejetés</div>
+    </div>
+  </div>
+</div>
+
+<!-- Courbe mensuelle -->
+<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-5">
+  <h2 class="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
+    <i data-lucide="activity" class="w-4 h-4 text-slate-400"></i>
+    Évolution des inscriptions — 12 derniers mois
+  </h2>
+  <div class="h-48 relative w-full">
+    <canvas id="chart-monthly"></canvas>
+  </div>
+</div>
+
+<!-- Filtre statut + tableau experts -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+  <div class="px-5 py-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+        <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
+        Experts de {{ structure.acronym }}
+      </h2>
+      <p class="text-xs text-slate-500 mt-0.5">{{ experts|length }} expert{{ experts|length|pluralize }} affiché{{ experts|length|pluralize }}</p>
+    </div>
+    <!-- Filtre rapide par statut -->
+    <div class="flex bg-slate-200 p-1 rounded-lg gap-0.5 overflow-x-auto">
+      {% for status_val, status_label in statut_choices %}{% endfor %}
+      <a href="?{% if filters.status %}{% else %}{% endif %}"
+         class="px-3 py-1 rounded-md text-xs font-medium {% if not filters.status %}bg-white shadow-sm text-slate-900{% else %}text-slate-500 hover:text-slate-900{% endif %}">
+        Tous
+      </a>
+      <a href="?status=ACTIVE"
+         class="px-3 py-1 rounded-md text-xs font-medium {% if filters.status == 'ACTIVE' %}bg-white shadow-sm text-slate-900{% else %}text-slate-500 hover:text-slate-900{% endif %}">
+        Actifs
+      </a>
+      <a href="?status=PENDING"
+         class="px-3 py-1 rounded-md text-xs font-medium {% if filters.status == 'PENDING' %}bg-white shadow-sm text-slate-900{% else %}text-slate-500 hover:text-slate-900{% endif %}">
+        En attente
+      </a>
+      <a href="?status=REJECTED"
+         class="px-3 py-1 rounded-md text-xs font-medium {% if filters.status == 'REJECTED' %}bg-white shadow-sm text-slate-900{% else %}text-slate-500 hover:text-slate-900{% endif %}">
+        Rejetés
+      </a>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
+        <tr>
+          <th class="px-5 py-3 font-semibold text-xs">Expert</th>
+          <th class="px-5 py-3 font-semibold text-xs">CTM</th>
+          <th class="px-5 py-3 font-semibold text-xs">Spécialités</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Statut</th>
+          <th class="px-5 py-3 font-semibold text-xs">Date d'inscription</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for expert in experts %}
+        <tr class="hover:bg-blue-50 transition-colors">
+          <td class="px-5 py-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold" style="background:#1a3a6b;">
+                {{ expert.user.first_name|slice:":1" }}{{ expert.user.last_name|slice:":1" }}
+              </div>
+              <div>
+                <div class="font-semibold text-slate-900 text-xs">{{ expert.user.get_full_name }}</div>
+                <div class="text-slate-400 text-xs">{{ expert.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-xs text-slate-500">{{ expert.ctm.name|default:"—"|truncatechars:22 }}</td>
+          <td class="px-5 py-3 text-xs text-slate-400">{{ expert.specialties|truncatechars:30|default:"—" }}</td>
+          <td class="px-5 py-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium badge-{{ expert.status }}">{{ expert.get_status_display }}</span>
+          </td>
+          <td class="px-5 py-3 text-xs text-slate-400">{{ expert.inscription_date|date:"d/m/Y" }}</td>
+          <td class="px-5 py-3 text-right">
+            <a href="{% url 'dashboard:expert_detail' expert.pk %}"
+               class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs border border-slate-200 text-slate-600 hover:bg-slate-50">
+              <i data-lucide="eye" class="w-3 h-3"></i> Voir
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-slate-400 text-sm py-10">
+            <i data-lucide="inbox" class="w-7 h-7 mx-auto mb-2 text-slate-300"></i>
+            <p>Aucun expert pour ce filtre</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const monthly = {{ chart_monthly|safe }};
+new Chart(document.getElementById('chart-monthly'), {
+  type: 'line',
+  data: {
+    labels: monthly.labels,
+    datasets: [{
+      label: 'Inscriptions',
+      data: monthly.values,
+      borderColor: '#1a3a6b',
+      backgroundColor: 'rgba(26,58,107,.08)',
+      borderWidth: 2.5,
+      tension: .4,
+      fill: true,
+      pointBackgroundColor: '#1a3a6b',
+      pointRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e2e8f0' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

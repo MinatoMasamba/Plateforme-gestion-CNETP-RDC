@@ -279,6 +279,22 @@ _CONSEILLERS_POSTES = [
             "Ministre dès l'ouverture d'un dossier (Phase 1.1 du Bureau Directoire) "
             "et alerte sur les arbitrages sensibles à anticiper."
         ),
+        'phase1_title': "Phase de Production",
+        'phase1_description': (
+            "Le Conseiller Technique ne rédige pas le texte lui-même, mais assure "
+            "le suivi rigoureux du chronogramme et sert d'interface politique "
+            "pendant que la sous-commission édite la norme."
+        ),
+        'phase2_title': "Phase de Contrôle et Validation",
+        'phase2_description': (
+            "Sa phase d'action principale : contrôle de conformité stratégique du "
+            "texte finalisé avant son passage en Assemblée Plénière."
+        ),
+        'phase3_title': "Phase de Sanction et Vulgarisation",
+        'phase3_description': (
+            "Une fois la norme adoptée en plénière, il prépare sa sanction légale "
+            "et supervise sa publication et sa vulgarisation."
+        ),
     },
     {
         'n': 7,
@@ -297,6 +313,22 @@ _CONSEILLERS_POSTES = [
             "validées : relaie aux services ministériels concernés les résolutions "
             "adoptées par le Comité de Pilotage et veille à leur articulation avec "
             "la communication gouvernementale."
+        ),
+        'phase1_title': "Phase de Production",
+        'phase1_description': (
+            "Le Conseiller Technique ne rédige pas le texte lui-même, mais assure "
+            "le suivi rigoureux du chronogramme et sert d'interface politique "
+            "pendant que la sous-commission édite la norme."
+        ),
+        'phase2_title': "Phase de Contrôle et Validation",
+        'phase2_description': (
+            "Sa phase d'action principale : contrôle de conformité stratégique du "
+            "texte finalisé avant son passage en Assemblée Plénière."
+        ),
+        'phase3_title': "Phase de Sanction et Vulgarisation",
+        'phase3_description': (
+            "Une fois la norme adoptée en plénière, il prépare sa sanction légale "
+            "et supervise sa publication et sa vulgarisation."
         ),
     },
     {
@@ -319,6 +351,11 @@ _CONSEILLERS_POSTES = [
             "au Comité de Pilotage l'état d'avancement des dossiers administratifs "
             "connexes aux chantiers normatifs en cours."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
     {
         'n': 9,
@@ -338,6 +375,11 @@ _CONSEILLERS_POSTES = [
             "corridors de transport de la reconstruction : signale les contraintes "
             "de terrain et les urgences opérationnelles des chantiers en cours."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
     {
         'n': 10,
@@ -356,6 +398,11 @@ _CONSEILLERS_POSTES = [
             "Interface privilégiée pour les normes touchant aux bâtiments publics et "
             "équipements collectifs des programmes de reconstruction : relaie au "
             "Comité de Pilotage les besoins normatifs émergents de ces chantiers."
+        ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
         ),
     },
     {
@@ -378,6 +425,11 @@ _CONSEILLERS_POSTES = [
             "normes d'habitat existantes, et relaie les besoins de mise à jour "
             "réglementaire identifiés par son Ministère."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
     {
         'n': 12,
@@ -397,6 +449,11 @@ _CONSEILLERS_POSTES = [
             "normes à l'étude — notamment pour les projets traversant plusieurs "
             "provinces — et veille à leur articulation avec les priorités "
             "d'aménagement du territoire."
+        ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
         ),
     },
     {
@@ -420,6 +477,11 @@ _CONSEILLERS_POSTES = [
             "les exigences d'étude d'impact environnemental et social (EIES) et "
             "propose des critères de durabilité et de résilience climatique."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
     {
         'n': 14,
@@ -438,6 +500,11 @@ _CONSEILLERS_POSTES = [
             "Alerte sur les risques fonciers liés aux emprises nécessaires aux "
             "projets normés — titres de propriété, expropriations, occupations "
             "informelles — et relaie les procédures foncières applicables."
+        ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
         ),
     },
     {
@@ -460,6 +527,11 @@ _CONSEILLERS_POSTES = [
             "densité urbaine, chantiers en cours — et relaie les retours "
             "opérationnels des services techniques municipaux."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
     {
         'n': 16,
@@ -479,6 +551,11 @@ _CONSEILLERS_POSTES = [
             "projets d'Arrêtés d'homologation pour chaque norme achevant son "
             "cycle, en s'appuyant sur les références juridiques applicables au "
             "processus d'homologation CNETP."
+        ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
         ),
     },
     {
@@ -500,24 +577,13 @@ _CONSEILLERS_POSTES = [
             "qu'il ne soit transmis au Bureau Directoire pour validation finale et "
             "signature."
         ),
+        'phase1_title': "Vue d'ensemble",
+        'phase1_description': (
+            "Ce poste n'a pas encore de parcours détaillé en plusieurs phases — "
+            "retrouvez ci-dessous son cadre d'intervention et ses outils."
+        ),
     },
 ]
-
-# Regroupement de la sidebar `app_conseillers` par sous-collège (utilisé par
-# `{% regroup %}` dans sidebar_module.html — la liste ci-dessus est déjà
-# ordonnée de façon à ce que chaque groupe soit contigu).
-_CONSEILLERS_GROUPS = [
-    (range(6, 11), "Cabinet du Ministre des ITP & Secrétariats Généraux"),
-    (range(11, 16), "Représentants des Ministères Partenaires"),
-    (range(16, 18), "Conseillers Juridiques Spécialisés"),
-]
-
-
-def _conseillers_group_label(n: int) -> str:
-    for rng, label in _CONSEILLERS_GROUPS:
-        if n in rng:
-            return label
-    return ''
 
 
 def _cadrages_for_subrole(sub_role: str) -> list[dict]:
@@ -1144,13 +1210,12 @@ class PilotageDirectoireAppView(View):
 class PilotageConseillersAppView(View):
     """
     Interface administrative dédiée au Collège des Conseillers Institutionnels
-    et Politiques : navigation par sidebar (groupée par sous-collège) entre les
-    Postes 6 à 17 (Cabinet du Ministre des ITP ×2, Secrétariat Général aux ITP,
-    Secrétariat Général à la Reconstruction ×2, Représentants des Ministères
-    Partenaires ×5, Conseillers Juridiques Spécialisés ×2), chacun affichant sa
-    mission, son cadre d'intervention (Profil 2) et les widgets partagés du
-    collège (Planification EPN pour tous, Module Légistique pour les Postes
-    16-17 uniquement).
+    et Politiques : sur le modèle de `PilotageDirectoireAppView`, la sidebar
+    n'affiche que le poste du conseiller connecté (`my_poste`), avec ses
+    onglets Phase 1/2/3 (Postes 6-7) ou son onglet unique "Vue d'ensemble"
+    (Postes 8-17) — mission, cadre d'intervention (Profil 2) et widgets
+    partagés du collège (Planification EPN pour tous, Module Légistique pour
+    les Postes 16-17 uniquement).
     """
     template_name = 'pilotage/app_conseillers/app.html'
 
@@ -1177,15 +1242,14 @@ class PilotageConseillersAppView(View):
             is_mine = meta['n'] == my_poste_order
             if is_mine:
                 default_post_n = meta['n']
-            postes.append({
-                **meta,
-                'is_mine': is_mine,
-                'group_label': _conseillers_group_label(meta['n']),
-            })
+            postes.append({**meta, 'is_mine': is_mine})
+
+        my_poste = next((p for p in postes if p['is_mine']), postes[0])
 
         context = {
             'expert': expert,
             'postes': postes,
+            'my_poste': my_poste,
             'default_post_n': default_post_n,
             **priv,
         }

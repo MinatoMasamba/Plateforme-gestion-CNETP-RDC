@@ -1,0 +1,111 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Par structure — CNETP{% endblock %}
+{% block page_title %}Inscriptions par structure{% endblock %}
+{% block page_subtitle %}Distribution et analyse des experts selon leur structure d'origine{% endblock %}
+
+{% block content %}
+
+<!-- Graphique horizontal -->
+<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-5">
+  <h2 class="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
+    <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i>
+    Distribution des experts par structure
+  </h2>
+  <div class="relative w-full" style="height:420px;">
+    <canvas id="chart-all-structures"></canvas>
+  </div>
+</div>
+
+<!-- Tableaux groupés par catégorie -->
+{% for cat_label, structs in grouped.items %}
+{% if structs %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4">
+  <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/50">
+    <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+      <i data-lucide="building-2" class="w-4 h-4 text-slate-400"></i>
+      {{ cat_label }}
+    </h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
+        <tr>
+          <th class="px-5 py-3 font-semibold text-xs">Structure</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Total</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Actifs</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">En attente</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Inactifs</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Suspendus</th>
+          <th class="px-5 py-3 font-semibold text-xs text-center">Rejetés</th>
+          <th class="px-5 py-3 font-semibold text-xs">Progression</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for s in structs %}
+        <tr class="hover:bg-blue-50 transition-colors">
+          <td class="px-5 py-3">
+            <div class="font-semibold text-slate-900 text-xs">{{ s.name }}</div>
+            <div class="text-slate-400 text-xs">{{ s.acronym }}</div>
+          </td>
+          <td class="px-5 py-3 text-center"><strong class="text-slate-900 text-sm">{{ s.total }}</strong></td>
+          <td class="px-5 py-3 text-center"><span class="text-xs font-medium text-emerald-700">{{ s.active }}</span></td>
+          <td class="px-5 py-3 text-center"><span class="text-xs font-medium text-amber-600">{{ s.pending }}</span></td>
+          <td class="px-5 py-3 text-center"><span class="text-xs text-slate-400">{{ s.inactive }}</span></td>
+          <td class="px-5 py-3 text-center"><span class="text-xs text-red-400">{{ s.suspended }}</span></td>
+          <td class="px-5 py-3 text-center"><span class="text-xs text-red-600">{{ s.rejected }}</span></td>
+          <td class="px-5 py-3">
+            {% if s.total > 0 %}
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full" style="width:{% widthratio s.active s.total 100 %}%"></div>
+              </div>
+              <span class="text-xs text-slate-400 w-8 text-right">{% widthratio s.active s.total 100 %}%</span>
+            </div>
+            {% else %}
+            <span class="text-xs text-slate-300">—</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3">
+            <a href="{% url 'dashboard:detail_structure' s.pk %}"
+               class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs border border-slate-200 text-slate-600 hover:bg-slate-50">
+              <i data-lucide="eye" class="w-3 h-3"></i> Détail
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const chartData = {{ chart_data|safe }};
+
+new Chart(document.getElementById('chart-all-structures'), {
+  type: 'bar',
+  data: {
+    labels: chartData.labels,
+    datasets: [
+      { label: 'Actifs',      data: chartData.active,  backgroundColor: '#10b981', borderRadius: 3 },
+      { label: 'En attente',  data: chartData.pending, backgroundColor: '#f59e0b', borderRadius: 3 },
+      { label: 'Rejetés',     data: chartData.rejected,backgroundColor: '#ef4444', borderRadius: 3 },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6, font: { size: 11 } } } },
+    scales: {
+      x: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e2e8f0', tickBorderDash: [3,3] } },
+      y: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+{% endblock %}
