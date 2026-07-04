@@ -40,10 +40,10 @@
 
         .sidebar-nav-btn { transition: all .15s ease; }
         .sidebar-nav-active {
-            background: linear-gradient(135deg, rgba(99,102,241,.16), rgba(99,102,241,.04)) !important;
-            color: #818cf8 !important;
+            background: linear-gradient(135deg, rgba(0,149,201,.16), rgba(0,149,201,.04)) !important;
+            color: #0095c9 !important;
             font-weight: 800;
-            border-color: rgba(99,102,241,.3) !important;
+            border-color: rgba(0,149,201,.3) !important;
         }
 
         .view-container.hidden { display: none; }
@@ -93,6 +93,18 @@
     </div>
 
     <script>
+        let activeMobileSection = null;
+
+        function updateMobileDockState(sectionId = activeMobileSection) {
+            document.querySelectorAll('#mobile-dock .dock-link').forEach(btn => {
+                const isActive = sectionId ? btn.dataset.section === sectionId : false;
+                btn.classList.toggle('ring-2', isActive);
+                btn.classList.toggle('ring-[#fff24b]', isActive);
+                btn.classList.toggle('ring-offset-2', isActive);
+                btn.classList.toggle('ring-offset-slate-50', isActive);
+            });
+        }
+
         // ── Thème clair / sombre ───────────────────────────────────────────────
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
@@ -100,10 +112,24 @@
             lucide.createIcons();
         }
 
-        // ── Sidebar mobile ───────────────────────────────────────────────────
+        // ── Sidebar mobile / dock mobile ──────────────────────────────────────
         window.setDirectoireSidebarOpen = function(open) {
             const aside = document.getElementById('directoire-sidebar');
             const overlay = document.getElementById('directoire-sidebar-overlay');
+            const dock = document.getElementById('mobile-dock');
+
+            if (window.innerWidth < 1024) {
+                if (!dock) return;
+                if (open) {
+                    dock.classList.remove('hidden');
+                    dock.classList.add('flex');
+                } else {
+                    dock.classList.add('hidden');
+                    dock.classList.remove('flex');
+                }
+                return;
+            }
+
             if (open) {
                 aside.classList.remove('hidden');
                 aside.classList.add('flex');
@@ -117,8 +143,26 @@
 
         function toggleDirectoireSidebar() {
             const aside = document.getElementById('directoire-sidebar');
-            window.setDirectoireSidebarOpen(aside.classList.contains('hidden'));
+            const dock = document.getElementById('mobile-dock');
+            if (window.innerWidth < 1024) {
+                window.setDirectoireSidebarOpen(dock?.classList.contains('hidden'));
+            } else {
+                window.setDirectoireSidebarOpen(aside.classList.contains('hidden'));
+            }
         }
+
+        // Ferme le dock mobile quand on clique en dehors du menu ou du bouton mobile
+        document.addEventListener('click', (event) => {
+            const dock = document.getElementById('mobile-dock');
+            const toggleBtn = document.getElementById('pilotage-mobile-menu-btn');
+            if (!dock || dock.classList.contains('hidden')) return;
+
+            const clickedInsideDock = dock.contains(event.target);
+            const clickedToggle = toggleBtn && toggleBtn.contains(event.target);
+            if (!clickedInsideDock && !clickedToggle) {
+                window.setDirectoireSidebarOpen(false);
+            }
+        });
 
         // ── Navigation vers une fonction de mon poste (sidebar) ─────────────────
         // Affiche uniquement la section ciblée (onglet) et masque les autres
@@ -131,7 +175,18 @@
             section.classList.remove('hidden');
 
             document.querySelectorAll('#directoire-sidebar .sidebar-nav-btn').forEach(b => b.classList.remove('sidebar-nav-active'));
-            if (btn) btn.classList.add('sidebar-nav-active');
+            if (btn && btn.classList.contains('sidebar-nav-btn')) btn.classList.add('sidebar-nav-active');
+
+            document.querySelectorAll('#mobile-dock .dock-link').forEach(b => {
+                b.classList.remove('ring-2', 'ring-[#fff24b]', 'ring-offset-2', 'ring-offset-slate-50');
+            });
+            const mobileBtn = document.querySelector(`#mobile-dock .dock-link[data-section="${targetId}"]`);
+            if (mobileBtn) {
+                mobileBtn.classList.add('ring-2', 'ring-[#fff24b]', 'ring-offset-2', 'ring-offset-slate-50');
+            }
+
+            activeMobileSection = targetId;
+            updateMobileDockState(activeMobileSection);
 
             if (window.innerWidth < 1024) window.setDirectoireSidebarOpen(false);
         };
@@ -145,6 +200,8 @@
             document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
                 btn.classList.toggle('sidebar-nav-active', btn.dataset.view === viewId);
             });
+
+            updateMobileDockState(activeMobileSection);
 
             if (window.innerWidth < 1024) {
                 window.setDirectoireSidebarOpen(false);
@@ -239,7 +296,25 @@
             window.switchView('post-{{ default_post_n|default:1 }}');
 
             const firstNavBtn = document.querySelector('#directoire-sidebar .sidebar-nav-btn');
-            if (firstNavBtn) window.switchPosteSection(firstNavBtn.dataset.section, firstNavBtn);
+            if (firstNavBtn) {
+                window.switchPosteSection(firstNavBtn.dataset.section, firstNavBtn);
+            } else {
+                updateMobileDockState();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const dock = document.getElementById('mobile-dock');
+            const menuBtn = document.getElementById('pilotage-mobile-menu-btn');
+
+            if (dock && !dock.classList.contains('hidden')) {
+                const clickedInsideDock = dock.contains(event.target);
+                const clickedMenuBtn = menuBtn && menuBtn.contains(event.target);
+
+                if (!clickedInsideDock && !clickedMenuBtn) {
+                    window.setDirectoireSidebarOpen(false);
+                }
+            }
         });
     </script>
 

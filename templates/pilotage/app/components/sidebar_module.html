@@ -8,6 +8,31 @@
 <div id="directoire-sidebar-overlay" onclick="setDirectoireSidebarOpen(false)"
      class="hidden fixed inset-0 bg-slate-900/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
+<nav id="mobile-dock" class="lg:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
+    <button data-section="post-{{ my_poste.n }}-phase1" onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase1">
+        <i data-lucide="play-circle" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase1_title }}</span>
+    </button>
+
+    <button data-section="post-{{ my_poste.n }}-phase2" onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase2">
+        <i data-lucide="flag" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase2_title }}</span>
+    </button>
+
+    {% if my_poste.phase3_title %}
+    <button data-section="post-{{ my_poste.n }}-phase3" onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase3">
+        <i data-lucide="file-check-2" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase3_title }}</span>
+    </button>
+    {% endif %}
+</nav>
+
 <aside id="directoire-sidebar"
        class="hidden lg:flex lg:flex-col w-72 shrink-0 border-r border-slate-200 dark:border-white/[8%]
               bg-white/80 dark:bg-black/40 backdrop-blur-xl overflow-y-auto scrollbar-none

@@ -1,0 +1,61 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     POSTE 5 — RAPPORTEUR GÉNÉRAL (Secrétariat Général des ITP — SG-ITP)
+     Phase 1.4 (chronogramme & ordre de service) · Étape 5 (réception CTC)
+═══════════════════════════════════════════════════════════════════ -->
+{% with poste=postes.4 %}
+<div class="space-y-6">
+
+    <!-- ── Identité & mission ──────────────────────────────────────────── -->
+    <div class="rounded-3xl border border-{{ poste.accent }}-400/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-6 module-card animate-up">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-{{ poste.accent }}-400/15 flex items-center justify-center shrink-0">
+                <i data-lucide="{{ poste.icon }}" class="w-6 h-6 text-{{ poste.accent }}-400"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">{{ poste.title }}</h2>
+                    {% if poste.is_mine %}
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#0095c9]/15 text-[#0095c9] uppercase tracking-wide">Mon poste</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">{{ poste.origin }}</p>
+                <p class="text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">{{ poste.mission }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Phase 1.4 — Chronogramme & ordre de service ─────────────────── -->
+    <div id="post-5-phase1" class="poste-section rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-1">
+            <i data-lucide="play-circle" class="w-4 h-4"></i> {{ poste.phase1_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase1_description }}</p>
+        {% for group in poste.cadrage_groups %}
+            {% if group.phase == 1 %}
+                {% include "pilotage/app/components/_cadrage_group.html" with group=group is_mine=poste.is_mine %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ── Étape 5 — Réception du dossier nettoyé par la CTC ───────────── -->
+    <div id="post-5-phase2" class="poste-section rounded-3xl border border-emerald-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+        <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2 mb-1">
+            <i data-lucide="file-check-2" class="w-4 h-4"></i> {{ poste.phase2_title }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">{{ poste.phase2_description }}</p>
+        {% if pending_reception_rapporteur %}
+        <div class="space-y-3">
+            {% for proc in pending_reception_rapporteur %}
+                {% include "pilotage/app/components/_reception_item.html" with proc=proc is_mine=poste.is_mine poste_n=poste.n peer_received=proc.received_by_president_at peer_label="le Président" %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-2xl border border-dashed border-emerald-400/20 p-8 text-center">
+            <i data-lucide="inbox" class="w-8 h-8 text-emerald-400/40 mx-auto mb-2"></i>
+            <p class="text-xs font-semibold text-slate-500">Aucune norme en attente de réception</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endwith %}
