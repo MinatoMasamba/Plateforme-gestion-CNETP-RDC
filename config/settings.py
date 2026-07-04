@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'apps.documents.apps.DocumentsConfig',
     'apps.messaging.apps.MessagingConfig',
     'apps.ia_agent.apps.IaAgentConfig',
+    'apps.dashboard.apps.DashboardConfig',
 ]
 
 MIDDLEWARE = [

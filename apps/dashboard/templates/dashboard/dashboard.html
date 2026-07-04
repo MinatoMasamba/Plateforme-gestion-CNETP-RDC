@@ -119,20 +119,16 @@
       </div>
     </div>
 
-    <!-- Donut statuts -->
+    <!-- Donut CTM -->
     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-base font-semibold mb-5 flex items-center gap-2">
         <i data-lucide="pie-chart" class="w-5 h-5 text-slate-400"></i>
-        Répartition par statut
+        Répartition par CTM
       </h2>
       <div class="flex justify-center items-center h-48">
-        <canvas id="chart-status"></canvas>
+        <canvas id="chart-ctm"></canvas>
       </div>
-      <div class="mt-4 space-y-2 text-xs">
-        <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Actifs</span><strong>{{ active }}</strong></div>
-        <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>En attente</span><strong>{{ pending }}</strong></div>
-        <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>Rejetés</span><strong>{{ rejected }}</strong></div>
-      </div>
+      <div class="mt-4 space-y-1.5 text-xs" id="ctm-legend"></div>
     </div>
 
   </div>
@@ -275,8 +271,8 @@
 <!-- ══ SCRIPTS ════════════════════════════════════════════════════════════ -->
 <script>
 const MONTHLY    = {{ chart_monthly|safe }};
-const STATUS     = {{ chart_status|safe }};
 const STRUCTURES = {{ chart_structures|safe }};
+const CTM        = {{ chart_ctm|safe }};
 
 // Courbe mensuelle
 new Chart(document.getElementById('chart-monthly'), {
@@ -302,14 +298,29 @@ new Chart(document.getElementById('chart-monthly'), {
   }
 });
 
-// Donut statuts
-new Chart(document.getElementById('chart-status'), {
+// Donut CTM
+new Chart(document.getElementById('chart-ctm'), {
   type: 'doughnut',
   data: {
-    labels: STATUS.labels,
-    datasets: [{ data: STATUS.data, backgroundColor: STATUS.colors, borderWidth: 0, hoverOffset: 4 }]
+    labels: CTM.labels,
+    datasets: [{ data: CTM.data, backgroundColor: CTM.colors, borderWidth: 0, hoverOffset: 4 }]
   },
-  options: { cutout: '70%', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  options: { cutout: '65%', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+});
+
+// Légende CTM dynamique
+const legend = document.getElementById('ctm-legend');
+CTM.labels.forEach((label, i) => {
+  const total = CTM.data.reduce((a, b) => a + b, 0);
+  const pct   = total ? Math.round(CTM.data[i] / total * 100) : 0;
+  legend.innerHTML += `
+    <div class="flex items-center justify-between gap-2">
+      <span class="flex items-center gap-1.5 truncate">
+        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${CTM.colors[i]}"></span>
+        <span class="truncate">${label}</span>
+      </span>
+      <span class="font-semibold text-slate-700 flex-shrink-0">${CTM.data[i]} <span class="font-normal text-slate-400">(${pct}%)</span></span>
+    </div>`;
 });
 
 // Barres horizontales par structure

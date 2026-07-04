@@ -57,10 +57,18 @@ def dashboard(request):
         'values': [m['n'] for m in monthly],
     }
 
-    chart_status = {
-        'labels': ['Actifs', 'En attente', 'Rejetés', 'Autres'],
-        'data':   [active, pending, rejected, total - active - pending - rejected],
-        'colors': ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'],
+    # ── Répartition par CTM ────────────────────────────────
+    ctm_data = (
+        Expert.objects
+        .values('ctm__name')
+        .annotate(n=Count('id'))
+        .order_by('-n')
+    )
+    CTM_COLORS = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#1d4ed8','#1e40af','#1e3a8a','#94a3b8']
+    chart_ctm = {
+        'labels': [d['ctm__name'] or 'Non assigné' for d in ctm_data],
+        'data':   [d['n'] for d in ctm_data],
+        'colors': CTM_COLORS[:len(list(ctm_data))],
     }
 
     chart_structures = {
@@ -76,7 +84,7 @@ def dashboard(request):
         'structures': structures,
         'latest_experts': latest_experts,
         'chart_monthly':    json.dumps(chart_monthly),
-        'chart_status':     json.dumps(chart_status),
+        'chart_ctm':        json.dumps(chart_ctm),
         'chart_structures': json.dumps(chart_structures),
     }
     return render(request, 'dashboard/dashboard.html', context)
