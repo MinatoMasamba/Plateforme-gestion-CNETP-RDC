@@ -116,11 +116,13 @@ class NormeDetailSerializer(serializers.ModelSerializer):
 
 class NormeCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour créer/mettre à jour une norme"""
+    reference_number = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description',
-            'standard_family',
+            'standard_family', 'category',
             'norm_type', 'target_count',
             'ctm', 'wg', 'iso_reference', 'arso_reference',
             'tags', 'is_public'

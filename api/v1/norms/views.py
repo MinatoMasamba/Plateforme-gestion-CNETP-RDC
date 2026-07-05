@@ -42,8 +42,36 @@ class NormeViewSet(viewsets.ModelViewSet):
     WORD_XML_NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
 
     def perform_create(self, serializer):
-        """Associer l'utilisateur actuel à la création"""
-        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+        """Associer l'utilisateur actuel à la création et générer un code de classification basé sur les métadonnées"""
+        
+        # Génération du code de classification unique si non fourni
+        reference_number = serializer.validated_data.get('reference_number')
+        if not reference_number:
+            import random
+            import string
+            
+            # Extraction des composants pour le code
+            family = serializer.validated_data.get('standard_family', 'NCD')
+            category = serializer.validated_data.get('category', 'GEN')
+            ctm_obj = serializer.validated_data.get('ctm')
+            ctm_code = f"CTM{ctm_obj.number}" if ctm_obj else "CTM0"
+            
+            # Normalisation de la catégorie (3 premières lettres en majuscules)
+            cat_code = category[:3].upper() if category else "GEN"
+            
+            while True:
+                # Format: [FAMILLE]-[CAT]-[CTM]-[RANDOM] (ex: NCD-QUA-CTM1-A1B2)
+                random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+                candidate = f"{family}-{cat_code}-{ctm_code}-{random_suffix}"
+                if not Norme.objects.filter(reference_number=candidate).exists():
+                    reference_number = candidate
+                    break
+        
+        serializer.save(
+            created_by=self.request.user, 
+            updated_by=self.request.user,
+            reference_number=reference_number
+        )
 
     def perform_update(self, serializer):
         """Associer l'utilisateur actuel à la modification"""

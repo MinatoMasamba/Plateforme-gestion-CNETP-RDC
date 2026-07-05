@@ -23,6 +23,7 @@ class Norme(BaseModel):
 
     # Squelette normatif explicite
     standard_family = models.CharField(max_length=10, choices=STANDARD_FAMILY_CHOICES, default='NCD')
+    category = models.CharField(max_length=100, blank=True, help_text="Catégorie d'activité (ex: Qualité, Sécurité, Éthique)")
     
     # References
     iso_reference = models.CharField(max_length=50, blank=True, help_text="Ex: ISO 12345")
