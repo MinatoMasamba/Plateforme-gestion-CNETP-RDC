@@ -1,9 +1,14 @@
-const CACHE_NAME = 'cnetp-portail-v3';
+const CACHE_NAME = 'cnetp-portail-v4';
 
 const PRECACHE_URLS = [
     '/',
     '/static/manifest.json',
-    '/static/img/logo-cnetp.svg',
+    '/static/img/logo-cnetp.png',
+    '/static/img/logo-cnetp-192.png',
+    '/static/img/logo-cnetp-512.png',
+    '/static/img/apple-touch-icon.png',
+    '/static/img/favicon-32x32.png',
+    '/static/img/favicon-16x16.png',
 ];
 
 self.addEventListener('install', (event) => {
