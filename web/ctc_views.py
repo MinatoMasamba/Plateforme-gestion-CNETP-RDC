@@ -30,6 +30,7 @@ from apps.validation.models import (
     ISOReview, EcologicalReview, EconomicReview,
     ScheduleReview, IndustrialConsultation, LegisticReview,
 )
+from apps.norms.models import Norme, NormeComment
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -251,6 +252,46 @@ def get_ctc_context(expert: Expert) -> dict | None:
         'pending_ctc_requests':       pending_ctc_requests,
         'pending_ctc_requests_count': len(pending_ctc_requests) if sub_role == 'assistant_executif' else 0,
     }
+
+    sidebar_nav_config = {
+        'principal': [
+            {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+            {'view': 'dossiers', 'label': 'Dossiers Normatifs', 'icon': 'folders'},
+            {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+            {'view': 'ctc_requests', 'label': 'Demandes à Traiter', 'icon': 'send'},
+        ],
+        'system': [
+            {'view': 'archives', 'label': 'Archives', 'icon': 'history'},
+            {'view': 'parametres', 'label': 'Paramètres', 'icon': 'settings'},
+        ],
+        'pole': sub_role,
+    }
+    if sub_role == 'gaf':
+        sidebar_nav_config['principal'] = [
+            {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+            {'view': 'financial', 'label': 'Budget & Comptabilité', 'icon': 'banknote'},
+            {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+            {'view': 'ctc_requests', 'label': 'Demandes à Traiter', 'icon': 'send'},
+        ]
+    elif sub_role == 'assistant_executif':
+        sidebar_nav_config['principal'] = [
+            {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+            {'view': 'assistant_executif', 'label': 'Assistant Exécutif', 'icon': 'inbox'},
+            {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+        ]
+    elif sub_role in {'it_btc', 'it_sg_itp'}:
+        sidebar_nav_config['principal'] = [
+            {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+            {'view': 'dossiers', 'label': 'Dossiers Normatifs', 'icon': 'folders'},
+            {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+            {'view': 'ctc_requests', 'label': 'Demandes à Traiter', 'icon': 'send'},
+            {'view': 'drive', 'label': 'Espace Drive', 'icon': 'hard-drive'},
+        ]
+    sidebar_nav_config['system'] = [
+        {'view': 'archives', 'label': 'Archives', 'icon': 'history'},
+        {'view': 'parametres', 'label': 'Paramètres', 'icon': 'settings'},
+    ]
+    ctx['sidebar_nav_config'] = sidebar_nav_config
 
     # ── Données workflow CTCProcessus ──────────────────────────────────────
     # Normes actives dans le circuit CTC, filtrées selon le rôle de l'expert
@@ -723,6 +764,63 @@ class CTCReceptionActionView(View):
             'received_at': processus.received_at.isoformat() if processus.received_at else None,
             'indexed_at': processus.indexed_at.isoformat() if processus.indexed_at else None,
             'intake_validated_at': processus.intake_validated_at.isoformat() if processus.intake_validated_at else None,
+        })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VUE LECTURE NORMALE CTC
+# ─────────────────────────────────────────────────────────────────────────────
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCNormeReadView(View):
+    """
+    Page de lecture d'une norme reçue par la CTC.
+    Affiche le texte, les versions et le contexte du dossier sans permettre d'édition.
+    """
+
+    template_name = 'ctc/app/norme_read.html'
+
+    def get(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        membership = CTCMembership.objects.filter(expert=expert).first()
+        if not membership:
+            messages.info(request, "Accès réservé aux membres de la CTC.")
+            return redirect('web:app')
+
+        norme = get_object_or_404(
+            Norme.objects.select_related('ctm', 'wg'),
+            pk=pk,
+        )
+        processus = (
+            CTCProcessus.objects
+            .filter(norme=norme)
+            .select_related('received_by', 'received_by__structure')
+            .first()
+        )
+        latest_version = norme.get_latest_version()
+        versions = (
+            norme.versions
+            .select_related('version_author')
+            .order_by('-version_number')[:8]
+        )
+        comments = (
+            NormeComment.objects
+            .filter(norme=norme)
+            .select_related('author', 'author__structure')
+            .order_by('-created_at')[:10]
+        )
+
+        return render(request, self.template_name, {
+            'expert': expert,
+            'norme': norme,
+            'processus': processus,
+            'latest_version': latest_version,
+            'versions': versions,
+            'comments': comments,
         })
 
 

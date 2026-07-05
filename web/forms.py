@@ -1,9 +1,39 @@
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, ComitePilotage, TechnicalCell
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
+
+User = get_user_model()
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone', 'province', 'bio', 'profile_picture']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'placeholder': 'Prénom', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'last_name': forms.TextInput(attrs={'placeholder': 'Nom', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Téléphone', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'province': forms.TextInput(attrs={'placeholder': 'Province', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Biographie', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'w-full text-sm'}),
+        }
+
+
+class ExpertProfileForm(forms.ModelForm):
+    class Meta:
+        model = Expert
+        fields = ['specialties', 'whatsapp_number', 'mobile_money_number', 'bank_name', 'bank_account', 'cv']
+        widgets = {
+            'specialties': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Spécialités', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'whatsapp_number': forms.TextInput(attrs={'placeholder': 'WhatsApp', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'mobile_money_number': forms.TextInput(attrs={'placeholder': 'Mobile Money', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'bank_name': forms.TextInput(attrs={'placeholder': 'Banque', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'bank_account': forms.TextInput(attrs={'placeholder': 'Compte bancaire', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+            'cv': forms.ClearableFileInput(attrs={'class': 'w-full text-sm'}),
+        }
 
 
 class User_Simple(forms.ModelForm):

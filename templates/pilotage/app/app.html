@@ -133,11 +133,11 @@
             if (open) {
                 aside.classList.remove('hidden');
                 aside.classList.add('flex');
-                overlay.classList.remove('hidden');
+                if (overlay) overlay.classList.remove('hidden');
             } else {
                 aside.classList.add('hidden');
                 aside.classList.remove('flex');
-                overlay.classList.add('hidden');
+                if (overlay) overlay.classList.add('hidden');
             }
         };
 
@@ -300,20 +300,6 @@
                 window.switchPosteSection(firstNavBtn.dataset.section, firstNavBtn);
             } else {
                 updateMobileDockState();
-            }
-        });
-
-        document.addEventListener('click', (event) => {
-            const dock = document.getElementById('mobile-dock');
-            const menuBtn = document.getElementById('pilotage-mobile-menu-btn');
-
-            if (dock && !dock.classList.contains('hidden')) {
-                const clickedInsideDock = dock.contains(event.target);
-                const clickedMenuBtn = menuBtn && menuBtn.contains(event.target);
-
-                if (!clickedInsideDock && !clickedMenuBtn) {
-                    window.setDirectoireSidebarOpen(false);
-                }
             }
         });
     </script>

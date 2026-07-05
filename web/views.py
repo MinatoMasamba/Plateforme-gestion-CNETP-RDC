@@ -14,7 +14,10 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, PilotageMembreship, CTCMembership
-from .forms import ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm
+from .forms import (
+    ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm,
+    UserProfileForm, ExpertProfileForm,
+)
 from django.contrib.auth import login as auth_login, get_user_model
 
 logger = logging.getLogger(__name__)
@@ -328,8 +331,172 @@ class ExpertLoginView(View):
 
 
 
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+
+class ExpertProfileView(View):
+    """
+    Vue du profil de l'expert connecté.
+    Template: templates/expert/profile.html
+    """
+    template_name = 'expert/profile.html'
+
+    @method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+    def get(self, request):
+        expert = (
+            Expert.objects
+            .filter(user=request.user)
+            .select_related('structure', 'user', 'ctm')
+            .first()
+        )
+        if not expert:
+            messages.error(request, "Profil expert introuvable.")
+            return redirect('web:home')
+
+        from apps.governance.models import Affectation, CTCMembership, PilotageMembreship
+        from web.ctc_views import get_ctc_context
+
+        affectations = (
+            Affectation.objects
+            .filter(expert=expert)
+            .select_related('ctm', 'wg')
+            .order_by('ctm__name', 'wg__name')
+        )
+        ctc_memberships = (
+            CTCMembership.objects
+            .filter(expert=expert)
+            .select_related('ctc')
+            .order_by('ctc__name')
+        )
+        pilotage_memberships = (
+            PilotageMembreship.objects
+            .filter(expert=expert)
+            .select_related('comite')
+        )
+
+        ctc_ctx = get_ctc_context(expert) or {}
+        sidebar_nav_config = ctc_ctx.get('sidebar_nav_config') or {
+            'principal': [
+                {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+                {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+            ],
+            'system': [
+                {'view': 'archives', 'label': 'Archives', 'icon': 'history'},
+                {'view': 'parametres', 'label': 'Paramètres', 'icon': 'settings'},
+            ],
+        }
+
+        profile_badges = []
+        if expert.status:
+            profile_badges.append(expert.get_status_display())
+        if request.user.is_expert:
+            profile_badges.append("Expert")
+        if expert.user.is_ctc_staff:
+            profile_badges.append("CTC")
+
+        user_form = UserProfileForm(instance=request.user)
+        expert_form = ExpertProfileForm(instance=expert)
+
+        return render(request, self.template_name, {
+            'expert': expert,
+            'profile_user': request.user,
+            'user_form': user_form,
+            'expert_form': expert_form,
+            'affectations': affectations,
+            'ctc_memberships': ctc_memberships,
+            'pilotage_memberships': pilotage_memberships,
+            'profile_badges': profile_badges,
+            'sidebar_nav_config': sidebar_nav_config,
+            'pole_label': ctc_ctx.get('pole_label', 'Profil Expert'),
+            'sidebar_pole': ctc_ctx.get('ctc_sub_role', 'profil'),
+            'ctc_ctx_json': ctc_ctx or {
+                'is_ctc_member': False,
+                'ctc_sub_role': 'profil',
+                'ctc_pole': 'profil',
+                'pole_label': 'Profil Expert',
+                'pole_badge': '',
+                'poste': None,
+                'membership': None,
+                'pending_ctc_requests_count': 0,
+                'my_pending_reviews_count': 0,
+                'active_processus_count': 0,
+            },
+        })
+
+    @method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+    def post(self, request):
+        expert = (
+            Expert.objects
+            .filter(user=request.user)
+            .select_related('structure', 'user', 'ctm')
+            .first()
+        )
+        if not expert:
+            messages.error(request, "Profil expert introuvable.")
+            return redirect('web:home')
+
+        user_form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        expert_form = ExpertProfileForm(request.POST, request.FILES, instance=expert)
+
+        if user_form.is_valid() and expert_form.is_valid():
+            user_form.save()
+            expert_form.save()
+            messages.success(request, "Profil mis à jour.")
+            return redirect('web:expert_profile')
+
+        from apps.governance.models import Affectation
+        from web.ctc_views import get_ctc_context
+
+        affectations = (
+            Affectation.objects
+            .filter(expert=expert)
+            .select_related('ctm', 'wg')
+            .order_by('ctm__name', 'wg__name')
+        )
+        ctc_memberships = CTCMembership.objects.filter(expert=expert).select_related('ctc').order_by('ctc__name')
+        pilotage_memberships = PilotageMembreship.objects.filter(expert=expert).select_related('comite')
+        ctc_ctx = get_ctc_context(expert) or {}
+        sidebar_nav_config = ctc_ctx.get('sidebar_nav_config') or {
+            'principal': [
+                {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
+                {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
+            ],
+            'system': [
+                {'view': 'archives', 'label': 'Archives', 'icon': 'history'},
+                {'view': 'parametres', 'label': 'Paramètres', 'icon': 'settings'},
+            ],
+        }
+        profile_badges = []
+        if expert.status:
+            profile_badges.append(expert.get_status_display())
+        if request.user.is_expert:
+            profile_badges.append("Expert")
+        if expert.user.is_ctc_staff:
+            profile_badges.append("CTC")
+        return render(request, self.template_name, {
+            'expert': expert,
+            'profile_user': request.user,
+            'affectations': affectations,
+            'ctc_memberships': ctc_memberships,
+            'pilotage_memberships': pilotage_memberships,
+            'profile_badges': profile_badges,
+            'sidebar_nav_config': sidebar_nav_config,
+            'pole_label': ctc_ctx.get('pole_label', 'Profil Expert'),
+            'sidebar_pole': ctc_ctx.get('ctc_sub_role', 'profil'),
+            'ctc_ctx_json': ctc_ctx or {
+                'is_ctc_member': False,
+                'ctc_sub_role': 'profil',
+                'ctc_pole': 'profil',
+                'pole_label': 'Profil Expert',
+                'pole_badge': '',
+                'poste': None,
+                'membership': None,
+                'pending_ctc_requests_count': 0,
+                'my_pending_reviews_count': 0,
+                'active_processus_count': 0,
+            },
+            'user_form': user_form,
+            'expert_form': expert_form,
+        })
 
 def component_api_view(request, module_id):
     """

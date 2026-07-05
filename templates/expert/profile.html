@@ -1,0 +1,371 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Expert | CNETP</title>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
+    <script>
+        const profileTheme = localStorage.getItem('theme-preference') || 'dark';
+        document.documentElement.classList.toggle('dark', profileTheme !== 'light');
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (max-width: 767px) {
+            #profile-main h2 { font-size: 1.05rem !important; }
+            #profile-main p, #profile-main span, #profile-main li, #profile-main button {
+                font-size: 0.82rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300">
+    {% include "ctc/app/components/topbar_module.html" %}
+    <div class="flex flex-1 overflow-hidden relative w-full">
+        {% include "ctc/app/components/sidebar_module.html" %}
+        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            <div id="profile-main" class="w-full min-h-full">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+                    {% if messages %}
+                    <div class="space-y-2">
+                        {% for message in messages %}
+                        <div class="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm font-medium text-blue-700 dark:text-blue-300">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <section class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur shadow-sm overflow-hidden">
+                        <div class="h-24 sm:h-32 bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-600"></div>
+                        <div class="px-5 sm:px-8 pb-6 -mt-10 sm:-mt-12">
+                            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+                                <div class="flex items-end gap-4">
+                                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl border-4 border-white dark:border-slate-900 bg-slate-900 text-white flex items-center justify-center text-2xl sm:text-3xl font-black shadow-xl">
+                                        {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
+                                    </div>
+                                    <div class="pb-1">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Profil expert CNETP</p>
+                                        <h1 class="mt-2 text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">{{ expert.user.get_full_name }}</h1>
+                                        <p class="mt-2 text-sm sm:text-base font-semibold text-blue-600 dark:text-blue-400">
+                                            {{ expert.structure.acronym }} · {{ expert.structure.name }}
+                                        </p>
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            {% for badge in profile_badges %}
+                                            <span class="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
+                                                {{ badge }}
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{% url 'web:ctc_dashboard' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                                        Retour CTC
+                                    </a>
+                                    <a href="{% url 'web:app' %}" class="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/15 transition-colors">
+                                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                        Espace principal
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {% csrf_token %}
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                    <i data-lucide="pencil-line" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-black uppercase tracking-[0.25em] text-emerald-500">Modifier mes infos</h2>
+                                    <p class="text-sm text-slate-500">Clique dans un champ pour le modifier.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Prénom</label>
+                                    {{ user_form.first_name }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Nom</label>
+                                    {{ user_form.last_name }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Téléphone</label>
+                                    {{ user_form.phone }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Province</label>
+                                    {{ user_form.province }}
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Photo de profil</label>
+                                    {{ user_form.profile_picture }}
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Biographie</label>
+                                    {{ user_form.bio }}
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-black uppercase tracking-[0.25em] text-blue-500">Données expert</h2>
+                                    <p class="text-sm text-slate-500">Clique dans un champ pour le modifier.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Spécialités</label>
+                                    {{ expert_form.specialties }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">WhatsApp</label>
+                                    {{ expert_form.whatsapp_number }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Mobile Money</label>
+                                    {{ expert_form.mobile_money_number }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Banque</label>
+                                    {{ expert_form.bank_name }}
+                                </div>
+                                <div>
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Compte bancaire</label>
+                                    {{ expert_form.bank_account }}
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">CV</label>
+                                    {{ expert_form.cv }}
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors">
+                                    <i data-lucide="save" class="w-4 h-4"></i>
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </article>
+                    </form>
+
+                    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <article class="lg:col-span-2 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                    <i data-lucide="id-card" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-black uppercase tracking-[0.25em] text-blue-500">Identité</h2>
+                                    <p class="text-sm text-slate-500">Données du compte et de nomination</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nom complet</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ profile_user.get_full_name }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nom d'utilisateur</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ profile_user.username }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Email</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ profile_user.email }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Téléphone</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ profile_user.phone|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Province</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ profile_user.province|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Statut compte</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{% if profile_user.is_active %}Actif{% else %}Inactif{% endif %}</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Biographie</p>
+                                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">{{ profile_user.bio|default:"Aucune biographie renseignée." }}</p>
+                            </div>
+                        </article>
+                        <aside class="space-y-4">
+                            <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center">
+                                        <i data-lucide="building-2" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-sm font-black uppercase tracking-[0.25em] text-teal-500">Structure</h2>
+                                        <p class="text-sm text-slate-500">Rattachement institutionnel</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-3 text-sm">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acronyme</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.structure.acronym }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Intitulé</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.structure.name }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Catégorie</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.structure.get_category_display }}</p>
+                                    </div>
+                                </div>
+                            </article>
+                            <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                                <h2 class="text-sm font-black uppercase tracking-[0.25em] text-purple-500 mb-4">Nomination</h2>
+                                <div class="space-y-3 text-sm">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Arrêté</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.appointment_decree_number|default:"—" }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Date</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{% if expert.appointment_date %}{{ expert.appointment_date|date:"d/m/Y" }}{% else %}—{% endif %}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Statut</p>
+                                        <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.get_status_display }}</p>
+                                    </div>
+                                </div>
+                            </article>
+                        </aside>
+                    </section>
+
+                    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <h2 class="text-sm font-black uppercase tracking-[0.25em] text-blue-500 mb-4">Compétences et contacts</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Spécialités</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.specialties|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">WhatsApp</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.whatsapp_number|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Mobile Money</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.mobile_money_number|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">CV</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{% if expert.cv %}Disponible{% else %}Non déposé{% endif %}</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <h2 class="text-sm font-black uppercase tracking-[0.25em] text-emerald-500 mb-4">Finances personnelles</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Taux journalier</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">USD {{ expert.daily_rate }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Allocation mensuelle</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">USD {{ expert.monthly_research_allowance }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Présences cumulées</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.presence_count }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Banque</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.bank_name|default:"—" }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4 sm:col-span-2">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Compte bancaire</p>
+                                    <p class="mt-1 font-semibold text-slate-800 dark:text-slate-200">{{ expert.bank_account|default:"—" }}</p>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <h2 class="text-sm font-black uppercase tracking-[0.25em] text-teal-500 mb-4">Affectations CTM / WG</h2>
+                            <div class="space-y-3">
+                                {% for aff in affectations %}
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-200">CTM {{ aff.ctm.number }} · {{ aff.ctm.name }}</p>
+                                            <p class="text-xs text-slate-500">{{ aff.wg.name }}</p>
+                                        </div>
+                                        <span class="rounded-full border border-teal-400/20 bg-teal-400/10 px-2.5 py-1 text-[10px] font-bold text-teal-500">
+                                            {{ aff.role }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-sm text-slate-500 italic">Aucune affectation enregistrée.</p>
+                                {% endfor %}
+                            </div>
+                        </article>
+
+                        <article class="rounded-3xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] p-5 sm:p-7 shadow-sm">
+                            <h2 class="text-sm font-black uppercase tracking-[0.25em] text-purple-500 mb-4">Rôles institutionnels</h2>
+                            <div class="space-y-3">
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">CTC</p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        {% for membership in ctc_memberships %}
+                                        <span class="rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[10px] font-bold text-purple-500">
+                                            {{ membership.get_role_display }}
+                                        </span>
+                                        {% empty %}
+                                        <span class="text-sm text-slate-500">Aucun rôle CTC</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pilotage</p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        {% for membership in pilotage_memberships %}
+                                        <span class="rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] px-2.5 py-1 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                                            {{ membership.get_role_display }}
+                                        </span>
+                                        {% empty %}
+                                        <span class="text-sm text-slate-500">Aucun rôle de pilotage</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        lucide.createIcons();
+        if (typeof window.renderSidebarContent === 'function') {
+            window.renderSidebarContent();
+        }
+    </script>
+</body>
+</html>

@@ -24,11 +24,11 @@
                 class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-hidden cursor-pointer text-slate-800 hover:bg-slate-50 dark:bg-black/45 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
             >
                 <option value="all">Toutes les étapes</option>
-                <option value="RECEPTION">Étape 1 : Réception & Saisie (Ops/Tech)</option>
-                <option value="GEOSPATIAL">Étape 2 : Géospatial (SIG)</option>
-                <option value="MULTI_REVIEW">Étape 3 : Toilettage (Analyse)</option>
-                <option value="INDUSTRIAL">Étape 4 : Consultation (Logistique)</option>
-                <option value="SIGNED_OUT">Étape 5 : Transmission Superviseur</option>
+                <option value="RECEPTION">Réception & Saisie</option>
+                <option value="GEOSPATIAL">Traitement Géospatial</option>
+                <option value="MULTI_REVIEW">Revue Multi-Critères</option>
+                <option value="INDUSTRIAL">Consultation Industrielle</option>
+                <option value="SIGNED_OUT">Transmission finale</option>
             </select>
         </div>
     </div>
@@ -40,23 +40,26 @@
                     <tr>
                         <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Identifiant</th>
                         <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Titre du Projet (Livrable)</th>
-                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Étape de Traitement</th>
+                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Phase de traitement</th>
                         <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Statut Actuel</th>
                         <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="dossiers-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
                     {% for p in dossiers %}
-                    <tr class="dossier-row hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                    <tr class="dossier-row hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+                        onclick="openNormeRead('{% url 'web:ctc_norme_read' p.norme.id %}')"
                         data-title="{{ p.norme.title|lower }} {{ p.norme.reference_number|lower }}"
                         data-etape="{{ p.current_stage }}">
                         <td class="px-6 py-4">
-                            <span class="font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1 rounded dark:bg-white/5 dark:border-white/10 dark:text-slate-300">
+                            <span class="font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1 rounded dark:bg-white/5 dark:border-white/10 dark:text-slate-300 pointer-events-none">
                                 {{ p.norme.reference_number }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="font-bold text-slate-800 dark:text-white">{{ p.norme.title }}</div>
+                            <span class="inline-flex font-bold text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors pointer-events-none">
+                                {{ p.norme.title }}
+                            </span>
                             <div class="text-xs text-slate-500 mt-1 dark:text-slate-400 text-wrap max-w-xl">
                                 Origine : CTM {{ p.norme.ctm.number }} · {{ p.norme.ctm.name }} • Reçu le {{ p.created_at|date:"d/m/Y" }}
                             </div>
@@ -96,46 +99,51 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            {% if p.current_stage == 'RECEPTION' and ctc_sub_role == 'assistant_executif' %}
-                                {% if p.received_at %}
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Réceptionné
-                                    </span>
-                                {% else %}
-                                    <button onclick="handleReceptionAction({{ p.id }}, 'receive', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
-                                        <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Réceptionner
-                                    </button>
+                            <div class="flex items-center gap-3">
+                                <a href="{% url 'web:ctc_norme_read' p.norme.id %}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="flex items-center gap-1 text-blue-600 font-bold hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer">
+                                    <span>Lire</span>
+                                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                                </a>
+
+                                {% if p.current_stage == 'RECEPTION' and ctc_sub_role == 'assistant_executif' %}
+                                    {% if p.received_at %}
+                                        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Réceptionné
+                                        </span>
+                                    {% else %}
+                                        <button onclick="handleReceptionAction({{ p.id }}, 'receive', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
+                                            <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Réceptionner
+                                        </button>
+                                    {% endif %}
+                                {% elif p.current_stage == 'RECEPTION' and ctc_sub_role == 'operateur_saisie' %}
+                                    {% if p.indexed_at %}
+                                        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Indexé
+                                        </span>
+                                    {% elif p.received_at %}
+                                        <button onclick="handleReceptionAction({{ p.id }}, 'index', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
+                                            <i data-lucide="layout-list" class="w-3.5 h-3.5"></i> Finaliser indexation
+                                        </button>
+                                    {% else %}
+                                        <span class="text-slate-400 dark:text-slate-500 italic text-xs">En attente de réception</span>
+                                    {% endif %}
+                                {% elif p.current_stage == 'RECEPTION' and ctc_sub_role in 'coordonnateur_principal,coordonnateur_adjoint' %}
+                                    {% if p.intake_validated_at %}
+                                        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Validé
+                                        </span>
+                                    {% elif p.indexed_at %}
+                                        <button onclick="handleReceptionAction({{ p.id }}, 'validate_intake', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
+                                            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Valider l'introduction
+                                        </button>
+                                    {% else %}
+                                        <span class="text-slate-400 dark:text-slate-500 italic text-xs">En attente d'indexation</span>
+                                    {% endif %}
                                 {% endif %}
-                            {% elif p.current_stage == 'RECEPTION' and ctc_sub_role == 'operateur_saisie' %}
-                                {% if p.indexed_at %}
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Indexé
-                                    </span>
-                                {% elif p.received_at %}
-                                    <button onclick="handleReceptionAction({{ p.id }}, 'index', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
-                                        <i data-lucide="layout-list" class="w-3.5 h-3.5"></i> Finaliser indexation
-                                    </button>
-                                {% else %}
-                                    <span class="text-slate-400 dark:text-slate-500 italic text-xs">En attente de réception</span>
-                                {% endif %}
-                            {% elif p.current_stage == 'RECEPTION' and ctc_sub_role in 'coordonnateur_principal,coordonnateur_adjoint' %}
-                                {% if p.intake_validated_at %}
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Validé
-                                    </span>
-                                {% elif p.indexed_at %}
-                                    <button onclick="handleReceptionAction({{ p.id }}, 'validate_intake', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
-                                        <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Valider l'introduction
-                                    </button>
-                                {% else %}
-                                    <span class="text-slate-400 dark:text-slate-500 italic text-xs">En attente d'indexation</span>
-                                {% endif %}
-                            {% else %}
-                                <button onclick="handleOpenDossier('{{ p.norme.reference_number|escapejs }}')" class="flex items-center gap-1 text-blue-600 font-bold hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer">
-                                    <span>Ouvrir</span>
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
-                            {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -174,12 +182,13 @@
         if (emptyRow) emptyRow.classList.toggle('hidden', visibleCount > 0);
     }
 
-    function handleOpenDossier(reference) {
-        if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Ouverture du dossier technico-légal ${reference} en mode d'évaluation.`, "success");
-        } else {
-            alert(`Ouverture du dossier : ${reference}`);
-        }
+    function handleOpenDossier(url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function openNormeRead(url) {
+        if (!url) return;
+        window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     function handleReceptionAction(processusId, action, btn) {

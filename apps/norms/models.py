@@ -127,6 +127,23 @@ class NormeVersion(BaseModel):
         return f"{self.norme.reference_number} v{self.version_number}"
 
 
+class NormeComment(BaseModel):
+    """Commentaire interne porté sur une norme en cours."""
+
+    norme = models.ForeignKey(Norme, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(Expert, on_delete=models.SET_NULL, null=True, blank=True, related_name='norme_comments')
+    body = models.TextField(verbose_name="Commentaire")
+
+    class Meta:
+        verbose_name = "Commentaire de Norme"
+        verbose_name_plural = "Commentaires de Norme"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        author = self.author.full_name if self.author else "Anonyme"
+        return f"{author} — {self.norme.reference_number}"
+
+
 class ChangementVersion(BaseModel):
     """Suivi détaillé des modifications par section/paragraphe"""
     version = models.ForeignKey(NormeVersion, on_delete=models.CASCADE, related_name='changes')

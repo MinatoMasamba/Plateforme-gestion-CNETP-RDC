@@ -5,30 +5,40 @@
      de poste, l'accès aux autres postes se fait via la Console Globale
      du tableau de bord Pilotage.
 ═══════════════════════════════════════════════════════════════════ -->
-<div id="directoire-sidebar-overlay" onclick="setDirectoireSidebarOpen(false)"
-     class="hidden fixed inset-0 bg-slate-900/50 z-30 lg:hidden backdrop-blur-sm"></div>
-
-<nav id="mobile-dock" class="lg:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
-    <button data-section="post-{{ my_poste.n }}-phase1" onclick="switchPosteSection(this.dataset.section, this)"
-            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase1">
-        <i data-lucide="play-circle" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+<nav id="mobile-dock"
+     class="lg:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
+    <button data-section="post-{{ my_poste.n }}-phase1"
+            onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl"
+            data-target="post-{{ my_poste.n }}-phase1">
+        <i data-lucide="play-circle" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
         <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase1_title }}</span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">
+            {% if my_poste.n == 1 %}Cadrage stratégique{% elif my_poste.n == 2 %}Contrôle technique{% elif my_poste.n == 3 %}Contrôle technique{% elif my_poste.n == 4 %}Mandat{% else %}Réception{% endif %}
+        </span>
     </button>
 
-    <button data-section="post-{{ my_poste.n }}-phase2" onclick="switchPosteSection(this.dataset.section, this)"
-            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase2">
-        <i data-lucide="flag" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+    <button data-section="post-{{ my_poste.n }}-phase2"
+            onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl"
+            data-target="post-{{ my_poste.n }}-phase2">
+        <i data-lucide="flag" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
         <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase2_title }}</span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">
+            {% if my_poste.n == 1 %}Validation finale{% elif my_poste.n == 2 %}Quitus technique{% elif my_poste.n == 3 %}Quitus technique{% elif my_poste.n == 4 %}Vérification PV{% else %}Réception CTC{% endif %}
+        </span>
     </button>
 
     {% if my_poste.phase3_title %}
-    <button data-section="post-{{ my_poste.n }}-phase3" onclick="switchPosteSection(this.dataset.section, this)"
-            class="dock-link group relative flex items-center justify-center w-12 aspect-square h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="post-{{ my_poste.n }}-phase3">
-        <i data-lucide="file-check-2" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+    <button data-section="post-{{ my_poste.n }}-phase3"
+            onclick="switchPosteSection(this.dataset.section, this)"
+            class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl"
+            data-target="post-{{ my_poste.n }}-phase3">
+        <i data-lucide="file-check-2" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
         <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">{{ my_poste.phase3_title }}</span>
+        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">
+            Homologation
+        </span>
     </button>
     {% endif %}
 </nav>
@@ -39,13 +49,13 @@
               fixed lg:static inset-y-0 left-0 z-40">
 
     <div class="p-5 border-b border-slate-200 dark:border-white/[8%]">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Comité de Pilotage Élargi</p>
-        <p class="text-sm font-extrabold text-slate-800 dark:text-white mt-1">{{ my_poste.title }}</p>
-        <p class="text-[10px] text-slate-400 mt-0.5">{{ my_poste.origin }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hidden lg:block">Comité de Pilotage Élargi</p>
+        <p class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mt-1 leading-tight">{{ my_poste.title }}</p>
+        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight hidden sm:block">{{ my_poste.origin }}</p>
     </div>
 
     <nav class="flex-1 py-4 px-3 space-y-1.5">
-        <p class="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Mes fonctions</p>
+        <p class="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 hidden lg:block">Mes fonctions</p>
 
         <button data-section="post-{{ my_poste.n }}-phase1" onclick="switchPosteSection(this.dataset.section, this)"
                 class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
@@ -54,7 +64,7 @@
             <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
                 <i data-lucide="play-circle" class="w-4 h-4 text-[#0095c9]"></i>
             </div>
-            <p class="text-xs font-bold leading-snug">{{ my_poste.phase1_title }}</p>
+            <p class="text-[11px] sm:text-[13px] font-bold leading-snug">{{ my_poste.phase1_title|default:"Cadrage" }}</p>
         </button>
 
         <button data-section="post-{{ my_poste.n }}-phase2" onclick="switchPosteSection(this.dataset.section, this)"
@@ -70,7 +80,7 @@
                 <i data-lucide="flag" class="w-4 h-4 text-[#0095c9]"></i>
                 {% endif %}
             </div>
-            <p class="text-xs font-bold leading-snug">{{ my_poste.phase2_title }}</p>
+            <p class="text-[11px] sm:text-[13px] font-bold leading-snug">{{ my_poste.phase2_title|default:"Contrôle" }}</p>
         </button>
 
         {% if my_poste.phase3_title %}
@@ -81,7 +91,7 @@
             <div class="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
                 <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
             </div>
-            <p class="text-xs font-bold leading-snug">{{ my_poste.phase3_title }}</p>
+            <p class="text-[11px] sm:text-[13px] font-bold leading-snug">{{ my_poste.phase3_title|default:"Homologation" }}</p>
         </button>
         {% endif %}
     </nav>

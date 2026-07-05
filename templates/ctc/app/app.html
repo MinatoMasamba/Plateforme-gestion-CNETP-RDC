@@ -36,6 +36,28 @@
         .animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+        @media (max-width: 767px) {
+            #main-viewport-content h2 { font-size: 1.25rem !important; line-height: 1.35 !important; }
+            #main-viewport-content h3 { font-size: 0.98rem !important; line-height: 1.35 !important; }
+            #main-viewport-content h4 { font-size: 0.92rem !important; line-height: 1.35 !important; }
+            #main-viewport-content p,
+            #main-viewport-content li,
+            #main-viewport-content label,
+            #main-viewport-content button,
+            #main-viewport-content input,
+            #main-viewport-content select {
+                font-size: 0.82rem !important;
+            }
+            #main-viewport-content .text-xs {
+                font-size: 0.7rem !important;
+            }
+            #main-viewport-content .text-sm {
+                font-size: 0.8rem !important;
+            }
+            #main-viewport-content .p-6 {
+                padding: 1rem !important;
+            }
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300 transition-colors duration-300">
@@ -60,8 +82,20 @@
                     {% include "ctc/app/components/dashboard_module.html" %}
                 </div>
 
+                <div id="view-assistant_executif" class="view-container hidden">
+                    {% include "ctc/app/components/executive_assistant_module.html" %}
+                </div>
+
+                <div id="view-ctc_requests" class="view-container hidden">
+                    {% include "ctc/app/components/ctc_requests_module.html" %}
+                </div>
+
                 <div id="view-dossiers" class="view-container hidden">
                     {% include "ctc/app/components/dossiers_view.html" %}
+                </div>
+
+                <div id="view-financial" class="view-container hidden">
+                    {% include "ctc/app/components/financial_module.html" %}
                 </div>
 
                 <div id="view-assignations" class="view-container hidden">

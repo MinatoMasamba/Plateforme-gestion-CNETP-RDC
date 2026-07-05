@@ -24,6 +24,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
+from django.db import transaction
 
 from apps.experts.models import Expert
 from apps.governance.models import (
@@ -31,7 +32,9 @@ from apps.governance.models import (
     CTM, WG, Affectation, PermissionRequest, CTCProcessus, NormeCadrage,
     PlatformFreeze,
 )
+from apps.mobileapp.signals import create_notification_for_user
 from apps.norms.models import Norme
+from apps.norms.models import NormeComment
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -632,6 +635,26 @@ COLLEGE_BADGE_COLORS = {
     'partenaire':          'bg-purple-500/15 text-purple-400 border-purple-500/30',
 }
 
+SUB_ROLE_LABELS = {
+    'president': 'Président',
+    'secretary': 'Secrétaire',
+    'rapporteur': 'Rapporteur Général',
+    'vice_president_onic': '1er Vice-Président',
+    'vice_president_btp': '2nd Vice-Président',
+    'conseiller_politique': 'Conseiller Institutionnel',
+    'juridique': 'Conseiller Juridique',
+    'admin_tech_fin': 'Administrateur Technique et Financier',
+    'foner': 'FONER',
+    'btc': 'BTC',
+    'ovd': 'OVD',
+    'atf_or': 'Office des Routes',
+    'acgt': 'ACGT',
+    'fec': 'FEC',
+    'occ': 'OCC',
+    'ona': 'ONA',
+    'beau': 'BEAU',
+}
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MOTEUR DE PRIVILÈGES
@@ -736,6 +759,7 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         # Identification
         'is_pilotage':     True,
         'user_sub_role':   sub_role,
+        'user_sub_role_label': SUB_ROLE_LABELS.get(sub_role, sub_role.replace('_', ' ').title()),
         'pilotage_college': college,
         'college_label':   COLLEGE_LABELS.get(college, 'Membre'),
         'college_badge':   COLLEGE_BADGE_COLORS.get(college, ''),
@@ -746,7 +770,9 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         # Bouton d'Action Maître — validation des étapes 1→7
         'can_trigger_steps':      is_directoire,
         # Console Globale — visibilité totale sur CTMs + WGs
-        'can_view_global_console': is_directoire,
+        # Les conseillers institutionnels doivent voir le même contenu de supervision
+        # que le Président, mais sans les actions souveraines du Directoire.
+        'can_view_global_console': (is_directoire or is_conseiller or is_atf),
         # Gestion accès experts (déblocage / suspension)
         'can_manage_access':      is_directoire,
         # Approbation des demandes de permission
@@ -915,6 +941,30 @@ class PilotagePermissionRequestView(View):
             reason=reason,
         )
 
+        directoire_users = (
+            Expert.objects
+            .filter(pilotage_member_of__role__in=_DIRECTOIRE_ROLES)
+            .distinct()
+            .select_related('user')
+        )
+        create_notification_for_user(
+            expert.user,
+            "Demande transmise",
+            f"Votre demande d'accès à « {restricted_resource} » a été transmise au Bureau Directoire.",
+            "SYSTEM",
+            priority="NORMAL",
+            data={"request_id": str(perm_req.id), "resource": restricted_resource, "status": "PENDING"},
+        )
+        for member in directoire_users:
+            create_notification_for_user(
+                member.user,
+                "Nouvelle demande de permission",
+                f"{expert.full_name} a soumis une demande pour « {restricted_resource} ».",
+                "SYSTEM",
+                priority="HIGH",
+                data={"request_id": str(perm_req.id), "resource": restricted_resource, "requester_id": expert.id},
+            )
+
         return JsonResponse({
             'ok': True,
             'message': 'Votre demande a été transmise au Bureau Directoire.',
@@ -955,17 +1005,29 @@ class PilotageApproveRequestView(View):
         if decision not in ('APPROVED', 'REJECTED'):
             return JsonResponse({'ok': False, 'error': 'Décision invalide.'}, status=400)
 
-        perm_req.status      = decision
-        perm_req.reviewed_by = expert
-        perm_req.reviewed_at = timezone.now()
-        perm_req.review_comment = comment
-        perm_req.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
+        with transaction.atomic():
+            perm_req.status = decision
+            perm_req.reviewed_by = expert
+            perm_req.reviewed_at = timezone.now()
+            perm_req.review_comment = comment
+            perm_req.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
+            perm_req.refresh_from_db(fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
+
+        create_notification_for_user(
+            perm_req.requester.user,
+            "Décision sur demande",
+            f"Votre demande d'accès à « {perm_req.restricted_resource} » a été {('approuvée' if decision == 'APPROVED' else 'refusée')}.",
+            "SYSTEM",
+            priority="HIGH" if decision == "APPROVED" else "NORMAL",
+            data={"request_id": str(perm_req.id), "resource": perm_req.restricted_resource, "status": decision},
+        )
 
         action = 'approuvée' if decision == 'APPROVED' else 'refusée'
         return JsonResponse({
             'ok': True,
             'message': f'La demande de {perm_req.requester.full_name} a été {action}.',
             'new_status': decision,
+            'saved_status': perm_req.status,
         })
 
 
@@ -1397,11 +1459,11 @@ class PilotageATFAppView(View):
             return redirect('web:home')
 
         priv = get_pilotage_context(expert)
-        if not priv or priv['pilotage_college'] != 'atf':
+        if not priv or priv['pilotage_college'] not in ('atf', 'conseiller_politique'):
             messages.info(
                 request,
                 "L'espace administratif des Administrateurs Techniques et "
-                "Financiers est réservé aux membres de ce collège."
+                "Financiers est réservé aux membres habilités."
             )
             return redirect('web:pilotage_dashboard')
 
@@ -1468,6 +1530,7 @@ class PilotageCTMDetailView(View):
         normes_en_cours = (
             ctm.normes.exclude(status='PUBLISHED')
             .select_related('wg')
+            .prefetch_related('comments__author__user')
             .order_by('wg__number', '-created_at')
         )
         normes_publiees = (
@@ -1485,6 +1548,55 @@ class PilotageCTMDetailView(View):
             **priv,
         }
         return render(request, self.template_name, context)
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class PilotageNormeCommentView(View):
+    """Ajoute un commentaire interne sur une norme depuis la vue CTM."""
+
+    def post(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        priv = get_pilotage_context(expert)
+        if not priv or not priv.get('can_view_global_console'):
+            return JsonResponse({'ok': False, 'error': 'Accès réservé au Pilotage.'}, status=403)
+
+        norme = get_object_or_404(Norme, pk=pk)
+        body = (request.POST.get('body') or '').strip()
+        if not body:
+            return JsonResponse({'ok': False, 'error': 'Le commentaire est vide.'}, status=400)
+
+        comment = NormeComment.objects.create(norme=norme, author=expert, body=body)
+
+        directoire_users = (
+            Expert.objects
+            .filter(pilotage_member_of__role__in=_DIRECTOIRE_ROLES)
+            .distinct()
+            .select_related('user')
+        )
+        for member in directoire_users:
+            if member.user_id == request.user.id:
+                continue
+            create_notification_for_user(
+                member.user,
+                "Commentaire sur norme",
+                f"{expert.full_name} a commenté {norme.reference_number}.",
+                "SYSTEM",
+                priority="LOW",
+                data={"norme_id": norme.id, "comment_id": str(comment.id), "ctm_id": norme.ctm_id},
+            )
+
+        return JsonResponse({
+            'ok': True,
+            'message': 'Commentaire enregistré.',
+            'comment': {
+                'author': expert.full_name,
+                'body': comment.body,
+                'created_at': comment.created_at.isoformat(),
+            },
+        })
 
 
 # ─────────────────────────────────────────────────────────────────────────────

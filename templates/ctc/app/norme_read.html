@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ norme.reference_number }} — Lecture CTC | CNETP</title>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .card { box-shadow: 0 16px 40px rgba(15, 23, 42, .08); }
+        html, body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        *::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        @media (max-width: 767px) {
+            body { background: #f8fafc; }
+            .card {
+                box-shadow: none !important;
+                border: 0 !important;
+                background: transparent !important;
+                backdrop-filter: none !important;
+                border-radius: 0 !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .mobile-flat {
+                background: transparent !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .mobile-tight { gap: 0.75rem !important; }
+            .mobile-stack { gap: 1rem !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#050507] dark:text-slate-100">
+    <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(0,149,201,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.08),_transparent_30%)]"></div>
+
+    <header class="sticky top-0 z-20 border-b border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-black/70 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-[#0095c9]">Cellule Technique de Coordination</p>
+                <h1 class="mt-1 text-lg sm:text-2xl font-extrabold tracking-tight truncate">{{ norme.reference_number }} · Lecture</h1>
+            </div>
+            <a href="{% url 'web:ctc_dashboard' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Retour
+            </a>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
+        <section class="card rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur p-5 sm:p-7">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mobile-stack">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
+                            {{ norme.get_status_display }}
+                        </span>
+                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-slate-100 text-slate-600 border border-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-white/10">
+                            CTM {{ norme.ctm.number }}
+                        </span>
+                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            WG {{ norme.ctm.number }}.{{ norme.wg.number }}
+                        </span>
+                    </div>
+                    <h2 class="mt-3 text-2xl sm:text-4xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+                        {{ norme.title }}
+                    </h2>
+                    <p class="mt-3 text-sm sm:text-base leading-7 text-slate-600 dark:text-slate-300 whitespace-pre-line">
+                        {{ norme.description }}
+                    </p>
+                </div>
+                <div class="shrink-0 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-4 min-w-[220px] mobile-flat">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Référence</p>
+                    <p class="mt-1 font-mono text-lg font-bold text-slate-900 dark:text-white">{{ norme.reference_number }}</p>
+                    <p class="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Dernière version</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        {% if latest_version %}v{{ latest_version.version_number }}{% else %}Aucune version enregistrée{% endif %}
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mobile-tight">
+            <div class="lg:col-span-2 space-y-6 mobile-stack">
+                <article class="card rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur p-5 sm:p-7">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-[#0095c9]">Texte de lecture</h3>
+                    <div class="mt-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4 sm:p-5 mobile-flat">
+                        {% if latest_version %}
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-xs font-semibold text-slate-500">Version {{ latest_version.version_number }}</p>
+                                {% if latest_version.version_author %}
+                                <p class="text-xs text-slate-500">Par {{ latest_version.version_author.full_name }}</p>
+                                {% endif %}
+                            </div>
+                            <h4 class="mt-3 text-xl font-extrabold text-slate-900 dark:text-white">{{ latest_version.title }}</h4>
+                            <div class="mt-4 prose prose-slate dark:prose-invert max-w-none">
+                                <pre class="whitespace-pre-wrap font-sans text-sm leading-7 text-slate-700 dark:text-slate-300 bg-transparent p-0 m-0">{{ latest_version.content }}</pre>
+                            </div>
+                        {% else %}
+                            <p class="text-sm text-slate-500 italic">Aucune version de lecture n'est disponible pour cette norme.</p>
+                        {% endif %}
+                    </div>
+                </article>
+
+                <article class="card rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur p-5 sm:p-7">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-[#0095c9]">Historique des versions</h3>
+                    <div class="mt-4 space-y-3">
+                        {% for version in versions %}
+                        <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-4 mobile-flat">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="font-bold text-slate-900 dark:text-white">Version {{ version.version_number }}</p>
+                                <p class="text-xs text-slate-500">{{ version.created_at|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ version.summary|default:"Aucun résumé." }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-slate-500 italic">Aucune version archivée.</p>
+                        {% endfor %}
+                    </div>
+                </article>
+            </div>
+
+            <aside class="space-y-6 mobile-stack">
+                <article class="card rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur p-5 sm:p-7">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-[#0095c9]">Dossier CTC</h3>
+                    <div class="mt-4 space-y-3 text-sm mobile-flat">
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-slate-500">CTM</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ norme.ctm.name }}</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-slate-500">Groupe de travail</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ norme.wg.name }}</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-slate-500">Réception</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">
+                                {% if processus and processus.received_at %}{{ processus.received_at|date:"d/m/Y H:i" }}{% else %}Non reçue{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-slate-500">Indexation</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">
+                                {% if processus and processus.indexed_at %}{{ processus.indexed_at|date:"d/m/Y H:i" }}{% else %}En attente{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-slate-500">Étape</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">
+                                {% if processus %}{{ processus.get_current_stage_display }}{% else %}Sans processus{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] backdrop-blur p-5 sm:p-7">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-[#0095c9]">Commentaires</h3>
+                    <div class="mt-4 space-y-3">
+                        {% for comment in comments %}
+                        <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/25 p-3 mobile-flat">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                                    {% if comment.author %}{{ comment.author.full_name }}{% else %}Anonyme{% endif %}
+                                </p>
+                                <p class="text-xs text-slate-500">{{ comment.created_at|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300 whitespace-pre-line">{{ comment.body }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-slate-500 italic">Aucun commentaire enregistré.</p>
+                        {% endfor %}
+                    </div>
+                </article>
+            </aside>
+        </section>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

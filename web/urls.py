@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (AboutView, App, ContactView, ExpertLoginView, HomeView,
                     ExpertRegistrationView, User_RegistrationView, UserLoginView,
                     component_api_view, wg_redirect, service_worker_view,
-                    password_reset_request, password_reset_confirm)
+                    password_reset_request, password_reset_confirm, ExpertProfileView)
 from .pilotage_views import (
     PilotageDashboardView,
     PilotagePermissionRequestView,
@@ -13,6 +13,7 @@ from .pilotage_views import (
     PilotageConseillersAppView,
     PilotageATFAppView,
     PilotageCTMDetailView,
+    PilotageNormeCommentView,
     PilotageExpertAccessView,
     PilotageExpertStatusActionView,
     PilotageAffectationExcludeView,
@@ -25,6 +26,7 @@ from .ctc_views import (
     CTCApproveRequestView,
     CTCMethodologyActionView,
     CTCReceptionActionView,
+    CTCNormeReadView,
     ctc_context_api,
 )
 from apps.ia_agent.views_web import PilotageIAConsoleView
@@ -62,6 +64,7 @@ urlpatterns = [
     path('pilotage/conseillers/', PilotageConseillersAppView.as_view(), name='pilotage_conseillers_app'),
     path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
     path('pilotage/ctm/<int:number>/', PilotageCTMDetailView.as_view(), name='pilotage_ctm_detail'),
+    path('pilotage/norme/<int:pk>/commenter/', PilotageNormeCommentView.as_view(), name='pilotage_norme_comment'),
     path('pilotage/gestion-acces/', PilotageExpertAccessView.as_view(), name='pilotage_expert_access'),
     path('pilotage/gestion-acces/expert/<int:pk>/statut/', PilotageExpertStatusActionView.as_view(), name='pilotage_expert_status_action'),
     path('pilotage/gestion-acces/affectation/<int:pk>/exclure/', PilotageAffectationExcludeView.as_view(), name='pilotage_affectation_exclude'),
@@ -75,5 +78,7 @@ urlpatterns = [
     path('ctc/approuver-demande/<int:pk>/', CTCApproveRequestView.as_view(), name='ctc_approve_request'),
     path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
     path('ctc/dossiers/<int:pk>/reception/', CTCReceptionActionView.as_view(), name='ctc_reception_action'),
+    path('ctc/norme/<int:pk>/lecture/', CTCNormeReadView.as_view(), name='ctc_norme_read'),
     path('api/ctc/contexte/', ctc_context_api, name='ctc_context_api'),
+    path('profil/', ExpertProfileView.as_view(), name='expert_profile'),
 ]

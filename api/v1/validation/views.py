@@ -43,19 +43,19 @@ def compute_vote_summary(norme):
 
 
 def promote_norme_to_ctc_if_vote_passes(norme):
-    """Transmet automatiquement une norme au Toilettage CTC (LEGISTIC_REVIEW)
-    dès qu'elle obtient plus de 50% de votes POUR, quel que soit son statut
-    de départ (Brouillon, Révision interne ou Soumise au CTM)."""
-    if norme.status not in ('DRAFT', 'INTERNAL_REVIEW', 'CTM_REVIEW'):
+    """
+    Marque la norme comme validée par le CTM lorsque le vote atteint la
+    majorité qualifiée. Le passage vers la CTC reste ensuite une action
+    explicite, conforme au circuit manuel.
+    """
+    if norme.status not in ('DRAFT', 'INTERNAL_REVIEW'):
         return False
     if not compute_vote_summary(norme)['passes_threshold']:
         return False
-    norme.status = 'LEGISTIC_REVIEW'
-    norme.legistic_review_date = date.today()
+    norme.status = 'CTM_REVIEW'
+    norme.ctm_submission_date = date.today()
     norme.is_public = False
-    norme.save(update_fields=['status', 'legistic_review_date', 'is_public', 'updated_at'])
-    LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
-    CTCProcessus.objects.get_or_create(norme=norme)
+    norme.save(update_fields=['status', 'ctm_submission_date', 'is_public', 'updated_at'])
     return True
 
 

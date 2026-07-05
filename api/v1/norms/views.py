@@ -273,6 +273,11 @@ class NormeViewSet(viewsets.ModelViewSet):
         expert = Expert.objects.filter(user=request.user).first()
         if not expert:
             return Response({'detail': 'Seul un expert peut voter.'}, status=status.HTTP_403_FORBIDDEN)
+        if expert.ctm_id != norme.ctm_id:
+            return Response(
+                {'detail': "Seuls les experts du CTM concerné peuvent voter sur cette norme."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         choice = request.data.get('vote')
         if choice not in dict(NormeVote.VOTE_CHOICES):
@@ -287,13 +292,13 @@ class NormeViewSet(viewsets.ModelViewSet):
             }
         )
 
-        promoted_to_ctc = promote_norme_to_ctc_if_vote_passes(norme)
+        promoted_to_ctm = promote_norme_to_ctc_if_vote_passes(norme)
 
         return Response(
             {
                 **NormeVoteSerializer(vote).data,
                 'norme_status': norme.status,
-                'promoted_to_ctc': promoted_to_ctc,
+                'promoted_to_ctm': promoted_to_ctm,
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )

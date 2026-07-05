@@ -1,128 +1,98 @@
 <div class="p-6 text-slate-800 dark:text-slate-300 transition-colors duration-200 w-full h-full">
-
     <div class="mb-6 animate-slideIn">
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Tableau de Bord Exécutif</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Tableau de Bord Exécutif</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Interface personnalisée selon vos accréditations CNETP.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- ================================================================
-             SECTION I : DIRECTION DES OPÉRATIONS (PILOTAGE EXÉCUTIF)
-        ================================================================= -->
+        {% if is_direction %}
         <div class="col-span-full mt-2 mb-1">
             <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
                 <div class="bg-blue-100 text-blue-700 p-1.5 rounded dark:bg-blue-500/10 dark:text-blue-400"><i data-lucide="file-text" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Direction des Opérations (Pilotage Exécutif)</h3>
+                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white leading-tight">Direction des Opérations (Pilotage Exécutif)</h3>
             </div>
         </div>
 
-        <!-- Hub de Routage Documentaire -->
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
                     <i data-lucide="file-text" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Hub de Routage Documentaire</h3>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Hub de Routage Documentaire</h3>
                 </div>
             </div>
             <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_route_documents %}
                 {% include "ctc/composants/hub_routage_documentaire.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Hub de Routage Documentaire" owner_pole="Direction des Opérations" %}
-                {% endif %}
             </div>
         </div>
+        {% endif %}
 
-        <!-- ================================================================
-             SECTION II : ÉTAPE 3 — TOILETTAGE MULTI-CRITÈRES (PÔLE ANALYSE)
-        ================================================================= -->
+        {% if can_translate_iso or can_legistique_ctc or can_eco_env_matrix or can_methodologie_chronogramme %}
         <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
             <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
                 <div class="bg-amber-100 text-amber-700 p-1.5 rounded dark:bg-amber-500/10 dark:text-amber-400"><i data-lucide="scale" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Étape 3 : Toilettage Multi-Critères (Pôle Analyse)</h3>
+                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white leading-tight">Pôle Analyse</h3>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Conformité Internationale & Traduction -->
+        {% if can_translate_iso %}
         <div id="widget-traduction-iso" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
                     <i data-lucide="globe" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Conformité Internationale & Traduction</h3>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Conformité Internationale & Traduction</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_translate_iso %}
-                {% include "ctc/composants/widget_traduction_iso.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Conformité Internationale & Traduction" owner_pole="Analyse — Veille ISO/SADC (ACGT/SG-ITP)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/widget_traduction_iso.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Contrôle de Légistique -->
+        {% if can_legistique_ctc %}
         <div id="widget-legistique" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
                     <i data-lucide="scale" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Contrôle de Légistique</h3>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Contrôle de Légistique</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_legistique_ctc %}
-                {% include "ctc/composants/console_legistique_ctc.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Contrôle de Légistique" owner_pole="Analyse — Expert Juridique Permanent" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_legistique_ctc.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Sauvegardes Éco-Environnementales -->
+        {% if can_eco_env_matrix %}
         <div id="widget-eco-env" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
                     <i data-lucide="leaf" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Sauvegardes Éco-Environnementales</h3>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Sauvegardes Éco-Environnementales</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_eco_env_matrix %}
-                {% include "ctc/composants/matrice_impacts_eco_env.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Matrice Éco-Environnementale" owner_pole="Analyse — Économiste FONER / Sauvegardes CI" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/matrice_impacts_eco_env.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Méthodologie & Chronogramme -->
+        {% if can_methodologie_chronogramme %}
         <div id="widget-methodologie" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-1 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
                     <i data-lucide="calendar-days" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Méthodologie & Chronogramme</h3>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Méthodologie & Chronogramme</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_methodologie_chronogramme %}
-                {% include "ctc/composants/methodologie_chronogramme.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Méthodologie & Chronogramme" owner_pole="Analyse — Planification & Validation Scientifique (INBTP)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/methodologie_chronogramme.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- ================================================================
-             SECTION III : ÉTAPE 4 — CONSULTATION INDUSTRIELLE & PUBLIQUE (PÔLE LOGISTIQUE)
-        ================================================================= -->
+        {% if can_enquete_publique or can_cadrage_industriel or ctc_sub_role == 'communicateur' or can_grand_livre %}
         <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
             <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
                 <div class="bg-teal-100 text-teal-700 p-1.5 rounded dark:bg-teal-500/10 dark:text-teal-400"><i data-lucide="users" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Étape 4 : Consultation Industrielle & Publique (Pôle Logistique)</h3>
+                <h3 class="text-base font-bold text-slate-800 dark:text-white">Pôle Logistique</h3>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Modération de l'Enquête Publique (Art. 12) -->
+        {% if can_enquete_publique %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -130,16 +100,11 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Modération de l'Enquête Publique (Art. 12)</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_enquete_publique %}
-                {% include "ctc/composants/console_enquete_publique.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Modération de l'Enquête Publique" owner_pole="Logistique — Responsable Enquêtes" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_enquete_publique.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Liaison Industrielle (FEC) -->
+        {% if can_cadrage_industriel %}
         <div id="widget-cadrage-industriel" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -147,16 +112,11 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Liaison Industrielle (FEC)</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_cadrage_industriel %}
-                {% include "ctc/composants/livre_cadrage_industriel.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Liaison Industrielle (FEC)" owner_pole="Logistique — Liaison Industrielle (FEC)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/livre_cadrage_industriel.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Communication & Vulgarisation -->
+        {% if ctc_sub_role == 'communicateur' %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-1 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -165,23 +125,18 @@
                 </div>
             </div>
             <div class="p-4 flex-1 overflow-y-auto">
-                {% if ctc_sub_role == 'communicateur' %}
                 <div class="h-full min-h-[220px] flex flex-col items-center justify-center p-4 text-center">
                     <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 mb-3 dark:bg-white/5">
                         <i data-lucide="construction" class="w-5 h-5"></i>
                     </div>
                     <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Module en développement</h4>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        L'éditeur de communiqués et de campagnes de vulgarisation sera disponible prochainement.
-                    </p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">L'éditeur de communiqués et de campagnes de vulgarisation sera disponible prochainement.</p>
                 </div>
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Communication & Vulgarisation" owner_pole="Logistique — Communication & Vulgarisation" %}
-                {% endif %}
             </div>
         </div>
+        {% endif %}
 
-        <!-- Finances & Comptabilité (GAF) -->
+        {% if can_grand_livre %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -189,26 +144,20 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Finances & Comptabilité (GAF)</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_grand_livre %}
-                {% include "ctc/composants/grand_livre_comptable.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Finances & Comptabilité (GAF)" owner_pole="Logistique — GAF (Gestion Administrative et Financière)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/grand_livre_comptable.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- ================================================================
-             SECTION IV : BUREAU D'APPUI (PÔLE TECHNIQUE)
-        ================================================================= -->
+        {% if can_fast_entry or can_upload_maps or can_admin_system %}
         <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
             <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
                 <div class="bg-slate-100 text-slate-700 p-1.5 rounded dark:bg-white/5 dark:text-slate-400"><i data-lucide="server" class="w-4 h-4"></i></div>
                 <h3 class="text-base font-bold text-slate-800 dark:text-white">Bureau d'Appui (Pôle Technique)</h3>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Saisie Massive & Indexation Documentaire -->
+        {% if can_fast_entry %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -216,16 +165,11 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Saisie Massive & Indexation Documentaire</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_fast_entry %}
-                {% include "ctc/composants/interface_saisie_massive.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Saisie Massive & Indexation" owner_pole="Technique — Opérateurs de Saisie (BTC)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/interface_saisie_massive.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Serveur Géospatial / SIG (Amarrage) -->
+        {% if can_upload_maps %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -233,16 +177,11 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Serveur Géospatial / SIG (Amarrage)</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_upload_maps %}
-                {% include "ctc/composants/serveur_sig.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Serveur Géospatial / SIG" owner_pole="Technique — Cartographes SIG (BEAU/OVD)" %}
-                {% endif %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/serveur_sig.html" %}</div>
         </div>
+        {% endif %}
 
-        <!-- Administration Système & Dépôt (IT) -->
+        {% if can_admin_system %}
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
                 <div class="flex items-center gap-2">
@@ -250,79 +189,9 @@
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Administration Système & Dépôt (IT)</h3>
                 </div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if can_admin_system %}
-                {% include "ctc/composants/console_admin_systeme.html" %}
-                {% else %}
-                {% include "ctc/app/components/access_lock.html" with module_title="Administration Système" owner_pole="Technique — Administration Système (IT BTC/SG-ITP)" %}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- ================================================================
-             SECTION V : SUIVI OPÉRATIONNEL — DEMANDES D'ACCÈS INTER-PÔLES
-        ================================================================= -->
-        <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
-                <div class="bg-emerald-100 text-emerald-700 p-1.5 rounded dark:bg-emerald-500/10 dark:text-emerald-400"><i data-lucide="send" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Suivi Opérationnel — Demandes d'Accès Inter-Pôles</h3>
-            </div>
-        </div>
-
-        {% if can_approve_ctc_requests %}
-        <!-- Demandes Opérationnelles à Traiter (Assistant Exécutif) -->
-        <div id="widget-pending-requests" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="inbox" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Demandes Opérationnelles à Traiter</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% include "ctc/composants/ctc_pending_requests_panel.html" %}
-            </div>
+            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_admin_systeme.html" %}</div>
         </div>
         {% endif %}
-
-        <!-- Mes Demandes Opérationnelles -->
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Mes Demandes Opérationnelles</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% if my_ctc_requests %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {% for req in my_ctc_requests %}
-                    <div class="rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[2%] p-3">
-                        <div class="flex items-start justify-between gap-2 mb-1.5">
-                            <p class="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">{{ req.restricted_resource }}</p>
-                            <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full border shrink-0
-                                {% if req.status == 'APPROVED' %}bg-emerald-400/10 text-emerald-400 border-emerald-400/20
-                                {% elif req.status == 'REJECTED' %}bg-red-400/10 text-red-400 border-red-400/20
-                                {% else %}bg-amber-400/10 text-amber-400 border-amber-400/20{% endif %}">
-                                {{ req.get_status_display }}
-                            </span>
-                        </div>
-                        <p class="text-[9.5px] text-slate-500">{{ req.created_at|date:"d M Y, H:i" }}</p>
-                        {% if req.review_comment %}
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-100 dark:border-white/5 leading-relaxed">
-                            {{ req.review_comment }}
-                        </p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="h-full min-h-[140px] flex flex-col items-center justify-center text-center p-4">
-                    <i data-lucide="inbox" class="w-6 h-6 text-slate-300 dark:text-slate-600 mb-2"></i>
-                    <p class="text-xs text-slate-500">Aucune demande d'accès opérationnel soumise.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
 
     </div>
 </div>

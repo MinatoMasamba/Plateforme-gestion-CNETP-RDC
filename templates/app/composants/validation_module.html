@@ -154,7 +154,7 @@
                 : valState.drafts;
             if (!valState.activeDraftId && valState.myCtmDrafts.length) valState.activeDraftId = String(valState.myCtmDrafts[0].id);
             if (data.promoted_norme_ids?.length && window.showAppToast) {
-                window.showAppToast(`${data.promoted_norme_ids.length} norme(s) promue(s) automatiquement après vote > 50%.`, 'success');
+                window.showAppToast(`${data.promoted_norme_ids.length} norme(s) validée(s) au niveau CTM après vote > 50%.`, 'success');
             }
             renderValidationModule();
             renderValList();
