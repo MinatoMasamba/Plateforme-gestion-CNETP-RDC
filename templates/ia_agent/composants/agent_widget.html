@@ -22,7 +22,7 @@ Paramètres d'inclusion :
     .ia-md blockquote { border-left: 3px solid rgba(0,149,201,.4); padding-left: .6em; opacity: .85; }
 </style>
 
-<div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60]">
+<div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60] hover:z-[80] focus-within:z-[80]">
     <button onclick="toggleIaAgentPanel()"
             class="h-14 w-14 rounded-full bg-[#0095c9] hover:brightness-110 text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
             title="Assistant IA CNETP">
@@ -30,7 +30,7 @@ Paramètres d'inclusion :
     </button>
 </div>
 
-<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[60] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] max-md:!inset-3 max-md:!bottom-3 max-md:!w-auto max-md:!h-auto max-md:!max-w-none max-md:!max-h-none flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
+<div id="ia-agent-panel" class="hidden {{ widget_position|default:'bottom-6 right-6' }} z-[80] w-[400px] h-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] max-md:!inset-3 max-md:!bottom-3 max-md:!w-auto max-md:!h-auto max-md:!max-w-none max-md:!max-h-none flex flex-col rounded-2xl shadow-2xl border bg-white border-slate-200 dark:bg-[#0b0c14] dark:border-white/10 overflow-hidden"
      data-scope="{{ widget_scope }}">
 
     <div class="flex h-1 shrink-0">

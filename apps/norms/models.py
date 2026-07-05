@@ -7,12 +7,22 @@ from apps.experts.models import Expert
 
 class Norme(BaseModel):
     """Un projet de norme"""
+    STANDARD_FAMILY_CHOICES = [
+        ('NCD', 'Norme Nationale Congolaise'),
+        ('ISO', 'Référentiel ISO'),
+        ('ARSO', 'Référentiel ARSO'),
+        ('OTHER', 'Autre référentiel'),
+    ]
+
     title = models.CharField(max_length=500)
     reference_number = models.CharField(max_length=50, unique=True, help_text="Ex: CNETP-001-2024")
     
     description = models.TextField()
     ctm = models.ForeignKey(CTM, on_delete=models.PROTECT, related_name='normes')
     wg = models.ForeignKey(WG, on_delete=models.PROTECT, related_name='normes')
+
+    # Squelette normatif explicite
+    standard_family = models.CharField(max_length=10, choices=STANDARD_FAMILY_CHOICES, default='NCD')
     
     # References
     iso_reference = models.CharField(max_length=50, blank=True, help_text="Ex: ISO 12345")
@@ -95,6 +105,18 @@ class Norme(BaseModel):
     
     def __str__(self):
         return f"{self.reference_number} - {self.title[:50]}"
+
+    def infer_standard_family(self):
+        """Déduire la famille de norme à partir des métadonnées disponibles."""
+        if self.standard_family:
+            return self.standard_family
+        if self.iso_reference:
+            return 'ISO'
+        if self.arso_reference:
+            return 'ARSO'
+        if self.reference_number.startswith('NCD') or self.norm_type == 'NCD':
+            return 'NCD'
+        return 'OTHER'
     
     def get_latest_version(self):
         return self.versions.order_by('-version_number').first()

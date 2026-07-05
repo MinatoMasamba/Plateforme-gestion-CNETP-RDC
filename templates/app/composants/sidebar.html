@@ -514,10 +514,11 @@
                     ctm: norm.ctm,
                     wg: norm.wg,
                 }));
-                sidebarState.documents = sidebarState.currentCtmId
+                const scopedDocs = sidebarState.currentCtmId
                     ? mappedDocs.filter(doc => String(doc.ctm) === String(sidebarState.currentCtmId))
                     : mappedDocs;
-                if (!sidebarState.documents.find(doc => doc.id === sidebarState.selectedDocId)) {
+                sidebarState.documents = scopedDocs.length ? scopedDocs : mappedDocs;
+                if (!sidebarState.documents.find(doc => String(doc.id) === String(sidebarState.selectedDocId))) {
                     sidebarState.selectedDocId = sidebarState.documents[0]?.id ?? null;
                 }
             }

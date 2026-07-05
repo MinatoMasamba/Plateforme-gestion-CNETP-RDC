@@ -85,7 +85,9 @@ class NormeViewSet(viewsets.ModelViewSet):
         text = text.replace('\x00', '')
         text = re.sub(r'[\t ]+\n', '\n', text)
         text = re.sub(r'\n{4,}', '\n\n\n', text)
-        return text.strip()
+        lines = text.split('\n')
+        cleaned = [line.rstrip() for line in lines]
+        return '\n'.join(cleaned).strip('\n')
 
     def _extract_docx_text(self, path):
         paragraphs = []
@@ -93,6 +95,14 @@ class NormeViewSet(viewsets.ModelViewSet):
             xml = archive.read('word/document.xml')
         root = ElementTree.fromstring(xml)
         for paragraph in root.findall('.//w:body/w:p', self.WORD_XML_NS):
+            indent_spaces = 0
+            ppr = paragraph.find('w:pPr', self.WORD_XML_NS)
+            if ppr is not None:
+                indent = ppr.find('w:ind', self.WORD_XML_NS)
+                if indent is not None:
+                    left = indent.attrib.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}left')
+                    if left and left.isdigit():
+                        indent_spaces = max(0, int(int(left) / 240))
             chunks = []
             for node in paragraph.iter():
                 tag = node.tag.rsplit('}', 1)[-1]
@@ -104,7 +114,7 @@ class NormeViewSet(viewsets.ModelViewSet):
                     chunks.append('\n')
             line = ''.join(chunks).rstrip()
             if line:
-                paragraphs.append(line)
+                paragraphs.append((' ' * indent_spaces) + line)
             elif paragraphs and paragraphs[-1] != '':
                 paragraphs.append('')
         return '\n\n'.join(paragraphs)

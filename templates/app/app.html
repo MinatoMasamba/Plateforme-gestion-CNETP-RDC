@@ -85,11 +85,14 @@
         @media (max-width: 767px) {
             #sidebar-container {
                 position: fixed;
-                inset: 0;
+                top: 0;
+                left: 0;
+                bottom: 0;
                 z-index: 40;
-                width: 100%;
+                width: min(88vw, 360px);
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                box-shadow: 0 24px 80px rgba(0,0,0,0.45);
             }
             #sidebar-container.mobile-sidebar-open {
                 transform: translateX(0);
@@ -102,6 +105,12 @@
                 background: rgba(0,0,0,0.5);
             }
             #mobile-sidebar-overlay.active { display: block; }
+            body.app-float-hidden #ia-agent-toggle-btn,
+            body.app-float-hidden #ia-agent-panel,
+            body.app-float-hidden #messaging-widget-container,
+            body.app-float-hidden #pending-experts-btn-container {
+                display: none !important;
+            }
         }
 
         /* =========================
@@ -234,6 +243,29 @@
 
     <div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar(false)"></div>
 
+    <nav id="mobile-dock" class="md:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
+        <button onclick="loadModule('editor')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="editor" aria-label="Édition">
+            <i data-lucide="file-text" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+            <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Édition</span>
+        </button>
+        <button onclick="loadModule('history')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="history" aria-label="Historique">
+            <i data-lucide="history" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+            <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Historique</span>
+        </button>
+        <button onclick="loadModule('validation')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="validation" aria-label="Validation">
+            <i data-lucide="check-square" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+            <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Validation</span>
+        </button>
+        <button onclick="loadModule('legistique')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="legistique" aria-label="Légistique">
+            <i data-lucide="briefcase" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+            <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Légistique</span>
+        </button>
+        <button onclick="toggleMobileSidebar(true); loadModule('editor');" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl" data-target="norms" aria-label="Normes">
+            <i data-lucide="list" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+            <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Normes</span>
+        </button>
+    </nav>
+
     <aside id="sidebar-container" class="w-80 h-full flex flex-col border-r border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#06060c]/90 backdrop-blur-md z-20 shrink-0 transition-colors duration-250 text-slate-800 dark:text-slate-300">
 
         <div class="p-4 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black/15">
@@ -289,50 +321,51 @@
 
         <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none z-0"></div>
 
-        <nav class="h-14 px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/40 backdrop-blur-md">
+        <nav class="h-14 md:h-14 px-4 md:px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/40 backdrop-blur-md">
 
-            <div class="flex items-center gap-1 flex-row flex-nowrap shrink-0" id="nav-tabs">
-                <button id="mobile-sidebar-toggle" onclick="toggleMobileSidebar()" aria-label="Menu" class="md:hidden mr-1 shrink-0 h-9 w-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
+            <div class="flex items-center gap-1 flex-row flex-nowrap shrink-0 min-w-0 flex-1" id="nav-tabs">
+                <div class="md:hidden mr-1 shrink-0 h-8 w-8 rounded-full overflow-hidden border border-white/10 bg-black/30">
+                    <img src="{% static 'img/logo-cnetp.png' %}" alt="Logo" class="h-full w-full object-cover">
+                </div>
+                <button id="mobile-sidebar-toggle" onclick="toggleDock()" aria-label="Menu" class="md:hidden shrink-0 h-9 w-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
                     <i id="mobile-sidebar-toggle-icon" data-lucide="menu" class="h-5 w-5"></i>
                 </button>
-                <button onclick="loadModule('editor')" id="btn-editor" class="tab-btn active h-14 px-3 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 border-b-2 border-blue-500 text-blue-400 bg-blue-500/10">
+                <button id="workspace-title-mobile" class="md:hidden flex-1 min-w-0 text-center text-[11px] font-extrabold tracking-wide uppercase text-slate-200 truncate px-2">Espace de travail</button>
+                <button onclick="loadModule('editor')" id="btn-editor" data-module="1" class="tab-btn hidden md:flex active h-14 px-3 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-1.5 border-b-2 border-blue-500 text-blue-400 bg-blue-500/10">
                     <i data-lucide="file-text" class="h-4 w-4"></i> Éditeur de Normes
                 </button>
 
-                <button onclick="loadModule('history')" id="btn-history" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('history')" id="btn-history" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="history" class="h-4 w-4"></i> HISTORIQUE
                 </button>
 
-                <button onclick="loadModule('experts')" id="btn-experts" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('experts')" id="btn-experts" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="users" class="h-4 w-4"></i> EXPERTS & GROUPS
                 </button>
 
-                <button onclick="loadModule('meetings')" id="btn-meetings" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('meetings')" id="btn-meetings" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="vote" class="h-4 w-4"></i> RÉNIONS & VOTES
                 </button>
 
-                <button onclick="loadModule('financial')" id="btn-financial" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('financial')" id="btn-financial" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="landmark" class="h-4 w-4"></i> COTISATIONS & INDENMITÉS
                 </button>
 
-                <button onclick="loadModule('validation')" id="btn-validation" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('validation')" id="btn-validation" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="check-square" class="h-4 w-4"></i> Processus ISO
                 </button>
-                <button onclick="loadModule('legistique')" id="btn-legistique" class="tab-btn h-14 px-3.5 text-[10.5px] font-bold tracking-wider uppercase transition-all flex items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
+                <button onclick="loadModule('legistique')" id="btn-legistique" data-module="1" class="tab-btn hidden md:flex h-14 px-3.5 text-[10px] md:text-[10.5px] font-bold tracking-wider uppercase transition-all items-center gap-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-white/5">
                     <i data-lucide="briefcase" class="h-4 w-4"></i> BUREAU LEGISTIQUE
                 </button>
             </div>
 
-            <div class="shrink-0 flex items-center gap-3 pr-3 relative z-20">
-                <button id="theme-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/10 text-slate-700 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-white/10 hover:text-white">
-                    <span>☀️ Basculer Thème</span>
+            <div class="md:hidden flex items-center gap-2 shrink-0">
+                <button id="theme-toggle" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border font-bold text-[10px] cursor-pointer transition-all border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/10 text-slate-700 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-white/10 hover:text-white">
+                    <span>☀️</span>
                 </button>
-
-                <button id="profile-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition-all border-blue-500/30 bg-blue-500/5 text-blue-400 hover:bg-blue-500/15">
+                <button id="profile-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border font-bold text-[10px] cursor-pointer transition-all border-blue-500/30 bg-blue-500/5 text-blue-400 hover:bg-blue-500/15">
                     <i data-lucide="user" class="h-3.5 w-3.5"></i>
-                    <span class="text-white" id="user-display-name">Chargement...</span>
                 </button>
-
             </div>
         </nav>
 
@@ -351,7 +384,7 @@
 
     {% include 'app/composants/messaging_widget.html' %}
     {% include 'app/composants/pending_experts_widget.html' %}
-    {% include 'ia_agent/composants/agent_widget.html' with widget_scope='expert' widget_position='bottom-24 left-6' %}
+    {% include 'ia_agent/composants/agent_widget.html' with widget_scope='expert' widget_position='bottom-32 left-6' %}
     <div id="modals-container">
         {% include 'app/composants/create_norm_modal.html' %}
     </div>
@@ -482,9 +515,10 @@
                         ctm: n.ctm,
                         wg: n.wg
                     }));
-                    sidebarState.documents = sidebarState.currentCtmId
+                    const scopedDocs = sidebarState.currentCtmId
                         ? mappedDocs.filter(doc => String(doc.ctm) === String(sidebarState.currentCtmId))
                         : mappedDocs;
+                    sidebarState.documents = scopedDocs.length ? scopedDocs : mappedDocs;
                 }
 
                 if (wgs) {
@@ -541,8 +575,11 @@
 
                 renderSidebarContent();
 
-                if (!sidebarState.selectedDocId && sidebarState.documents.length > 0) {
-                    sidebarSelect('doc', sidebarState.documents[0].id);
+                if (sidebarState.documents.length > 0) {
+                    const hasSelectedDoc = sidebarState.documents.some(doc => String(doc.id) === String(sidebarState.selectedDocId));
+                    if (!hasSelectedDoc) {
+                        sidebarSelect('doc', sidebarState.documents[0].id);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch sidebar data:", error);
@@ -573,6 +610,7 @@
                 const updates = {
                     'ed-doc-title': doc.title,
                     'ed-doc-code': doc.reference_number,
+                    'ed-doc-family': doc.standard_family || doc.norm_type || 'NCD',
                     'ed-doc-desc': doc.description || "Aucune description.",
                     'ed-doc-ctm': doc.ctm_name || "Non assigné",
                     'ed-main-textarea': doc.latest_version ? doc.latest_version.content : "Document sans contenu."
@@ -613,13 +651,36 @@
             const topSection = document.getElementById('sidebar-top-section');
             const bottomSection = document.getElementById('sidebar-bottom-section');
             if(!topSection || !bottomSection) return;
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
             let topHtml = '';
             if (sidebarState.activeTab === 'editor') {
                 topHtml = `
+                    <div class="md:hidden px-2 mb-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="loadModule('editor')" class="rounded-xl border px-3 py-2 text-left ${sidebarState.activeTab === 'editor' ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-white/5 border-white/10 text-slate-300'}">
+                                <p class="text-[10px] font-bold uppercase tracking-wider">Édition</p>
+                            </button>
+                            <button onclick="loadModule('history')" class="rounded-xl border px-3 py-2 text-left ${sidebarState.activeTab === 'history' ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-white/5 border-white/10 text-slate-300'}">
+                                <p class="text-[10px] font-bold uppercase tracking-wider">Historique</p>
+                            </button>
+                            <button onclick="loadModule('legistique')" class="rounded-xl border px-3 py-2 text-left ${sidebarState.activeTab === 'legistique' ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-white/5 border-white/10 text-slate-300'}">
+                                <p class="text-[10px] font-bold uppercase tracking-wider">Légistique</p>
+                            </button>
+                            <button onclick="loadModule('validation')" class="rounded-xl border px-3 py-2 text-left ${sidebarState.activeTab === 'validation' ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300' : 'bg-white/5 border-white/10 text-slate-300'}">
+                                <p class="text-[10px] font-bold uppercase tracking-wider">Validation</p>
+                            </button>
+                        </div>
+                    </div>
                     <div class="flex items-center justify-between mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Documents</h2>
+                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> ${isMobile ? 'Normes' : 'Documents'}</h2>
                         <button onclick="if(window.openCreateNormModal) window.openCreateNormModal(); else console.error('Modal function not found');" class="text-[10px] font-bold px-2 py-1 rounded transition-all border text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20 cursor-pointer"><i data-lucide="plus" class="h-3 w-3 inline"></i> Nouveau</button>
+                    </div>
+                    <div class="px-2 mb-3">
+                        <div class="rounded-xl border border-blue-200 bg-blue-50/70 dark:bg-blue-500/10 dark:border-blue-500/20 p-3">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">Liste des normes</p>
+                            <p class="text-[11px] mt-1 text-slate-600 dark:text-slate-400 leading-normal">${isMobile ? 'Choisissez une norme.' : 'Sélectionnez une norme pour l’ouvrir dans l’éditeur ou consulter son historique.'}</p>
+                        </div>
                     </div>
                     <div class="space-y-1">
                         ${sidebarState.documents.length ? sidebarState.documents.map(doc => {
@@ -628,21 +689,21 @@
                             const isMyWg = doc.wg != null && sidebarState.currentWgId != null && String(doc.wg) === String(sidebarState.currentWgId);
                             return `<button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
                                 <div class="flex items-center justify-between gap-2">
-                                    <span class="font-semibold text-xs truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                                    <span class="font-semibold ${isMobile ? 'text-[11px]' : 'text-xs'} truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
                                     ${isMyWg ? '<span class="text-[8.5px] px-1 rounded font-extrabold uppercase border shrink-0 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20">Mon WG</span>' : ''}
                                 </div>
-                                <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span>${doc.updatedBy}</span></div>
+                                <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span class="truncate max-w-[42%]">${doc.updatedBy}</span></div>
                             </button>`;
                         }).join('') : '<p class="text-[10px] text-center py-4 text-slate-500 italic">Aucun document trouvé.</p>'}
                     </div>`;
             } else if (sidebarState.activeTab === 'history') {
                 topHtml = `
                     <div class="flex items-center justify-between mb-3 px-2">
-                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Documents</h2>
+                        <h2 class="text-xs font-semibold text-slate-500 tracking-wider uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> ${isMobile ? 'Normes' : 'Documents'}</h2>
                     </div>
                     <div class="px-2 mb-3 relative">
                         <i data-lucide="search" class="absolute left-4 top-2.5 h-3.5 w-3.5 text-slate-500"></i>
-                        <input type="text" value="${sidebarState.searchQuery}" oninput="filterHistorySidebar(this.value)" placeholder="Rechercher une norme..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-slate-800 dark:text-white border-slate-200 dark:border-white/10 focus:outline-hidden">
+                        <input type="text" value="${sidebarState.searchQuery}" oninput="filterHistorySidebar(this.value)" placeholder="Rechercher..." class="w-full pl-9 py-1.5 rounded-lg border bg-white dark:bg-black/55 text-xs text-slate-800 dark:text-white border-slate-200 dark:border-white/10 focus:outline-hidden">
                     </div>
                     <div id="history-doc-list" class="space-y-1"></div>`;
             } else if (sidebarState.activeTab === 'experts') {
@@ -657,7 +718,7 @@
             }
 
             let listData = sidebarState.activeTab === 'experts' ? sidebarState.experts : sidebarState.collaborators;
-            const bottomTitle = sidebarState.activeTab === 'experts' ? 'Experts du même CTM' : 'Collaborateurs';
+            const bottomTitle = sidebarState.activeTab === 'experts' ? (isMobile ? 'Membres' : 'Experts du même CTM') : 'Collaborateurs';
             let bottomHtml = `<div class="mb-3 px-2 flex justify-between pt-4 border-t border-slate-200 dark:border-white/5"><h2 class="text-xs font-semibold text-slate-500 uppercase"><i data-lucide="users" class="h-3.5 w-3.5 inline"></i> ${bottomTitle}</h2></div><div class="space-y-2">
                 ${listData.length ? listData.map(c => {
                     const isExpertRow = sidebarState.activeTab === 'experts';
@@ -706,8 +767,6 @@
         // =========================================================================
         // NAVIGATION MOBILE : panneau sidebar plein écran <-> contenu
         // =========================================================================
-        let mobileSidebarHasSelection = false;
-
         function isMobileViewport() {
             return window.matchMedia('(max-width: 767px)').matches;
         }
@@ -715,17 +774,23 @@
         function toggleMobileSidebar(forceOpen) {
             const sidebar = document.getElementById('sidebar-container');
             const overlay = document.getElementById('mobile-sidebar-overlay');
-            const icon = document.getElementById('mobile-sidebar-toggle-icon');
             if (!sidebar) return;
 
             const open = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('mobile-sidebar-open');
             sidebar.classList.toggle('mobile-sidebar-open', open);
             if (overlay) overlay.classList.toggle('active', open);
+        }
 
-            if (icon) {
-                icon.setAttribute('data-lucide', open ? 'x' : (mobileSidebarHasSelection ? 'arrow-left' : 'menu'));
-                safeCreateIcons();
-            }
+        function toggleDock(forceOpen) {
+            const dock = document.getElementById('mobile-dock');
+            const icon = document.getElementById('mobile-sidebar-toggle-icon');
+            if (!dock) return;
+
+            const open = typeof forceOpen === 'boolean' ? forceOpen : dock.classList.contains('hidden');
+            dock.classList.toggle('hidden', !open);
+            document.body.classList.toggle('app-float-hidden', open);
+            if (icon) icon.setAttribute('data-lucide', 'menu');
+            safeCreateIcons();
         }
 
         function sidebarSelect(type, id) {
@@ -748,8 +813,9 @@
             }
 
             if (isMobileViewport()) {
-                mobileSidebarHasSelection = true;
-                toggleMobileSidebar(false);
+                const dock = document.getElementById('mobile-dock');
+                if (dock) dock.classList.remove('hidden');
+                document.body.classList.remove('app-float-hidden');
             }
         }
 
@@ -857,7 +923,7 @@
 
         async function loadModule(moduleId) {
             document.querySelectorAll('.module-container').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
+            document.querySelectorAll('.tab-btn[data-module]').forEach(btn => {
                 btn.classList.remove('border-blue-500', 'text-blue-400', 'bg-blue-500/10', 'active');
                 btn.classList.add('border-transparent', 'text-slate-400');
             });
@@ -871,6 +937,27 @@
             }
 
             sidebarState.activeTab = moduleId;
+            if (isMobileViewport()) {
+                const dock = document.getElementById('mobile-dock');
+                if (dock) dock.classList.add('hidden');
+                document.body.classList.remove('app-float-hidden');
+                if (moduleId === 'editor') {
+                    toggleMobileSidebar(true);
+                }
+            }
+            const mobileTitle = document.getElementById('workspace-title-mobile');
+            if (mobileTitle) {
+                const labels = {
+                    editor: 'Édition',
+                    history: 'Historique',
+                    experts: 'Experts',
+                    meetings: 'Votes',
+                    financial: 'Budget',
+                    validation: 'Validation',
+                    legistique: 'Légistique'
+                };
+                mobileTitle.textContent = labels[moduleId] || 'Espace';
+            }
             renderSidebarContent();
 
             if (loadedModules.has(moduleId)) {
@@ -945,29 +1032,41 @@
             });
         }
 
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                const isDark = document.documentElement.classList.contains('dark');
+                localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
 
-            if(isDark) {
-                document.body.classList.add('bg-[#020204]', 'text-slate-300');
-                document.body.classList.remove('bg-slate-50', 'text-slate-800');
-            } else {
-                document.body.classList.remove('bg-[#020204]', 'text-slate-300');
-                document.body.classList.add('bg-slate-50', 'text-slate-800');
+                if(isDark) {
+                    document.body.classList.add('bg-[#020204]', 'text-slate-300');
+                    document.body.classList.remove('bg-slate-50', 'text-slate-800');
+                } else {
+                    document.body.classList.remove('bg-[#020204]', 'text-slate-300');
+                    document.body.classList.add('bg-slate-50', 'text-slate-800');
+                }
+                renderSidebarContent();
+            });
+        }
+
+        function bootstrapApp() {
+            try {
+                safeCreateIcons();
+                const userDisplay = document.getElementById('user-display-name');
+                if (userDisplay) userDisplay.textContent = "{{ user|default:'Expert Connecté' }}";
+                fetchSidebarData();
+                loadModule('editor');
+
+                const profileBtn = document.getElementById('profile-btn');
+                if (profileBtn) profileBtn.addEventListener('click', showMyProfile);
+            } catch (error) {
+                console.error('Bootstrap error:', error);
             }
-            renderSidebarContent();
-        });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            safeCreateIcons();
-            document.getElementById('user-display-name').textContent = "{{ user|default:'Expert Connecté' }}";
-            fetchSidebarData();
-            loadModule('editor');
-
-            // Connecter les boutons de profil
-            document.getElementById('profile-btn').addEventListener('click', showMyProfile);
+            window.requestAnimationFrame(bootstrapApp);
         });
 
     </script>

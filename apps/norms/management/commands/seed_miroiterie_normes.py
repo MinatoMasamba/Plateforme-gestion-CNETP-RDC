@@ -288,6 +288,7 @@ class Command(BaseCommand):
                     'description': entry['description'],
                     'ctm': ctm3,
                     'wg': wg,
+                    'standard_family': 'ISO',
                     'iso_reference': entry['iso'],
                     'norm_type': 'NCD',
                     'target_count': 1,
