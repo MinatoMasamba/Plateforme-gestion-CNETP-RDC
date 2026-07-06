@@ -1,77 +1,77 @@
-<div class="p-6 max-w-6xl mx-auto space-y-6 h-full flex flex-col text-slate-800 dark:text-slate-300 transition-colors duration-200">
+<div class="p-4 sm:p-6 max-w-6xl mx-auto space-y-4 sm:space-y-6 h-full flex flex-col text-slate-800 dark:text-slate-300 transition-colors duration-200">
     
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div class="flex items-center gap-3">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2 sm:gap-3">
             <div class="bg-amber-100 p-2 rounded-lg dark:bg-amber-500/10">
-                <i data-lucide="hard-drive" class="w-6 h-6 text-amber-600 dark:text-amber-500"></i>
+                <i data-lucide="hard-drive" class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 dark:text-amber-500"></i>
             </div>
             <div>
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Espace Drive CNETP</h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Stockage partagé et centralisé des projets de normes.</p>
+                <h2 class="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Espace Drive CNETP</h2>
+                <p class="text-[11px] sm:text-sm text-slate-500 dark:text-slate-400 leading-snug">Stockage partagé et centralisé des projets de normes.</p>
             </div>
         </div>
         
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full md:w-auto">
             <div class="relative">
-                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <i data-lucide="search" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
                 <input 
                     type="text" 
                     id="drive-search-input"
                     oninput="handleDriveSearch(this.value)"
                     placeholder="Rechercher dans le Drive..." 
-                    class="pl-9 pr-4 py-2 w-64 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:ring-amber-500/40"
+                    class="pl-9 pr-4 py-2 w-full md:w-64 border border-slate-200 rounded-lg text-xs sm:text-sm bg-white text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 dark:bg-black/40 dark:border-white/10 dark:text-white dark:focus:ring-amber-500/40"
                 />
             </div>
         </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-wrap items-center justify-between gap-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none">
-        <div class="flex items-center gap-2">
-            <button onclick="handleCreateFolder()" class="flex items-center gap-2 px-3 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-sm font-bold transition cursor-pointer dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20">
-                <i data-lucide="folder-plus" class="w-4 h-4"></i> Créer Dossier
+    <div class="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3 shadow-sm flex flex-wrap items-center justify-between gap-2 sm:gap-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none">
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="handleCreateFolder()" class="flex items-center gap-1.5 px-2.5 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20">
+                <i data-lucide="folder-plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Créer Dossier</span><span class="xs:hidden">Créer</span>
             </button>
-            <button onclick="handleUploadFile()" class="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-sm font-bold transition cursor-pointer dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
-                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Téléverser Fichier
+            <button onclick="handleUploadFile()" class="flex items-center gap-1.5 px-2.5 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                <i data-lucide="upload-cloud" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Téléverser Fichier</span><span class="xs:hidden">Téléverser</span>
             </button>
         </div>
         
-        <div class="flex items-center gap-2 border-l border-slate-200 pl-3 dark:border-white/10 flex-wrap">
-            <button id="drive-btn-download" onclick="executeDownload()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
-            <button id="drive-btn-copy" onclick="executeCopy()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
-            <button id="drive-btn-rename" onclick="executeRename()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
-            <button id="drive-btn-print" onclick="executePrint()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
-            <button id="drive-btn-delete" onclick="executeDelete()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition cursor-pointer"></button>
+        <div class="flex items-center gap-2 border-l-0 sm:border-l border-slate-200 pl-0 sm:pl-3 dark:border-white/10 flex-wrap w-full sm:w-auto">
+            <button id="drive-btn-download" onclick="executeDownload()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-copy" onclick="executeCopy()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-rename" onclick="executeRename()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-print" onclick="executePrint()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer"></button>
+            <button id="drive-btn-delete" onclick="executeDelete()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition cursor-pointer"></button>
         </div>
     </div>
 
-    <div class="flex-1 flex gap-6 overflow-hidden min-h-[400px]">
+    <div class="flex-1 flex gap-4 sm:gap-6 overflow-hidden min-h-[400px]">
         
         <div class="w-64 flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4 shadow-sm overflow-y-auto hidden md:block dark:bg-black/30 dark:border-white/10">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Mon Espace</h3>
+            <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">Mon Espace</h3>
             <ul id="drive-folders-tree" class="space-y-1">
                 </ul>
         </div>
 
         <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col dark:bg-black/30 dark:border-white/10 dark:shadow-none">
             
-            <div class="px-6 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <button onclick="handleSelectAllToggle()" class="p-1 hover:bg-slate-200 dark:hover:bg-white/5 rounded text-slate-500 dark:text-slate-400 transition cursor-pointer" title="Tout sélectionner">
+            <div class="px-3 sm:px-6 py-2.5 sm:py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2 dark:bg-black/40 dark:border-white/10">
+                <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <button onclick="handleSelectAllToggle()" class="p-1 hover:bg-slate-200 dark:hover:bg-white/5 rounded text-slate-500 dark:text-slate-400 transition cursor-pointer shrink-0" title="Tout sélectionner">
                         <div id="drive-master-checkbox"></div>
                     </button>
-                    <h3 id="drive-current-folder-title" class="font-bold text-slate-800 text-sm ml-2 dark:text-white">Tous les fichiers</h3>
+                    <h3 id="drive-current-folder-title" class="font-bold text-slate-800 text-[12px] sm:text-sm md:text-base ml-1.5 sm:ml-2 dark:text-white truncate">Tous les fichiers</h3>
                 </div>
-                <span id="drive-selection-count-text" class="text-xs font-bold text-slate-500 dark:text-slate-400">0 sélectionné(s)</span>
+                <span id="drive-selection-count-text" class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">0 sélectionné(s)</span>
             </div>
             
             <div class="overflow-y-auto flex-1 scrollbar-none">
-                <table class="w-full text-left text-sm whitespace-nowrap">
+                <table class="w-full text-left text-[11px] sm:text-sm whitespace-nowrap">
                     <tbody id="drive-files-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
                         </tbody>
                 </table>
                 <div id="drive-empty-state" class="hidden text-center py-16 animate-fadeIn">
-                    <i data-lucide="folder" class="w-12 h-12 text-slate-200 mx-auto mb-3 dark:text-slate-700"></i>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Ce dossier est vide.</p>
+                    <i data-lucide="folder" class="w-10 h-10 sm:w-12 sm:h-12 text-slate-200 mx-auto mb-3 dark:text-slate-700"></i>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Ce dossier est vide.</p>
                 </div>
             </div>
 
@@ -83,17 +83,23 @@
     // =========================================================================
     // ÉTAT LOCAL ET DONNÉES SIMULÉES DU DRIVE
     // =========================================================================
+    const driveCtmFolders = [
+        {% for item in ctms_list %}
+        'CTM {{ item.ctm.number }} — {{ item.ctm.name|escapejs }}',
+        {% endfor %}
+    ].filter(Boolean);
+
     const driveState = {
         selectedFolder: null,
         selectedFiles: [],
         searchQuery: "",
-        folders: ['Direction CTC', 'CTM 2 - Ouvrages', 'CTM 6 - Eau', 'SIG & Cartographie', 'Finances (GAF)', 'Enquêtes Publiques'],
+        folders: driveCtmFolders.length ? driveCtmFolders : ['Direction CTC'],
         files: [
-            { id: 1, name: 'CTM-2-044_Brouillon_v1.docx', type: 'doc', size: '2.4 MB', date: '2026-06-08', folder: 'CTM 2 - Ouvrages' },
-            { id: 2, name: 'Annexe_Carto_RN39.qgz', type: 'map', size: '14.5 MB', date: '2026-06-05', folder: 'SIG & Cartographie' },
-            { id: 3, name: 'Budget_Q3_Previsionnel.xlsx', type: 'sheet', size: '1.1 MB', date: '2026-06-01', folder: 'Finances (GAF)' },
-            { id: 4, name: 'Rapport_Reception_Avis.pdf', type: 'pdf', size: '4.8 MB', date: '2026-05-28', folder: 'Enquêtes Publiques' },
-            { id: 5, name: 'PV_Reunion_Pilotage_Mai.pdf', type: 'pdf', size: '1.2 MB', date: '2026-05-15', folder: 'Direction CTC' }
+            {% for item in ctms_list %}
+            {% for norme in item.ctm.normes.all|slice:":3" %}
+            { id: {{ forloop.parentloop.counter }}{{ forloop.counter }}, name: '{{ norme.reference_number|escapejs }}_{{ norme.title|escapejs }}.pdf', type: 'pdf', size: '1.2 MB', date: '{{ norme.created_at|date:"Y-m-d" }}', folder: 'CTM {{ item.ctm.number }} — {{ item.ctm.name|escapejs }}' },
+            {% endfor %}
+            {% endfor %}
         ]
     };
 
@@ -132,7 +138,7 @@
         let html = `
         <li>
             <button onclick="selectFolderGate(null)" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${!driveState.selectedFolder ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/5'}">
-                <i data-lucide="hard-drive" class="w-4 h-4"></i> Tout le Drive
+                <i data-lucide="hard-drive" class="w-5 h-5"></i> Tout le Drive
             </button>
         </li>
         <li class="pt-2 pb-1 px-2 text-xs font-bold text-slate-400 uppercase tracking-wider select-none">Dossiers CNETP</li>`;
@@ -147,7 +153,7 @@
             return `
             <li>
                 <button onclick="selectFolderGate('${folder}')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${btnClass}">
-                    <i data-lucide="folder" class="w-4 h-4 ${folderIconColor}"></i> 
+                    <i data-lucide="folder" class="w-5 h-5 ${folderIconColor} shrink-0"></i> 
                     <span class="truncate">${folder}</span>
                 </button>
             </li>`;
@@ -190,23 +196,23 @@
 
             return `
             <tr onclick="toggleFileSelectGate(event, ${file.id})" class="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group ${rowSelectedClass} animate-slideIn">
-                <td class="px-4 py-3 w-10">
+                <td class="px-3 sm:px-4 py-2.5 sm:py-3 w-8 sm:w-10">
                     <div class="p-1">${checkboxMarkup}</div>
                 </td>
-                <td class="px-2 py-3">
-                    <div class="flex items-center gap-3">
+                <td class="px-2 py-2.5 sm:py-3">
+                    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
                         ${getVisualIcon(file.type)}
-                        <span class="font-medium text-slate-800 dark:text-slate-200 select-all">${file.name}</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-200 select-all text-[11px] sm:text-sm truncate max-w-[11rem] sm:max-w-none">${file.name}</span>
                     </div>
                 </td>
-                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden sm:table-cell">
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden md:table-cell">
                     <div class="flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i> ${file.folder}</div>
                 </td>
-                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden md:table-cell">${file.date}</td>
-                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs font-mono">${file.size}</td>
-                <td class="px-4 py-3 text-right">
-                    <button onclick="event.stopPropagation(); alert('Options complémentaires de fichier: #' + ${file.id})" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 dark:hover:text-white transition cursor-pointer">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs hidden lg:table-cell">${file.date}</td>
+                <td class="px-6 py-3 text-slate-500 dark:text-slate-400 text-xs font-mono hidden lg:table-cell">${file.size}</td>
+                <td class="px-3 sm:px-4 py-2.5 sm:py-3 text-right">
+                    <button onclick="event.stopPropagation(); alert('Options complémentaires de fichier: #' + ${file.id})" class="p-1 rounded-lg opacity-100 sm:opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 dark:hover:text-white transition cursor-pointer">
+                        <i data-lucide="more-vertical" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                     </button>
                 </td>
             </tr>`;

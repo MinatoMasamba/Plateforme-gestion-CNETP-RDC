@@ -22,6 +22,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from apps.experts.models import Expert
+from web.pilotage_views import get_pilotage_context
 from apps.governance.models import (
     TechnicalCell, CTCMembership, CTCOperationalRequest,
     PosteNominatifCTC, CTM, CTCProcessus, PlatformFreeze,
@@ -387,6 +388,16 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
             'ctm': c,
             'wg_count': c.working_groups.count(),
             'member_count': c.affectations.count(),
+            'normes_en_cours': list(
+                c.normes.exclude(status='PUBLISHED')
+                .select_related('wg')
+                .order_by('wg__number', '-created_at')
+            ),
+            'normes_publiees': list(
+                c.normes.filter(status='PUBLISHED')
+                .select_related('wg')
+                .order_by('-publication_date')
+            ),
         }
         for c in ctms
     ]
@@ -414,6 +425,24 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
 
     # Tâches personnelles en attente (vue "Mes Assignations")
     assignation_tasks = []
+    pilotage_ctx = get_pilotage_context(expert)
+    ctc_processus_tasks = ctx.get('active_processus', [])
+    for processus in ctc_processus_tasks:
+        stage_label = processus.get_current_stage_display()
+        assignation_tasks.append({
+            'type_label': "Traitement CTC",
+            'icon': 'file-search',
+            'reference': processus.norme.reference_number,
+            'title': processus.norme.title,
+            'status_display': stage_label,
+            'view_target': 'dossiers',
+            'anchor': None,
+            'category': 'personnelle',
+            'category_label': "Mes Assignations Personnelles",
+            'source_label': "Norme votée puis reçue par la CTC",
+        })
+
+    # Compléments d'examen pour les rôles analytiques
     for review in ctx.get('my_pending_reviews', []):
         meta = _REVIEW_TASK_META.get(type(review), {'label': 'Examen', 'icon': 'file-text', 'anchor': None})
         if isinstance(review, ScheduleReview):
@@ -429,31 +458,41 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
             'reference': review.norme.reference_number,
             'title': review.norme.title,
             'status_display': status_display,
-            'view_target': 'dashboard',
+            'view_target': 'dossiers',
             'anchor': meta['anchor'],
+            'category': 'personnelle',
+            'category_label': "Mes Assignations Personnelles",
+            'source_label': "Examen analytique CTC",
         })
 
-    if ctx['ctc_sub_role'] == 'assistant_executif':
-        for req in ctx.get('pending_ctc_requests', []):
+    if pilotage_ctx:
+        for processus in pilotage_ctx.get('pending_pilotage_reception', []):
             assignation_tasks.append({
-                'type_label': "Demande d'Accès Inter-Pôles",
-                'icon': 'user-check',
-                'reference': '',
-                'title': f"{req.requester.user.get_full_name()} — {req.restricted_resource}",
-                'status_display': req.get_status_display(),
-                'view_target': 'dashboard',
-                'anchor': 'widget-pending-requests',
-            })
-        for p in ctx.get('active_processus', []):
-            assignation_tasks.append({
-                'type_label': 'Réception & Cadrage',
-                'icon': 'inbox',
-                'reference': p.norme.reference_number,
-                'title': p.norme.title,
-                'status_display': p.get_current_stage_display(),
+                'type_label': "Réception Pilotage",
+                'icon': 'shield-check',
+                'reference': processus.norme.reference_number,
+                'title': processus.norme.title,
+                'status_display': "En attente de réception par le Pilotage",
                 'view_target': 'dossiers',
-                'anchor': None,
+                'anchor': 'widget-pending-reception',
+                'category': 'pilotage',
+                'category_label': 'Mes Assignations Pilotage',
+                'source_label': "Norme transmise au Pilotage après sortie CTC",
             })
+
+    for item in ctx.get('my_external_assignments', []):
+        assignation_tasks.append({
+            'type_label': item.get('type_label', 'Assignation externe'),
+            'icon': item.get('icon', 'users'),
+            'reference': item.get('reference', ''),
+            'title': item.get('title', ''),
+            'status_display': item.get('status_display', 'En attente'),
+            'view_target': item.get('view_target', 'dashboard'),
+            'anchor': item.get('anchor'),
+            'category': 'externe',
+            'category_label': 'Mes Assignations à un Expert Extérieur',
+            'source_label': "Expert extérieur",
+        })
 
     # Pipeline complet des dossiers normatifs (vue "Dossiers Normatifs")
     dossiers = (
@@ -520,6 +559,60 @@ class CTCDashboardView(View):
             )
             return redirect('web:app')
 
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCCtmDetailView(View):
+    """Vue détaillée d'un CTM pour les membres CTC."""
+
+    template_name = 'ctc/ctm_detail.html'
+
+    def get(self, request, number):
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            messages.warning(request, "Votre compte expert n'est pas encore activé.")
+            return redirect('web:home')
+
+        priv = get_ctc_context(expert)
+        if not priv or not priv.get('is_ctc_member'):
+            messages.info(request, "Le détail des CTM est réservé aux membres de la CTC.")
+            return redirect('web:ctc_dashboard')
+
+        ctm = get_object_or_404(CTM, number=number)
+
+        wgs_with_stats = []
+        for wg in ctm.working_groups.select_related(
+            'president__user', 'rapporteur__user', 'secretary__user'
+        ).order_by('number'):
+            wgs_with_stats.append({'wg': wg, 'member_count': wg.affectations.count()})
+
+        affectations = (
+            ctm.affectations
+            .select_related('expert__user', 'expert__structure', 'wg')
+            .order_by('wg__number', 'expert__user__last_name')
+        )
+
+        normes_en_cours = (
+            ctm.normes.exclude(status='PUBLISHED')
+            .select_related('wg')
+            .prefetch_related('comments__author__user')
+            .order_by('wg__number', '-created_at')
+        )
+        normes_publiees = (
+            ctm.normes.filter(status='PUBLISHED')
+            .select_related('wg')
+            .order_by('-publication_date')
+        )
+
+        context = {
+            'ctm': ctm,
+            'wgs_with_stats': wgs_with_stats,
+            'affectations': affectations,
+            'normes_en_cours': normes_en_cours,
+            'normes_publiees': normes_publiees,
+            **priv,
+        }
         return render(request, self.template_name, context)
 
 

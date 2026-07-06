@@ -103,7 +103,8 @@
 
     <div class="flex flex-1 overflow-hidden relative w-full">
 
-        {% include "ctc/app/components/sidebar_module.html" %}
+    {% include "ctc/app/components/sidebar_module.html" %}
+    {% include "ctc/app/components/ctm_working_groups_modal.html" %}
 
         <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
             <div id="main-viewport-content" class="w-full h-full">
@@ -158,7 +159,6 @@
     </div>
 
     {% include "ctc/app/components/directory_modal.html" %}
-    {% include "ctc/app/components/ctm_working_groups_modal.html" %}
     {% include "ctc/composants/ctc_permission_modal.html" %}
     {% include 'ia_agent/composants/agent_widget.html' with widget_scope='ctc' widget_position='bottom-6 right-6' %}
 

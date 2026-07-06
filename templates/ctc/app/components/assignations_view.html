@@ -1,15 +1,27 @@
 <div class="p-6 max-w-4xl mx-auto space-y-6 text-slate-800 dark:text-slate-300 transition-colors duration-200">
 
     <div class="mb-6">
-        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Mes Assignations Personnelles</h2>
+        <h2 id="assign-title" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Mes Assignations Personnelles</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
             Tâches requises pour le poste : <span class="font-bold text-slate-700 dark:text-slate-200">{{ pole_label }}{% if poste %} — {{ poste.title }}{% endif %}</span>
         </p>
     </div>
 
+    <div class="flex flex-wrap gap-2">
+        <button type="button" data-assign-filter="personnelle" class="assign-filter-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10">
+            Mes Assignations Personnelles
+        </button>
+        <button type="button" data-assign-filter="pilotage" class="assign-filter-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10">
+            Mes Assignations Pilotage
+        </button>
+        <button type="button" data-assign-filter="externe" class="assign-filter-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10">
+            Mes Assignations à un Expert Extérieur
+        </button>
+    </div>
+
     <div class="grid gap-4">
         {% for task in assignation_tasks %}
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition dark:bg-black/35 dark:border-white/10 dark:shadow-none">
+        <div class="assign-card bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition dark:bg-black/35 dark:border-white/10 dark:shadow-none" data-assign-category="{{ task.category|default:'personnelle' }}">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
                 <div class="flex items-start gap-4 min-w-0">
                     <div class="mt-1 shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
@@ -18,8 +30,13 @@
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
                             <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded dark:bg-white/5 dark:text-slate-400">
-                                {{ task.type_label }}
+                                {{ task.category_label|default:task.type_label }}
                             </span>
+                            {% if task.source_label %}
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">
+                                {{ task.source_label }}
+                            </span>
+                            {% endif %}
                             {% if task.reference %}
                             <span class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">{{ task.reference }}</span>
                             {% endif %}
@@ -30,7 +47,7 @@
                         <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 leading-snug break-words">{{ task.title }}</h3>
                     </div>
                 </div>
-                <button data-view-target="{{ task.view_target }}" data-anchor="{{ task.anchor|default_if_none:'' }}"
+                <button type="button" data-view-target="{{ task.view_target }}" data-anchor="{{ task.anchor|default_if_none:'' }}"
                         onclick="handleProcessTask(this)"
                         class="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-lg transition shrink-0 ml-12 sm:ml-0 cursor-pointer dark:bg-white/10 dark:hover:bg-white/20">
                     <span>Traiter</span>
@@ -58,6 +75,52 @@
                 const el = document.getElementById(anchorId);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
+        } else {
+            setTimeout(function() {
+                const viewport = document.getElementById('main-viewport-content');
+                if (viewport) viewport.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
         }
     }
+
+    (function () {
+        const buttons = Array.from(document.querySelectorAll('[data-assign-filter]'));
+        const cards = Array.from(document.querySelectorAll('.assign-card'));
+        const title = document.getElementById('assign-title');
+        if (!buttons.length || !cards.length) return;
+
+        function setActive(filter) {
+            if (title) {
+                const map = {
+                    personnelle: 'Mes Assignations Personnelles',
+                    pilotage: 'Mes Assignations Pilotage',
+                    externe: 'Mes Assignations à un Expert Extérieur',
+                };
+                title.textContent = map[filter] || 'Mes Assignations';
+            }
+            buttons.forEach((btn) => {
+                const active = btn.dataset.assignFilter === filter;
+                btn.classList.toggle('bg-amber-500', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('border-amber-500', active);
+                btn.classList.toggle('bg-white', !active);
+                btn.classList.toggle('text-slate-700', !active);
+                btn.classList.toggle('border-slate-200', !active);
+                btn.classList.toggle('dark:bg-white/5', !active);
+                btn.classList.toggle('dark:text-slate-300', !active);
+                btn.classList.toggle('dark:border-white/10', !active);
+                btn.classList.toggle('dark:hover:bg-white/10', !active);
+            });
+
+            cards.forEach((card) => {
+                card.classList.toggle('hidden', card.dataset.assignCategory !== filter);
+            });
+        }
+
+        buttons.forEach((btn) => {
+            btn.addEventListener('click', () => setActive(btn.dataset.assignFilter));
+        });
+
+        setActive('personnelle');
+    })();
 </script>

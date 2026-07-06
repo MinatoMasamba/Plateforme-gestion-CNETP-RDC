@@ -27,6 +27,7 @@ from .ctc_views import (
     CTCMethodologyActionView,
     CTCReceptionActionView,
     CTCNormeReadView,
+    CTCCtmDetailView,
     ctc_context_api,
 )
 from apps.ia_agent.views_web import PilotageIAConsoleView
@@ -79,6 +80,7 @@ urlpatterns = [
     path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
     path('ctc/dossiers/<int:pk>/reception/', CTCReceptionActionView.as_view(), name='ctc_reception_action'),
     path('ctc/norme/<int:pk>/lecture/', CTCNormeReadView.as_view(), name='ctc_norme_read'),
+    path('ctc/ctm/<int:number>/', CTCCtmDetailView.as_view(), name='ctc_ctm_detail'),
     path('api/ctc/contexte/', ctc_context_api, name='ctc_context_api'),
     path('profil/', ExpertProfileView.as_view(), name='expert_profile'),
 ]
