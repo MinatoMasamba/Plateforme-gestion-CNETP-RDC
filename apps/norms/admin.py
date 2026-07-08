@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.apps import apps
 from django.db import models as django_models
 
-from .models import Norme, NormeVersion, ChangementVersion
+from .models import Norme, NormeVersion, ChangementVersion, NormeContentBlock, NormeDocumentImport
 
 
 class NormsModelAdmin(admin.ModelAdmin):
@@ -134,16 +134,30 @@ class ChangementVersionAdmin(NormsModelAdmin):
     list_filter = ("change_type",)
 
 
+class NormeContentBlockAdmin(NormsModelAdmin):
+    list_display = ("version", "kind", "code", "title", "position")
+    search_fields = ("version__norme__reference_number", "title", "code", "body")
+    list_filter = ("kind", "version")
+
+
+class NormeDocumentImportAdmin(NormsModelAdmin):
+    list_display = ("filename", "document_type", "paragraph_count", "imported_at")
+    search_fields = ("filename", "source_path")
+    list_filter = ("document_type",)
+
+
 admin.site.register(Norme, NormeAdmin)
 admin.site.register(NormeVersion, NormeVersionAdmin)
 admin.site.register(ChangementVersion, ChangementVersionAdmin)
+admin.site.register(NormeContentBlock, NormeContentBlockAdmin)
+admin.site.register(NormeDocumentImport, NormeDocumentImportAdmin)
 
 from django.apps import apps as django_apps
 
 app_config = django_apps.get_app_config("norms")
 for model in app_config.get_models():
     try:
-        if model in {Norme, NormeVersion, ChangementVersion}:
+        if model in {Norme, NormeVersion, ChangementVersion, NormeContentBlock, NormeDocumentImport}:
             continue
         admin.site.register(model, NormsModelAdmin)
     except admin.sites.AlreadyRegistered:

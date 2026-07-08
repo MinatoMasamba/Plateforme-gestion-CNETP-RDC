@@ -3,27 +3,38 @@ import re
 import subprocess
 import tempfile
 import zipfile
+import shutil
+from datetime import timedelta
 from html import unescape
 from xml.etree import ElementTree
 
+from django.utils import timezone
 from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import APIException
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote
+from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote, NormeComment
 from apps.experts.models import Expert
 from .serializers import (
     NormeBasicSerializer, NormeDetailSerializer, NormeCreateUpdateSerializer,
     NormeStatusUpdateSerializer, NormeVersionSerializer, NormeVersionCreateSerializer,
-    NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer
+    NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer,
+    NormeCommentSerializer
 )
 from ..permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
 from ..pdf_utils import generate_norm_pdf
 from ..validation.views import promote_norme_to_ctc_if_vote_passes
+
+
+class NormeLocked(APIException):
+    status_code = status.HTTP_423_LOCKED
+    default_detail = 'Cette norme est verrouillée par un autre utilisateur.'
+    default_code = 'norme_locked'
 
 
 class NormeViewSet(viewsets.ModelViewSet):
@@ -40,6 +51,37 @@ class NormeViewSet(viewsets.ModelViewSet):
 
     TEXT_EXTENSIONS = {'.txt', '.md', '.json'}
     WORD_XML_NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+    LOCK_DURATION_MINUTES = 30
+
+    def _is_lock_active(self, norme):
+        if not norme.locked_by or not norme.lock_timeout:
+            return False
+        return norme.lock_timeout > timezone.now()
+
+    def _is_locked_by_other_user(self, norme, user):
+        return self._is_lock_active(norme) and norme.locked_by_id != user.id
+
+    def _acquire_lock(self, norme, user):
+        norme.locked_by = user
+        norme.lock_timeout = timezone.now() + timedelta(minutes=self.LOCK_DURATION_MINUTES)
+        norme.save(update_fields=['locked_by', 'lock_timeout', 'updated_at'])
+        return norme
+
+    def _release_lock(self, norme, user=None):
+        if user is not None and norme.locked_by_id != user.id:
+            return norme
+        norme.locked_by = None
+        norme.lock_timeout = None
+        norme.save(update_fields=['locked_by', 'lock_timeout', 'updated_at'])
+        return norme
+
+    def _check_edit_lock(self, norme, user):
+        if self._is_locked_by_other_user(norme, user):
+            raise NormeLocked({
+                'detail': 'Cette norme est verrouillée par un autre utilisateur.',
+                'locked_by': norme.locked_by.get_full_name() if norme.locked_by else None,
+                'lock_timeout': norme.lock_timeout,
+            })
 
     def perform_create(self, serializer):
         """Associer l'utilisateur actuel à la création et générer un code de classification basé sur les métadonnées"""
@@ -75,7 +117,13 @@ class NormeViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         """Associer l'utilisateur actuel à la modification"""
+        norme = serializer.instance
+        self._check_edit_lock(norme, self.request.user)
         serializer.save(updated_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        self._check_edit_lock(instance, self.request.user)
+        instance.delete()
 
     def get_serializer_class(self):
         """Retourner le serializer approprié selon l'action"""
@@ -83,7 +131,7 @@ class NormeViewSet(viewsets.ModelViewSet):
             return NormeDetailSerializer
         elif self.action == 'list':
             return NormeBasicSerializer
-        elif self.action == 'create' or self.action == 'update':
+        elif self.action in ['create', 'update', 'partial_update']:
             return NormeCreateUpdateSerializer
         elif self.action == 'update_status':
             return NormeStatusUpdateSerializer
@@ -148,6 +196,8 @@ class NormeViewSet(viewsets.ModelViewSet):
         return '\n\n'.join(paragraphs)
 
     def _run_pdftotext(self, path):
+        if shutil.which('pdftotext') is None:
+            raise RuntimeError("L'utilitaire pdftotext n'est pas installé sur le serveur.")
         with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as output:
             output_path = output.name
         try:
@@ -164,6 +214,8 @@ class NormeViewSet(viewsets.ModelViewSet):
                 os.remove(output_path)
 
     def _run_libreoffice_to_text(self, path):
+        if shutil.which('libreoffice') is None:
+            raise RuntimeError("LibreOffice n'est pas installé sur le serveur.")
         with tempfile.TemporaryDirectory() as outdir:
             subprocess.run(
                 ['libreoffice', '--headless', '--convert-to', 'txt:Text', '--outdir', outdir, path],
@@ -220,10 +272,15 @@ class NormeViewSet(viewsets.ModelViewSet):
         try:
             text, method = self._extract_uploaded_document(uploaded_file)
         except Exception as exc:
+            message = str(exc)
+            if 'pdftotext' in message or 'LibreOffice' in message or 'libreoffice' in message:
+                detail = "L'environnement serveur ne dispose pas des outils nécessaires pour extraire ce document."
+            else:
+                detail = "Extraction impossible pour ce fichier. Le fichier original pourra être joint à la norme."
             return Response(
                 {
-                    'detail': "Extraction impossible pour ce fichier. Le fichier original pourra être joint à la norme.",
-                    'error': str(exc),
+                    'detail': detail,
+                    'error': message,
                 },
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
@@ -259,6 +316,7 @@ class NormeViewSet(viewsets.ModelViewSet):
     def create_version(self, request, pk=None):
         """Créer une nouvelle version d'une norme"""
         norme = self.get_object()
+        self._check_edit_lock(norme, request.user)
 
         # Vérifier les permissions
         if norme.status == 'PUBLISHED' or norme.status == 'ARCHIVED':
@@ -278,6 +336,43 @@ class NormeViewSet(viewsets.ModelViewSet):
             NormeVersionSerializer(version).data,
             status=status.HTTP_201_CREATED
         )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsExpertOrCTC], url_path='lock')
+    def lock_norme(self, request, pk=None):
+        """Verrouiller une norme pour l'édition collaborative."""
+        norme = self.get_object()
+        if self._is_locked_by_other_user(norme, request.user):
+            return Response(
+                {
+                    'detail': 'La norme est déjà verrouillée par un autre utilisateur.',
+                    'locked_by': norme.locked_by.get_full_name() if norme.locked_by else None,
+                    'lock_timeout': norme.lock_timeout,
+                },
+                status=status.HTTP_423_LOCKED
+            )
+
+        self._acquire_lock(norme, request.user)
+        return Response(
+            {
+                'detail': 'Norme verrouillée.',
+                'locked_by': request.user.get_full_name(),
+                'lock_timeout': norme.lock_timeout,
+            },
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsExpertOrCTC], url_path='unlock')
+    def unlock_norme(self, request, pk=None):
+        """Déverrouiller une norme."""
+        norme = self.get_object()
+        if norme.locked_by_id and norme.locked_by_id != request.user.id and not request.user.is_ctc_staff:
+            return Response(
+                {'detail': 'Vous ne pouvez pas déverrouiller une norme verrouillée par un autre utilisateur.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        self._release_lock(norme, request.user if not request.user.is_ctc_staff else None)
+        return Response({'detail': 'Norme déverrouillée.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def history(self, request, pk=None):
@@ -300,6 +395,43 @@ class NormeViewSet(viewsets.ModelViewSet):
         """Récupérer les votes de la norme ouverte."""
         votes = self.get_object().votes.select_related('voter__user', 'voter__structure')
         return Response(NormeVoteSerializer(votes, many=True).data)
+
+    @action(detail=True, methods=['get', 'post'], permission_classes=[IsAuthenticated, IsExpertOrCTC], url_path='comments')
+    def comments(self, request, pk=None):
+        """Lister ou créer des commentaires internes sur une norme."""
+        norme = self.get_object()
+
+        if request.method == 'GET':
+            comments = norme.comments.select_related('author', 'author__user')
+            return Response(NormeCommentSerializer(comments, many=True).data)
+
+        self._check_edit_lock(norme, request.user)
+
+        serializer = NormeCommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        expert = getattr(request.user, 'expert_profile', None)
+        if not expert:
+            return Response({'detail': 'Seul un expert peut commenter.'}, status=status.HTTP_403_FORBIDDEN)
+
+        comment = serializer.save(norme=norme, author=expert)
+        return Response(NormeCommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated, IsExpertOrCTC], url_path='comments/(?P<comment_id>[^/.]+)')
+    def delete_comment(self, request, pk=None, comment_id=None):
+        """Supprimer un commentaire interne."""
+        norme = self.get_object()
+        try:
+            comment = norme.comments.get(pk=comment_id)
+        except NormeComment.DoesNotExist:
+            return Response({'detail': 'Commentaire non trouvé.'}, status=status.HTTP_404_NOT_FOUND)
+
+        expert = getattr(request.user, 'expert_profile', None)
+        if not request.user.is_ctc_staff and (not expert or comment.author_id != expert.id):
+            return Response({'detail': 'Vous ne pouvez supprimer que vos propres commentaires.'}, status=status.HTTP_403_FORBIDDEN)
+
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsExpert])
     def vote(self, request, pk=None):
@@ -450,7 +582,7 @@ class NormeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-    @action(detail=True, methods=['get'])
+    @action(detail=False, methods=['get'])
     def by_ctm(self, request, pk=None):
         """Récupérer les normes d'un CTM"""
         ctm_id = request.query_params.get('ctm_id')
@@ -464,7 +596,7 @@ class NormeViewSet(viewsets.ModelViewSet):
         serializer = NormeBasicSerializer(normes, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=False, methods=['get'])
     def by_status(self, request, pk=None):
         """Récupérer les normes par statut"""
         status_filter = request.query_params.get('status')
@@ -514,7 +646,7 @@ class NormeViewSet(viewsets.ModelViewSet):
             norme.jo_file = jo_file
         if publication_date:
             norme.publication_date = publication_date
-        norme.status = 'PUBLISHED'
+        norme.transition_to('PUBLISHED')
         norme.save()
 
         return Response(

@@ -3,6 +3,7 @@ from django.utils import timezone
 from apps.core.models import BaseModel, User
 from apps.governance.models import CTM, WG
 from apps.experts.models import Expert
+import json
 
 
 class Norme(BaseModel):
@@ -122,6 +123,63 @@ class Norme(BaseModel):
     def get_latest_version(self):
         return self.versions.order_by('-version_number').first()
 
+    def refresh_current_version(self, version=None, save=True):
+        """Aligner current_version sur la dernière version disponible."""
+        version = version or self.get_latest_version()
+        if not version:
+            self.current_version = None
+            if save:
+                self.save(update_fields=['current_version', 'updated_at'])
+            return None
+
+        if version.document:
+            self.current_version = version.document
+        else:
+            self.current_version = None
+
+        if save:
+            self.save(update_fields=['current_version', 'updated_at'])
+        return self.current_version
+
+    def current_version_matches_latest(self):
+        """Vérifier que current_version correspond bien à la dernière NormeVersion."""
+        latest = self.get_latest_version()
+        if not latest:
+            return self.current_version is None
+        if not self.current_version:
+            return latest.document is None
+        if not latest.document:
+            return False
+        return self.current_version.name == latest.document.name
+
+    @classmethod
+    def workflow_transitions(cls):
+        return {
+            'DRAFT': ['INTERNAL_REVIEW', 'CTM_REVIEW'],
+            'INTERNAL_REVIEW': ['CTM_REVIEW', 'DRAFT'],
+            'CTM_REVIEW': ['LEGISTIC_REVIEW', 'INTERNAL_REVIEW'],
+            'LEGISTIC_REVIEW': ['PUBLIC_INQUIRY', 'CTM_REVIEW'],
+            'PUBLIC_INQUIRY': ['PILOTAGE_REVIEW', 'CTM_REVIEW'],
+            'PILOTAGE_REVIEW': ['FINAL_REVIEW', 'PUBLIC_INQUIRY'],
+            'FINAL_REVIEW': ['ADOPTED', 'PUBLIC_INQUIRY'],
+            'ADOPTED': ['HOMOLOGATED'],
+            'HOMOLOGATED': ['PUBLISHED'],
+            'PUBLISHED': ['ARCHIVED'],
+            'ARCHIVED': [],
+        }
+
+    def can_transition_to(self, new_status):
+        return new_status in self.workflow_transitions().get(self.status, [])
+
+    def transition_to(self, new_status, save=True):
+        if not self.can_transition_to(new_status):
+            allowed = ', '.join(self.workflow_transitions().get(self.status, []))
+            raise ValueError(f'Transition invalide de {self.status} à {new_status}. Transitions valides: {allowed}')
+        self.status = new_status
+        if save:
+            self.save(update_fields=['status', 'updated_at'])
+        return self.status
+
 
 class NormeVersion(BaseModel):
     """Version d'une norme (historique complet)"""
@@ -148,6 +206,10 @@ class NormeVersion(BaseModel):
     
     def __str__(self):
         return f"{self.norme.reference_number} v{self.version_number}"
+
+    def get_structured_content(self):
+        """Retourner une représentation structurée compatible avec le texte brut."""
+        return parse_norme_structure(self.content)
 
 
 class NormeComment(BaseModel):
@@ -227,3 +289,142 @@ class NormeVote(BaseModel):
 
     def __str__(self):
         return f"{self.voter.user.get_full_name()} - {self.norme.reference_number} ({self.vote})"
+
+
+class NormeContentBlock(BaseModel):
+    """Bloc éditorial structuré d'une version de norme."""
+
+    BLOCK_KIND_CHOICES = [
+        ('SECTION', 'Section'),
+        ('ARTICLE', 'Article'),
+        ('ANNEXE', 'Annexe'),
+        ('PARAGRAPH', 'Paragraphe'),
+    ]
+
+    version = models.ForeignKey(NormeVersion, on_delete=models.CASCADE, related_name='content_blocks')
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children',
+    )
+    kind = models.CharField(max_length=20, choices=BLOCK_KIND_CHOICES)
+    code = models.CharField(max_length=50, blank=True, help_text="Ex: 1, 1.1, A")
+    title = models.CharField(max_length=500, blank=True)
+    body = models.TextField(blank=True)
+    position = models.PositiveIntegerField(default=0)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = "Bloc de contenu de norme"
+        verbose_name_plural = "Blocs de contenu de norme"
+        ordering = ['version', 'position', 'id']
+        unique_together = ('version', 'position')
+
+    def __str__(self):
+        label = self.title or self.code or self.kind
+        return f"{self.version} - {label}"
+
+
+class NormeDocumentImport(BaseModel):
+    """Dépôt des documents Word importés depuis la racine norme/."""
+
+    DOCUMENT_TYPE_CHOICES = [
+        ('guide', 'Guide'),
+        ('liste_normes', 'Liste des normes'),
+        ('norme', 'Norme'),
+        ('inconnu', 'Inconnu'),
+    ]
+
+    filename = models.CharField(max_length=255, unique=True)
+    source_path = models.CharField(max_length=500)
+    document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPE_CHOICES)
+    paragraph_count = models.PositiveIntegerField(default=0)
+    extracted_json = models.JSONField(default=dict, blank=True)
+    checksum = models.CharField(max_length=64, blank=True, default='')
+    imported_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Document normatif importé"
+        verbose_name_plural = "Documents normatifs importés"
+        ordering = ['-imported_at', 'filename']
+
+    def __str__(self):
+        return f"{self.filename} ({self.document_type})"
+
+
+def parse_norme_structure(content):
+    """
+    Découpage léger du texte en sections, articles et annexes.
+    Compatible avec le contenu brut actuel.
+    """
+    blocks = []
+    current = None
+
+    def flush():
+        nonlocal current
+        if current:
+            current['content'] = '\n\n'.join(current['content']).strip()
+            blocks.append(current)
+            current = None
+
+    for raw_line in (content or '').splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped:
+            if current and current['content'] and current['content'][-1] != '':
+                current['content'].append('')
+            continue
+
+        lower = stripped.lower()
+        if lower.startswith(('section ', 'chapitre ', 'partie ', 'annexe ')):
+            flush()
+            current = {
+                'type': 'section' if not lower.startswith('annexe ') else 'annexe',
+                'title': stripped,
+                'content': [],
+            }
+            continue
+
+        if current is None:
+            current = {'type': 'section', 'title': 'Introduction', 'content': []}
+        current['content'].append(stripped)
+
+    flush()
+    return blocks
+
+
+def build_content_blocks(version):
+    """
+    Crée une liste de blocs structurés à partir du texte brut.
+    Le parsing reste compatible avec les normes déjà rédigées en texte libre.
+    """
+    blocks = []
+    for index, block in enumerate(parse_norme_structure(version.content), start=1):
+        title = block.get('title', '')
+        kind = 'ANNEXE' if block.get('type') == 'annexe' else 'SECTION'
+        blocks.append(
+            NormeContentBlock(
+                version=version,
+                kind=kind,
+                title=title,
+                body=block.get('content', ''),
+                position=index,
+                metadata={'source': 'auto-import', 'raw_type': block.get('type')},
+            )
+        )
+    return blocks
+
+
+def structured_content_summary(content):
+    """Résumé lisible des blocs structurés du texte brut."""
+    blocks = parse_norme_structure(content)
+    return [
+        {
+            'type': block['type'],
+            'title': block['title'],
+            'characters': len(block['content']),
+        }
+        for block in blocks
+    ]

@@ -1,3 +1,4 @@
+import shutil
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -52,10 +53,10 @@ def promote_norme_to_ctc_if_vote_passes(norme):
         return False
     if not compute_vote_summary(norme)['passes_threshold']:
         return False
-    norme.status = 'CTM_REVIEW'
+    norme.transition_to('CTM_REVIEW')
     norme.ctm_submission_date = date.today()
     norme.is_public = False
-    norme.save(update_fields=['status', 'ctm_submission_date', 'is_public', 'updated_at'])
+    norme.save(update_fields=['ctm_submission_date', 'is_public', 'updated_at'])
     return True
 
 
@@ -133,6 +134,11 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
     def _latest_content(self, norme):
         latest = getattr(norme, 'prefetched_latest_version', None) or norme.get_latest_version()
         return latest.content if latest else ''
+
+    def _safe_update_norme_status(self, norme, new_status, update_fields=None):
+        norme.transition_to(new_status)
+        if update_fields:
+            norme.save(update_fields=list(set(update_fields + ['updated_at'])))
 
     def _vote_summary(self, norme):
         return compute_vote_summary(norme)
@@ -289,7 +295,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
                     is_draft=False,
                     version_author=request.user,
                 )
-            norme.status = 'PUBLIC_INQUIRY'
+            norme.transition_to('PUBLIC_INQUIRY')
             norme.public_inquiry_start = date.today()
             norme.is_public = True
             norme.save(update_fields=['status', 'public_inquiry_start', 'is_public', 'updated_at'])
@@ -308,7 +314,7 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
             return Response({'step': 'Phase invalide.'}, status=status.HTTP_400_BAD_REQUEST)
 
         norme = Norme.objects.get(pk=norme_id)
-        norme.status = self.STEP_TO_STATUS[step]
+        norme.transition_to(self.STEP_TO_STATUS[step])
         norme.is_public = step >= 4
         if step == 3:
             norme.legistic_review_date = date.today()

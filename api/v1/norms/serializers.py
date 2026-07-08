@@ -1,7 +1,11 @@
 import difflib
 from django.db import transaction
 from rest_framework import serializers
-from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote
+from apps.norms.models import (
+    Norme, NormeVersion, ChangementVersion, NormeVote, NormeComment,
+    NormeContentBlock, parse_norme_structure, structured_content_summary,
+    build_content_blocks
+)
 from ..experts.serializers import ExpertBasicSerializer
 
 
@@ -27,18 +31,40 @@ class NormeVoteSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'norme', 'voter', 'voter_name', 'voter_structure', 'vote_date']
 
 
+class NormeCommentSerializer(serializers.ModelSerializer):
+    """Serializer pour les commentaires internes sur une norme."""
+    author_name = serializers.CharField(source='author.full_name', read_only=True)
+
+    class Meta:
+        model = NormeComment
+        fields = ['id', 'norme', 'author', 'author_name', 'body', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'norme', 'author', 'author_name', 'created_at', 'updated_at']
+
+
+class NormeContentBlockSerializer(serializers.ModelSerializer):
+    """Serializer pour les blocs éditoriaux structurés."""
+
+    class Meta:
+        model = NormeContentBlock
+        fields = ['id', 'version', 'parent', 'kind', 'code', 'title', 'body', 'position', 'metadata', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'version', 'created_at', 'updated_at']
+
+
 class NormeVersionSerializer(serializers.ModelSerializer):
     """Serializer pour les versions de normes"""
     author_name = serializers.SerializerMethodField()
     author_email = serializers.EmailField(source='version_author.email', read_only=True)
     changes = ChangementVersionSerializer(many=True, read_only=True)
+    structured_content = serializers.SerializerMethodField()
+    content_blocks = NormeContentBlockSerializer(many=True, read_only=True)
 
     class Meta:
         model = NormeVersion
         fields = [
             'id', 'norme', 'version_number', 'title', 'content',
             'document', 'summary', 'is_draft', 'version_author',
-            'author_name', 'author_email', 'created_at', 'changes'
+            'author_name', 'author_email', 'created_at', 'changes',
+            'structured_content', 'content_blocks'
         ]
         read_only_fields = ['id', 'version_number', 'created_at', 'author_name', 'author_email']
 
@@ -47,6 +73,9 @@ class NormeVersionSerializer(serializers.ModelSerializer):
         if obj.version_author and obj.version_author.get_full_name():
             return obj.version_author.get_full_name()
         return "Inconnu"
+
+    def get_structured_content(self, obj):
+        return parse_norme_structure(obj.content)
 
 
 class NormeBasicSerializer(serializers.ModelSerializer):
@@ -86,6 +115,7 @@ class NormeDetailSerializer(serializers.ModelSerializer):
     wg_name = serializers.CharField(source='wg.name', read_only=True)
     latest_version = serializers.SerializerMethodField()
     version_count = serializers.SerializerMethodField()
+    structured_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Norme
@@ -100,7 +130,7 @@ class NormeDetailSerializer(serializers.ModelSerializer):
             'adoption_date', 'homologation_date',
             'publication_date', 'jo_reference', 'jo_file',
             'current_version', 'tags', 'is_public',
-            'latest_version', 'version_count', 'created_at', 'updated_at'
+            'latest_version', 'version_count', 'structured_summary', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at', 'updated_at']
 
@@ -112,6 +142,10 @@ class NormeDetailSerializer(serializers.ModelSerializer):
 
     def get_version_count(self, obj):
         return obj.versions.count()
+
+    def get_structured_summary(self, obj):
+        latest = obj.get_latest_version()
+        return structured_content_summary(latest.content if latest else obj.description)
 
 
 class NormeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -151,28 +185,17 @@ class NormeStatusUpdateSerializer(serializers.ModelSerializer):
         """Vérifier la transition de statut valide"""
         instance = self.instance
         if instance:
-            # Définir les transitions valides
-            valid_transitions = {
-                'DRAFT': ['INTERNAL_REVIEW'],
-                'INTERNAL_REVIEW': ['CTM_REVIEW', 'DRAFT'],
-                'CTM_REVIEW': ['LEGISTIC_REVIEW', 'INTERNAL_REVIEW'],
-                'LEGISTIC_REVIEW': ['PUBLIC_INQUIRY', 'CTM_REVIEW'],
-                'PUBLIC_INQUIRY': ['PILOTAGE_REVIEW', 'CTM_REVIEW'],
-                'PILOTAGE_REVIEW': ['FINAL_REVIEW', 'PUBLIC_INQUIRY'],
-                'FINAL_REVIEW': ['ADOPTED', 'PUBLIC_INQUIRY'],
-                'ADOPTED': ['HOMOLOGATED'],
-                'HOMOLOGATED': ['PUBLISHED'],
-                'PUBLISHED': ['ARCHIVED'],
-                'ARCHIVED': [],
-            }
-
-            allowed_statuses = valid_transitions.get(instance.status, [])
-            if value not in allowed_statuses:
+            if not instance.can_transition_to(value):
+                allowed_statuses = instance.workflow_transitions().get(instance.status, [])
                 raise serializers.ValidationError(
                     f"Transition invalide de {instance.status} à {value}. "
                     f"Transitions valides: {', '.join(allowed_statuses)}"
                 )
         return value
+
+    def update(self, instance, validated_data):
+        instance.transition_to(validated_data['status'])
+        return instance
 
 
 class NormeVersionCreateSerializer(serializers.Serializer):
@@ -206,14 +229,14 @@ class NormeVersionCreateSerializer(serializers.Serializer):
             **validated_data
         )
 
+        norme.refresh_current_version(new_version, save=True)
+        NormeContentBlock.objects.filter(version=new_version).delete()
+        NormeContentBlock.objects.bulk_create(build_content_blocks(new_version))
+
         # 2. Détecter les changements si une version précédente existe
         if latest:
-            old_content = latest.content
-            new_content = new_version.content
-
-            # Comparaison par paragraphe pour une meilleure structure de 'section'
-            old_paragraphs = old_content.split('\n\n')
-            new_paragraphs = new_content.split('\n\n')
+            old_paragraphs = [block['content'] for block in parse_norme_structure(latest.content)] or latest.content.split('\n\n')
+            new_paragraphs = [block['content'] for block in parse_norme_structure(new_version.content)] or new_version.content.split('\n\n')
 
             matcher = difflib.SequenceMatcher(None, old_paragraphs, new_paragraphs)
 
@@ -247,7 +270,7 @@ class NormeVersionCreateSerializer(serializers.Serializer):
                         ChangementVersion.objects.create(
                             version=new_version,
                             previous_version=latest,
-                            section=f"Paragraphe {j1 + idx}",
+                            section=f"Bloc {idx + 1}",
                             new_text=new_paragraphs[idx],
                             change_type='ADD',
                             change_reason="Ajout de paragraphe"
