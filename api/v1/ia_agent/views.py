@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from apps.ia_agent.models import AgentArtifact, AgentSession
 from apps.ia_agent.services.agent_runner import AgentRunner
 from apps.ia_agent.services.permissions import user_can_access_scope
+from apps.ia_agent.services.regulatory_advice import generate_regulatory_advice
 
 from .serializers import AgentArtifactSerializer, AgentMessageSerializer, AgentSessionSerializer
 
@@ -53,6 +54,29 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
             "assistant_message": AgentMessageSerializer(msg).data,
             "artifacts": AgentArtifactSerializer(new_artifacts, many=True).data,
             "session_title": session.title,
+        })
+
+    @action(detail=False, methods=['post'], url_path='regulatory-advice')
+    def regulatory_advice(self, request):
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response(
+                {"error": "Aucun texte n’a été fourni pour l’analyse réglementaire."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        result = generate_regulatory_advice(text)
+        if not result.get('success'):
+            return Response(
+                {"error": result.get('error', 'Erreur IA.')},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response({
+            'explanation': result['explanation'],
+            'proposal': result['proposal'],
+            'raw': result['raw'],
+            'provider': result['provider'],
         })
 
     @action(detail=True, methods=['post'])

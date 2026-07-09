@@ -75,6 +75,39 @@
         return cookieValue;
     }
 
+    function escapeHtml(value = '') {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderInlineDiff(diffSegments) {
+        if (!diffSegments || diffSegments.length === 0) {
+            return `<p class="text-center py-10 text-slate-500 text-xs font-medium">Aucune différence significative détectée.</p>`;
+        }
+
+        const whitespacePattern = /^\s+$/;
+        const parts = diffSegments.map((segment) => {
+            const safeText = escapeHtml(segment.text || '');
+            if (whitespacePattern.test(segment.text || '')) {
+                return safeText;
+            }
+
+            if (segment.type === 'delete') {
+                return `<span class="px-1 rounded bg-red-100 text-red-700 line-through decoration-red-500 dark:bg-red-500/20 dark:text-red-400">${safeText}</span>`;
+            }
+            if (segment.type === 'insert') {
+                return `<span class="px-1 rounded bg-blue-100 text-blue-700 font-semibold dark:bg-blue-500/20 dark:text-blue-400">${safeText}</span>`;
+            }
+            return `<span class="text-slate-700 dark:text-slate-300">${safeText}</span>`;
+        }).join('');
+
+        return `<div class="text-sm leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-300">${parts}</div>`;
+    }
+
     window.historyState = {
         normeId: null,
         versions: [],
@@ -251,22 +284,8 @@
             if (!response.ok) throw new Error('Impossible de charger les différences de version');
             const diffData = await response.json();
 
-            // Rendu simplifié du diff. Une implémentation complète utiliserait un algorithme de diff visuel.
-            let diffHtml = '';
-            diffData.changes.forEach(change => {
-                if (change.change_type === 'REMOVE') {
-                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg max-w-[95%] shadow-inner bg-red-50/50 border-red-500 text-slate-600 dark:bg-red-950/20 dark:border-red-500 dark:text-slate-400"><span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-red-700 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/30">- Retrait</span><div class="line-through decoration-red-400 dark:decoration-red-900/60 opacity-80 text-xs leading-relaxed whitespace-pre-wrap">${change.old_text || ''}</div></div>`;
-                } else if (change.change_type === 'ADD') {
-                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-blue-50/50 border-blue-500 text-slate-800 dark:bg-blue-950/20 dark:border-blue-500 dark:text-slate-300"><span class="inline-block mb-2 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase text-blue-700 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/20 dark:border-blue-500/30">+ Ajout</span><div class="text-xs leading-relaxed whitespace-pre-wrap">${change.new_text || ''}</div></div>`;
-                } else if (change.change_type === 'MODIFY') {
-                     // Pour une modification, on peut montrer l'ancien et le nouveau texte
-                    diffHtml += `<div class="border-l-4 p-4 rounded-r-lg shadow-inner bg-amber-50/40 border-amber-400 dark:bg-[#181824]/40 dark:border-amber-500/70"><span class="inline-block mb-2 text-[9.5px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Modification</span><p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-300"><span class="font-medium rounded px-1 line-through bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">${change.old_text || ''}</span> <span class="font-medium rounded px-1 bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">${change.new_text || ''}</span></p></div>`;
-                } else { // UNCHANGED
-                     diffHtml += `<p class="text-xs leading-relaxed font-sans font-medium whitespace-pre-wrap text-slate-700 dark:text-slate-300">${change.new_text || ''}</p>`;
-                }
-            });
-
-            viewer.innerHTML = diffHtml || `<p class="text-center py-10 text-slate-500 text-xs font-medium">Aucune différence significative détectée.</p>`;
+            const diffHtml = renderInlineDiff(diffData.diff_segments || []);
+            viewer.innerHTML = diffHtml;
             lucide.createIcons();
 
         } catch (error) {

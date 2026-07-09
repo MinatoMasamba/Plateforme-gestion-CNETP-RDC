@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 _anthropic_client = None
 _gemini_client = None
+_gemini_client_cache_key = None
 
 
 @dataclass
@@ -91,14 +92,27 @@ GEMINI_FALLBACK_MODELS = [
     'gemma-4-26b-a4b-it',
 ]
 
+GEMINI_FALLBACK_API_KEYS = [
+    'AQ.Ab8RN6L-txn_UETGeAnv4IYWDW7c8HC1oFY5vlyPvFclp61_ZQ',
+    'AQ.Ab8RN6IWTpbeN_IOaTJp8JJ7fmWnOvkMZPf8uZ5NRgctQik2xQ',
+***REMOVED_SECRET***',
+    'AQ.Ab8RN6JRLEVHhhkSwsU0E7vuejTF3dokbLNQwXlD6NZ2HOP2gw',
+***REMOVED_SECRET***',
+    'AQ.Ab8RN6KIbWU-YQvMValNwagXU5SyAtPcWtSiZbOJttZ-3WltHw',
+***REMOVED_SECRET***',
+    ]
+
+
 
 class GeminiLLMClient:
-    """Wrappeur Gemini via google-genai SDK, avec fallback automatique sur la liste de modèles."""
+    """Wrappeur Gemini via google-genai SDK, avec fallback automatique sur les modèles et les clés API."""
 
-    def __init__(self, client, model, fallback_models=None):
+    def __init__(self, client, model, fallback_models=None, api_keys=None, client_factory=None):
         self._client = client
         self._model = model
         self._fallback_models = fallback_models or GEMINI_FALLBACK_MODELS
+        self._api_keys = api_keys or []
+        self._client_factory = client_factory
 
     def _to_gemini_tools(self, tools_spec):
         if not tools_spec:
@@ -126,8 +140,14 @@ class GeminiLLMClient:
                 result.append({"role": role, "parts": [{"text": text}]})
         return result
 
-    def _call_model(self, model, contents, config):
-        return self._client.models.generate_content(
+    def _get_client_for_key(self, api_key):
+        if self._client_factory is not None:
+            return self._client_factory(api_key)
+        return self._client
+
+    def _call_model(self, model, contents, config, client=None):
+        active_client = client or self._client
+        return active_client.models.generate_content(
             model=model,
             contents=contents,
             config=config,
@@ -176,14 +196,22 @@ class GeminiLLMClient:
         models_to_try = [self._model] + [
             m for m in self._fallback_models if m != self._model
         ]
+        api_keys_to_try = [key for key in self._api_keys if key] or [None]
         last_exc = None
         for model in models_to_try:
-            try:
-                response = self._call_model(model, contents, config)
-                return self._parse_response(response)
-            except Exception as exc:
-                logger.warning("Gemini — modèle %s indisponible : %s — essai du suivant", model, exc)
-                last_exc = exc
+            for api_key in api_keys_to_try:
+                try:
+                    client = self._get_client_for_key(api_key) if api_key is not None else self._client
+                    response = self._call_model(model, contents, config, client=client)
+                    return self._parse_response(response)
+                except Exception as exc:
+                    logger.warning(
+                        "Gemini — modèle %s indisponible avec la clé %s : %s — essai du suivant",
+                        model,
+                        api_key or '<default>',
+                        exc,
+                    )
+                    last_exc = exc
 
         raise last_exc
 
@@ -206,33 +234,47 @@ class GeminiLLMClient:
 
 
 def get_llm_client(provider):
-    """Retourne l'instance LLM pour le provider demandé, ou None si non configuré."""
-    global _anthropic_client, _gemini_client
+    """Retourne l'instance Gemini, quel que soit le provider demandé."""
+    global _anthropic_client, _gemini_client, _gemini_client_cache_key
     from django.conf import settings
 
-    if provider == 'gemini':
+    # Forcer le fournisseur Gemini pour toute l'IA de la plateforme.
+    provider_name = str(provider or 'gemini').strip().lower()
+    if 'claude' in provider_name or provider_name in {'anthropic', 'claude_code', 'claude-code'}:
+        provider_name = 'gemini'
+
+    if provider_name == 'gemini':
         api_key = getattr(settings, 'GEMINI_API_KEY', '')
         if not api_key:
             return None
-        if _gemini_client is None:
+
+        fallback_api_keys = getattr(settings, 'GEMINI_FALLBACK_API_KEYS', GEMINI_FALLBACK_API_KEYS)
+        if isinstance(fallback_api_keys, str):
+            fallback_api_keys = [item.strip() for item in fallback_api_keys.split(',') if item.strip()]
+        elif fallback_api_keys is None:
+            fallback_api_keys = []
+
+        ordered_api_keys = [api_key] + [key for key in fallback_api_keys if key and key != api_key]
+        model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
+        cache_key = (api_key, model_name, tuple(ordered_api_keys))
+
+        if _gemini_client is None or _gemini_client_cache_key != cache_key:
             from google import genai
+
+            def build_client(key):
+                return genai.Client(api_key=key)
+
             _gemini_client = GeminiLLMClient(
-                client=genai.Client(api_key=api_key),
-                model=getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash'),
+                client=build_client(api_key),
+                model=model_name,
+                api_keys=ordered_api_keys,
+                client_factory=build_client,
             )
+            _gemini_client_cache_key = cache_key
         return _gemini_client
 
-    else:  # 'anthropic' (défaut)
-        api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
-        if not api_key:
-            return None
-        if _anthropic_client is None:
-            import anthropic
-            _anthropic_client = AnthropicLLMClient(
-                client=anthropic.Anthropic(api_key=api_key),
-                model=getattr(settings, 'ANTHROPIC_MODEL', 'claude-sonnet-4-5'),
-            )
-        return _anthropic_client
+    # Toute autre valeur est ignorée au profit de Gemini.
+    return None
 
 
 def unavailable_message(provider):
@@ -256,8 +298,8 @@ def api_error_message(exc):
         return "Quota API dépassé. Attends quelques instants puis réessaie."
     if "401" in msg or "authentication" in low or "api_key_invalid" in low or "unauthenticated" in low:
         return "Clé API invalide ou expirée. Vérifie la configuration ANTHROPIC_API_KEY / GEMINI_API_KEY."
-    if "overloaded" in low or "529" in msg or "503" in msg:
-        return "Les serveurs IA sont temporairement surchargés. Réessaie dans quelques instants."
+    if "peer closed" in low or "complete message body" in low or "overloaded" in low or "529" in msg or "503" in msg:
+        return "Le service IA est momentanément indisponible ou saturé. Réessaie dans quelques instants."
     if "timeout" in low:
         return "La requête a expiré. Réessaie dans un instant."
     return f"Erreur lors de la communication avec l'IA : {msg[:250]}"

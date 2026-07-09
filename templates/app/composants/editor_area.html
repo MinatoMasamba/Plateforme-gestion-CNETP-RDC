@@ -851,28 +851,53 @@
     // ==========================================
     // IA & PARTAGE
     // ==========================================
-    function runAiAdvice() {
+    async function runAiAdvice() {
         const btn = document.getElementById('ed-ai-btn');
         const icon = document.getElementById('ed-ai-icon');
+        const explanationEl = document.getElementById('ed-ai-explanation');
+        const textarea = document.getElementById('ed-ai-textarea');
+
         icon.setAttribute('data-lucide', 'loader-2');
         icon.classList.add('animate-spin');
         document.getElementById('ed-ai-text').textContent = "Analyse en cours...";
         btn.disabled = true;
+        explanationEl.textContent = "";
+        textarea.value = "";
         lucide.createIcons();
 
-        setTimeout(() => {
+        try {
+            const response = await window.fetchWithTimeout('/api/v1/ia-agent/sessions/regulatory-advice/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ text: editorState.text }),
+            }, 60000);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erreur lors de l’appel au service IA.');
+            }
+
+            const payload = await response.json();
             document.getElementById('ed-ai-result-panel').classList.remove('hidden');
-            document.getElementById('ed-ai-explanation').textContent = "L'IA a identifié que cette formulation ne correspond pas tout à fait au canevas officiel ISO du CTM 8. Voici une révision plus stricte.";
-            document.getElementById('ed-ai-textarea').value = "Révision proposée :\n" + editorState.text;
-            
+            explanationEl.textContent = payload.explanation || 'Pas d’explication reçue.';
+            textarea.value = payload.proposal || editorState.text;
+            editorState.aiExpanded = true;
+            toggleAiDetails(true);
+        } catch (error) {
+            document.getElementById('ed-ai-result-panel').classList.remove('hidden');
+            explanationEl.textContent = error.message || 'Impossible de contacter le service IA.';
+            textarea.value = editorState.text;
+        } finally {
             icon.setAttribute('data-lucide', 'sparkles');
             icon.classList.remove('animate-spin');
             document.getElementById('ed-ai-text').textContent = "Analyser & optimiser le texte";
             btn.disabled = false;
-            editorState.aiExpanded = true;
-            toggleAiDetails(true);
             lucide.createIcons();
-        }, 1500);
+        }
     }
 
     function toggleAiDetails(forceOpen = false) {

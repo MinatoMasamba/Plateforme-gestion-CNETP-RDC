@@ -254,6 +254,9 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
         help_text="IDs des CTM (Comités Techniques Miroirs) sélectionnés par l'expert"
     )
 
+    # WG optionnel
+    wg_id = serializers.IntegerField(required=False, allow_null=True)
+
     # Infos additionnelles
     specialties = serializers.CharField(required=False, allow_blank=True, max_length=500)
     cv = serializers.FileField(required=False, allow_null=True)
@@ -291,7 +294,7 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError({"structure_id": "Cette structure n'existe pas."})
 
         # Vérifier que tous les CTM existent
-        from apps.governance.models import CTM
+        from apps.governance.models import CTM, WG
         ctm_ids = data.get('ctm_ids', [])
         if not ctm_ids:
             raise serializers.ValidationError({"ctm_ids": "Vous devez sélectionner au moins un CTM."})
@@ -300,17 +303,29 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
             if not CTM.objects.filter(id=ctm_id).exists():
                 raise serializers.ValidationError({"ctm_ids": f"CTM avec l'ID {ctm_id} n'existe pas."})
 
+        # Vérifier WG si fourni
+        wg_id = data.get('wg_id')
+        if wg_id:
+            try:
+                wg = WG.objects.get(id=wg_id)
+            except WG.DoesNotExist:
+                raise serializers.ValidationError({"wg_id": f"WG avec l'ID {wg_id} n'existe pas."})
+            # Si des CTM sont fournis, s'assurer que le WG appartient à l'un d'eux
+            if ctm_ids and getattr(wg, 'ctm_id', None) not in ctm_ids:
+                raise serializers.ValidationError({"wg_id": "Le WG sélectionné n'appartient pas au CTM choisi."})
+
         return data
 
     def create(self, validated_data):
         """Créer l'utilisateur et l'expert via l'inscription publique"""
-        from apps.governance.models import CTM
+        from apps.governance.models import CTM, WG, Affectation
 
         # Extraire les données
         password = validated_data.pop('password')
         validated_data.pop('password_confirm')
         structure_id = validated_data.pop('structure_id')
         ctm_ids = validated_data.pop('ctm_ids', [])
+        wg_id = validated_data.pop('wg_id', None)
 
         # Données optionnelles
         specialties = validated_data.pop('specialties', '')
@@ -341,9 +356,25 @@ class ExpertPublicRegistrationSerializer(serializers.Serializer):
         )
 
         # Associer le premier CTM sélectionné (puisque désormais limité à un seul)
+        ctm = None
         if ctm_ids:
             ctm = CTM.objects.get(id=ctm_ids[0])
             expert.ctm = ctm
             expert.save()
+
+        # Si wg_id fourni, créer affectation
+        if wg_id:
+            try:
+                wg = WG.objects.get(id=wg_id)
+                ctm_for_aff = ctm or getattr(wg, 'ctm', None)
+                if ctm_for_aff:
+                    Affectation.objects.get_or_create(
+                        expert=expert,
+                        ctm=ctm_for_aff,
+                        wg=wg,
+                        defaults={'is_primary_ctm': True, 'is_primary_wg': True}
+                    )
+            except WG.DoesNotExist:
+                pass
 
         return expert

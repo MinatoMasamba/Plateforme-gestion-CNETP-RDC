@@ -19,6 +19,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from apps.norms.models import Norme, NormeVersion, ChangementVersion, NormeVote, NormeComment
+from apps.norms.diff_utils import build_inline_diff_segments
 from apps.experts.models import Expert
 from .serializers import (
     NormeBasicSerializer, NormeDetailSerializer, NormeCreateUpdateSerializer,
@@ -538,15 +539,16 @@ class NormeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Simple différence de contenu (peut être améliorée avec difflib)
         changes = version2.changes.filter(
             previous_version=version1
         )
+        diff_segments = build_inline_diff_segments(version1.content or '', version2.content or '')
 
         return Response({
             'v1': NormeVersionSerializer(version1).data,
             'v2': NormeVersionSerializer(version2).data,
-            'changes': ChangementVersionSerializer(changes, many=True).data
+            'changes': ChangementVersionSerializer(changes, many=True).data,
+            'diff_segments': diff_segments,
         })
 
     @action(detail=True, methods=['post'], url_path='rollback-version')

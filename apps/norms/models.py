@@ -1,9 +1,12 @@
+import json
+import re
+import unicodedata
+
 from django.db import models
 from django.utils import timezone
 from apps.core.models import BaseModel, User
 from apps.governance.models import CTM, WG
 from apps.experts.models import Expert
-import json
 
 
 class Norme(BaseModel):
@@ -344,6 +347,13 @@ class NormeDocumentImport(BaseModel):
     extracted_json = models.JSONField(default=dict, blank=True)
     checksum = models.CharField(max_length=64, blank=True, default='')
     imported_at = models.DateTimeField(auto_now=True)
+    norme = models.ForeignKey(
+        Norme,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='document_imports',
+    )
 
     class Meta:
         verbose_name = "Document normatif importé"
@@ -352,6 +362,83 @@ class NormeDocumentImport(BaseModel):
 
     def __str__(self):
         return f"{self.filename} ({self.document_type})"
+
+    def _normalized_text(self, value):
+        if not value:
+            return ''
+        ascii_text = unicodedata.normalize('NFKD', str(value)).encode('ascii', 'ignore').decode('ascii')
+        return re.sub(r'\s+', ' ', ascii_text).lower()
+
+    def _collect_search_text(self):
+        parts = []
+        for value in [self.filename, self.source_path, self.document_type]:
+            parts.append(self._normalized_text(value))
+
+        payload = self.extracted_json or {}
+        if isinstance(payload, dict):
+            for part in payload.get('parts', []) or []:
+                if isinstance(part, dict):
+                    parts.append(self._normalized_text(part.get('title', '')))
+                    content = part.get('content', [])
+                    if isinstance(content, list):
+                        for item in content:
+                            parts.append(self._normalized_text(item))
+
+        return ' '.join(part for part in parts if part)
+
+    def resolve_governance_assignment(self):
+        search_text = self._collect_search_text()
+
+        if any(token in search_text for token in ['gouvernance', 'governance', 'redaction', 'drafting', 'normalisation', 'standardization', 'guide']):
+            ctm = CTM.objects.filter(number=8).first()
+            wg = WG.objects.filter(ctm=ctm, number=4).first() if ctm else None
+            if ctm and wg:
+                return ctm, wg
+
+        if any(token in search_text for token in ['batiment', 'building', 'construction', 'urbanisme', 'genie civil', 'civil engineering', 'structure', 'ouvrages']):
+            ctm = CTM.objects.filter(number=3).first()
+            wg = WG.objects.filter(ctm=ctm, number=1).first() if ctm else None
+            if ctm and wg:
+                return ctm, wg
+
+        ctm = CTM.objects.order_by('number').first()
+        wg = WG.objects.filter(ctm=ctm).order_by('number').first() if ctm else None
+        return ctm, wg
+
+    def build_reference_number(self):
+        if self.document_type == 'guide':
+            return 'NORME-GUIDE-001'
+        if self.document_type == 'liste_normes':
+            return 'NORME-LISTE-001'
+        return 'NORME-001'
+
+    def ensure_norme(self):
+        ctm, wg = self.resolve_governance_assignment()
+        if not ctm or not wg:
+            return None
+
+        title = self.filename.rsplit('.', 1)[0]
+        description = (
+            self.extracted_json.get('summary')
+            if isinstance(self.extracted_json, dict) and self.extracted_json.get('summary')
+            else f"Document importé: {title}"
+        )
+
+        norme, created = Norme.objects.update_or_create(
+            reference_number=self.build_reference_number(),
+            defaults={
+                'title': title,
+                'description': description,
+                'ctm': ctm,
+                'wg': wg,
+                'status': 'DRAFT',
+                'standard_family': 'OTHER',
+                'is_public': False,
+            },
+        )
+        self.norme = norme
+        self.save(update_fields=['norme', 'updated_at'])
+        return norme
 
 
 def parse_norme_structure(content):

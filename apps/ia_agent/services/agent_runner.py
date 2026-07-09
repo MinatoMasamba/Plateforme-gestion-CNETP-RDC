@@ -159,6 +159,18 @@ class AgentRunner:
 
     # ── Boucle tool-use commune ───────────────────────────────────────────────
 
+    def _build_fallback_error_message(self, exc):
+        msg = str(exc).lower()
+        if any(token in msg for token in [
+            'quota', 'resource_exhausted', '429', 'rate_limit', 'unavailable',
+            '503', 'peer closed', 'timeout', 'timed out', 'connection',
+        ]):
+            return (
+                "Le service IA est momentanément indisponible ou saturé. "
+                "Merci de réessayer dans quelques instants."
+            )
+        return api_error_message(exc)
+
     def _run_loop(self, llm, system_prompt, messages, tools_spec, force_first_tool=False):
         max_iter = settings.IA_AGENT_MAX_TOOL_ITERATIONS
 
@@ -173,7 +185,7 @@ class AgentRunner:
                 logger.error("Erreur API LLM (%s) : %s", self.session.provider, exc)
                 return AgentMessage.objects.create(
                     session=self.session, role='assistant',
-                    content=api_error_message(exc),
+                    content=self._build_fallback_error_message(exc),
                 )
 
             _cl('blue', '←', (

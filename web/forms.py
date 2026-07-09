@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM, ComitePilotage, TechnicalCell
+from apps.governance.models import CTM, ComitePilotage, TechnicalCell, WG, Affectation
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
@@ -282,6 +282,16 @@ class ExpertRegistrationForm(forms.ModelForm):
         })
     )
 
+    # WG (Groupe de Travail) selection
+    wg = forms.ModelChoiceField(
+        queryset=WG.objects.none(),
+        required=False,
+        label="Groupe de Travail (WG)",
+        widget=forms.Select(attrs={
+            'class': 'block w-full px-4 py-2 border border-gray-300 rounded-lg',
+        })
+    )
+
     class Meta:
         model = Expert
         fields = ['structure', 'specialties', 'cv', 'whatsapp_number']
@@ -299,6 +309,25 @@ class ExpertRegistrationForm(forms.ModelForm):
                 )
         
         return password_confirm
+
+    def __init__(self, *args, **kwargs):
+        # Allow dynamic population of WG queryset based on provided CTM
+        data = kwargs.get('data') if 'data' in kwargs else (args[0] if args else None)
+        super().__init__(*args, **kwargs)
+        ctm_id = None
+        if data and hasattr(data, 'get'):
+            ctm_id = data.get('ctm') or data.get('ctm')
+        # If editing an instance, use its CTM
+        if not ctm_id and hasattr(self, 'instance') and getattr(self.instance, 'ctm', None):
+            ctm_id = getattr(self.instance, 'ctm').id
+
+        if ctm_id:
+            try:
+                self.fields['wg'].queryset = WG.objects.filter(ctm_id=ctm_id).order_by('number')
+            except Exception:
+                self.fields['wg'].queryset = WG.objects.none()
+        else:
+            self.fields['wg'].queryset = WG.objects.none()
     
     def clean_email(self):
         """Vérifier que l'email n'existe pas déjà"""
@@ -375,6 +404,19 @@ class ExpertRegistrationForm(forms.ModelForm):
                     expert=expert,
                     defaults={'role': self.cleaned_data.get('ctc_role', 'ISO_EXPERT')}
                 )
+
+            # NEW: Ajouter une affectation WG si sélectionné
+            wg = self.cleaned_data.get('wg')
+            if wg:
+                # déterminer le CTM pour l'affectation
+                ctm_for_aff = ctm or getattr(wg, 'ctm', None) or getattr(expert, 'ctm', None)
+                if ctm_for_aff:
+                    Affectation.objects.get_or_create(
+                        expert=expert,
+                        ctm=ctm_for_aff,
+                        wg=wg,
+                        defaults={'is_primary_ctm': True, 'is_primary_wg': True}
+                    )
         
         return expert
 

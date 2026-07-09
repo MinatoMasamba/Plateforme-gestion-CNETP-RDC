@@ -51,6 +51,7 @@ class Command(BaseCommand):
                     'checksum': checksum,
                 }
             )
+            obj.ensure_norme()
             if created:
                 imported += 1
             else:
