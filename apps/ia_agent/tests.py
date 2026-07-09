@@ -62,7 +62,7 @@ class RegulatoryAdviceServiceTests(SimpleTestCase):
         self.assertIsNotNone(client)
         self.assertEqual(client.__class__.__name__, 'GeminiLLMClient')
 
-    @override_settings(GEMINI_API_KEY='primary-key')
+    @override_settings(GEMINI_API_KEY='primary-key', GEMINI_FALLBACK_API_KEYS='fallback1,fallback2')
     def test_get_llm_client_tries_fallback_api_keys(self):
         created_clients = []
         responses = iter([
@@ -89,7 +89,8 @@ class RegulatoryAdviceServiceTests(SimpleTestCase):
 
         self.assertEqual(result.text, 'ok')
         self.assertEqual(created_clients[0], 'primary-key')
-        self.assertIn('AQ.Ab8RN6L-txn_UETGeAnv4IYWDW7c8HC1oFY5vlyPvFclp61_ZQ', created_clients)
+        # vérifier qu'au moins une clé de fallback déclarée a été essayée
+        self.assertIn('fallback1', created_clients)
 
     @patch('apps.ia_agent.services.agent_runner.AgentMessage.objects.create')
     @patch('apps.ia_agent.services.agent_runner._cl')
