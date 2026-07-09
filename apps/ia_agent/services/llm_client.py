@@ -92,15 +92,11 @@ GEMINI_FALLBACK_MODELS = [
     'gemma-4-26b-a4b-it',
 ]
 
-GEMINI_FALLBACK_API_KEYS = [
-    'AQ.Ab8RN6L-txn_UETGeAnv4IYWDW7c8HC1oFY5vlyPvFclp61_ZQ',
-    'AQ.Ab8RN6IWTpbeN_IOaTJp8JJ7fmWnOvkMZPf8uZ5NRgctQik2xQ',
-***REMOVED_SECRET***',
-    'AQ.Ab8RN6JRLEVHhhkSwsU0E7vuejTF3dokbLNQwXlD6NZ2HOP2gw',
-***REMOVED_SECRET***',
-    'AQ.Ab8RN6KIbWU-YQvMValNwagXU5SyAtPcWtSiZbOJttZ-3WltHw',
-***REMOVED_SECRET***',
-    ]
+
+# Ancienne constante de clés de secours (vide par défaut).
+# Préférence : définir GEMINI_API_KEY1..6 dans l'environnement ou GEMINI_FALLBACK_API_KEYS en settings.
+GEMINI_FALLBACK_API_KEYS = []
+
 
 
 
@@ -248,13 +244,27 @@ def get_llm_client(provider):
         if not api_key:
             return None
 
-        fallback_api_keys = getattr(settings, 'GEMINI_FALLBACK_API_KEYS', GEMINI_FALLBACK_API_KEYS)
-        if isinstance(fallback_api_keys, str):
-            fallback_api_keys = [item.strip() for item in fallback_api_keys.split(',') if item.strip()]
-        elif fallback_api_keys is None:
-            fallback_api_keys = []
+        # Support either a single list `GEMINI_FALLBACK_API_KEYS` in settings
+        # or a set of individual env/settings variables GEMINI_API_KEY1..GEMINI_API_KEY6.
+        fallback_api_keys = getattr(settings, 'GEMINI_FALLBACK_API_KEYS', None)
+        if fallback_api_keys is None:
+            # Collect GEMINI_API_KEY1..6 from settings first, then from environment
+            import os
+            keys = []
+            for i in range(1, 7):
+                name = f'GEMINI_API_KEY{i}'
+                val = getattr(settings, name, None)
+                if not val:
+                    val = os.environ.get(name)
+                if val:
+                    keys.append(val)
+            # Fallback to the older constant if nothing else provided
+            fallback_api_keys = keys or [k for k in GEMINI_FALLBACK_API_KEYS if k]
+        else:
+            if isinstance(fallback_api_keys, str):
+                fallback_api_keys = [item.strip() for item in fallback_api_keys.split(',') if item.strip()]
 
-        ordered_api_keys = [api_key] + [key for key in fallback_api_keys if key and key != api_key]
+        ordered_api_keys = [api_key] + [key for key in (fallback_api_keys or []) if key and key != api_key]
         model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
         cache_key = (api_key, model_name, tuple(ordered_api_keys))
 
