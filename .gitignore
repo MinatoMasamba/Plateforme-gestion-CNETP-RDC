@@ -24,6 +24,9 @@ env/
 # Fichiers IDE
 .vscode/
 .idea/
+.codex/
+.cursor/
+.claude/
 
 # Médias uploadées
 media/
@@ -34,6 +37,7 @@ db.sqlite3
 db.sqlite3-journal
 db.sqlite3-wal
 db.sqlite3-shm
-.react_docs
+.react_docs/
 *.env
-*.norme
+norme/
+doc/
