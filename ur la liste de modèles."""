@@ -1,0 +1,170 @@
+[33mcommit 7894f56619d4147b36eb5a378f7df0d06c9f6c8b[m
+Author: MinatoMasamba <edmasamba100@gmail.com>
+Date:   Thu Jul 9 21:12:05 2026 +0200
+
+    reparation de fields
+
+[1mdiff --git a/apps/ia_agent/services/llm_client.py b/apps/ia_agent/services/llm_client.py[m
+[1mindex 0d24d42c..0fc5cf45 100644[m
+[1m--- a/apps/ia_agent/services/llm_client.py[m
+[1m+++ b/apps/ia_agent/services/llm_client.py[m
+[36m@@ -10,6 +10,7 @@[m [mlogger = logging.getLogger(__name__)[m
+ [m
+ _anthropic_client = None[m
+ _gemini_client = None[m
+[32m+[m[32m_gemini_client_cache_key = None[m
+ [m
+ [m
+ @dataclass[m
+[36m@@ -91,14 +92,27 @@[m [mGEMINI_FALLBACK_MODELS = [[m
+     'gemma-4-26b-a4b-it',[m
+ ][m
+ [m
+[32m+[m[32mGEMINI_FALLBACK_API_KEYS = [[m
+[32m+[m[32m    'AQ.Ab8RN6L-txn_UETGeAnv4IYWDW7c8HC1oFY5vlyPvFclp61_ZQ',[m
+[32m+[m[32m    'AQ.Ab8RN6IWTpbeN_IOaTJp8JJ7fmWnOvkMZPf8uZ5NRgctQik2xQ',[m
+[32m+[m[32m***REMOVED_SECRET***',[m
+[32m+[m[32m    'AQ.Ab8RN6JRLEVHhhkSwsU0E7vuejTF3dokbLNQwXlD6NZ2HOP2gw',[m
+[32m+[m[32m***REMOVED_SECRET***',[m
+[32m+[m[32m    'AQ.Ab8RN6KIbWU-YQvMValNwagXU5SyAtPcWtSiZbOJttZ-3WltHw',[m
+[32m+[m[32m***REMOVED_SECRET***',[m
+[32m+[m[32m    ][m
+[32m+[m
+[32m+[m
+ [m
+ class GeminiLLMClient:[m
+[31m-    """Wrappeur Gemini via google-genai SDK, avec fallback automatique sur la liste de modèles."""[m
+[32m+[m[32m    """Wrappeur Gemini via google-genai SDK, avec fallback automatique sur les modèles et les clés API."""[m
+ [m
+[31m-    def __init__(self, client, model, fallback_models=None):[m
+[32m+[m[32m    def __init__(self, client, model, fallback_models=None, api_keys=None, client_factory=None):[m
+         self._client = client[m
+         self._model = model[m
+         self._fallback_models = fallback_models or GEMINI_FALLBACK_MODELS[m
+[32m+[m[32m        self._api_keys = api_keys or [][m
+[32m+[m[32m        self._client_factory = client_factory[m
+ [m
+     def _to_gemini_tools(self, tools_spec):[m
+         if not tools_spec:[m
+[36m@@ -126,8 +140,14 @@[m [mclass GeminiLLMClient:[m
+                 result.append({"role": role, "parts": [{"text": text}]})[m
+         return result[m
+ [m
+[31m-    def _call_model(self, model, contents, config):[m
+[31m-        return self._client.models.generate_content([m
+[32m+[m[32m    def _get_client_for_key(self, api_key):[m
+[32m+[m[32m        if self._client_factory is not None:[m
+[32m+[m[32m            return self._client_factory(api_key)[m
+[32m+[m[32m        return self._client[m
+[32m+[m
+[32m+[m[32m    def _call_model(self, model, contents, config, client=None):[m
+[32m+[m[32m        active_client = client or self._client[m
+[32m+[m[32m        return active_client.models.generate_content([m
+             model=model,[m
+             contents=contents,[m
+             config=config,[m
+[36m@@ -176,14 +196,22 @@[m [mclass GeminiLLMClient:[m
+         models_to_try = [self._model] + [[m
+             m for m in self._fallback_models if m != self._model[m
+         ][m
+[32m+[m[32m        api_keys_to_try = [key for key in self._api_keys if key] or [None][m
+         last_exc = None[m
+         for model in models_to_try:[m
+[31m-            try:[m
+[31m-                response = self._call_model(model, contents, config)[m
+[31m-                return self._parse_response(response)[m
+[31m-            except Exception as exc:[m
+[31m-                logger.warning("Gemini — modèle %s indisponible : %s — essai du suivant", model, exc)[m
+[31m-                last_exc = exc[m
+[32m+[m[32m            for api_key in api_keys_to_try:[m
+[32m+[m[32m                try:[m
+[32m+[m[32m                    client = self._get_client_for_key(api_key) if api_key is not None else self._client[m
+[32m+[m[32m                    response = self._call_model(model, contents, config, client=client)[m
+[32m+[m[32m                    return self._parse_response(response)[m
+[32m+[m[32m                except Exception as exc:[m
+[32m+[m[32m                    logger.warning([m
+[32m+[m[32m                        "Gemini — modèle %s indisponible avec la clé %s : %s — essai du suivant",[m
+[32m+[m[32m                        model,[m
+[32m+[m[32m                        api_key or '<default>',[m
+[32m+[m[32m                        exc,[m
+[32m+[m[32m                    )[m
+[32m+[m[32m                    last_exc = exc[m
+ [m
+         raise last_exc[m
+ [m
+[36m@@ -206,33 +234,47 @@[m [mclass GeminiLLMClient:[m
+ [m
+ [m
+ def get_llm_client(provider):[m
+[31m-    """Retourne l'instance LLM pour le provider demandé, ou None si non configuré."""[m
+[31m-    global _anthropic_client, _gemini_client[m
+[32m+[m[32m    """Retourne l'instance Gemini, quel que soit le provider demandé."""[m
+[32m+[m[32m    global _anthropic_client, _gemini_client, _gemini_client_cache_key[m
+     from django.conf import settings[m
+ [m
+[31m-    if provider == 'gemini':[m
+[32m+[m[32m    # Forcer le fournisseur Gemini pour toute l'IA de la plateforme.[m
+[32m+[m[32m    provider_name = str(provider or 'gemini').strip().lower()[m
+[32m+[m[32m    if 'claude' in provider_name or provider_name in {'anthropic', 'claude_code', 'claude-code'}:[m
+[32m+[m[32m        provider_name = 'gemini'[m
+[32m+[m
+[32m+[m[32m    if provider_name == 'gemini':[m
+         api_key = getattr(settings, 'GEMINI_API_KEY', '')[m
+         if not api_key:[m
+             return None[m
+[31m-        if _gemini_client is None:[m
+[32m+[m
+[32m+[m[32m        fallback_api_keys = getattr(settings, 'GEMINI_FALLBACK_API_KEYS', GEMINI_FALLBACK_API_KEYS)[m
+[32m+[m[32m        if isinstance(fallback_api_keys, str):[m
+[32m+[m[32m            fallback_api_keys = [item.strip() for item in fallback_api_keys.split(',') if item.strip()][m
+[32m+[m[32m        elif fallback_api_keys is None:[m
+[32m+[m[32m            fallback_api_keys = [][m
+[32m+[m
+[32m+[m[32m        ordered_api_keys = [api_key] + [key for key in fallback_api_keys if key and key != api_key][m
+[32m+[m[32m        model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')[m
+[32m+[m[32m        cache_key = (api_key, model_name, tuple(ordered_api_keys))[m
+[32m+[m
+[32m+[m[32m        if _gemini_client is None or _gemini_client_cache_key != cache_key:[m
+             from google import genai[m
+[32m+[m
+[32m+[m[32m            def build_client(key):[m
+[32m+[m[32m                return genai.Client(api_key=key)[m
+[32m+[m
+             _gemini_client = GeminiLLMClient([m
+[31m-                client=genai.Client(api_key=api_key),[m
+[31m-                model=getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash'),[m
+[32m+[m[32m                client=build_client(api_key),[m
+[32m+[m[32m                model=model_name,[m
+[32m+[m[32m                api_keys=ordered_api_keys,[m
+[32m+[m[32m                client_factory=build_client,[m
+             )[m
+[32m+[m[32m            _gemini_client_cache_key = cache_key[m
+         return _gemini_client[m
+ [m
+[31m-    else:  # 'anthropic' (défaut)[m
+[31m-        api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')[m
+[31m-        if not api_key:[m
+[31m-            return None[m
+[31m-        if _anthropic_client is None:[m
+[31m-            import anthropic[m
+[31m-            _anthropic_client = AnthropicLLMClient([m
+[31m-                client=anthropic.Anthropic(api_key=api_key),[m
+[31m-                model=getattr(settings, 'ANTHROPIC_MODEL', 'claude-sonnet-4-5'),[m
+[31m-            )[m
+[31m-        return _anthropic_client[m
+[32m+[m[32m    # Toute autre valeur est ignorée au profit de Gemini.[m
+[32m+[m[32m    return None[m
+ [m
+ [m
+ def unavailable_message(provider):[m
+[36m@@ -256,8 +298,8 @@[m [mdef api_error_message(exc):[m
+         return "Quota API dépassé. Attends quelques instants puis réessaie."[m
+     if "401" in msg or "authentication" in low or "api_key_invalid" in low or "unauthenticated" in low:[m
+         return "Clé API invalide ou expirée. Vérifie la configuration ANTHROPIC_API_KEY / GEMINI_API_KEY."[m
+[31m-    if "overloaded" in low or "529" in msg or "503" in msg:[m
+[31m-        return "Les serveurs IA sont temporairement surchargés. Réessaie dans quelques instants."[m
+[32m+[m[32m    if "peer closed" in low or "complete message body" in low or "overloaded" in low or "529" in msg or "503" in msg:[m
+[32m+[m[32m        return "Le service IA est momentanément indisponible ou saturé. Réessaie dans quelques instants."[m
+     if "timeout" in low:[m
+         return "La requête a expiré. Réessaie dans un instant."[m
+     return f"Erreur lors de la communication avec l'IA : {msg[:250]}"[m

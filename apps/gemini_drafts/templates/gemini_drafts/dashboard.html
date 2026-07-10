@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Générateur de Normes CNETP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2563eb;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .classification-badge {
+      background: linear-gradient(135deg, #1a3a5c, #2563eb);
+    }
+    .type-badge-guide { background: #10b981; }
+    .type-badge-norme { background: #3b82f6; }
+    .type-badge-norme_fictive { background: #8b5cf6; }
+    .type-badge-directive { background: #f59e0b; }
+    .type-badge-recommandation { background: #06b6d4; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  
+  <!-- En-tête -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold text-blue-800">📄 Générateur de Normes CNETP</h1>
+        <p class="text-sm text-gray-500">Classification automatique vers CTM/WG</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="showStructure()" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          Structure CNETP
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Colonne de gauche : Formulaire -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 sticky top-20">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-blue-600 rounded-full"></span>
+            Nouveau document
+          </h2>
+          
+          <form id="generateForm" class="space-y-4">
+            <!-- Type de document -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Type de document *</label>
+              <select id="docType" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                <option value="guide">📘 Guide pratique</option>
+                <option value="norme">📗 Norme normative</option>
+                <option value="norme_fictive">📙 Norme fictive (brouillon)</option>
+                <option value="directive">📋 Directive technique</option>
+                <option value="recommandation">💡 Recommandation technique</option>
+              </select>
+            </div>
+            
+            <!-- Domaine -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Domaine d'application</label>
+              <input id="domain" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" 
+                     placeholder="ex: Sécurité des bâtiments, Routes..." />
+            </div>
+            
+            <!-- Contenu textuel -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Contenu textuel *</label>
+              <textarea id="content" rows="8" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition font-mono" 
+                        placeholder="Collez ici le contenu que l'IA doit analyser pour déterminer le WG approprié et générer le document..."></textarea>
+            </div>
+            
+            <!-- Données JSON (optionnel) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Données JSON (optionnel)</label>
+              <textarea id="jsonData" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition font-mono" 
+                        placeholder='{"contexte": "informations complémentaires", "auteur": "..."}'></textarea>
+            </div>
+            
+            <!-- Boutons -->
+            <div class="flex gap-3 pt-2">
+              <button type="button" id="generateBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Générer & Classifier
+              </button>
+              <button type="button" id="clearBtn" class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition text-sm">
+                Effacer
+              </button>
+            </div>
+            
+            <!-- Statut -->
+            <div id="status" class="hidden text-sm"></div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Colonne de droite : Résultats -->
+      <div class="lg:col-span-2">
+        <!-- Résultat de la génération -->
+        <div id="resultContainer" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6 fade-in">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="font-semibold text-gray-800">Document généré</h3>
+              <div class="flex gap-2 mt-1 flex-wrap">
+                <span id="resultType" class="text-xs px-2 py-1 rounded-full text-white font-medium"></span>
+                <span id="resultCtm" class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-medium"></span>
+                <span id="resultWg" class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-medium"></span>
+              </div>
+            </div>
+            <button onclick="document.getElementById('resultContainer').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          
+          <div id="classificationReason" class="text-sm bg-gray-50 p-3 rounded-lg border border-gray-100 mb-3 text-gray-600"></div>
+          
+          <div id="draftContent" class="prose max-w-none text-sm bg-gray-50 p-4 rounded-lg border border-gray-100 max-h-96 overflow-y-auto whitespace-pre-wrap font-mono text-xs"></div>
+          
+          <div class="flex gap-3 mt-4">
+            <button onclick="copyDraft()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Copier
+            </button>
+            <a id="downloadLink" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition text-sm flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Télécharger
+            </a>
+          </div>
+        </div>
+        
+        <!-- Historique des brouillons -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div class="border-b border-gray-200 px-5 py-3 flex justify-between items-center">
+            <h2 class="font-semibold text-gray-800 flex items-center gap-2">
+              <span class="w-1 h-5 bg-gray-400 rounded-full"></span>
+              Historique des brouillons
+            </h2>
+            <div class="flex gap-2 items-center">
+              <input id="filterCtm" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-36 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Filtrer CTM" />
+              <input id="filterWg" class="border border-gray-300 rounded-lg px-3 py-1 text-sm w-36 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Filtrer WG" />
+              <button id="loadDraftsBtn" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">Charger</button>
+              <button id="refreshDraftsBtn" class="px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm transition text-blue-600">↻ Rafraîchir</button>
+            </div>
+          </div>
+          
+          <div id="draftsList" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+            <div class="p-5 text-center text-gray-400 text-sm">
+              <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Aucun brouillon chargé. Utilisez les filtres ci-dessus.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Structure -->
+  <div id="structureModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">🏛️ Structure CTM / WG de la CNETP</h3>
+        <button onclick="closeStructure()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6" id="structureContent">
+        <div class="text-center py-8 text-gray-400">Chargement...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/gemini';
+    let currentDraft = null;
+    
+    // ─── ÉLÉMENTS DOM ──────────────────────────────────────────────────────────
+    const generateBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const loadDraftsBtn = document.getElementById('loadDraftsBtn');
+    const refreshDraftsBtn = document.getElementById('refreshDraftsBtn');
+    const filterCtm = document.getElementById('filterCtm');
+    const filterWg = document.getElementById('filterWg');
+    const status = document.getElementById('status');
+    const resultContainer = document.getElementById('resultContainer');
+    
+    // ─── GÉNÉRATION ─────────────────────────────────────────────────────────────
+    generateBtn.addEventListener('click', async () => {
+      const docType = document.getElementById('docType').value;
+      const domain = document.getElementById('domain').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const jsonRaw = document.getElementById('jsonData').value.trim();
+      
+      if (!content) {
+        showStatus('Veuillez saisir du contenu textuel.', 'error');
+        return;
+      }
+      
+      let data = {};
+      if (jsonRaw) {
+        try {
+          data = JSON.parse(jsonRaw);
+        } catch (e) {
+          showStatus('Données JSON invalides.', 'error');
+          return;
+        }
+      }
+      
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<span class="loading-spinner"></span> Génération...';
+      showStatus('Analyse en cours par l\'IA et génération du document...', 'info');
+      resultContainer.classList.add('hidden');
+      
+      try {
+        const response = await fetch(`${API_BASE}/generate/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: docType, domain, content, data }),
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Erreur inconnue');
+        }
+        
+        // Afficher le résultat
+        displayResult(result);
+        showStatus('✅ Document généré avec succès !', 'success');
+        
+        // Recharger l'historique
+        loadDrafts();
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        showStatus('❌ ' + error.message, 'error');
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Générer & Classifier`;
+      }
+    });
+    
+    function displayResult(result) {
+      const draft = result.draft;
+      const classification = result.classification;
+      currentDraft = draft;
+      
+      // Type de document
+      const typeMap = {
+        'guide': { label: '📘 Guide', class: 'type-badge-guide' },
+        'norme': { label: '📗 Norme', class: 'type-badge-norme' },
+        'norme_fictive': { label: '📙 Norme fictive', class: 'type-badge-norme_fictive' },
+        'directive': { label: '📋 Directive', class: 'type-badge-directive' },
+        'recommandation': { label: '💡 Recommandation', class: 'type-badge-recommandation' },
+      };
+      const typeInfo = typeMap[draft.type] || { label: draft.type, class: 'bg-gray-500' };
+      
+      document.getElementById('resultType').textContent = typeInfo.label;
+      document.getElementById('resultType').className = `text-xs px-2 py-1 rounded-full text-white font-medium ${typeInfo.class}`;
+      
+      document.getElementById('resultCtm').textContent = `🏛️ ${draft.ctm}`;
+      document.getElementById('resultWg').textContent = `📌 ${draft.wg}`;
+      
+      document.getElementById('classificationReason').innerHTML = `
+        <strong>Raison du classement :</strong> ${classification.reason || 'Non spécifiée'}
+      `;
+      
+      document.getElementById('draftContent').textContent = draft.draft_text;
+      
+      resultContainer.classList.remove('hidden');
+    }
+    
+    function copyDraft() {
+      if (!currentDraft) return;
+      navigator.clipboard.writeText(currentDraft.draft_text).then(() => {
+        showStatus('✅ Texte copié dans le presse-papier', 'success');
+      }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = currentDraft.draft_text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showStatus('✅ Texte copié', 'success');
+      });
+    }
+    
+    // Télécharger en .txt
+    document.getElementById('downloadLink').addEventListener('click', () => {
+      if (!currentDraft) return;
+      const blob = new Blob([currentDraft.draft_text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `brouillon_${currentDraft.type}_${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    
+    // ─── HISTORIQUE ─────────────────────────────────────────────────────────────
+    async function loadDrafts() {
+      const ctm = filterCtm.value.trim();
+      const wg = filterWg.value.trim();
+      
+      const params = new URLSearchParams();
+      if (ctm) params.append('ctm', ctm);
+      if (wg) params.append('wg', wg);
+      
+      const container = document.getElementById('draftsList');
+      container.innerHTML = '<div class="p-5 text-center text-gray-400 text-sm"><span class="loading-spinner"></span> Chargement...</div>';
+      
+      try {
+        const response = await fetch(`${API_BASE}/drafts/?${params}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur de chargement');
+        }
+        
+        const drafts = data.drafts || data;
+        
+        if (!drafts.length) {
+          container.innerHTML = `
+            <div class="p-5 text-center text-gray-400 text-sm">
+              <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Aucun brouillon trouvé.
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = drafts.map(d => `
+          <div class="p-4 hover:bg-gray-50 transition cursor-pointer" onclick="showDraft(${d.id})">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">${d.type}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 ml-1">${d.domain || 'Sans domaine'}</span>
+                <div class="text-sm mt-1 font-medium text-gray-800">${d.ctm} → ${d.wg}</div>
+              </div>
+              <div class="text-xs text-gray-400">${new Date(d.created_at).toLocaleString()}</div>
+            </div>
+            <div class="text-xs text-gray-500 mt-1 line-clamp-2 max-h-10 overflow-hidden">${d.draft_text.substring(0, 200)}${d.draft_text.length > 200 ? '...' : ''}</div>
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        container.innerHTML = `<div class="p-5 text-center text-red-500 text-sm">❌ ${error.message}</div>`;
+      }
+    }
+    
+    function showDraft(id) {
+      // Naviguer vers le brouillon (peut être amélioré)
+      window.location.href = `${API_BASE}/draft/${id}/`;
+    }
+    
+    loadDraftsBtn.addEventListener('click', loadDrafts);
+    refreshDraftsBtn.addEventListener('click', loadDrafts);
+    
+    // Auto-chargement au premier affichage
+    setTimeout(loadDrafts, 500);
+    
+    // ─── UTILITAIRES ──────────────────────────────────────────────────────────
+    function showStatus(message, type = 'info') {
+      const el = document.getElementById('status');
+      el.classList.remove('hidden', 'text-green-600', 'text-red-600', 'text-blue-600', 'text-yellow-600');
+      
+      const colors = {
+        success: 'text-green-600',
+        error: 'text-red-600',
+        info: 'text-blue-600',
+        warning: 'text-yellow-600',
+      };
+      
+      el.className = `text-sm ${colors[type] || 'text-gray-600'}`;
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+    
+    clearBtn.addEventListener('click', () => {
+      document.getElementById('domain').value = '';
+      document.getElementById('content').value = '';
+      document.getElementById('jsonData').value = '';
+      document.getElementById('status').classList.add('hidden');
+    });
+    
+    // ─── STRUCTURE ─────────────────────────────────────────────────────────────
+    async function showStructure() {
+      const modal = document.getElementById('structureModal');
+      const content = document.getElementById('structureContent');
+      modal.classList.remove('hidden');
+      
+      content.innerHTML = '<div class="text-center py-8 text-gray-400"><span class="loading-spinner"></span> Chargement de la structure...</div>';
+      
+      try {
+        const response = await fetch(`${API_BASE}/structure/`);
+        const data = await response.json();
+        
+        let html = '';
+        for (const ctm of data.structure) {
+          html += `
+            <div class="mb-4 border border-blue-100 rounded-lg overflow-hidden">
+              <div class="bg-blue-50 px-4 py-2 font-semibold text-blue-800">CTM ${ctm.number} — ${ctm.name}</div>
+              <div class="px-4 py-2 text-sm text-gray-600">${ctm.description || 'Pas de description'}</div>
+              <div class="divide-y divide-gray-100">
+                ${ctm.wgs.map(wg => `
+                  <div class="px-4 py-2 text-sm">
+                    <span class="font-medium text-gray-800">${wg.label}</span>
+                    <span class="text-gray-500"> — ${wg.description || 'Pas de description'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+        content.innerHTML = html || '<p class="text-gray-500 text-center py-4">Aucune structure trouvée</p>';
+        
+      } catch (error) {
+        content.innerHTML = `<p class="text-red-500 text-center py-4">❌ Erreur : ${error.message}</p>`;
+      }
+    }
+    
+    function closeStructure() {
+      document.getElementById('structureModal').classList.add('hidden');
+    }
+    
+    // Fermer le modal en cliquant à l'extérieur
+    document.getElementById('structureModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeStructure();
+    });
+    
+    // ─── RACCOURCIS CLAVIER ──────────────────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeStructure();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        generateBtn.click();
+      }
+    });
+    
+    // Auto-resize du textarea
+    document.getElementById('content').addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
+  </script>
+  
+</body>
+</html>

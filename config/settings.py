@@ -13,6 +13,9 @@ ALLOWED_HOSTS = config(
     cast=Csv()
 )
 
+GEMINI_API_URL = config('GEMINI_API_URL', default='')
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     'apps.messaging.apps.MessagingConfig',
     'apps.ia_agent.apps.IaAgentConfig',
     'apps.dashboard.apps.DashboardConfig',
+    'apps.gemini_drafts.apps.GeminiDraftsConfig',
 ]
 
 MIDDLEWARE = [
