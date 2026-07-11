@@ -7,12 +7,75 @@ from django.utils import timezone
 from .models import Draft
 
 
+def _load_local_env_vars():
+    env_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+    if not os.path.exists(env_path):
+        return {}
+
+    values = {}
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key in {'GEMINI_API_URL', 'GEMINI_API_KEY'} and value:
+                    values[key] = value
+    except OSError:
+        return {}
+    return values
+
+
 def _get_gemini_config():
+    env_vars = _load_local_env_vars()
+    
+    # Récupération propre de la clé (on cherche d'abord la clé principale)
+    api_key = (
+        getattr(settings, 'GEMINI_API_KEY', None) or 
+        os.environ.get('GEMINI_API_KEY') or 
+        env_vars.get('GEMINI_API_KEY') or
+        getattr(settings, 'GEMINI_API_KEY2', None) or # Fallback sur la clé 2
+        env_vars.get('GEMINI_API_KEY2')
+    )
+    
+    # On force la récupération du modèle Gemma s'il est mal configuré ailleurs
+    model = getattr(settings, 'GEMINI_MODEL', None) or os.environ.get('GEMINI_MODEL') or env_vars.get('GEMINI_MODEL')
+    
+    # Sécurité : si l'environnement renvoie un modèle Gemini par erreur, on le force sur Gemma
+    if not model or 'gemini' in model.lower():
+        model = 'gemma-4-31b-it'
+
     return {
-        'api_url': getattr(settings, 'GEMINI_API_URL', None) or os.environ.get('GEMINI_API_URL'),
-        'api_key': getattr(settings, 'GEMINI_API_KEY', None) or os.environ.get('GEMINI_API_KEY'),
+        'api_url': getattr(settings, 'GEMINI_API_URL', None) or os.environ.get('GEMINI_API_URL') or env_vars.get('GEMINI_API_URL'),
+        'api_key': api_key,
+        'model': model,
     }
 
+
+def _build_gemini_request_url(api_url: str | None, api_key: str | None = None, model: str | None = None) -> str:
+    """Construit l'URL de génération Gemini à partir d'une URL de base ou d'un endpoint complet."""
+    base_url = (api_url or '').strip()
+    if not base_url:
+        return ''
+
+    model_name = (model or '').strip() or 'gemma-4-31b-it'
+    normalized_base = base_url.rstrip('/')
+
+    if re.search(r'/models/[^/]+(?::generateContent)?$', normalized_base, re.IGNORECASE):
+        request_url = normalized_base
+        if not request_url.endswith(':generateContent'):
+            request_url = f'{request_url}:generateContent'
+    else:
+        request_url = f'{normalized_base}/models/{model_name}:generateContent'
+
+    if api_key and '?key=' not in request_url and '&key=' not in request_url:
+        separator = '&' if '?' in request_url else '?'
+        request_url = f'{request_url}{separator}key={api_key}'
+
+    return request_url
 
 
 def get_governance_structure() -> list[dict]:
@@ -180,7 +243,8 @@ def call_gemini(prompt: str) -> dict:
     cfg = _get_gemini_config()
     api_url = cfg['api_url']
     api_key = cfg.get('api_key')
-    
+    model_name = cfg.get('model')
+
     if not api_url:
         return {
             'ctm': '',
@@ -189,11 +253,19 @@ def call_gemini(prompt: str) -> dict:
             'document_type': 'guide',
             'draft_text': 'Configuration Gemini absente. Veuillez définir GEMINI_API_URL et GEMINI_API_KEY dans les settings Django.',
         }
-    
-    headers = {'Content-Type': 'application/json'}
-    if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
-    
+
+    # Si la requête renvoie 403, on peut retenter avec des clés de secours GEMINI_API_KEY1..6
+    from django.conf import settings
+    import os
+    fallback_keys = []
+    for i in range(1, 7):
+        name = f'GEMINI_API_KEY{i}'
+        val = getattr(settings, name, None) or os.environ.get(name)
+        if val:
+            fallback_keys.append(val)
+    # Dédupliquer et garantir que la clé principale est d'abord
+    ordered_keys = [k for k in ([api_key] if api_key else []) + fallback_keys if k]
+
     # Format pour Gemini
     payload = {
         'contents': [{
@@ -204,13 +276,41 @@ def call_gemini(prompt: str) -> dict:
             'maxOutputTokens': 8192,
         }
     }
-    
-    try:
-        resp = requests.post(api_url, json=payload, headers=headers, timeout=90)
-        resp.raise_for_status()
-        body = resp.json()
+
+    last_exc = None
+    for key in ordered_keys or [None]:
+        headers = {'Content-Type': 'application/json'}
+        if key:
+            headers['x-goog-api-key'] = key
+            headers['Authorization'] = f'Bearer {key}'
+        request_url = _build_gemini_request_url(api_url, key, model_name)
+        try:
+            resp = requests.post(request_url, json=payload, headers=headers, timeout=90)
+            resp.raise_for_status()
+            body = resp.json()
+        except requests.exceptions.RequestException as e:
+            last_exc = e
+            # Si erreur 403, on tente la clé suivante
+            status = None
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    status = e.response.status_code
+                except Exception:
+                    status = None
+            if status == 403:
+                # try next key
+                continue
+            # pour d'autres erreurs, on ne retente pas
+            return {
+                'ctm': '',
+                'wg': '',
+                'classification_reason': f'Erreur API Gemini: {str(e)}',
+                'document_type': 'guide',
+                'draft_text': f'Erreur lors de l\'appel à l\'API Gemini: {str(e)}',
+            }
+
         text = _extract_text(body)
-        
+
         # Essayer de parser le JSON
         try:
             # Nettoyer le texte (enlever les backticks et le markdown)
@@ -237,13 +337,34 @@ def call_gemini(prompt: str) -> dict:
                 'document_type': 'guide',
                 'draft_text': text,
             }
-    except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException as e:
+            last_exc = e
+            # Si erreur 403, on tente la clé suivante
+            status = None
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    status = e.response.status_code
+                except Exception:
+                    status = None
+            if status == 403:
+                # try next key
+                continue
+            # pour d'autres erreurs, on ne retente pas
+            return {
+                'ctm': '',
+                'wg': '',
+                'classification_reason': f'Erreur API Gemini: {str(e)}',
+                'document_type': 'guide',
+                'draft_text': f'Erreur lors de l\'appel à l\'API Gemini: {str(e)}',
+            }
+    # Si toutes les clés ont échoué, retourner l'erreur finale
+    if last_exc is not None:
         return {
             'ctm': '',
             'wg': '',
-            'classification_reason': f'Erreur API Gemini: {str(e)}',
+            'classification_reason': f'Erreur API Gemini: {str(last_exc)}',
             'document_type': 'guide',
-            'draft_text': f'Erreur lors de l\'appel à l\'API Gemini: {str(e)}',
+            'draft_text': f'Erreur lors de l\'appel à l\'API Gemini: {str(last_exc)}',
         }
 
 
