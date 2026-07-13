@@ -25,7 +25,7 @@ CTM_DATA = [
         'wg': [
             {'number': 1, 'name': 'Sols & Géomécanique', 'description': 'Caractérisation des sols tropicaux et ferrallitiques'},
             {'number': 2, 'name': 'Risques Naturels', 'description': 'Prévention et adaptation aux aléas naturels'},
-            {'number': 3, 'name': 'Fondations', 'description': 'Conception et exécution des systèmes de fondation'},
+            {'number': 3, 'name': 'Stabilité & Érosions', 'description': 'Critères de stabilité des talus, compactage et géo-matériaux de remblai'},
         ]
     },
     {
@@ -42,9 +42,9 @@ CTM_DATA = [
             'Harmoniser les pratiques de conception d\'ouvrages d\'art'
         ],
         'wg': [
-            {'number': 1, 'name': 'Ponts et Viaducs', 'description': 'Conception, dimensionnement et exécution des ponts'},
-            {'number': 2, 'name': 'Barrages & Structures Hydrauliques', 'description': 'Conception et stabilité des grands ouvrages hydrauliques'},
-            {'number': 3, 'name': 'Calcul Mécanique', 'description': 'Méthodes et outils de calcul des structures'},
+            {'number': 1, 'name': 'Calcul Structural & Eurocodes', 'description': 'Obligations légales de dimensionnement des structures lourdes et ponts'},
+            {'number': 2, 'name': 'Génie Parasismique', 'description': 'Conception et stabilité des ouvrages face aux aléas sismiques'},
+            {'number': 3, 'name': 'Ouvrages Hydrauliques Lourds', 'description': 'Ponts-cadres, viaducs en béton précontraint et ouvrages hydrauliques lourds'},
         ]
     },
     {
@@ -61,9 +61,9 @@ CTM_DATA = [
             'Développer les standards BIM et de numérisation'
         ],
         'wg': [
-            {'number': 1, 'name': 'Structures Bâtiment', 'description': 'Conception et dimensionnement des structures'},
-            {'number': 2, 'name': 'Sécurité Incendie & Performance Énergétique', 'description': 'Prévention incendie et efficacité énergétique'},
-            {'number': 3, 'name': 'BIM & Numérisation', 'description': 'Maquette numérique, interopérabilité et standards numériques (ISO 19650)'},
+            {'number': 1, 'name': 'Habitabilité & Sécurité', 'description': 'Éclairage naturel, étanchéité des façades, isolation thermique passive'},
+            {'number': 2, 'name': 'BIM & Transition Numérique', 'description': 'Maquette numérique, interopérabilité et standards numériques (ISO 19650)'},
+            {'number': 3, 'name': 'Performance Énergétique & Coûts', 'description': 'Éco-matériaux, efficacité énergétique et valorisation de la norme africaine ARS 1333'},
         ]
     },
     {
@@ -137,9 +137,9 @@ CTM_DATA = [
             'Promouvoir l\'hygiène et la lutte contre l\'insalubrité'
         ],
         'wg': [
-            {'number': 1, 'name': 'Réseaux d\'Assainissement', 'description': 'Collecte et transport des eaux usées'},
-            {'number': 2, 'name': 'Traitement et Épuration', 'description': 'Stations de traitement et dépuration des eaux'},
-            {'number': 3, 'name': 'Gestion des Eaux Pluviales', 'description': 'Drainage urbain et gestion des écoulements'},
+            {'number': 1, 'name': 'Macro-drainage & Eaux Pluviales', 'description': 'Drainage urbain et gestion des écoulements pluviaux'},
+            {'number': 2, 'name': 'Eaux Usées & Réseaux d\'Égouts', 'description': 'Collecte, transport et dépuration des eaux usées'},
+            {'number': 3, 'name': 'Déchets Solides & CET', 'description': 'Gestion des déchets solides et centres d\'enfouissement technique'},
         ]
     },
     {
@@ -156,10 +156,9 @@ CTM_DATA = [
             'Promouvoir la recherche appliquée en génie civil'
         ],
         'wg': [
-            {'number': 1, 'name': 'Matériaux de Construction Locaux', 'description': 'Identification et valorisation des matériaux RDC'},
-            {'number': 2, 'name': 'Essais et Métrologie', 'description': 'Laboratoires, équipements d\'essais et protocoles'},
-            {'number': 3, 'name': 'Simulation et Recherche', 'description': 'Modélisation numérique, simulation et R&D'},
-            {'number': 4, 'name': 'Normalisation Appliquée', 'description': 'Application des normes ISO/ARSO au contexte local'},
+            {'number': 1, 'name': 'Matériaux Géo-sourcés & Locaux', 'description': 'Identification et valorisation des matériaux locaux RDC'},
+            {'number': 2, 'name': 'Essais & Métrologie Légale', 'description': 'Laboratoires, équipements d\'essais et protocoles de métrologie'},
+            {'number': 3, 'name': 'Simulation, Recherche & Certification', 'description': 'Modélisation numérique, simulation, R&D et certification'},
         ]
     },
 ]
@@ -226,7 +225,7 @@ class Command(BaseCommand):
                 
                 for wg_data in ctm_data['wg']:
                     try:
-                        wg, created = WG.objects.get_or_create(
+                        wg, created = WG.objects.update_or_create(
                             ctm=ctm,
                             number=wg_data['number'],
                             defaults={
@@ -234,8 +233,8 @@ class Command(BaseCommand):
                                 'description': wg_data['description'],
                             }
                         )
-                        
-                        status = "✅" if created else "⚠️"
+
+                        status = "✅ créé" if created else "• mis à jour"
                         self.stdout.write(f"  {status} WG {ctm.number}.{wg.number}: {wg.name}")
                         total_wg += 1
                         

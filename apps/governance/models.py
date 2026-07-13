@@ -92,7 +92,7 @@ class Affectation(BaseModel):
     """Affectation expert à CTM/WG - Complète le modèle dans experts"""
     expert = models.ForeignKey(Expert, on_delete=models.CASCADE, related_name='governance_affectations')
     ctm = models.ForeignKey(CTM, on_delete=models.CASCADE, related_name='affectations')
-    wg = models.ForeignKey(WG, on_delete=models.CASCADE, related_name='affectations')
+    wg = models.ForeignKey(WG, on_delete=models.CASCADE, related_name='affectations', null=True, blank=True)
     
     is_primary_ctm = models.BooleanField(default=True)
     is_primary_wg = models.BooleanField(default=True)
