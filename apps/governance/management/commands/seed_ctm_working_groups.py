@@ -22,44 +22,44 @@ class Command(BaseCommand):
     # Structure de correction : { ctm_number: { wg_number: "Intitule" } }
     CTM_CORRECTIONS = {
         1: {
-            1.1: "Sols & Géomécanique",
-            1.2: "Risques Naturels",
-            1.3: "Stabilité & Érosions",
+            1: "Sols & Géomécanique",
+            2: "Risques Naturels",
+            3: "Stabilité & Érosions",
         },
         2: {
-            2.1: "Calcul Structural & Eurocodes",
-            2.2: "Génie Parasismique",
-            2.3: "Ouvrages Hydrauliques Lourds",
+            1: "Calcul Structural & Eurocodes",
+            2: "Génie Parasismique",
+            3: "Ouvrages Hydrauliques Lourds",
         },
         3: {
-            3.1: "Habitabilité & Sécurité",
-            3.2: "BIM & Transition Numérique",
-            3.3: "Performance Énergétique & Coûts",
+            1: "Habitabilité & Sécurité",
+            2: "BIM & Transition Numérique",
+            3: "Performance Énergétique & Coûts",
         },
         4: {
-            4.1: "Infrastructure Aéroportuaire",
-            4.2: "Terminaux et Équipements",
-            4.3: "Conformité OACI",
+            1: "Infrastructure Aéroportuaire",
+            2: "Terminaux et Équipements",
+            3: "Conformité OACI",
         },
         5: {
-            5.1: "Ingénierie Routière",
-            5.2: "Voies Ferrées",
-            5.3: "Infrastructures Portuaires",
+            1: "Ingénierie Routière",
+            2: "Voies Ferrées",
+            3: "Infrastructures Portuaires",
         },
         6: {
-            6.1: "Adduction d'Eau",
-            6.2: "Irrigation et Drainage",
-            6.3: "Forages et Captage",
+            1: "Adduction d'Eau",
+            2: "Irrigation et Drainage",
+            3: "Forages et Captage",
         },
         7: {
-            7.1: "Macro-drainage & Eaux Pluviales",
-            7.2: "Eaux Usées & Réseaux d'Égouts",
-            7.3: "Déchets Solides & CET",
+            1: "Macro-drainage & Eaux Pluviales",
+            2: "Eaux Usées & Réseaux d'Égouts",
+            3: "Déchets Solides & CET",
         },
         8: {
-            8.1: "Matériaux Géo-sourcés & Locaux",
-            8.2: "Essais & Métrologie Légale",
-            8.3: "Simulation, Recherche & Certification",
+            1: "Matériaux Géo-sourcés & Locaux",
+            2: "Essais & Métrologie Légale",
+            3: "Simulation, Recherche & Certification",
         },
     }
 
