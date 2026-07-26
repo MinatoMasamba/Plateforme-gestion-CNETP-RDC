@@ -37,6 +37,11 @@ class PublicAmendement(models.Model):
         blank=True,
         help_text="Organisation/entreprise du proposant (optionnel)"
     )
+    proposed_by_province = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Province de résidence du proposant (optionnel)"
+    )
 
     # Contenu de l'amendement
     title = models.CharField(

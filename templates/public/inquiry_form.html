@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Enquête publique — {{ norme.title }} — CNETP{% endblock %}
+
+{% block content %}
+
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-[#0a2540]">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest mb-5">
+            Enquête publique nationale — Article 12
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">{{ norme.title }}</h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Réf. {{ norme.reference_number }} — Donnez votre avis ou proposez un amendement sur ce
+            projet de norme pendant sa phase d'enquête publique.
+        </p>
+    </div>
+</section>
+
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="max-w-2xl mx-auto">
+
+        {% if messages %}
+            <div class="space-y-3 mb-6">
+                {% for message in messages %}
+                    <div class="rounded-xl border flex items-start gap-3 px-4 py-3 text-sm
+                        {% if message.tags == 'success' %} border-emerald-200 bg-emerald-50 text-emerald-800
+                        {% elif message.tags == 'error' %} border-red-200 bg-red-50 text-red-800
+                        {% else %} border-blue-200 bg-blue-50 text-blue-800 {% endif %}">
+                        <p class="mt-0.5">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if not is_open %}
+            <div class="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-4 text-sm">
+                Cette norme n'est actuellement pas ouverte à l'enquête publique
+                (statut : {{ norme.get_status_display }}). Les contributions ne sont pas acceptées
+                pour le moment.
+            </div>
+        {% else %}
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                            {{ field.label }}{% if field.field.required %} *{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <p class="text-red-600 text-xs mt-1">{{ field.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit"
+                        class="w-full sm:w-auto px-8 py-3.5 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-xs hover:bg-yellow-300 transition-colors shadow-sm">
+                    Soumettre mon amendement
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

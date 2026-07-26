@@ -79,6 +79,7 @@ class AgentArtifact(BaseModel):
         ('EXTERNAL_PROPOSAL', 'Proposition référentiel externe'),
         ('EMAIL_DRAFT', "Brouillon d'email"),
         ('CHART', 'Graphique'),
+        ('PUBLIC_INQUIRY_SYNTHESIS', 'Synthèse enquête publique'),
     ]
     STATUS_CHOICES = [
         ('DRAFT', 'Brouillon'),
@@ -90,7 +91,7 @@ class AgentArtifact(BaseModel):
     message = models.ForeignKey(
         AgentMessage, on_delete=models.SET_NULL, null=True, blank=True, related_name='artifacts',
     )
-    artifact_type = models.CharField(max_length=20, choices=ARTIFACT_TYPE_CHOICES)
+    artifact_type = models.CharField(max_length=30, choices=ARTIFACT_TYPE_CHOICES)
     title = models.CharField(max_length=300, blank=True)
     payload = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='DRAFT')

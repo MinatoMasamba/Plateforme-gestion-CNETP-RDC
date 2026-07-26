@@ -17,6 +17,12 @@ REFERENTIAL_PDFS = [
     "Normes ISO Miroiterie (CTM) Bâtiment.pdf",
 ]
 
+EXTERNAL_REFERENTIAL_DIRS = {
+    "eurocodes": settings.BASE_DIR / "referentiels_externes" / "eurocodes",
+    "aashto": settings.BASE_DIR / "referentiels_externes" / "aashto",
+    "sadc": settings.BASE_DIR / "referentiels_externes" / "sadc",
+}
+
 
 @functools.lru_cache(maxsize=1)
 def _load_catalogue_chunks():
@@ -61,6 +67,28 @@ def _load_pdf_chunks():
             para = para.strip()
             if len(para) > 40:
                 chunks.append({"location": f"{name}#para{idx}", "text": para})
+    return chunks
+
+
+@functools.lru_cache(maxsize=8)
+def _load_external_dir_chunks(referentiel_key):
+    """Charge les chunks de tous les PDF déposés dans referentiels_externes/<referentiel_key>/.
+
+    Retourne une liste vide si le dossier n'existe pas ou ne contient aucun PDF —
+    l'appelant (search_extended_referentials) distingue ce cas pour répondre
+    explicitement "non disponible" plutôt que de renvoyer un résultat vide silencieux.
+    """
+    directory = EXTERNAL_REFERENTIAL_DIRS.get(referentiel_key)
+    if not directory or not directory.exists():
+        return []
+
+    chunks = []
+    for pdf_path in sorted(directory.glob("*.pdf")):
+        text = _extract_pdf_text(pdf_path)
+        for idx, para in enumerate(text.split("\n\n")):
+            para = para.strip()
+            if len(para) > 40:
+                chunks.append({"location": f"{pdf_path.name}#para{idx}", "text": para})
     return chunks
 
 
@@ -173,3 +201,62 @@ def propose_external_reference(session, ctm_id, title, description, referential_
     )
 
     return {"artifact_id": artifact.id, "status": artifact.status, "title": artifact.title}
+
+
+SEARCH_EXTENDED_REFERENTIALS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "query": {"type": "string", "description": "Termes de recherche (mots-clés techniques)"},
+        "referentiel": {
+            "type": "string",
+            "enum": list(EXTERNAL_REFERENTIAL_DIRS.keys()),
+            "description": "Référentiel étendu à interroger : eurocodes, aashto ou sadc",
+        },
+        "max_results": {"type": "integer", "description": "Nombre de résultats max (défaut 5)"},
+    },
+    "required": ["query", "referentiel"],
+}
+
+
+@register(
+    "search_extended_referentials",
+    "Recherche dans les référentiels étendus (Eurocodes, AASHTO, SADC/COMESA) déposés "
+    "par un administrateur dans referentiels_externes/<referentiel>/. Si le référentiel "
+    "demandé n'a aucun document disponible, le signale explicitement (available=false) "
+    "au lieu de renvoyer un résultat vide silencieux — voir referentiels_externes/README.md.",
+    SEARCH_EXTENDED_REFERENTIALS_SCHEMA,
+    scopes=["ctc", "pilotage"],
+)
+def search_extended_referentials(session, query, referentiel, max_results=5):
+    if referentiel not in EXTERNAL_REFERENTIAL_DIRS:
+        return {"error": f"Référentiel inconnu : {referentiel}. Attendu : {list(EXTERNAL_REFERENTIAL_DIRS.keys())}"}
+
+    chunks = _load_external_dir_chunks(referentiel)
+    if not chunks:
+        return {
+            "available": False,
+            "referentiel": referentiel,
+            "message": (
+                f"Aucun document {referentiel} n'a encore été déposé dans "
+                f"referentiels_externes/{referentiel}/. Voir referentiels_externes/README.md "
+                "pour les instructions de dépôt."
+            ),
+        }
+
+    terms = re.findall(r"[a-zàâäéèêëïîôöùûüçœ0-9]{3,}", (query or "").lower())
+    if not terms:
+        return {"available": True, "referentiel": referentiel, "results": []}
+
+    results = []
+    for chunk in chunks:
+        score = _score(chunk["text"].lower(), terms)
+        if score > 0:
+            results.append({
+                "source": referentiel,
+                "location": chunk["location"],
+                "excerpt": chunk["text"][:500],
+                "score": score,
+            })
+
+    results.sort(key=lambda r: r["score"], reverse=True)
+    return {"available": True, "referentiel": referentiel, "results": results[:max_results]}

@@ -456,7 +456,10 @@ def _ctc_context(expert):
         "**Cellule Technique de Coordination (CTC)**.\n"
         "Tu peux : lister les normes par CTM/WG avec `list_ctm_norms` ; "
         "détecter des chevauchements avec `detect_wg_overlap` ; "
-        "rechercher dans les référentiels ISO/ARSO avec `search_external_referentials`."
+        "rechercher dans les référentiels ISO/ARSO avec `search_external_referentials` ; "
+        "rechercher dans les référentiels étendus (Eurocodes, AASHTO, SADC/COMESA) avec "
+        "`search_extended_referentials` — cet outil répond explicitement que le document "
+        "n'est pas encore disponible tant qu'un administrateur ne l'a pas déposé."
     )
 
 
@@ -492,6 +495,8 @@ def _pilotage_context(expert):
     return (
         f"\n\nContexte : tu t'adresses à **{name}**, membre du "
         "**Comité de Pilotage Stratégique CNETP** — vision transversale sur tous les CTM/WG.\n"
-        "Outils : `detect_wg_overlap`, `flag_norm_overlap`, `search_external_referentials`, "
+        "Outils : `detect_wg_overlap`, `detect_inter_ctm_overlap` (chevauchements entre CTM "
+        "différents), `flag_norm_overlap`, `flag_inter_ctm_overlap`, "
+        "`search_external_referentials`, `search_extended_referentials` (Eurocodes/AASHTO/SADC), "
         "`propose_external_reference`, `synthesize_public_inquiry`, `get_chart_data`."
     )

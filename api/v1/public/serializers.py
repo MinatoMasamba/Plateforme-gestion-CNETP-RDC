@@ -10,7 +10,7 @@ class PublicAmendementSerializer(serializers.ModelSerializer):
         model = PublicAmendement
         fields = [
             'id', 'norme', 'proposed_by_name', 'proposed_by_email',
-            'proposed_by_organization', 'title', 'description',
+            'proposed_by_organization', 'proposed_by_province', 'title', 'description',
             'justification', 'status', 'status_display',
             'review_notes', 'reviewed_by', 'reviewed_at',
             'created_at', 'updated_at'
@@ -37,6 +37,7 @@ class PublicAmendementDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'norme', 'norme_title', 'norme_reference',
             'proposed_by_name', 'proposed_by_email', 'proposed_by_organization',
+            'proposed_by_province',
             'title', 'description', 'justification',
             'status', 'status_display', 'review_notes', 'reviewed_by', 'reviewed_at',
             'created_at', 'updated_at'

@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/v1/', include('api.v1.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('gemini/', include('apps.gemini_drafts.urls')),
+    path('public/', include('apps.public.urls')),
     
     # Documentation OpenAPI/Swagger
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

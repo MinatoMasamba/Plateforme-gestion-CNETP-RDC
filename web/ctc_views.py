@@ -32,6 +32,7 @@ from apps.validation.models import (
     ScheduleReview, IndustrialConsultation, LegisticReview,
 )
 from apps.norms.models import Norme, NormeComment
+from apps.public.models import PublicAmendement
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -519,6 +520,18 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
     )
     ctc_ctx_json = {k: ctx.get(k) for k in _json_safe_keys}
 
+    # Enquête publique nationale (Art. 12) — données réelles
+    public_inquiry_qs = PublicAmendement.objects.select_related('norme')
+    public_inquiry_stats = {
+        'total': public_inquiry_qs.count(),
+        'accepted': public_inquiry_qs.filter(status='ACCEPTED').count(),
+        'rejected': public_inquiry_qs.filter(status='REJECTED').count(),
+        'pending': public_inquiry_qs.filter(status__in=['PENDING', 'UNDER_REVIEW']).count(),
+    }
+    public_inquiry_queue = list(
+        public_inquiry_qs.filter(status__in=['PENDING', 'UNDER_REVIEW']).order_by('-created_at')[:20]
+    )
+
     return {
         'expert': expert,
         'ctms_list': ctms_list,
@@ -528,6 +541,8 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
         'assignation_tasks': assignation_tasks,
         'ctc_ctx_json': ctc_ctx_json,
         'sidebar_pole': _SIDEBAR_POLE_MAP.get(ctx.get('ctc_pole'), ''),
+        'public_inquiry_stats': public_inquiry_stats,
+        'public_inquiry_queue': public_inquiry_queue,
         **ctx,
     }
 

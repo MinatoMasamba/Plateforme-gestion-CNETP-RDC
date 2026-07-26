@@ -6,7 +6,7 @@ from apps.public.models import PublicAmendement
 
 from ..models import AgentArtifact
 from . import register
-from .governance_tools import detect_wg_overlap
+from .governance_tools import detect_inter_ctm_overlap, detect_wg_overlap
 
 CHART_PALETTE = [
     "#1a3a5c", "#c8a84b", "#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4",
@@ -53,6 +53,7 @@ GET_CHART_DATA_SCHEMA = {
                 "public_inquiry_status",
                 "experts_by_structure",
                 "wg_overlap_summary",
+                "inter_ctm_overlap_summary",
             ],
         },
         "filters": {
@@ -140,6 +141,17 @@ def get_chart_data(session, metric, filters=None):
         data = list(counts.values())
         chart_spec = _bar_chart(labels, data, "Paires WG potentiellement en chevauchement")
         title = "Chevauchements potentiels par CTM"
+
+    elif metric == "inter_ctm_overlap_summary":
+        overlaps = detect_inter_ctm_overlap(session)
+        counts = {}
+        for o in overlaps:
+            key = f"CTM {o['wg_a']['ctm_number']} ↔ CTM {o['wg_b']['ctm_number']}"
+            counts[key] = counts.get(key, 0) + 1
+        labels = list(counts.keys())
+        data = list(counts.values())
+        chart_spec = _bar_chart(labels, data, "Paires WG en chevauchement inter-CTM")
+        title = "Chevauchements potentiels entre CTM différents"
 
     else:
         return {"error": f"Métrique inconnue : {metric}"}

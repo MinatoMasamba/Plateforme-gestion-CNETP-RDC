@@ -1,3 +1,4 @@
+import itertools
 import re
 
 from apps.governance.models import CTM, WG
@@ -160,6 +161,132 @@ def flag_norm_overlap(session, ctm_id, wg_a_id, wg_b_id, analysis_text, recommen
             "ctm_number": ctm.number,
             "wg_a": {"id": wg_a.id, "label": f"WG {ctm.number}.{wg_a.number} - {wg_a.name}"},
             "wg_b": {"id": wg_b.id, "label": f"WG {ctm.number}.{wg_b.number} - {wg_b.name}"},
+            "analysis": analysis_text,
+            "recommendation": recommendation,
+        },
+        status='DRAFT',
+    )
+
+    return {"artifact_id": artifact.id, "status": artifact.status, "title": artifact.title}
+
+
+DETECT_INTER_CTM_OVERLAP_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "ctm_ids": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "description": "Limiter la détection à ces CTM (optionnel, tous les CTM par défaut)",
+        },
+    },
+}
+
+
+@register(
+    "detect_inter_ctm_overlap",
+    "Détecte des paires de groupes de travail (WG) appartenant à des CTM DIFFÉRENTS dont "
+    "les normes traitent potentiellement de sujets proches (ex : une formule géotechnique "
+    "du CTM Géotechnique vs un critère de dimensionnement du CTM Ouvrages d'art). "
+    "Complète detect_wg_overlap, qui ne compare que l'intérieur d'un même CTM. Retourne "
+    "des candidats à analyser — c'est à toi de juger de la pertinence réelle avant de "
+    "signaler via flag_inter_ctm_overlap.",
+    DETECT_INTER_CTM_OVERLAP_SCHEMA,
+    scopes=["ctc", "pilotage"],
+)
+def detect_inter_ctm_overlap(session, ctm_ids=None):
+    ctms = list(CTM.objects.filter(id__in=ctm_ids)) if ctm_ids else list(CTM.objects.all())
+    wgs_by_ctm = {ctm.id: list(WG.objects.filter(ctm=ctm)) for ctm in ctms}
+
+    keywords_by_wg = {}
+    normes_by_wg = {}
+    for ctm in ctms:
+        for wg in wgs_by_ctm[ctm.id]:
+            normes = list(Norme.objects.filter(wg=wg))
+            normes_by_wg[wg.id] = normes
+            kw = _keywords(wg.name, wg.description)
+            for n in normes:
+                kw |= _keywords(n.title, n.description, n.tags)
+            keywords_by_wg[wg.id] = kw
+
+    candidates = []
+    for ctm_a, ctm_b in itertools.combinations(ctms, 2):
+        for wg_a in wgs_by_ctm[ctm_a.id]:
+            for wg_b in wgs_by_ctm[ctm_b.id]:
+                kw_a, kw_b = keywords_by_wg[wg_a.id], keywords_by_wg[wg_b.id]
+                if not kw_a or not kw_b:
+                    continue
+
+                shared = kw_a & kw_b
+                ratio = len(shared) / max(len(kw_a | kw_b), 1)
+                if ratio < 0.15 and len(shared) < 3:
+                    continue
+
+                candidates.append({
+                    "wg_a": {
+                        "id": wg_a.id, "ctm_id": ctm_a.id, "ctm_number": ctm_a.number,
+                        "label": f"WG {ctm_a.number}.{wg_a.number} - {wg_a.name}",
+                    },
+                    "wg_b": {
+                        "id": wg_b.id, "ctm_id": ctm_b.id, "ctm_number": ctm_b.number,
+                        "label": f"WG {ctm_b.number}.{wg_b.number} - {wg_b.name}",
+                    },
+                    "shared_keywords": sorted(shared)[:15],
+                    "similarity_score": round(ratio, 2),
+                    "normes_a": [
+                        {"id": n.id, "reference_number": n.reference_number, "title": n.title}
+                        for n in normes_by_wg[wg_a.id]
+                    ],
+                    "normes_b": [
+                        {"id": n.id, "reference_number": n.reference_number, "title": n.title}
+                        for n in normes_by_wg[wg_b.id]
+                    ],
+                })
+
+    candidates.sort(key=lambda c: c["similarity_score"], reverse=True)
+    return candidates[:20]
+
+
+FLAG_INTER_CTM_OVERLAP_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "wg_a_id": {"type": "integer"},
+        "wg_b_id": {"type": "integer"},
+        "analysis_text": {"type": "string", "description": "Ton analyse du chevauchement constaté"},
+        "recommendation": {"type": "string", "description": "Ta recommandation pour la CTC"},
+    },
+    "required": ["wg_a_id", "wg_b_id", "analysis_text", "recommendation"],
+}
+
+
+@register(
+    "flag_inter_ctm_overlap",
+    "Crée un signalement (brouillon) de chevauchement entre deux groupes de travail "
+    "appartenant à des CTM différents, à destination de la CTC, accompagné de ton "
+    "analyse et d'une recommandation.",
+    FLAG_INTER_CTM_OVERLAP_SCHEMA,
+    scopes=["ctc", "pilotage"],
+)
+def flag_inter_ctm_overlap(session, wg_a_id, wg_b_id, analysis_text, recommendation):
+    wg_a = WG.objects.select_related('ctm').get(id=wg_a_id)
+    wg_b = WG.objects.select_related('ctm').get(id=wg_b_id)
+
+    artifact = AgentArtifact.objects.create(
+        session=session,
+        artifact_type='NORM_OVERLAP',
+        title=(
+            f"Chevauchement inter-CTM — CTM {wg_a.ctm.number}/WG {wg_a.number} "
+            f"vs CTM {wg_b.ctm.number}/WG {wg_b.number}"
+        ),
+        payload={
+            "scope": "inter_ctm",
+            "wg_a": {
+                "id": wg_a.id, "ctm_id": wg_a.ctm_id, "ctm_number": wg_a.ctm.number,
+                "label": f"WG {wg_a.ctm.number}.{wg_a.number} - {wg_a.name}",
+            },
+            "wg_b": {
+                "id": wg_b.id, "ctm_id": wg_b.ctm_id, "ctm_number": wg_b.ctm.number,
+                "label": f"WG {wg_b.ctm.number}.{wg_b.number} - {wg_b.name}",
+            },
             "analysis": analysis_text,
             "recommendation": recommendation,
         },
