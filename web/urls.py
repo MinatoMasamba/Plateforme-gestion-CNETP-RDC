@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (AboutView, App, ContactView, ExpertLoginView, HomeView,
                     ExpertRegistrationView, User_RegistrationView, UserLoginView,
-                    component_api_view, wg_redirect, service_worker_view,
+                    wg_redirect, service_worker_view, app_manifest_view, app_service_worker_view,
                     password_reset_request, password_reset_confirm, ExpertProfileView)
 from .pilotage_views import (
     PilotageDashboardView,
@@ -39,6 +39,8 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('sw.js', service_worker_view, name='service_worker'),
     path('app/', App.as_view(), name='app'),
+    path('app/manifest.json', app_manifest_view, name='app_manifest'),
+    path('app/sw.js', app_service_worker_view, name='app_service_worker'),
     path('about/', AboutView.as_view(), name='about'),
     path('contact/', ContactView.as_view(), name='contact'),
     path('inscription-simple/', User_RegistrationView.as_view(), name='user_registration'),
@@ -47,7 +49,6 @@ urlpatterns = [
     path('se-connecter/', ExpertLoginView.as_view(), name='expert_login'),
     path('se-connecter/', ExpertLoginView.as_view(), name='expert_login-no-slash'),
     path('se-connecter-user/', UserLoginView.as_view(), name='user_login'),
-    path('api/components/<str:module_id>/', component_api_view, name='api_components'),
     # Réinitialisation mot de passe
     path('mot-de-passe-oublie/demander/', password_reset_request, name='password_reset_request'),
     path('mot-de-passe-oublie/reinitialiser/', password_reset_confirm, name='password_reset_confirm'),

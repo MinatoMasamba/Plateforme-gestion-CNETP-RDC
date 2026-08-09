@@ -87,7 +87,7 @@ class NormeBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Norme
         fields = [
-            'id', 'reference_number', 'title', 'status', 'standard_family', 'norm_type', 'target_count',
+            'id', 'reference_number', 'title', 'description', 'status', 'standard_family', 'norm_type', 'target_count',
             'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at', 'votes_summary'
         ]
         read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at', 'votes_summary']

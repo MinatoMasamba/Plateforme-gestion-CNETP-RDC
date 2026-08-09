@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -36,6 +36,26 @@ def service_worker_view(request):
         return HttpResponse(f.read(), content_type='application/javascript')
 
 
+def app_manifest_view(request):
+    """Sert le manifest PWA de l'espace de travail sous /app/manifest.json
+    (scope /app/, distinct du manifest éventuel du site public)."""
+    path = finders.find('app-manifest.json')
+    if not path:
+        raise Http404
+    with open(path, 'r', encoding='utf-8') as f:
+        return HttpResponse(f.read(), content_type='application/manifest+json')
+
+
+def app_service_worker_view(request):
+    """Sert le service worker de l'espace de travail sous /app/sw.js pour que
+    son scope se limite à /app/ (distinct du service worker global /sw.js)."""
+    path = finders.find('app-sw.js')
+    if not path:
+        raise Http404
+    with open(path, 'r', encoding='utf-8') as f:
+        return HttpResponse(f.read(), content_type='application/javascript')
+
+
 def wg_redirect(request, wg_id=None):
     """Redirige /wgs/ et /wgs/<id>/ vers l'application principale."""
     if not request.user.is_authenticated:
@@ -58,79 +78,26 @@ class HomeView(View):
         return render(request, self.template_name, context)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class App(View):
     """
-    Vue pour l'application principale (dashboard)
-    Template: templates/app.html
+    Vue pour l'application principale (SPA statique cnetp-app.html) — toutes les
+    données (profil, normes, experts, réunions...) sont chargées côté client via
+    fetch vers /api/v1/..., ce gabarit ne reçoit donc aucun contexte serveur.
+    Template: templates/app/app.html
     URL: /app/
     """
     template_name = 'app/app.html'
-    
 
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('web:home')
-        
-        # Récupérer les structures et CTM pour le dashboard
-        user = request.user
-        data_expert = Expert.objects.filter(user=user).first()
-        
-        if not data_expert:
-            print("User is authenticated but not an expert:", request.user.username)
+
+        if not Expert.objects.filter(user=request.user).exists():
             messages.warning(request, "Votre compte n'est pas encore validé en tant qu'expert. Veuillez patienter ou contacter l'administrateur.")
             return redirect('web:home')
-        
-        structure = data_expert.structure
-        
-        # Récupérer les affectations (CTM et WG)
-        from apps.governance.models import Affectation
-        affectations = Affectation.objects.filter(expert=data_expert).select_related('ctm', 'wg')
-        
-        # Construire la liste des affectations avec rôles
-        affectations_list = []
-        for aff in affectations:
-            affectations_list.append({
-                'ctm': aff.ctm,
-                'wg': aff.wg,
-                'ctm_role': aff.ctm_role,
-                'wg_role': aff.wg_role,
-                'role': aff.role,
-                'is_primary_ctm': aff.is_primary_ctm,
-                'is_primary_wg': aff.is_primary_wg,
-            })
-        
-        # Récupérer les rôles dans les comités
-        from apps.governance.models import PilotageMembreship, CTCMembership
-        pilotage_roles = [
-            membership.get_role_display()
-            for membership in PilotageMembreship.objects.filter(expert=data_expert)
-        ]
-        ctc_roles = [
-            membership.get_role_display()
-            for membership in CTCMembership.objects.filter(expert=data_expert)
-        ]
-        active_role = 'Utilisateur'
-        if pilotage_roles:
-            active_role = pilotage_roles[0]
-        elif ctc_roles:
-            active_role = ctc_roles[0]
-        elif affectations_list:
-            active_role = affectations_list[0]['role']
-        elif user.is_superuser:
-            active_role = 'Administrateur'
-        
-        context = {
-            'user': user.username,
-            'user_id': user.id,
-            'expert': data_expert,
-            'structure': structure,
-            'affectations': affectations_list,
-            'pilotage_roles': list(pilotage_roles),
-            'ctc_roles': list(ctc_roles),
-            'active_role': active_role,
-        }
-        
-        return render(request, self.template_name, context)
+
+        return render(request, self.template_name)
 
 class AboutView(View):
     """
@@ -497,39 +464,6 @@ class ExpertProfileView(View):
             'user_form': user_form,
             'expert_form': expert_form,
         })
-
-def component_api_view(request, module_id):
-    """
-    Cette vue intercepte la requête AJAX et renvoie uniquement le morceau 
-    de HTML du composant demandé, sans le layout global.
-    """
-    # Dictionnaire de correspondance entre l'ID de l'onglet et le nom du fichier HTML
-    templates_map = {
-        'editor': 'app/composants/editor_area.html',
-        'history': 'app/composants/history_area.html',
-        'experts': 'app/composants/experts_groups_area.html',
-        'meetings': 'app/composants/meetings_module.html',
-        'financial': 'app/composants/financial_module.html',
-        'sidebar': 'app/composants/sidebar.html',
-        'messaging': 'app/composants/messaging_widget.html',
-        'groupe_expert': 'app/composants/groupes_experts.html',
-        'legistique': 'app/composants/legistique_module.html',
-        'validation': 'app/composants/validation_module.html',
-    }
-    
-    template_name = templates_map.get(module_id)
-    
-    if not template_name:
-        return HttpResponse("<p>Module introuvable (404)</p>", status=404)
-        
-    # Ici, vous pouvez passer les variables dont le template a besoin
-    context = {
-        # 'documents': Document.objects.all(), etc.
-    }
-    
-    # render() renvoie le HTML pur généré
-    return render(request, template_name, context)
-
 
 # ========== RÉINITIALISATION MOT DE PASSE ==========
 
