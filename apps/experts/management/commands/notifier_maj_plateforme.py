@@ -42,12 +42,16 @@ Nous espérons que vous allez bien.
 
 Nous vous informons que la plateforme CNE-ITP vient d'être mise à jour.
 
+🔗 {lien}
+
 Dès votre prochaine connexion, un message vous proposera d'installer l'application — que vous soyez sur ordinateur ou sur téléphone mobile. Une fois installée, elle reste accessible et utilisable même hors connexion internet.
 
 Nous vous remercions pour votre engagement au sein de {structure}.
 
 Cordialement,
 L'équipe technique CNE-ITP"""
+
+LIEN_PLATEFORME = "https://workalldomain.pythonanywhere.com/"
 
 
 def normaliser_nom(nom):
@@ -85,6 +89,8 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
+        parser.add_argument("--lien", type=str, default=None,
+                             help="Lien vers la plateforme à insérer dans le message (sinon valeur par défaut).")
         parser.add_argument("--dry-run", action="store_true",
                              help="Affiche ce qui serait envoyé sans rien envoyer réellement.")
         parser.add_argument("--skip", type=int, default=0,
@@ -97,6 +103,7 @@ class Command(BaseCommand):
                              help="N'envoie que l'email (n'envoie pas le WhatsApp).")
 
     def handle(self, *args, **options):
+        lien = options["lien"] or LIEN_PLATEFORME
         dry_run = options["dry_run"]
         skip = options["skip"]
         limit = options["limit"]
@@ -133,7 +140,7 @@ class Command(BaseCommand):
             email = (expert.user.email or "").strip()
             numero = trouver_numero(expert, index_numeros)
 
-            message = MESSAGE_TEMPLATE.format(prenom=prenom, structure=structure)
+            message = MESSAGE_TEMPLATE.format(prenom=prenom, structure=structure, lien=lien)
 
             if email and not whatsapp_only:
                 if dry_run:
