@@ -1,13 +1,12 @@
 """
-Commande de diffusion : informe les Experts réellement inscrits (en base de
-données, avec leur structure) que la plateforme vient d'être mise à jour et
-peut désormais être installée comme application (PC ou mobile, utilisable
-hors ligne).
+Commande de diffusion : informe les Experts réellement inscrits que la
+plateforme vient d'être mise à jour et peut désormais être installée comme
+application (PC ou mobile, utilisable hors ligne).
 
-Les numéros WhatsApp des experts inscrits en base sont souvent absents
-(champ Expert.whatsapp_number vide). On complète donc, par correspondance de
-nom, avec la liste EXPERTS déjà présente dans notifier_experts_inscription.py
-(qui contient les numéros collectés séparément).
+Source des destinataires : apps/experts/data/inscrits.json — export des
+inscriptions réelles (Nom, Postnom, Prénom, Téléphone, Email, Structure
+Origine), plus fiable que la liste codée en dur de
+notifier_experts_inscription.py.
 
 Usage :
     python manage.py notifier_maj_plateforme --dry-run
@@ -16,23 +15,23 @@ Usage :
     python manage.py notifier_maj_plateforme --skip 20 --limit 10
 """
 
+import json
 import logging
-import re
-import unicodedata
+from pathlib import Path
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 
-from apps.experts.models import Expert
 from apps.experts.management.commands.notifier_experts_inscription import (
-    EXPERTS,
     normaliser_numero_whatsapp,
     whatsapp_configure,
     whatsapp_from,
 )
 
 logger = logging.getLogger(__name__)
+
+INSCRITS_JSON = Path(__file__).resolve().parent.parent.parent / "data" / "inscrits.json"
 
 SUJET_EMAIL = "CNE-ITP — La plateforme est mise à jour"
 
@@ -54,38 +53,16 @@ L'équipe technique CNE-ITP"""
 LIEN_PLATEFORME = "https://workalldomain.pythonanywhere.com/"
 
 
-def normaliser_nom(nom):
-    nom = unicodedata.normalize("NFKD", nom).encode("ascii", "ignore").decode("ascii")
-    nom = re.sub(r"\s+", " ", nom).strip().lower()
-    return nom
-
-
-def construire_index_numeros():
-    """Associe un nom normalisé à un numéro de téléphone, à partir de EXPERTS."""
-    index = {}
-    for entree in EXPERTS:
-        nom = (entree.get("nom") or "").strip()
-        numero = (entree.get("telephone") or entree.get("numero") or "").strip()
-        if nom and numero:
-            index[normaliser_nom(nom)] = numero
-    return index
-
-
-def trouver_numero(expert, index_numeros):
-    if expert.whatsapp_number:
-        return expert.whatsapp_number
-    if expert.user.phone:
-        return expert.user.phone
-    if expert.mobile_money_number:
-        return expert.mobile_money_number
-    return index_numeros.get(normaliser_nom(expert.user.get_full_name() or expert.user.username))
+def charger_inscrits():
+    with open(INSCRITS_JSON, encoding="utf-8") as f:
+        return json.load(f)
 
 
 class Command(BaseCommand):
     help = (
-        "Envoie à chaque expert réellement inscrit (base de données) un message "
-        "l'informant de la mise à jour de la plateforme et de la possibilité "
-        "d'installer l'application, par email et par WhatsApp."
+        "Envoie à chaque expert réellement inscrit (apps/experts/data/inscrits.json) "
+        "un message l'informant de la mise à jour de la plateforme et de la "
+        "possibilité d'installer l'application, par email et par WhatsApp."
     )
 
     def add_arguments(self, parser):
@@ -94,9 +71,9 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true",
                              help="Affiche ce qui serait envoyé sans rien envoyer réellement.")
         parser.add_argument("--skip", type=int, default=0,
-                             help="Ignore les N premiers experts (utile pour reprendre un envoi interrompu).")
+                             help="Ignore les N premiers inscrits (utile pour reprendre un envoi interrompu).")
         parser.add_argument("--limit", type=int, default=None,
-                             help="Ne traite que les N experts suivants (après --skip).")
+                             help="Ne traite que les N inscrits suivants (après --skip).")
         parser.add_argument("--whatsapp-only", action="store_true",
                              help="N'envoie que le WhatsApp (n'envoie pas l'email).")
         parser.add_argument("--email-only", action="store_true",
@@ -110,16 +87,13 @@ class Command(BaseCommand):
         whatsapp_only = options["whatsapp_only"]
         email_only = options["email_only"]
 
-        index_numeros = construire_index_numeros()
-
-        experts_qs = Expert.objects.select_related("user", "structure").order_by("id")
+        inscrits = charger_inscrits()
         if skip:
-            experts_qs = experts_qs[skip:]
+            inscrits = inscrits[skip:]
         if limit is not None:
-            experts_qs = experts_qs[:limit]
-        experts = list(experts_qs)
+            inscrits = inscrits[:limit]
 
-        self.stdout.write(f"ℹ️  {len(experts)} expert(s) inscrit(s) à traiter.")
+        self.stdout.write(f"ℹ️  {len(inscrits)} inscrit(s) à traiter.")
 
         client = None
         if not dry_run and whatsapp_configure() and not email_only:
@@ -133,14 +107,16 @@ class Command(BaseCommand):
 
         emails_ok = emails_ko = wa_ok = wa_ko = sans_numero = 0
 
-        for expert in experts:
-            nom_complet = expert.user.get_full_name() or expert.user.username
-            prenom = expert.user.first_name or nom_complet
-            structure = expert.structure.name if expert.structure_id else "votre structure"
-            email = (expert.user.email or "").strip()
-            numero = trouver_numero(expert, index_numeros)
+        for inscrit in inscrits:
+            prenom = (inscrit.get("Prénom") or "").strip()
+            nom = (inscrit.get("Nom") or "").strip()
+            postnom = (inscrit.get("Postnom") or "").strip()
+            nom_complet = " ".join(p for p in [prenom, postnom, nom] if p) or "Cher membre"
+            structure = (inscrit.get("Structure Origine") or "").strip() or "votre structure"
+            email = (inscrit.get("Email") or "").strip()
+            numero = (inscrit.get("Téléphone") or "").strip()
 
-            message = MESSAGE_TEMPLATE.format(prenom=prenom, structure=structure, lien=lien)
+            message = MESSAGE_TEMPLATE.format(prenom=prenom or nom_complet, structure=structure, lien=lien)
 
             if email and not whatsapp_only:
                 if dry_run:
