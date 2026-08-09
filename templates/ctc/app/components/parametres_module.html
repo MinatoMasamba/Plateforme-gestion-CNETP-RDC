@@ -113,7 +113,7 @@
         // 1. BLOC COMMUN : Préférences Générales
         let generalOptionsHtml = `
             ${createToggleOptionMarkup("notifications", "Notifications de Pôle", "Recevoir une alerte mail pour toute nouvelle activité dans votre pôle.", true)}
-            ${createToggleOptionMarkup("drive_sync", "Synchronisation Drive", "Lier automatiquement vos documents validés à l'espace Google Drive de la CNETP.", true)}
+            ${createToggleOptionMarkup("drive_sync", "Synchronisation Drive", "Lier automatiquement vos documents validés à l'espace Google Drive de la CNE-ITP.", true)}
             ${createToggleOptionMarkup("dark_mode", "Mode Sombre (Dark Mode)", "Activer l'interface en thème sombre.", true)}
         `;
         let fullHtml = createSettingSectionMarkup("Préférences Générales", "settings", generalOptionsHtml);
@@ -157,7 +157,7 @@
                 <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
                     <label class="text-sm font-bold text-slate-800 dark:text-slate-200 block mb-2">Canal de communication externe</label>
                     <select class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-hidden bg-white text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 cursor-pointer">
-                        <option class="dark:bg-slate-900">Portail public (CNETP.cd)</option>
+                        <option class="dark:bg-slate-900">Portail public (CNE-ITP.cd)</option>
                         <option class="dark:bg-slate-900">Canaux syndicaux / industriels (FEC)</option>
                     </select>
                 </div>
@@ -225,7 +225,7 @@
     }
 
     function executeDatabaseBackup() {
-        alert("Initialisation de la sauvegarde à chaud de la base de données PostgreSQL CNETP... Miroir de redondance stocké sur le serveur principal.");
+        alert("Initialisation de la sauvegarde à chaud de la base de données PostgreSQL CNE-ITP... Miroir de redondance stocké sur le serveur principal.");
         flashToastFeedback();
     }
 
