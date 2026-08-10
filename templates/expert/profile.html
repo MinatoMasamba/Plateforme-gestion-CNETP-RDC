@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Expert | CNETP</title>
+    <title>Profil Expert | CNE-ITP</title>
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
@@ -54,7 +54,7 @@
                                         {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
                                     </div>
                                     <div class="pb-1">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Profil expert CNETP</p>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Profil expert CNE-ITP</p>
                                         <h1 class="mt-2 text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">{{ expert.user.get_full_name }}</h1>
                                         <p class="mt-2 text-sm sm:text-base font-semibold text-blue-600 dark:text-blue-400">
                                             {{ expert.structure.acronym }} · {{ expert.structure.name }}

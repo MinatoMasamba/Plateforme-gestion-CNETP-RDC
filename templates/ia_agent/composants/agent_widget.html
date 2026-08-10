@@ -1,6 +1,6 @@
 {% load static %}
 {% comment %}
-Widget flottant "Assistant IA CNETP" — position fixe, ne bouge pas au scroll.
+Widget flottant "Assistant IA CNE-ITP" — position fixe, ne bouge pas au scroll.
 Paramètres d'inclusion :
   - widget_scope    : 'expert' | 'ctc' | 'pilotage'
   - widget_position : classes Tailwind de positionnement (défaut 'bottom-6 right-6')
@@ -25,7 +25,7 @@ Paramètres d'inclusion :
 <div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60] hover:z-[80] focus-within:z-[80]">
     <button onclick="toggleIaAgentPanel()"
             class="h-14 w-14 rounded-full bg-[#0095c9] hover:brightness-110 text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
-            title="Assistant IA CNETP">
+            title="Assistant IA CNE-ITP">
         <i data-lucide="sparkles" class="h-6 w-6"></i>
     </button>
 </div>
@@ -47,7 +47,7 @@ Paramètres d'inclusion :
             </div>
             <i data-lucide="bot" class="h-5 w-5 shrink-0"></i>
             <div class="leading-tight min-w-0">
-                <p class="text-sm font-bold">Assistant IA CNETP</p>
+                <p class="text-sm font-bold">Assistant IA CNE-ITP</p>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <button type="button" onclick="iaSetProvider('anthropic')" id="ia-hdr-btn-anthropic"
                             class="px-2 py-0.5 text-[10px] font-bold rounded transition-colors bg-white/25 text-white">Claude</button>

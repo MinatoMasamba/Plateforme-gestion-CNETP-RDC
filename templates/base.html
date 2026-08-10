@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}CNETP - Plateforme de Gestion des Normes{% endblock %}</title>
+    <title>{% block title %}CNE-ITP - Plateforme de Gestion des Normes{% endblock %}</title>
 
     <!-- PWA -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <meta name="theme-color" content="#0095c9">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="CNETP">
+    <meta name="apple-mobile-web-app-title" content="CNE-ITP">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="CNETP">
+    <meta name="application-name" content="CNE-ITP">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
@@ -55,7 +55,7 @@
                         Se Connecter
                     </a>
                     <a href="{% url 'web:expert_registration' %}" class="px-5 py-2.5 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-wider text-xs hover:bg-yellow-300 transition-colors shadow-sm">
-                        Forum CNETP
+                        Forum CNE-ITP
                     </a>
                     {% endif %}
                 </div>
@@ -76,7 +76,7 @@
                 <a href="{% url 'web:app' %}" class="block mt-2 px-3 py-2.5 rounded-lg text-sm font-bold uppercase text-center bg-[#fff24b] text-slate-900">Espace de Travail</a>
                 {% else %}
                 <a href="{% url 'web:expert_login' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-slate-600 hover:bg-slate-100">Se Connecter</a>
-                <a href="{% url 'web:expert_registration' %}" class="block mt-2 px-3 py-2.5 rounded-lg text-sm font-bold uppercase text-center bg-[#fff24b] text-slate-900">Forum CNETP</a>
+                <a href="{% url 'web:expert_registration' %}" class="block mt-2 px-3 py-2.5 rounded-lg text-sm font-bold uppercase text-center bg-[#fff24b] text-slate-900">Forum CNE-ITP</a>
                 {% endif %}
             </div>
         </div>
@@ -90,7 +90,7 @@
         <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
                 <div class="text-xs font-black uppercase tracking-[0.28em] text-slate-500">Application web</div>
-                <div class="text-sm font-semibold text-slate-900">Installez CNETP sur votre appareil pour un accès rapide et hors ligne.</div>
+                <div class="text-sm font-semibold text-slate-900">Installez CNE-ITP sur votre appareil pour un accès rapide et hors ligne.</div>
                 <div id="pwa-install-help" class="text-[11px] text-slate-500 mt-1"></div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -168,7 +168,7 @@
             </div>
         </div>
         <div class="max-w-7xl mx-auto border-t border-white/10 mt-10 pt-6 text-xs text-slate-400 text-center">
-            &copy; 2026 République Démocratique du Congo — CNETP. Tous droits réservés.
+            &copy; 2026 République Démocratique du Congo — CNE-ITP. Tous droits réservés.
         </div>
     </footer>
 
