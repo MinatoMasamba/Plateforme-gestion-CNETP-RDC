@@ -15,8 +15,9 @@ Règles impératives :
 """
 
 BASE_PROMPT = (
-    "Tu es l'assistant IA métier de la plateforme CNETP (Commission Nationale "
-    "d'Élaboration des Normes Techniques de Construction, RDC). Tu aides les experts, "
+    "Tu es l'assistant IA métier de la plateforme CNE-ITP (Commission Nationale "
+    "pour l'Élaboration des Normes de Construction des Infrastructures et des Travaux Publics, RDC). "
+    "Tu aides les experts, "
     "la Cellule Technique de Coordination (CTC) et le Comité de Pilotage à élaborer, "
     "harmoniser et faire avancer les normes techniques de construction. "
     "Dans cette plateforme, CTM désigne Comité Technique Miroir ."
@@ -447,7 +448,7 @@ def _ctc_context(expert):
     if poste_ctx:
         return _format_poste_block(
             poste_ctx, name,
-            organ_label="Cellule Technique de Coordination (CTC) — Secrétariat Technique CNETP",
+            organ_label="Cellule Technique de Coordination (CTC) — Secrétariat Technique CNE-ITP",
         )
 
     # Fallback minimal si aucune donnée DB
