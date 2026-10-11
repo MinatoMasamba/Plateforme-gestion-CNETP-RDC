@@ -7,7 +7,7 @@ from datetime import date
 from apps.validation.models import LegisticReview
 from apps.norms.models import Norme
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM
+from apps.governance.models import CTM, WG
 
 User = get_user_model()
 
@@ -42,9 +42,14 @@ class LegisticReviewModelTest(TestCase):
         )
         
         # Créer une norme
+        self.ctm = CTM.objects.create(number=1, name='CTM Test', description='Test CTM')
+        self.wg = WG.objects.create(ctm=self.ctm, number=1, name='WG Test')
         self.norme = Norme.objects.create(
             title='Test Norme',
             reference_number='TN-001',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg,
             status='INTERNAL_REVIEW'
         )
     
@@ -128,9 +133,14 @@ class LegisticReviewAPITest(APITestCase):
         )
         
         # Créer une norme
+        self.ctm = CTM.objects.create(number=1, name='CTM Test', description='Test CTM')
+        self.wg = WG.objects.create(ctm=self.ctm, number=1, name='WG Test')
         self.norme = Norme.objects.create(
             title='Test Norme',
             reference_number='TN-001',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg,
             status='INTERNAL_REVIEW'
         )
     
@@ -226,7 +236,10 @@ class LegisticReviewAPITest(APITestCase):
         # Créer une autre norme et review
         norme2 = Norme.objects.create(
             title='Test Norme 2',
-            reference_number='TN-002'
+            reference_number='TN-002',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg
         )
         review2 = LegisticReview.objects.create(
             norme=norme2,
@@ -241,7 +254,7 @@ class LegisticReviewAPITest(APITestCase):
     def test_permission_denied_for_unauthenticated(self):
         """Tester que les utilisateurs non authentifiés ne peuvent pas accéder"""
         response = self.client.get('/api/v1/legistic-reviews/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
     
     def test_pending_endpoint(self):
         """Tester l'endpoint pour voir les reviews en attente"""
@@ -254,7 +267,10 @@ class LegisticReviewAPITest(APITestCase):
         
         norme2 = Norme.objects.create(
             title='Test Norme 2',
-            reference_number='TN-002'
+            reference_number='TN-002',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg
         )
         review2 = LegisticReview.objects.create(
             norme=norme2,

@@ -269,13 +269,20 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='validate-ctc')
     def validate_ctc(self, request, pk=None):
-        """Validation CTC officielle: la norme passe à l'enquête publique, non publiée."""
+        """Valide le volet légistique sans contourner les autres examens CTC."""
         if not self._is_ctc_member(request.user):
             return Response({'detail': 'Action réservée aux membres CTC.'}, status=status.HTTP_403_FORBIDDEN)
 
         review = self.get_object()
         comments = request.data.get('comments', '')
         content = request.data.get('content', '')
+        norme = review.norme
+        processus = CTCProcessus.objects.filter(norme=norme).first()
+        if not processus:
+            return Response(
+                {'detail': 'Le processus CTC doit être initialisé avant la validation.'},
+                status=status.HTTP_409_CONFLICT,
+            )
         with transaction.atomic():
             review.status = 'REVIEW_COMPLETED'
             review.comments = comments
@@ -283,7 +290,6 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
             review.approval_date = date.today()
             review.save()
 
-            norme = review.norme
             if content:
                 latest = norme.get_latest_version()
                 next_number = (latest.version_number + 1) if latest else 1
@@ -295,12 +301,14 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
                     is_draft=False,
                     version_author=request.user,
                 )
-            norme.transition_to('PUBLIC_INQUIRY')
-            norme.public_inquiry_start = date.today()
-            norme.is_public = True
-            norme.save(update_fields=['status', 'public_inquiry_start', 'is_public', 'updated_at'])
+            reviews_completed = processus.check_all_reviews()
 
-        return Response(self._review_payload(review))
+        payload = self._review_payload(review)
+        payload.update({
+            'ctc_stage': processus.current_stage,
+            'reviews_completed': reviews_completed,
+        })
+        return Response(payload)
 
     @action(detail=False, methods=['post'], url_path='set-step')
     def set_step(self, request):
@@ -318,8 +326,9 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
         norme.is_public = step >= 4
         if step == 3:
             norme.legistic_review_date = date.today()
-            LegisticReview.objects.get_or_create(norme=norme, defaults={'status': 'PENDING'})
             CTCProcessus.objects.get_or_create(norme=norme)
+            from web.ctc_views import _initialize_ctc_reviews
+            _initialize_ctc_reviews(norme)
         elif step == 4 and not norme.public_inquiry_start:
             norme.public_inquiry_start = date.today()
         elif step == 6 and not norme.homologation_date:
@@ -398,8 +407,15 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
             review.norme.legistic_review_date = date.today()
             review.norme.save()
 
+            processus = CTCProcessus.objects.filter(norme=review.norme).first()
+            reviews_completed = processus.check_all_reviews() if processus else False
+
             return Response(
-                LegisticReviewDetailSerializer(review).data,
+                {
+                    **LegisticReviewDetailSerializer(review).data,
+                    'ctc_stage': processus.current_stage if processus else None,
+                    'reviews_completed': reviews_completed,
+                },
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -15,7 +15,7 @@ class DocumentFileViewSet(viewsets.ModelViewSet):
     queryset = DocumentFile.objects.select_related('expert', 'uploaded_by', 'norme').all()
     serializer_class = DocumentFileSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['expert', 'file_type', 'category', 'is_public', 'norme']
     search_fields = ['title', 'description', 'expert__user__first_name', 'expert__user__last_name']

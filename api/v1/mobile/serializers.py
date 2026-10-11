@@ -337,33 +337,38 @@ class MobileExpertProfileSerializer(serializers.ModelSerializer):
         return obj.get_full_name()
 
     def get_structure(self, obj):
-        if hasattr(obj, 'expert') and obj.expert.structure:
-            return obj.expert.structure.name
+        expert = getattr(obj, 'expert_profile', None)
+        if expert and expert.structure:
+            return expert.structure.name
         return None
 
     def get_ctm(self, obj):
-        if hasattr(obj, 'expert'):
-            aff = obj.expert.governance_affectations.first()
-            return aff.ctm.titre if aff else None
+        expert = getattr(obj, 'expert_profile', None)
+        if expert:
+            aff = expert.governance_affectations.first()
+            return aff.ctm.name if aff else None
         return None
 
     def get_wg_list(self, obj):
-        if hasattr(obj, 'expert'):
+        expert = getattr(obj, 'expert_profile', None)
+        if expert:
             return list(
-                obj.expert.governance_affectations.values_list('wg__titre', flat=True)
+                expert.governance_affectations.values_list('wg__name', flat=True)
             )
         return []
 
     def get_upcoming_reunions_count(self, obj):
-        if hasattr(obj, 'expert'):
-            return obj.expert.presences.filter(
+        expert = getattr(obj, 'expert_profile', None)
+        if expert:
+            return expert.presences.filter(
                 reunion__date__gte=timezone.now(),
                 reunion__status='PLANNED'
             ).count()
         return 0
 
     def get_pending_votes_count(self, obj):
-        if hasattr(obj, 'expert'):
+        expert = getattr(obj, 'expert_profile', None)
+        if expert:
             from apps.amendments.models import Amendement
             return Amendement.objects.filter(
                 status__in=['PROPOSED', 'UNDER_REVIEW']

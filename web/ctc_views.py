@@ -25,8 +25,9 @@ from apps.experts.models import Expert
 from web.pilotage_views import get_pilotage_context
 from apps.governance.models import (
     TechnicalCell, CTCMembership, CTCOperationalRequest,
-    PosteNominatifCTC, CTM, CTCProcessus, PlatformFreeze,
+    PilotageMembreship, PosteNominatifCTC, CTM, CTCProcessus, PlatformFreeze,
 )
+from apps.mobileapp.signals import create_notification_for_user
 from apps.validation.models import (
     ISOReview, EcologicalReview, EconomicReview,
     ScheduleReview, IndustrialConsultation, LegisticReview,
@@ -128,6 +129,76 @@ def _resolve_ctc_sub_role(ctc_role: str, acronym: str) -> str:
     if not role_map:
         return ctc_role.lower()
     return role_map.get(acronym) or role_map.get(None) or ctc_role.lower()
+
+
+def _initialize_ctc_reviews(norme):
+    """Crée les examens CTC requis et les attribue aux postes disponibles."""
+    assignments = {
+        'legistic_review': (LegisticReview, 'legist', 'LEGAL', 'Examen légistique CTC'),
+        'iso_review': (ISOReview, 'expert', 'ISO_EXPERT', 'Examen ISO / SADC'),
+        'ecological_review': (EcologicalReview, 'expert', 'ENVIRONMENTAL', 'Examen environnemental et social'),
+        'economic_review': (EconomicReview, 'expert', 'ECONOMIST', 'Évaluation économique'),
+        'industrial_consultation': (IndustrialConsultation, 'expert', 'INDUSTRIAL', 'Consultation industrielle FEC'),
+    }
+    created = []
+    for relation, (model, expert_field, membership_role, label) in assignments.items():
+        member = (
+            CTCMembership.objects
+            .filter(role=membership_role)
+            .select_related('expert__user')
+            .order_by('id')
+            .first()
+        )
+        defaults = {'status': 'PENDING'}
+        if member:
+            defaults[expert_field] = member.expert
+        review, was_created = model.objects.get_or_create(norme=norme, defaults=defaults)
+        if member and not getattr(review, f'{expert_field}_id'):
+            setattr(review, expert_field, member.expert)
+            review.save(update_fields=[expert_field, 'updated_at'])
+            was_created = True
+        if was_created and member:
+            create_notification_for_user(
+                member.expert.user,
+                f'{label} attribué',
+                f'Le dossier {norme.reference_number} vous a été attribué dans le circuit CTC.',
+                'SYSTEM',
+                priority='HIGH',
+                data={'norme_id': norme.id, 'review_id': review.id, 'review_type': relation},
+            )
+        created.append(review)
+
+    schedule_member = {
+        'planner': CTCMembership.objects.filter(role='PLANNER').select_related('expert__user').order_by('id').first(),
+        'scientist': CTCMembership.objects.filter(role='SCIENTIFIC').select_related('expert__user').order_by('id').first(),
+    }
+    schedule, was_created = ScheduleReview.objects.get_or_create(
+        norme=norme,
+        defaults={
+            'planner': schedule_member['planner'].expert if schedule_member['planner'] else None,
+            'scientist': schedule_member['scientist'].expert if schedule_member['scientist'] else None,
+            'planner_status': 'PENDING',
+            'scientist_status': 'PENDING',
+        },
+    )
+    changed_fields = []
+    for field, member in schedule_member.items():
+        if member and not getattr(schedule, f'{field}_id'):
+            setattr(schedule, field, member.expert)
+            changed_fields.append(field)
+    if changed_fields:
+        schedule.save(update_fields=changed_fields + ['updated_at'])
+    for field, member in schedule_member.items():
+        if (was_created or field in changed_fields) and member:
+            create_notification_for_user(
+                member.expert.user,
+                'Examen chronogramme attribué',
+                f'Le dossier {norme.reference_number} vous a été attribué pour validation {field}.',
+                'SYSTEM',
+                priority='HIGH',
+                data={'norme_id': norme.id, 'review_id': schedule.id, 'review_type': 'schedule'},
+            )
+    return created + [schedule]
 
 
 def _pole_for_sub_role(sub_role: str) -> str:
@@ -660,6 +731,24 @@ class CTCOperationalRequestView(View):
         req = CTCOperationalRequest.objects.create(
             requester=expert, restricted_resource=resource, reason=reason
         )
+        create_notification_for_user(
+            expert.user,
+            'Demande CTC transmise',
+            f'Votre demande « {resource} » a été transmise à l\'Assistant Exécutif.',
+            'SYSTEM',
+            data={'request_id': str(req.id), 'status': 'PENDING', 'resource': resource},
+        )
+        for membership in CTCMembership.objects.select_related('expert__user', 'expert__structure'):
+            member_acronym = (membership.expert.structure.acronym or '').upper() if membership.expert.structure else ''
+            if _resolve_ctc_sub_role(membership.role, member_acronym) == 'assistant_executif':
+                create_notification_for_user(
+                    membership.expert.user,
+                    'Nouvelle demande CTC',
+                    f'{expert.full_name} demande l\'accès à « {resource} ».',
+                    'SYSTEM',
+                    priority='HIGH',
+                    data={'request_id': str(req.id), 'status': 'PENDING', 'resource': resource},
+                )
         return JsonResponse({
             'ok': True,
             'message': "Votre demande a été transmise à l'Assistant Exécutif.",
@@ -713,6 +802,15 @@ class CTCApproveRequestView(View):
         req.reviewed_at = timezone.now()
         req.review_comment = comment
         req.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
+
+        create_notification_for_user(
+            req.requester.user,
+            'Décision sur votre demande CTC',
+            f'Votre demande « {req.restricted_resource} » a été {"approuvée" if decision == "APPROVED" else "refusée"}.',
+            'SYSTEM',
+            priority='HIGH' if decision == 'APPROVED' else 'NORMAL',
+            data={'request_id': str(req.id), 'status': decision, 'comment': comment},
+        )
 
         action = 'approuvée' if decision == 'APPROVED' else 'refusée'
         return JsonResponse({
@@ -777,7 +875,179 @@ class CTCMethodologyActionView(View):
                 status=403
             )
 
-        return JsonResponse({'ok': True, 'message': 'Enregistré avec succès.', 'status': status})
+        processus = CTCProcessus.objects.filter(norme=review.norme).first()
+        reviews_completed = processus.check_all_reviews() if processus else False
+        if reviews_completed:
+            coordinators = (
+                CTCMembership.objects
+                .filter(role__in=('COORDINATOR', 'VICE_COORDINATOR'))
+                .select_related('expert__user')
+            )
+            for coordinator in coordinators:
+                create_notification_for_user(
+                    coordinator.expert.user,
+                    'Examens CTC terminés',
+                    f'Les examens parallèles de {review.norme.reference_number} sont terminés. Le dossier peut passer à la consultation industrielle.',
+                    'SYSTEM',
+                    priority='HIGH',
+                    data={'norme_id': review.norme_id, 'processus_id': processus.id, 'stage': 'INDUSTRIAL'},
+                )
+
+        return JsonResponse({
+            'ok': True,
+            'message': 'Enregistré avec succès.',
+            'status': status,
+            'current_stage': processus.current_stage if processus else None,
+            'reviews_completed': reviews_completed,
+        })
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCReviewActionView(View):
+    """Enregistre l'acceptation ou le refus d'un examen analytique CTC."""
+
+    REVIEW_CONFIG = {
+        'iso': (ISOReview, 'veille_acgt', 'harmonization_notes'),
+        'ecologique': (EcologicalReview, 'sauvegardes_ci', 'comments'),
+        'economique': (EconomicReview, 'economiste_foner', 'comments'),
+    }
+
+    def post(self, request, review_type, pk):
+        if PlatformFreeze.get_solo().is_locked:
+            return JsonResponse({'ok': False, 'error': 'Plateforme verrouillée : action suspendue.'}, status=423)
+
+        config = self.REVIEW_CONFIG.get(review_type)
+        if not config:
+            return JsonResponse({'ok': False, 'error': 'Type d’examen inconnu.'}, status=404)
+        model, required_role, notes_field = config
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+        membership = CTCMembership.objects.filter(expert=expert).first()
+        if not membership:
+            return JsonResponse({'ok': False, 'error': 'Non membre CTC.'}, status=403)
+        acronym = (expert.structure.acronym or '').upper() if expert.structure else ''
+        if _resolve_ctc_sub_role(membership.role, acronym) != required_role:
+            return JsonResponse({'ok': False, 'error': 'Action réservée au poste chargé de cet examen.'}, status=403)
+
+        review = get_object_or_404(model.objects.select_related('norme'), pk=pk, expert=expert)
+        processus = get_object_or_404(CTCProcessus, norme=review.norme)
+        if processus.current_stage != 'MULTI_REVIEW':
+            return JsonResponse({'ok': False, 'error': 'Le dossier n’est pas dans la phase des examens parallèles.'}, status=400)
+
+        decision = (request.POST.get('status') or '').strip().upper()
+        if decision not in {'APPROVED', 'REJECTED'}:
+            return JsonResponse({'ok': False, 'error': 'Décision invalide.'}, status=400)
+        setattr(review, 'status', decision)
+        setattr(review, notes_field, (request.POST.get('feedback') or '').strip())
+        review.review_start_date = review.review_start_date or timezone.now().date()
+        review.review_end_date = timezone.now().date()
+        review.save(update_fields=['status', notes_field, 'review_start_date', 'review_end_date', 'updated_at'])
+        reviews_completed = processus.check_all_reviews()
+        return JsonResponse({
+            'ok': True,
+            'message': 'Examen accepté.' if decision == 'APPROVED' else 'Examen refusé.',
+            'status': decision,
+            'current_stage': processus.current_stage,
+            'reviews_completed': reviews_completed,
+        })
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCIndustrialActionView(View):
+    """Enregistre l'acceptation ou le refus de la consultation industrielle FEC."""
+
+    def post(self, request, pk):
+        if PlatformFreeze.get_solo().is_locked:
+            return JsonResponse({'ok': False, 'error': 'Plateforme verrouillée : action suspendue.'}, status=423)
+
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+
+        membership = CTCMembership.objects.filter(expert=expert).first()
+        if not membership:
+            return JsonResponse({'ok': False, 'error': 'Non membre CTC.'}, status=403)
+        acronym = (expert.structure.acronym or '').upper() if expert.structure else ''
+        if _resolve_ctc_sub_role(membership.role, acronym) != 'liaison_fec':
+            return JsonResponse({'ok': False, 'error': 'Réservé à la liaison industrielle FEC.'}, status=403)
+
+        review = get_object_or_404(IndustrialConsultation.objects.select_related('norme'), pk=pk, expert=expert)
+        processus = get_object_or_404(CTCProcessus, norme=review.norme, current_stage='INDUSTRIAL')
+        decision = (request.POST.get('status') or '').strip().upper()
+        feedback = (request.POST.get('feedback') or '').strip()
+        if decision not in {'APPROVED', 'REJECTED'}:
+            return JsonResponse({'ok': False, 'error': 'Décision invalide.'}, status=400)
+
+        review.status = decision
+        review.fec_feedback = feedback
+        review.review_end_date = timezone.now().date()
+        review.save(update_fields=['status', 'fec_feedback', 'review_end_date', 'updated_at'])
+        if decision == 'APPROVED':
+            processus.industrial_completed_at = timezone.now()
+            processus.save(update_fields=['industrial_completed_at', 'updated_at'])
+
+        return JsonResponse({
+            'ok': True,
+            'message': 'Consultation industrielle acceptée.' if decision == 'APPROVED' else 'Consultation industrielle refusée.',
+            'status': decision,
+            'current_stage': processus.current_stage,
+        })
+
+
+@method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
+class CTCTransmitPilotageView(View):
+    """Transmet un dossier CTC réellement terminé au Comité de Pilotage."""
+
+    def post(self, request, pk):
+        if PlatformFreeze.get_solo().is_locked:
+            return JsonResponse({'ok': False, 'error': 'Plateforme verrouillée : action suspendue.'}, status=423)
+
+        expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+        if not expert:
+            return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+        membership = CTCMembership.objects.filter(expert=expert).first()
+        if not membership:
+            return JsonResponse({'ok': False, 'error': 'Non membre CTC.'}, status=403)
+        acronym = (expert.structure.acronym or '').upper() if expert.structure else ''
+        if _resolve_ctc_sub_role(membership.role, acronym) not in {'coordonnateur_principal', 'coordonnateur_adjoint'}:
+            return JsonResponse({'ok': False, 'error': 'Réservé au Coordonnateur Technique.'}, status=403)
+
+        processus = get_object_or_404(CTCProcessus.objects.select_related('norme'), pk=pk)
+        if processus.current_stage != 'INDUSTRIAL':
+            return JsonResponse(
+                {'ok': False, 'error': f"Le dossier est à l'étape {processus.get_current_stage_display()}, pas à l'étape industrielle."},
+                status=400,
+            )
+        if not processus.all_reviews_completed:
+            return JsonResponse({'ok': False, 'error': 'Tous les examens CTC doivent être acceptés avant la transmission.'}, status=400)
+        if not processus.industrial_completed_at:
+            return JsonResponse({'ok': False, 'error': 'La consultation industrielle FEC doit être acceptée avant la transmission.'}, status=400)
+        if processus.signed_out_at:
+            return JsonResponse({'ok': False, 'error': 'Dossier déjà transmis au Pilotage.'}, status=400)
+
+        processus.mark_signed_out(expert)
+        pilotage_members = (
+            PilotageMembreship.objects
+            .filter(role__in=('PRESIDENT', 'RAPPORTEUR'))
+            .select_related('expert__user')
+        )
+        for member in pilotage_members:
+            create_notification_for_user(
+                member.expert.user,
+                'Dossier transmis au Pilotage',
+                f'{processus.norme.reference_number} a été signé et transmis par la CTC.',
+                'SYSTEM',
+                priority='HIGH',
+                data={'norme_id': processus.norme_id, 'processus_id': processus.id, 'stage': 'SIGNED_OUT'},
+            )
+
+        return JsonResponse({
+            'ok': True,
+            'message': f'{processus.norme.reference_number} transmis au Comité de Pilotage.',
+            'current_stage': processus.current_stage,
+            'transmitted_at': processus.transmitted_to_pilotage_at.isoformat(),
+        })
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -844,6 +1114,7 @@ class CTCReceptionActionView(View):
             if processus.intake_validated_at:
                 return JsonResponse({'ok': False, 'error': 'Introduction dans le circuit déjà validée.'}, status=400)
             processus.mark_intake_validated(expert)
+            _initialize_ctc_reviews(processus.norme)
             message = f"Dossier validé — transmis à l'étape « {processus.get_current_stage_display()} »."
 
         else:

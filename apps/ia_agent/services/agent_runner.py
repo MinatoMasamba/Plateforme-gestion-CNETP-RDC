@@ -5,7 +5,7 @@ from django.conf import settings
 from django.utils.timezone import localtime, now
 
 from ..models import AgentMessage
-from ..tools import anthropic_tool_specs, get_tool
+from ..tools import tool_specs, get_tool
 from .llm_client import api_error_message, get_llm_client, unavailable_message
 
 logger = logging.getLogger(__name__)
@@ -224,7 +224,7 @@ class AgentRunner:
                     "content": output_str,
                 })
 
-            messages.append(llm.build_tool_result_message(tool_results))
+            messages.extend(llm.build_tool_result_message(tool_results))
 
         _cl('red', '!', f"Limite d'itérations atteinte ({max_iter})")
         return AgentMessage.objects.create(
@@ -239,7 +239,7 @@ class AgentRunner:
 
     def _get_tools_spec(self):
         from .prompts import get_scope_config
-        all_tools = anthropic_tool_specs(self.session.scope)
+        all_tools = tool_specs(self.session.scope)
         config = get_scope_config(self.session)
         if config and config.allowed_tools is not None:
             allowed = set(config.allowed_tools)
@@ -257,7 +257,7 @@ class AgentRunner:
             return {"error": str(exc)}
 
     def _build_message_history(self):
-        """Historique user/assistant uniquement (sans traces tool) — format Anthropic-style."""
+        """Historique user/assistant uniquement (sans traces tool) — format compatible DeepSeek."""
         return [
             {"role": msg.role, "content": msg.content}
             for msg in self.session.messages.filter(

@@ -35,6 +35,7 @@ from apps.governance.models import (
 from apps.mobileapp.signals import create_notification_for_user
 from apps.norms.models import Norme
 from apps.norms.models import NormeComment
+from apps.validation.models import EconomicReview, IndustrialConsultation, LegisticReview, ScheduleReview
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -881,12 +882,44 @@ class PilotageDashboardView(View):
             .order_by('-created_at')[:10]
         )
 
+        # Ces modules doivent afficher uniquement des dossiers présents en base.
+        # Les anciens templates contenaient des exemples statiques sans action serveur.
+        legistic_reviews = (
+            LegisticReview.objects
+            .select_related('norme', 'norme__ctm')
+            .order_by('status', '-created_at')
+        )
+        economic_reviews = (
+            EconomicReview.objects
+            .select_related('norme', 'norme__ctm')
+            .order_by('status', '-created_at')
+        )
+        industrial_consultations = (
+            IndustrialConsultation.objects
+            .filter(expert=expert)
+            .select_related('norme', 'norme__ctm')
+            .order_by('status', '-created_at')
+        )
+        schedule_reviews = (
+            ScheduleReview.objects
+            .select_related('norme')
+            .order_by('-created_at')
+        )
+        pilotage_member_count = PilotageMembreship.objects.count()
+        pilotage_post_count = PosteNominatif.objects.count()
+
         context = {
             'expert': expert,
             'ctms_with_stats': ctms_with_stats,
             'total_wgs': total_wgs,
             'total_ctms': len(ctms_with_stats),
             'my_permission_requests': my_requests,
+            'legistic_reviews': legistic_reviews,
+            'economic_reviews': economic_reviews,
+            'industrial_consultations': industrial_consultations,
+            'schedule_reviews': schedule_reviews,
+            'pilotage_member_count': pilotage_member_count,
+            'pilotage_post_count': pilotage_post_count,
             **priv,
         }
         return render(request, self.template_name, context)

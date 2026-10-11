@@ -108,6 +108,14 @@ class Expert(BaseModel):
     # Tracking
     inscription_date = models.DateTimeField(auto_now_add=True)
     activation_date = models.DateTimeField(null=True, blank=True)
+
+    # Préférences d'interface (sidebar / thème)
+    theme_preference = models.CharField(
+        max_length=10,
+        default='light',
+        choices=[('light', 'Clair'), ('dark', 'Sombre'), ('system', 'Système')],
+        help_text="Préférence de thème de l'interface pour cet expert",
+    )
     
     class Meta:
         verbose_name = "Expert"

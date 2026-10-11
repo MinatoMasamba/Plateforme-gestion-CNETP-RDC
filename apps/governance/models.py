@@ -746,8 +746,11 @@ class CTCProcessus(BaseModel):
     def check_all_reviews(self):
         """Vérifie si tous les examens parallèles sont APPROVED → passe à INDUSTRIAL."""
         norme = self.norme
+        # Le toilettage légistique possède un état métier intermédiaire
+        # REVIEW_COMPLETED ; il vaut acceptation pour le passage CTC suivant.
+        legistic = getattr(norme, 'legistic_review', None)
         reviews_done = all([
-            getattr(norme, 'legistic_review', None) and norme.legistic_review.status == 'APPROVED',
+            legistic and legistic.status in ('APPROVED', 'REVIEW_COMPLETED'),
             getattr(norme, 'iso_review', None) and norme.iso_review.status == 'APPROVED',
             getattr(norme, 'ecological_review', None) and norme.ecological_review.status == 'APPROVED',
             getattr(norme, 'economic_review', None) and norme.economic_review.status == 'APPROVED',
@@ -766,6 +769,10 @@ class CTCProcessus(BaseModel):
         self.transmitted_to_pilotage_at = timezone.now()
         self.current_stage = 'SIGNED_OUT'
         self.save()
+        # Le statut macro suit la transmission réelle, pas un simple clic d'interface.
+        if self.norme.status != 'PILOTAGE_REVIEW':
+            self.norme.transition_to('PILOTAGE_REVIEW')
+            self.norme.save(update_fields=['status', 'updated_at'])
 
     @property
     def pilotage_reception_complete(self):

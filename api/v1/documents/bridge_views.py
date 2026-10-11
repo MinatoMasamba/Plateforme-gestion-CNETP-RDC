@@ -53,8 +53,8 @@ class CollaboratorsAPIView(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_serializer_class(self):
-        from ..experts.serializers import ExpertSerializer
-        return ExpertSerializer
+        from ..experts.serializers import ExpertDetailSerializer
+        return ExpertDetailSerializer
 
     def list(self, request, *args, **kwargs):
         """Retourne la liste des collaborateurs"""

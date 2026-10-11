@@ -8,7 +8,9 @@ from apps.governance.models import WG, CTM, Tache
 from apps.norms.models import Norme
 from apps.meetings.models import Reunion
 from apps.payments.models import Cotisation
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 # =========================================================================
@@ -16,7 +18,7 @@ from django.contrib.auth.models import User
 # =========================================================================
 class WorkingGroupSidebarSerializer(serializers.ModelSerializer):
     """Groupe de travail avec normes parallèles imbriquées"""
-    id = serializers.CharField(source='id', read_only=True)
+    id = serializers.IntegerField(read_only=True)
     code = serializers.SerializerMethodField()
     title = serializers.CharField(source='name')
     tag = serializers.SerializerMethodField()
@@ -41,7 +43,7 @@ class WorkingGroupSidebarSerializer(serializers.ModelSerializer):
 
     def get_parallel_norms(self, obj):
         """Normes parallèles associées"""
-        return []
+        return [f"{n.reference_number} ({n.title})" for n in obj.normes.all()]
 
     def get_tasks_progress(self, obj):
         """Progression des tâches"""
@@ -65,12 +67,12 @@ class ExpertSidebarSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
-    phone = serializers.CharField(source='telephone', allow_null=True)
-    province = serializers.CharField(source='province_origin', allow_null=True)
+    phone = serializers.CharField(source='user.phone', allow_null=True, read_only=True)
+    province = serializers.CharField(source='user.province', allow_null=True, read_only=True)
     structure = serializers.SerializerMethodField()
     ctm = serializers.SerializerMethodField()
     wg = serializers.SerializerMethodField()
-    role = serializers.CharField(source='role_id')
+    role = serializers.SerializerMethodField()
     isApproved = serializers.SerializerMethodField()
     avatarColor = serializers.SerializerMethodField()
 
@@ -96,8 +98,12 @@ class ExpertSidebarSerializer(serializers.ModelSerializer):
 
     def get_wg(self, obj):
         """Working group principal"""
+        affectation = obj.governance_affectations.select_related('wg').first()
+        return affectation.wg.name if affectation and affectation.wg else ""
+
+    def get_role(self, obj):
         affectation = obj.governance_affectations.first()
-        return affectation.working_group.title if affectation else ""
+        return affectation.role if affectation else "EXPERT"
 
     def get_isApproved(self, obj):
         return obj.status == 'ACTIVE'
@@ -134,7 +140,7 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = ['id', 'normCode', 'normTitle', 'title', 'status', 'progress']
 
     def get_normCode(self, obj):
-        return obj.norme.code if obj.norme else ""
+        return obj.norme.reference_number if obj.norme else ""
 
     def get_normTitle(self, obj):
         return obj.norme.title if obj.norme else ""
@@ -155,7 +161,7 @@ class TaskSerializer(serializers.ModelSerializer):
 class DocumentSidebarSerializer(serializers.ModelSerializer):
     """Document/Norme pour la sidebar"""
     id = serializers.CharField(read_only=True)
-    code = serializers.CharField()
+    code = serializers.CharField(source='reference_number')
     title = serializers.CharField()
     category = serializers.SerializerMethodField()
     updatedBy = serializers.SerializerMethodField()
@@ -172,7 +178,7 @@ class DocumentSidebarSerializer(serializers.ModelSerializer):
             'ETHIQUE': 'Éthique',
             'ENVIRONNEMENT': 'Environnement'
         }
-        return category_map.get(obj.category, 'Qualité')
+        return category_map.get((obj.category or '').upper(), obj.category or 'Général')
 
     def get_updatedBy(self, obj):
         """Dernier éditeur"""
@@ -188,7 +194,7 @@ class MeetingSidebarSerializer(serializers.ModelSerializer):
     """Réunion pour la sidebar"""
     id = serializers.CharField(read_only=True)
     date = serializers.SerializerMethodField()
-    title = serializers.CharField(source='sujet')
+    title = serializers.CharField(source='titre')
     status = serializers.SerializerMethodField()
 
     class Meta:
@@ -197,8 +203,8 @@ class MeetingSidebarSerializer(serializers.ModelSerializer):
 
     def get_date(self, obj):
         """Format de date français"""
-        if obj.date_reunion:
-            return obj.date_reunion.strftime('%d %b %Y')
+        if obj.date:
+            return obj.date.strftime('%d %b %Y')
         return ""
 
     def get_status(self, obj):
@@ -218,13 +224,16 @@ class MeetingSidebarSerializer(serializers.ModelSerializer):
 class BudgetSidebarSerializer(serializers.ModelSerializer):
     """Budget/Cotisation pour la sidebar"""
     id = serializers.CharField(read_only=True)
-    title = serializers.CharField(source='description')
+    title = serializers.SerializerMethodField()
     amount = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
     class Meta:
         model = Cotisation
         fields = ['id', 'title', 'amount', 'status']
+
+    def get_title(self, obj):
+        return f"Cotisation {obj.annee} — {obj.structure.name}"
 
     def get_amount(self, obj):
         """Formater le montant"""
@@ -239,9 +248,8 @@ class BudgetSidebarSerializer(serializers.ModelSerializer):
             'PENDING': 'En attente',
             'OVERDUE': 'Retard',
             'PARTIAL': 'Partiellement payé',
-            'CANCELLED': 'Annulé'
         }
-        return status_map.get(obj.statut, 'En attente')
+        return status_map.get(obj.status, 'En attente')
 
 
 # =========================================================================

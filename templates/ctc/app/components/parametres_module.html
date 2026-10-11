@@ -198,8 +198,8 @@
         settingsState.preferences[userId][prefKey] = isChecked;
         
         // Déclenchement de l'action synchrone du Thème si la clé est dark_mode
-        if (prefKey === "dark_mode" && typeof window.toggleTheme === 'function') {
-            window.toggleTheme();
+        if (prefKey === "dark_mode" && window.CNETPTheme) {
+            window.CNETPTheme.toggle();
         }
 
         flashToastFeedback();

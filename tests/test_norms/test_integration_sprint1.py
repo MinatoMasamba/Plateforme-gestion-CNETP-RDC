@@ -9,6 +9,7 @@ from apps.validation.models import LegisticReview
 from apps.norms.models import Norme
 from apps.documents.models import DocumentFile
 from apps.experts.models import Expert, Structure
+from apps.governance.models import CTM, WG
 
 User = get_user_model()
 
@@ -68,9 +69,14 @@ class Phase5Sprint1IntegrationTest(APITestCase):
         )
         
         # Créer une norme au statut INTERNAL_REVIEW
+        self.ctm = CTM.objects.create(number=1, name='CTM Test', description='Test CTM')
+        self.wg = WG.objects.create(ctm=self.ctm, number=1, name='WG Test')
         self.norme = Norme.objects.create(
             title='Test Norme Integration',
             reference_number='TNI-001',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg,
             status='INTERNAL_REVIEW'
         )
     

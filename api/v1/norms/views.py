@@ -625,9 +625,9 @@ class NormeViewSet(viewsets.ModelViewSet):
             )
 
         # Vérifier le statut actuel
-        if norme.status != 'ADOPTED':
+        if norme.status not in ('ADOPTED', 'HOMOLOGATED'):
             return Response(
-                {'error': f'La norme doit être en statut ADOPTED, actuellement: {norme.status}'},
+                {'error': f'La norme doit être en statut ADOPTED ou HOMOLOGATED, actuellement: {norme.status}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -648,6 +648,9 @@ class NormeViewSet(viewsets.ModelViewSet):
             norme.jo_file = jo_file
         if publication_date:
             norme.publication_date = publication_date
+        # Respecter le cycle de vie : ADOPTED -> HOMOLOGATED -> PUBLISHED
+        if norme.status == 'ADOPTED':
+            norme.transition_to('HOMOLOGATED')
         norme.transition_to('PUBLISHED')
         norme.save()
 
@@ -667,7 +670,7 @@ class NormeViewSet(viewsets.ModelViewSet):
             'reference_number': norme.reference_number,
             'status': norme.status,
             'is_published': norme.status == 'PUBLISHED',
-            'jo_reference': norme.jo_reference,
+            'jo_reference': norme.jo_reference or None,
             'jo_file': norme.jo_file.url if norme.jo_file else None,
             'publication_date': norme.publication_date,
         }
@@ -695,7 +698,6 @@ class NormeVersionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ChangementVersionViewSet(viewsets.ReadOnlyModelViewSet):
-    print(f'[ChangementVersionViewSet] lancement du ViewSet')  # Debug log
     """ViewSet de lecture pour les changements de version"""
     queryset = ChangementVersion.objects.select_related(
         'version__norme', 'previous_version__norme'

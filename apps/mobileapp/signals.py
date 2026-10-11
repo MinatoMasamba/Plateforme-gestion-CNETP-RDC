@@ -1,11 +1,15 @@
 """
-Signaux pour créer des notifications automatiquement à partir des événements du système
+Signaux pour créer des notifications automatiquement à partir des événements du système.
+
+Les notifications sont créées en base puis dispatchées de façon asynchrone
+(email / FCM) via Celery (mode eager si aucun broker n'est configuré).
 """
+import time
+
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 import logging
-import time
 
 from apps.mobileapp.models import Notification, NotificationPreference, ActivationToken
 from apps.mobileapp.tasks import dispatch_notification
@@ -46,7 +50,7 @@ def create_notification_for_user(user, title, body, notification_type, priority=
 
         # Dispatcher la notification de façon asynchrone
         _fire_task(dispatch_notification, str(notification.id))
-        
+
         logger.info(f'Created notification {notification.id} for user {user.email}')
         return notification
     except Exception as e:
@@ -60,6 +64,18 @@ def create_notification_for_users(users, title, body, notification_type, priorit
         create_notification_for_user(user, title, body, notification_type, priority, data)
 
 
+def _experts_for_ctm_or_wg(ctm_id=None, wg_id=None):
+    """Experts affectés à un CTM ou un WG (via les affectations de gouvernance)."""
+    from apps.experts.models import Expert
+
+    experts = Expert.objects.select_related('user')
+    if wg_id:
+        return experts.filter(governance_affectations__wg_id=wg_id).distinct()
+    if ctm_id:
+        return experts.filter(governance_affectations__ctm_id=ctm_id).distinct()
+    return experts.none()
+
+
 @receiver(post_save, sender='mobileapp.NotificationPreference', dispatch_uid='init_notification_prefs')
 def init_notification_preferences(sender, instance, created, **kwargs):
     """Initialiser les préférences de notification par défaut pour un nouveau utilisateur"""
@@ -67,227 +83,122 @@ def init_notification_preferences(sender, instance, created, **kwargs):
         logger.info(f'Notification preferences created for user {instance.user.email}')
 
 
-# ========== SIGNAUX POUR NORMES ==========
+# ========== NORMES ==========
 
-def notify_norm_published(sender, instance, **kwargs):
-    """Notifier quand une norme est publiée"""
-    if hasattr(instance, 'status') and instance.status == 'PUBLISHED':
-        # Récupérer tous les experts du WG et du CTM
-        try:
-            from apps.governance.models import WorkingGroup, CommissionTechnique
-            
-            # Récupérer les experts associés
-            if hasattr(instance, 'working_group'):
-                experts = instance.working_group.expert_set.all()
-            elif hasattr(instance, 'wg'):
-                experts = instance.wg.expert_set.all()
-            else:
-                experts = []
-            
-            title = f'Norme publiée: {instance.reference_number}'
-            body = f'La norme "{instance.title}" a été publiée.'
-            
-            for expert in experts:
-                create_notification_for_user(
-                    expert.user,
-                    title,
-                    body,
-                    'NORM_PUBLISHED',
-                    priority='HIGH',
-                    data={
-                        'norm_id': instance.id,
-                        'norm_title': instance.title,
-                        'ctm_id': instance.ctm_id if hasattr(instance, 'ctm_id') else None,
-                    }
-                )
-        except Exception as e:
-            logger.exception(f'Error notifying norm published: {e}')
+@receiver(pre_save, sender='norms.Norme', dispatch_uid='track_norme_status_before_save')
+def track_norme_previous_status(sender, instance, **kwargs):
+    """Mémorise le statut précédent d'une norme avant sauvegarde."""
+    if instance.pk:
+        instance._previous_status = sender.objects.filter(pk=instance.pk).values_list('status', flat=True).first()
+    else:
+        instance._previous_status = None
 
 
-# ========== SIGNAUX POUR PAIEMENTS ==========
-
-def notify_payment_due(sender, instance, **kwargs):
-    """Notifier quand une cotisation est due"""
+@receiver(post_save, sender='norms.Norme', dispatch_uid='notify_norm_published')
+def notify_norm_published(sender, instance, created, **kwargs):
+    """Notifier les experts du WG lorsque la norme passe au statut PUBLISHED."""
+    previous = getattr(instance, '_previous_status', None)
+    if instance.status != 'PUBLISHED' or previous == 'PUBLISHED':
+        return
     try:
-        from apps.payments.models import Payment
-        
-        if hasattr(instance, 'status') and instance.status == 'DUE':
-            expert = instance.expert if hasattr(instance, 'expert') else instance.user
-            if expert:
-                title = f'Cotisation due: {instance.amount}'
-                body = f'Vous devez payer une cotisation de {instance.amount}. Date d\'échéance: {instance.due_date}'
-                
-                user = expert.user if hasattr(expert, 'user') else expert
-                create_notification_for_user(
-                    user,
-                    title,
-                    body,
-                    'PAYMENT_DUE',
-                    priority='HIGH',
-                    data={
-                        'payment_id': instance.id,
-                        'amount': str(instance.amount),
-                        'due_date': instance.due_date.isoformat() if hasattr(instance, 'due_date') else None,
-                    }
-                )
+        for expert in _experts_for_ctm_or_wg(ctm_id=instance.ctm_id, wg_id=instance.wg_id):
+            create_notification_for_user(
+                expert.user,
+                title=f'Norme publiée : {instance.reference_number}',
+                body=f'La norme « {instance.title} » a été publiée au Journal Officiel.',
+                notification_type='NORM_PUBLISHED',
+                priority='HIGH',
+                data={
+                    'norme_id': instance.id,
+                    'reference': instance.reference_number,
+                    'ctm_id': instance.ctm_id,
+                    'wg_id': instance.wg_id,
+                },
+            )
     except Exception as e:
-        logger.exception(f'Error notifying payment due: {e}')
+        logger.exception(f'Error notifying norm published: {e}')
 
 
-def notify_payment_received(sender, instance, **kwargs):
-    """Notifier quand un paiement est reçu"""
+# ========== PAIEMENTS ==========
+
+@receiver(pre_save, sender='payments.Paiement', dispatch_uid='track_paiement_status_before_save')
+def track_paiement_previous_status(sender, instance, **kwargs):
+    """Mémorise le statut précédent d'un paiement avant sauvegarde."""
+    if instance.pk:
+        instance._previous_status = sender.objects.filter(pk=instance.pk).values_list('status', flat=True).first()
+    else:
+        instance._previous_status = None
+
+
+@receiver(post_save, sender='payments.Paiement', dispatch_uid='notify_payment_received')
+def notify_payment_received(sender, instance, created, **kwargs):
+    """Notifier les experts de la structure lorsqu'un paiement est confirmé."""
+    previous = getattr(instance, '_previous_status', None)
+    if instance.status != 'CONFIRMED' or previous == 'CONFIRMED':
+        return
     try:
-        if hasattr(instance, 'status') and instance.status == 'PAID':
-            expert = instance.expert if hasattr(instance, 'expert') else instance.user
-            if expert:
-                user = expert.user if hasattr(expert, 'user') else expert
-                title = f'Paiement reçu: {instance.amount}'
-                body = f'Votre cotisation de {instance.amount} a été reçue. Merci!'
-                
-                create_notification_for_user(
-                    user,
-                    title,
-                    body,
-                    'PAYMENT_RECEIVED',
-                    priority='NORMAL',
-                    data={
-                        'payment_id': instance.id,
-                        'amount': str(instance.amount),
-                    }
-                )
+        cotisation = instance.cotisation
+        for expert in cotisation.structure.experts.select_related('user'):
+            create_notification_for_user(
+                expert.user,
+                title=f'Paiement confirmé — cotisation {cotisation.annee}',
+                body=f"Le paiement de {instance.montant} pour la cotisation {cotisation.annee} a été confirmé.",
+                notification_type='PAYMENT_RECEIVED',
+                priority='NORMAL',
+                data={
+                    'paiement_id': instance.id,
+                    'cotisation_id': cotisation.id,
+                    'montant': str(instance.montant),
+                },
+            )
     except Exception as e:
         logger.exception(f'Error notifying payment received: {e}')
 
 
-# ========== SIGNAUX POUR RÉUNIONS/MEETINGS ==========
+# ========== RÉUNIONS ==========
 
-def notify_meeting_invite(sender, instance, **kwargs):
-    """Notifier quand un expert est invité à une réunion"""
+@receiver(post_save, sender='meetings.Reunion', dispatch_uid='notify_reunion_created')
+def notify_reunion_created(sender, instance, created, **kwargs):
+    """Notifier les experts concernés lors de la création d'une réunion."""
+    if not created:
+        return
     try:
-        if hasattr(instance, 'status') and instance.status == 'SCHEDULED':
-            # Récupérer les experts invités
-            if hasattr(instance, 'participants'):
-                participants = instance.participants.all()
-            elif hasattr(instance, 'experts'):
-                participants = instance.experts.all()
-            else:
-                participants = []
-            
-            title = f'Réunion prévue: {instance.title}'
-            body = f'Vous êtes invité à la réunion "{instance.title}" le {instance.scheduled_date}'
-            
-            for participant in participants:
-                user = participant.user if hasattr(participant, 'user') else participant
-                create_notification_for_user(
-                    user,
-                    title,
-                    body,
-                    'REUNION_INVITE',
-                    priority='HIGH',
-                    data={
-                        'meeting_id': instance.id,
-                        'meeting_title': instance.title,
-                        'scheduled_date': instance.scheduled_date.isoformat() if hasattr(instance, 'scheduled_date') else None,
-                    }
-                )
+        for expert in _experts_for_ctm_or_wg(ctm_id=instance.ctm_id, wg_id=instance.wg_id):
+            create_notification_for_user(
+                expert.user,
+                title=f'Réunion planifiée : {instance.titre}',
+                body=f"Vous êtes invité à la réunion « {instance.titre} » le {instance.date:%d/%m/%Y %H:%M}.",
+                notification_type='REUNION_INVITE',
+                priority='HIGH',
+                data={
+                    'reunion_id': instance.id,
+                    'titre': instance.titre,
+                    'date': instance.date.isoformat() if instance.date else None,
+                },
+            )
     except Exception as e:
-        logger.exception(f'Error notifying meeting invite: {e}')
+        logger.exception(f'Error notifying meeting: {e}')
 
 
-# ========== SIGNAUX POUR EXPERTS ==========
+# ========== MESSAGES ==========
 
-def notify_expert_invited(sender, instance, **kwargs):
-    """Notifier quand un expert est invité à rejoindre un WG"""
+@receiver(post_save, sender='messaging.Message', dispatch_uid='notify_new_message')
+def notify_new_message(sender, instance, created, **kwargs):
+    """Notifier le destinataire d'un nouveau message."""
+    if not created or not instance.recipient_id:
+        return
     try:
-        if created := kwargs.get('created'):
-            # instance est une invitation ou une relation expert-wg
-            expert = instance.expert if hasattr(instance, 'expert') else instance
-            
-            if expert and hasattr(expert, 'user'):
-                title = 'Vous avez été invité à un groupe de travail'
-                
-                if hasattr(instance, 'working_group'):
-                    wg = instance.working_group
-                    body = f'Vous avez été invité à rejoindre le groupe "{wg.title}"'
-                    wg_id = wg.id
-                elif hasattr(instance, 'wg'):
-                    wg = instance.wg
-                    body = f'Vous avez été invité à rejoindre le groupe "{wg.title}"'
-                    wg_id = wg.id
-                else:
-                    body = 'Vous avez été invité à rejoindre un groupe de travail'
-                    wg_id = None
-                
-                create_notification_for_user(
-                    expert.user,
-                    title,
-                    body,
-                    'EXPERT_INVITE',
-                    priority='HIGH',
-                    data={
-                        'expert_id': expert.id,
-                        'wg_id': wg_id,
-                    }
-                )
-    except Exception as e:
-        logger.exception(f'Error notifying expert invited: {e}')
-
-
-# ========== SIGNAUX POUR MESSAGES ==========
-
-def notify_new_message(sender, instance, **kwargs):
-    """Notifier quand un nouveau message est reçu"""
-    try:
-        if created := kwargs.get('created'):
-            if hasattr(instance, 'recipient'):
-                recipient = instance.recipient
-                title = f'Nouveau message de {instance.sender.get_full_name()}'
-                body = instance.body[:100] if hasattr(instance, 'body') else 'Vous avez reçu un message'
-                
-                create_notification_for_user(
-                    recipient,
-                    title,
-                    body,
-                    'MESSAGE',
-                    priority='NORMAL',
-                    data={
-                        'message_id': instance.id,
-                        'sender_id': instance.sender.id,
-                    }
-                )
+        author = instance.sender.get_full_name() or instance.sender.username
+        create_notification_for_user(
+            instance.recipient,
+            title=f'Nouveau message de {author}',
+            body=(instance.content or '')[:100],
+            notification_type='MESSAGE',
+            priority='NORMAL',
+            data={'message_id': instance.id, 'sender_id': instance.sender_id},
+        )
     except Exception as e:
         logger.exception(f'Error notifying new message: {e}')
-
-
-def notify_votes_open(sender, instance, **kwargs):
-    """Notifier quand un vote est ouvert"""
-    try:
-        if hasattr(instance, 'status') and instance.status == 'OPEN':
-            # Récupérer les votants éligibles
-            if hasattr(instance, 'eligible_voters'):
-                voters = instance.eligible_voters.all()
-            else:
-                voters = []
-            
-            title = f'Vote ouvert: {instance.title}'
-            body = f'Un vote pour "{instance.title}" est maintenant ouvert jusqu\'au {instance.end_date}'
-            
-            for voter in voters:
-                user = voter if isinstance(voter, type(instance._meta.get_field('eligible_voters').related_model)) else voter.user
-                create_notification_for_user(
-                    user,
-                    title,
-                    body,
-                    'VOTE_OPEN',
-                    priority='HIGH',
-                    data={
-                        'vote_id': instance.id,
-                        'vote_title': instance.title,
-                        'end_date': instance.end_date.isoformat() if hasattr(instance, 'end_date') else None,
-                    }
-                )
-    except Exception as e:
-        logger.exception(f'Error notifying vote open: {e}')
 
 
 # ========== SIGNAL INSCRIPTION EXPERT → NOTIFICATION LEADERS CTM ==========
@@ -391,9 +302,10 @@ def on_activation_token_created(sender, instance, created, **kwargs):
         logger.exception(f'Erreur notification in-app activation expert: {e}')
 
 
-# Enregistrer les signaux (à appeler depuis apps.py)
 def register_notification_signals():
-    """Enregistrer tous les signaux de notification"""
-    logger.info('Registering notification signals...')
-    # Les signaux spécifiques aux apps seront enregistrés depuis leurs apps.py respectifs
-    # Ce module fournit les fonctions d'aide
+    """Les signaux sont déclarés au niveau module via @receiver.
+
+    Cette fonction est conservée pour compatibilité (appelée depuis apps.py) et
+    se contente de journaliser que l'enregistrement a bien eu lieu.
+    """
+    logger.info('Notification signals registered')

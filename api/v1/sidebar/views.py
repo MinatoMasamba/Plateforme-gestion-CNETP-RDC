@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.experts.models import Expert
 from apps.governance.models import CTM, WG, Affectation, Tache
-from apps.norms.models import Norme
+from apps.norms.models import Norme, NormeVersion
 from apps.meetings.models import Reunion
 from apps.payments.models import Cotisation
 from apps.amendments.models import Amendement
@@ -39,30 +39,27 @@ class UserProfileViewSet(viewsets.ViewSet):
     def me(self, request):
         """Récupérer le profil de l'utilisateur connecté"""
         try:
-            expert = Expert.objects.select_related('user', 'ctm').prefetch_related(
-                'pilotage_memberships', 'ctc_memberships'
-            ).get(user=request.user)
+            expert = Expert.objects.select_related('user', 'ctm').get(user=request.user)
 
-            wg_affectation = CTMExpertAffectation.objects.filter(
-                expert=expert
-            ).select_related('working_group').first()
+            affectation = Affectation.objects.filter(expert=expert).select_related('wg__ctm').first()
 
             wg_code = ""
             wg_title = ""
-            if wg_affectation:
-                wg_code = wg_affectation.working_group.code
-                wg_title = wg_affectation.working_group.title
+            if affectation and affectation.wg:
+                wg = affectation.wg
+                wg_code = f"WG {wg.ctm.number}.{wg.number}"
+                wg_title = wg.name
 
             return Response({
                 "id": f"exp-{expert.id}",
                 "name": expert.user.get_full_name(),
                 "email": expert.user.email,
-                "roleId": expert.role_id if expert.role_id else "EXPERT",
+                "roleId": "EXPERT",
                 "ctm": expert.ctm.name if expert.ctm else "",
                 "ctmId": expert.ctm.id if expert.ctm else None,
                 "wg": wg_title,
                 "wgCode": wg_code,
-                "theme_preference": getattr(expert, 'theme_preference', 'light')
+                "theme_preference": expert.theme_preference
             })
         except Expert.DoesNotExist:
             return Response(
@@ -96,11 +93,11 @@ class WorkingGroupSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     """
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['code', 'name', 'description']
+    search_fields = ['name', 'description', 'ctm__name']
 
     def get_queryset(self):
-        return WG.objects.prefetch_related(
-            'norms', 'affectations__expert'
+        return WG.objects.select_related('ctm').prefetch_related(
+            'normes', 'affectations__expert'
         ).annotate(
             expert_count=Count('affectations__expert', distinct=True)
         )
@@ -119,9 +116,9 @@ class WorkingGroupSidebarViewSet(viewsets.ReadOnlyModelViewSet):
             try:
                 wg = WG.objects.get(id=wg_id)
 
-                norms = wg.norms.all()
+                norms = wg.normes.all()
                 wg_data['parallel_norms'] = [
-                    f"{norm.code} ({norm.domaine})" for norm in norms
+                    f"{norm.reference_number} ({norm.title})" for norm in norms
                 ]
 
                 tasks = Tache.objects.filter(working_group=wg)
@@ -152,7 +149,7 @@ class ExpertSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     """
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'structure__name', 'role_id']
+    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'structure__name', 'ctm__name']
     ordering_fields = ['user__last_name', 'inscription_date']
     ordering = ['user__last_name']
 
@@ -219,10 +216,10 @@ class DocumentSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     """
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
-    search_fields = ['code', 'title', 'description']
+    search_fields = ['reference_number', 'title', 'description']
 
     def get_queryset(self):
-        return Norme.objects.select_related('created_by').order_by('-date_creation')
+        return Norme.objects.select_related('created_by').order_by('-created_at')
 
     def get_serializer_class(self):
         return DocumentSidebarSerializer
@@ -237,11 +234,11 @@ class MeetingSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     Réunions planifiées pour la sidebar
     """
     permission_classes = [IsAuthenticated]
-    ordering_fields = ['date_reunion']
-    ordering = ['-date_reunion']
+    ordering_fields = ['date']
+    ordering = ['-date']
 
     def get_queryset(self):
-        return Reunion.objects.order_by('-date_reunion')
+        return Reunion.objects.order_by('-date')
 
     def get_serializer_class(self):
         return MeetingSidebarSerializer
@@ -264,11 +261,11 @@ class BudgetSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     Cotisations et budgets pour la sidebar
     """
     permission_classes = [IsAuthenticated]
-    ordering_fields = ['date_creation']
-    ordering = ['-date_creation']
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
-        return Cotisation.objects.order_by('-date_creation')
+        return Cotisation.objects.order_by('-created_at')
 
     def get_serializer_class(self):
         return BudgetSidebarSerializer
@@ -297,7 +294,27 @@ class DocumentHistoryViewSet(viewsets.ViewSet):
         """Récupérer les éditeurs historiques d'une norme"""
         try:
             norme = Norme.objects.get(id=doc_id)
-            return Response([])
+            authors = (
+                NormeVersion.objects
+                .filter(norme=norme, version_author__isnull=False)
+                .values(
+                    'version_author__first_name',
+                    'version_author__last_name',
+                    'version_author__email',
+                )
+                .annotate(count=Count('id'))
+                .order_by('-count')
+            )
+            data = [
+                {
+                    'name': f"{a['version_author__first_name']} {a['version_author__last_name']}".strip(),
+                    'email': a['version_author__email'],
+                    'role': 'Éditeur',
+                    'count': a['count'],
+                }
+                for a in authors
+            ]
+            return Response(data)
         except Norme.DoesNotExist:
             return Response(
                 {"detail": "Document not found"},
@@ -319,7 +336,7 @@ class DashboardKPIsViewSet(viewsets.ViewSet):
     def kpis(self, request):
         """Récupérer les KPIs globaux"""
         total_ctm = CTM.objects.count()
-        active_ctm = CTM.objects.filter(status='ACTIVE').count()
+        active_ctm = total_ctm
         total_wg = WG.objects.count()
         experts_approved = Expert.objects.filter(status='ACTIVE').count()
         experts_total = Expert.objects.count()
@@ -336,7 +353,7 @@ class DashboardKPIsViewSet(viewsets.ViewSet):
         ).count()
 
         active_votes = Amendement.objects.filter(
-            status='VOTING_IN_PROGRESS'
+            status='UNDER_REVIEW'
         ).count()
 
         return Response({
@@ -364,7 +381,6 @@ class ExpertActionsViewSet(viewsets.ViewSet):
         try:
             expert = Expert.objects.get(id=expert_id)
             expert.status = 'ACTIVE'
-            expert.status_changed_at = None
             expert.save()
 
             serializer = ExpertSidebarSerializer(expert)

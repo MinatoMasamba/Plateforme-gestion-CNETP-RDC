@@ -18,14 +18,11 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/android-chrome-192x192.png' %}">
     <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/android-chrome-512x512.png' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon-32x32.png' %}">
+    <script src="{% static 'js/theme.js' %}"></script>
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
     <script>
-        const theme = localStorage.getItem('theme-preference') || 'dark';
-        if (theme === 'light') document.documentElement.classList.remove('dark');
-        else document.documentElement.classList.add('dark');
-
         tailwind.config = {
             darkMode: 'class',
             theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
@@ -114,7 +111,7 @@
                          bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30
                          dark:bg-[#0095c9]/10 dark:text-[#0095c9] dark:border-[#0095c9]/25
                          uppercase tracking-widest">
-                27 Postes
+                {{ pilotage_member_count }} membre{{ pilotage_member_count|pluralize }}
             </span>
         </div>
 
@@ -190,7 +187,7 @@
             </a>
 
             <!-- Bouton thème -->
-            <button onclick="toggleTheme()" title="Changer le thème"
+            <button type="button" data-theme-toggle title="Changer le thème"
                     class="p-2 rounded-lg border border-slate-200 dark:border-white/10
                            hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
                 <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
@@ -247,7 +244,7 @@
                 <div class="min-w-0">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Comité de Pilotage Élargi</p>
                     <p class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mt-1 leading-tight">Tableau de bord</p>
-                    <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 leading-tight">Vue d'ensemble - 27 postes</p>
+                    <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 leading-tight">{{ pilotage_member_count }} membre{{ pilotage_member_count|pluralize }} enregistré{{ pilotage_member_count|pluralize }}</p>
                 </div>
                 <button onclick="setPilotageSidebarOpen(false)" title="Fermer le menu"
                         class="p-1.5 -mr-1 -mt-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors shrink-0">
@@ -336,6 +333,22 @@
              HERO — PROFIL & COLLÈGE
         ═══════════════════════════════════════════ -->
         {% include "pilotage/composants/hero_header.html" %}
+
+        {% if pilotage_post_count == 0 %}
+        <div class="max-w-7xl mx-auto px-4 pt-5">
+            <div class="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-amber-700 dark:text-amber-200">
+                <i data-lucide="triangle-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                <p class="text-xs leading-relaxed"><strong>Référentiel incomplet :</strong> {{ pilotage_member_count }} adhésions sont enregistrées, mais aucun poste nominatif n'est encore initialisé.</p>
+            </div>
+        </div>
+        {% elif pilotage_post_count < pilotage_member_count %}
+        <div class="max-w-7xl mx-auto px-4 pt-5">
+            <div class="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-amber-700 dark:text-amber-200">
+                <i data-lucide="triangle-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                <p class="text-xs leading-relaxed"><strong>Référentiel à compléter :</strong> {{ pilotage_post_count }} postes nominatifs pour {{ pilotage_member_count }} adhésions.</p>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- ═══════════════════════════════════════════
              CONTENU PRINCIPAL — GRILLE DE MODULES
@@ -575,12 +588,6 @@
 
     <script>
         lucide.createIcons();
-
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
-            lucide.createIcons();
-        }
 
         // ── Sidebar Comité de Pilotage Élargi (ouverture / fermeture) ─────────
         window.setPilotageSidebarOpen = function(open) {

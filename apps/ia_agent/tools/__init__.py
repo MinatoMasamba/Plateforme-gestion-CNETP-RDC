@@ -4,7 +4,7 @@ TOOL_REGISTRY = {}
 
 
 def register(name, description, input_schema, scopes):
-    """Décorateur enregistrant une fonction Python comme tool Claude."""
+    """Décorateur enregistrant une fonction Python comme outil de l'agent IA."""
 
     def decorator(func):
         TOOL_REGISTRY[name] = {
@@ -22,7 +22,12 @@ def tools_for_scope(scope):
     return {name: spec for name, spec in TOOL_REGISTRY.items() if scope in spec["scopes"]}
 
 
-def anthropic_tool_specs(scope):
+def tool_specs(scope):
+    """Retourne les specs d'outils (format neutre) pour un scope donné.
+
+    Le format `{name, description, input_schema}` est converti côté client
+    LLM (DeepSeek) vers le format OpenAI function calling.
+    """
     return [
         {
             "name": name,

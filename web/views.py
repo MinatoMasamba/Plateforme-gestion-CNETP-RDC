@@ -72,8 +72,44 @@ class HomeView(View):
     template_name = 'index.html'
     
     def get(self, request):
+        current_user = None
+        if request.user.is_authenticated:
+            full_name = request.user.get_full_name() or request.user.username
+            current_user = {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                'fullName': full_name,
+                'isExpert': bool(getattr(request.user, 'is_expert', False)),
+                'isStaff': bool(request.user.is_staff),
+            }
+
         context = {
             'siteName': 'CNETP - Plateforme Normative',
+            'current_user_json': json.dumps(current_user),
+            'home_stats': [
+                {'value': '25+', 'label': 'Normes en traitement'},
+                {'value': '200', 'label': 'Experts mobilisés'},
+                {'value': '8', 'label': 'Comités techniques'},
+                {'value': '24', 'label': 'Groupes de travail'},
+            ],
+            'workflows': [
+                {
+                    'icon': 'file-text',
+                    'title': 'Rédaction normative',
+                    'description': "Les projets de normes sont préparés, relus et consolidés avec les contributions des experts concernés.",
+                },
+                {
+                    'icon': 'users',
+                    'title': 'Travail en commissions',
+                    'description': "Les comités techniques et groupes de travail disposent d'un cadre commun pour organiser leurs échanges.",
+                },
+                {
+                    'icon': 'shield-check',
+                    'title': 'Validation officielle',
+                    'description': "Les avis, votes et validations accompagnent chaque référentiel jusqu'à son adoption et sa publication.",
+                },
+            ],
         }
         return render(request, self.template_name, context)
 

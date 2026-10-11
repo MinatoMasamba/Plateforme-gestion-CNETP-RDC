@@ -1,0 +1,40 @@
+# Version control / divers
+.git
+.gitignore
+.github
+
+# Environnements & secrets
+.env
+.env.*
+!.env.example
+mon_env/
+venv/
+.venv/
+
+# Base locale & artefacts
+db.sqlite3
+*.sqlite3
+logs/
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Médias & statiques générés
+media/
+staticfiles/
+
+# Node / build front
+node_modules/
+build_tailwind/
+
+# Documentation lourde (non nécessaire au runtime)
+doc/
+docs/
+*.pdf

@@ -444,5 +444,25 @@ def send_notification_digest(user_id):
                     fail_silently=False
                 )
                 logger.info(f'Digest sent to {user.email}')
-    
+
     return True
+
+
+@shared_task
+def send_all_notification_digests():
+    """Tâche périodique : envoie le digest à tous les utilisateurs éligibles.
+
+    Appelée par Celery Beat (voir CELERY_BEAT_SCHEDULE). Chaque utilisateur
+    n'est notifié que si ses préférences (`digest_enabled`) l'autorisent.
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    sent = 0
+    for user_id in User.objects.filter(is_active=True).values_list('id', flat=True):
+        try:
+            send_notification_digest(user_id)
+            sent += 1
+        except Exception:
+            logger.exception('Échec du digest pour l’utilisateur %s', user_id)
+    return sent

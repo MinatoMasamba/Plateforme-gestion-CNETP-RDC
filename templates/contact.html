@@ -20,42 +20,42 @@
 </section>
 
 <!-- ── Contenu ──────────────────────────────────────────────────────────── -->
-<section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
 
         <!-- Coordonnées -->
         <div class="space-y-6">
-            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200">
+            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200 dark:bg-slate-900 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                     <i data-lucide="map-pin" class="w-6 h-6"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-1">Adresse</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">
+                <h3 class="text-sm font-bold text-slate-900 mb-1 dark:text-white">Adresse</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">
                     Ministère des Infrastructures, des Travaux Publics et de la Reconstruction<br>
                     Kinshasa, République Démocratique du Congo
                 </p>
             </div>
 
-            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200">
+            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200 dark:bg-slate-900 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-blue-500/10 text-blue-600 border border-blue-500/20">
                     <i data-lucide="mail" class="w-6 h-6"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-1">Email</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">contact@cne-itp.cd</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-1 dark:text-white">Email</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">contact@cne-itp.cd</p>
             </div>
 
-            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200">
+            <div class="rounded-2xl p-6 bg-slate-50 border border-slate-200 dark:bg-slate-900 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-amber-500/10 text-amber-600 border border-amber-500/20">
                     <i data-lucide="phone" class="w-6 h-6"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-1">Téléphone</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">+243 000 000 000</p>
+                <h3 class="text-sm font-bold text-slate-900 mb-1 dark:text-white">Téléphone</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">+243 000 000 000</p>
             </div>
         </div>
 
         <!-- Formulaire -->
         <div class="lg:col-span-2">
-            <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-slate-900">
 
                 {% if messages %}
                     <div class="space-y-3 mb-6">
@@ -76,27 +76,27 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Nom complet</label>
+                            <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400">Nom complet</label>
                             <input id="name" name="name" type="text" required
-                                   class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40">
+                                   class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40 dark:border-white/10 dark:bg-slate-950 dark:text-white">
                         </div>
                         <div>
-                            <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email</label>
+                            <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400">Courriel</label>
                             <input id="email" name="email" type="email" required
-                                   class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40">
+                                   class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40 dark:border-white/10 dark:bg-slate-950 dark:text-white">
                         </div>
                     </div>
 
                     <div>
-                        <label for="subject" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sujet</label>
+                        <label for="subject" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400">Objet</label>
                         <input id="subject" name="subject" type="text"
-                               class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40">
+                               class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40 dark:border-white/10 dark:bg-slate-950 dark:text-white">
                     </div>
 
                     <div>
-                        <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Message</label>
+                        <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400">Message</label>
                         <textarea id="message" name="message" rows="5" required
-                                  class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40"></textarea>
+                                  class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0095c9]/40 dark:border-white/10 dark:bg-slate-950 dark:text-white"></textarea>
                     </div>
 
                     <button type="submit"

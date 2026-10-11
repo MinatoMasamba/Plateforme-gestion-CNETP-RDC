@@ -1,16 +1,31 @@
 """
-Couche d'abstraction LLM : Anthropic (Claude) et Google (Gemini).
-Expose une interface unifiée pour AgentRunner, indépendante du provider.
+Couche d'abstraction LLM : DeepSeek (API compatible OpenAI).
+
+Expose une interface unifiée pour AgentRunner, indépendante du format
+de stockage des messages. DeepSeek supporte le function calling (tools)
+au format OpenAI : nous convertissons donc les spécifications d'outils
+(name / description / input_schema) vers ce format.
 """
+import json
 import logging
+import os
 from dataclasses import dataclass, field
 from typing import Any, List
 
+import requests
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
-_anthropic_client = None
-_gemini_client = None
-_gemini_client_cache_key = None
+DEEPSEEK_DEFAULT_BASE_URL = 'https://api.deepseek.com'
+DEEPSEEK_DEFAULT_MODEL = 'deepseek-chat'
+
+_client = None
+_client_cache_key = None
+
+
+class DeepSeekError(Exception):
+    """Erreur remontée par l'API DeepSeek (status HTTP + corps de réponse)."""
 
 
 @dataclass
@@ -25,276 +40,162 @@ class LLMResponse:
     stop_reason: str  # 'tool_use' | 'end_turn'
     text: str = ''
     tool_calls: List[ToolCall] = field(default_factory=list)
-    raw_assistant_content: Any = None  # format natif du provider, pour l'historique en-cours de tour
+    raw_assistant_content: Any = None  # format natif OpenAI, pour l'historique en-cours de tour
 
 
-class AnthropicLLMClient:
-    """Wrappeur Claude via le SDK Anthropic."""
+class DeepSeekLLMClient:
+    """Wrappeur DeepSeek via l'API REST compatible OpenAI (chat/completions)."""
 
-    def __init__(self, client, model):
-        self._client = client
+    def __init__(self, api_key, model=DEEPSEEK_DEFAULT_MODEL,
+                 base_url=DEEPSEEK_DEFAULT_BASE_URL, timeout=120):
+        self._api_key = api_key
         self._model = model
+        self._base_url = base_url.rstrip('/')
+        self._timeout = timeout
 
-    def complete(self, system, messages, tools_spec, force_tool=False):
-        kwargs = {}
-        if force_tool and tools_spec:
-            kwargs['tool_choice'] = {"type": "any"}
+    # ── Conversion des specs d'outils vers le format OpenAI ──────────────────
 
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=2048,
-            system=system,
-            messages=messages,
-            tools=tools_spec,
-            **kwargs,
-        )
-
-        if response.stop_reason != "tool_use":
-            text = "".join(b.text for b in response.content if b.type == "text")
-            return LLMResponse(stop_reason='end_turn', text=text)
-
-        tool_calls = [
-            ToolCall(id=b.id, name=b.name, input=b.input)
-            for b in response.content
-            if b.type == "tool_use"
-        ]
-        return LLMResponse(
-            stop_reason='tool_use',
-            tool_calls=tool_calls,
-            raw_assistant_content=[b.model_dump() for b in response.content],
-        )
-
-    def build_assistant_message(self, raw_content):
-        return {"role": "assistant", "content": raw_content}
-
-    def build_tool_result_message(self, tool_results):
-        return {
-            "role": "user",
-            "content": [
-                {
-                    "type": "tool_result",
-                    "tool_use_id": tr["id"],
-                    "content": tr["content"],
-                }
-                for tr in tool_results
-            ],
-        }
-
-
-# Modèles Gemini à essayer en séquence en cas d'échec du modèle principal
-GEMINI_FALLBACK_MODELS = [
-    'gemini-3.1-pro-preview',
-    'gemini-3-flash-preview',
-    'gemini-2.5-pro',
-    'gemini-3.1-flash-lite',
-    'gemini-3.5-flash',
-    'gemma-4-31b-it',
-    'gemma-4-26b-a4b-it',
-]
-
-
-# Ancienne constante de clés de secours (vide par défaut).
-# Préférence : définir GEMINI_API_KEY1..6 dans l'environnement ou GEMINI_FALLBACK_API_KEYS en settings.
-GEMINI_FALLBACK_ = []
-
-
-
-
-class GeminiLLMClient:
-    """Wrappeur Gemini via google-genai SDK, avec fallback automatique sur les modèles et les clés API."""
-
-    def __init__(self, client, model, fallback_models=None, api_keys=None, client_factory=None):
-        self._client = client
-        self._model = model
-        self._fallback_models = fallback_models or GEMINI_FALLBACK_MODELS
-        self._api_keys = api_keys or []
-        self._client_factory = client_factory
-
-    def _to_gemini_tools(self, tools_spec):
+    @staticmethod
+    def _to_openai_tools(tools_spec):
         if not tools_spec:
             return []
-        return [{
-            "function_declarations": [
-                {
+        return [
+            {
+                "type": "function",
+                "function": {
                     "name": t["name"],
-                    "description": t["description"],
-                    "parameters": t["input_schema"],
-                }
-                for t in tools_spec
-            ]
-        }]
-
-    def _to_gemini_contents(self, messages):
-        """Convertit les messages mixtes (Anthropic-style texte + Gemini-style tool) en contents Gemini."""
-        result = []
-        for msg in messages:
-            if "parts" in msg:
-                result.append(msg)
-            else:
-                role = "model" if msg["role"] == "assistant" else "user"
-                text = msg.get("content") or " "
-                result.append({"role": role, "parts": [{"text": text}]})
-        return result
-
-    def _get_client_for_key(self, api_key):
-        if self._client_factory is not None:
-            return self._client_factory(api_key)
-        return self._client
-
-    def _call_model(self, model, contents, config, client=None):
-        active_client = client or self._client
-        return active_client.models.generate_content(
-            model=model,
-            contents=contents,
-            config=config,
-        )
-
-    def _parse_response(self, response):
-        candidate = response.candidates[0]
-        parts = candidate.content.parts if candidate.content else []
-
-        # Exclure les parts de raisonnement interne (thought=True) — Gemini thinking models
-        visible_parts = [p for p in parts if not getattr(p, 'thought', False)]
-
-        fc_parts = [
-            p for p in visible_parts
-            if getattr(p, 'function_call', None) and getattr(p.function_call, 'name', None)
+                    "description": t.get("description", ""),
+                    "parameters": t.get("input_schema") or {"type": "object", "properties": {}},
+                },
+            }
+            for t in tools_spec
         ]
 
-        if fc_parts:
-            tool_calls = [
-                ToolCall(
-                    id=f"gemini_{i}_{p.function_call.name}",
-                    name=p.function_call.name,
-                    input={k: v for k, v in (p.function_call.args or {}).items()},
-                )
-                for i, p in enumerate(fc_parts)
-            ]
-            raw = [
-                {"function_call": {"name": p.function_call.name, "args": dict(p.function_call.args or {})}}
-                for p in fc_parts
-            ]
-            return LLMResponse(stop_reason='tool_use', tool_calls=tool_calls, raw_assistant_content=raw)
+    # ── Appel HTTP ────────────────────────────────────────────────────────────
 
-        text = "".join(p.text for p in visible_parts if getattr(p, 'text', None))
-        return LLMResponse(stop_reason='end_turn', text=text)
+    def _post(self, payload):
+        url = f"{self._base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+        }
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=self._timeout)
+        except requests.exceptions.Timeout:
+            raise DeepSeekError("timeout — la requête DeepSeek a expiré")
+        except requests.exceptions.RequestException as exc:
+            raise DeepSeekError(f"connection — {exc}")
 
-    def complete(self, system, messages, tools_spec, force_tool=False):
-        contents = self._to_gemini_contents(messages)
-        gemini_tools = self._to_gemini_tools(tools_spec)
+        if response.status_code != 200:
+            body = response.text[:500]
+            raise DeepSeekError(f"DeepSeek API {response.status_code} : {body}")
 
-        config = {"system_instruction": system}
-        if gemini_tools:
-            config["tools"] = gemini_tools
-            if force_tool:
-                config["tool_config"] = {"function_calling_config": {"mode": "ANY"}}
+        return response.json()
 
-        models_to_try = [self._model] + [
-            m for m in self._fallback_models if m != self._model
-        ]
-        api_keys_to_try = [key for key in self._api_keys if key] or [None]
-        last_exc = None
-        for model in models_to_try:
-            for api_key in api_keys_to_try:
-                try:
-                    client = self._get_client_for_key(api_key) if api_key is not None else self._client
-                    response = self._call_model(model, contents, config, client=client)
-                    return self._parse_response(response)
-                except Exception as exc:
-                    logger.warning(
-                        "Gemini — modèle %s indisponible avec la clé %s : %s — essai du suivant",
-                        model,
-                        api_key or '<default>',
-                        exc,
-                    )
-                    last_exc = exc
+    # ── Parsing de la réponse ─────────────────────────────────────────────────
 
-        raise last_exc
+    @staticmethod
+    def _parse_response(data):
+        choices = data.get("choices") or []
+        choice = choices[0] if choices else {}
+        message = choice.get("message") or {}
 
-    def build_assistant_message(self, raw_content):
-        return {"role": "model", "parts": raw_content}
+        tool_calls = message.get("tool_calls") or []
+        if tool_calls:
+            parsed = []
+            raw = []
+            for tc in tool_calls:
+                fn = tc.get("function") or {}
+                name = fn.get("name", "")
+                args_str = fn.get("arguments") or "{}"
+                if isinstance(args_str, str):
+                    try:
+                        args = json.loads(args_str)
+                    except json.JSONDecodeError:
+                        args = {}
+                else:
+                    args = args_str or {}
+                parsed.append(ToolCall(id=tc.get("id") or "", name=name, input=args))
+                raw.append({
+                    "id": tc.get("id") or "",
+                    "type": "function",
+                    "function": {"name": name, "arguments": args_str},
+                })
+            return LLMResponse(
+                stop_reason='tool_use',
+                tool_calls=parsed,
+                raw_assistant_content=raw,
+            )
 
-    def build_tool_result_message(self, tool_results):
-        return {
-            "role": "user",
-            "parts": [
-                {
-                    "function_response": {
-                        "name": tr["name"],
-                        "response": {"result": tr["content"]},
-                    }
-                }
-                for tr in tool_results
-            ],
+        content = message.get("content") or ""
+        return LLMResponse(stop_reason='end_turn', text=content)
+
+    # ── Interface unifiée ─────────────────────────────────────────────────────
+
+    def complete(self, system, messages, tools_spec, force_tool=False, max_tokens=None):
+        full_messages = [{"role": "system", "content": system or ""}] + list(messages)
+
+        if max_tokens is None:
+            max_tokens = getattr(settings, 'DEEPSEEK_MAX_TOKENS', 8192)
+
+        payload = {
+            "model": self._model,
+            "messages": full_messages,
+            "max_tokens": max_tokens,
+            "temperature": getattr(settings, 'DEEPSEEK_TEMPERATURE', 0.7),
+            "stream": False,
         }
 
+        openai_tools = self._to_openai_tools(tools_spec)
+        if openai_tools:
+            payload["tools"] = openai_tools
+            # DeepSeek ne force pas un appel d'outil ("required" non supporté) :
+            # on laisse "auto" et le prompt guide l'usage des outils.
+            payload["tool_choice"] = "auto"
 
-def get_llm_client(provider):
-    """Retourne l'instance Gemini, quel que soit le provider demandé."""
-    global _anthropic_client, _gemini_client, _gemini_client_cache_key
-    from django.conf import settings
+        data = self._post(payload)
+        return self._parse_response(data)
 
-    # Forcer le fournisseur Gemini pour toute l'IA de la plateforme.
-    provider_name = str(provider or 'gemini').strip().lower()
-    if 'claude' in provider_name or provider_name in {'anthropic', 'claude_code', 'claude-code'}:
-        provider_name = 'gemini'
+    def build_assistant_message(self, raw_content):
+        """Reconstruit le message assistant (avec tool_calls) pour l'historique OpenAI."""
+        return {"role": "assistant", "content": None, "tool_calls": raw_content}
 
-    if provider_name == 'gemini':
-        api_key = getattr(settings, 'GEMINI_API_KEY', '')
-        if not api_key:
-            return None
-
-        # Support either a single list `GEMINI_FALLBACK_API_KEYS` in settings
-        # or a set of individual env/settings variables GEMINI_API_KEY1..GEMINI_API_KEY6.
-        fallback_api_keys = getattr(settings, 'GEMINI_FALLBACK_', None)
-        if fallback_api_keys is None:
-            # Collect GEMINI_API_KEY1..6 from settings first, then from environment
-            import os
-            keys = []
-            for i in range(1, 7):
-                name = f'GEMINI_API_KEY{i}'
-                val = getattr(settings, name, None)
-                if not val:
-                    val = os.environ.get(name)
-                if val:
-                    keys.append(val)
-            # Fallback to the older constant if nothing else provided
-            fallback_api_keys = keys or [k for k in GEMINI_FALLBACK_ if k]
-        else:
-            if isinstance(fallback_api_keys, str):
-                fallback_api_keys = [item.strip() for item in fallback_api_keys.split(',') if item.strip()]
-
-        ordered_api_keys = [api_key] + [key for key in (fallback_api_keys or []) if key and key != api_key]
-        model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
-        cache_key = (api_key, model_name, tuple(ordered_api_keys))
-
-        if _gemini_client is None or _gemini_client_cache_key != cache_key:
-            from google import genai
-
-            def build_client(key):
-                return genai.Client(api_key=key)
-
-            _gemini_client = GeminiLLMClient(
-                client=build_client(api_key),
-                model=model_name,
-                api_keys=ordered_api_keys,
-                client_factory=build_client,
-            )
-            _gemini_client_cache_key = cache_key
-        return _gemini_client
-
-    # Toute autre valeur est ignorée au profit de Gemini.
-    return None
+    def build_tool_result_message(self, tool_results):
+        """Retourne la liste des messages 'tool' à ajouter à l'historique."""
+        return [
+            {"role": "tool", "tool_call_id": tr["id"], "content": tr["content"]}
+            for tr in tool_results
+        ]
 
 
-def unavailable_message(provider):
-    if provider == 'gemini':
-        return (
-            "L'agent Gemini n'est pas configuré (clé GEMINI_API_KEY manquante). "
-            "Merci de contacter l'administrateur."
+def get_llm_client(provider=None):
+    """Retourne l'instance DeepSeek partagée (unique provider de la plateforme)."""
+    global _client, _client_cache_key
+
+    api_key = getattr(settings, 'DEEPSEEK_API_KEY', '') or os.environ.get('DEEPSEEK_API_KEY', '')
+    if not api_key:
+        return None
+
+    model = getattr(settings, 'DEEPSEEK_MODEL', DEEPSEEK_DEFAULT_MODEL)
+    base_url = getattr(settings, 'DEEPSEEK_BASE_URL', DEEPSEEK_DEFAULT_BASE_URL)
+    timeout = getattr(settings, 'DEEPSEEK_TIMEOUT', 120)
+
+    cache_key = (api_key, model, base_url, timeout)
+    if _client is None or _client_cache_key != cache_key:
+        _client = DeepSeekLLMClient(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            timeout=timeout,
         )
+        _client_cache_key = cache_key
+
+    return _client
+
+
+def unavailable_message(provider=None):
     return (
-        "L'agent Claude n'est pas configuré (clé ANTHROPIC_API_KEY manquante). "
+        "L'agent IA DeepSeek n'est pas configuré (clé DEEPSEEK_API_KEY manquante). "
         "Merci de contacter l'administrateur."
     )
 
@@ -302,14 +203,14 @@ def unavailable_message(provider):
 def api_error_message(exc):
     msg = str(exc)
     low = msg.lower()
-    if "credit balance is too low" in msg or ("billing" in low and "anthropic" in low):
-        return "Solde de crédits Anthropic insuffisant — recharge sur console.anthropic.com → Plans & Billing."
-    if "quota" in low or "resource_exhausted" in low or "429" in msg:
+    if "402" in msg or "insufficient balance" in low or "insufficient_balance" in low:
+        return "Solde DeepSeek insuffisant — recharge sur platform.deepseek.com → Billing."
+    if "429" in msg or "rate limit" in low or "quota" in low or "resource_exhausted" in low:
         return "Quota API dépassé. Attends quelques instants puis réessaie."
-    if "401" in msg or "authentication" in low or "api_key_invalid" in low or "unauthenticated" in low:
-        return "Clé API invalide ou expirée. Vérifie la configuration ANTHROPIC_API_KEY / GEMINI_API_KEY."
-    if "peer closed" in low or "complete message body" in low or "overloaded" in low or "529" in msg or "503" in msg:
-        return "Le service IA est momentanément indisponible ou saturé. Réessaie dans quelques instants."
-    if "timeout" in low:
+    if "401" in msg or "authentication" in low or "invalid api key" in low or "invalid_api_key" in low or "unauthenticated" in low:
+        return "Clé API DeepSeek invalide ou expirée. Vérifie la configuration DEEPSEEK_API_KEY."
+    if "peer closed" in low or "overloaded" in low or "529" in msg or "503" in msg or "500" in msg:
+        return "Le service IA DeepSeek est momentanément indisponible ou saturé. Réessaie dans quelques instants."
+    if "timeout" in low or "timed out" in low:
         return "La requête a expiré. Réessaie dans un instant."
-    return f"Erreur lors de la communication avec l'IA : {msg[:250]}"
+    return f"Erreur lors de la communication avec l'IA DeepSeek : {msg[:250]}"

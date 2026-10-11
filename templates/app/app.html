@@ -118,6 +118,47 @@
         .module-container { display: none; }
         .module-container.active { display: flex; animation: slideIn 0.3s ease-out forwards; }
 
+        #sidebar-container {
+            width: var(--app-sidebar-width, 20rem);
+            min-width: var(--app-sidebar-width, 20rem);
+            max-width: var(--app-sidebar-width, 20rem);
+        }
+
+        #sidebar-resize-handle {
+            position: absolute;
+            top: 0;
+            right: -5px;
+            width: 10px;
+            height: 100%;
+            cursor: col-resize;
+            z-index: 30;
+            touch-action: none;
+        }
+
+        #sidebar-resize-handle::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 3px;
+            width: 3px;
+            height: 64px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.35);
+            transform: translateY(-50%);
+            transition: background-color .15s ease, height .15s ease;
+        }
+
+        #sidebar-resize-handle:hover::after,
+        body.sidebar-resizing #sidebar-resize-handle::after {
+            height: 96px;
+            background: var(--blue-primary);
+        }
+
+        body.sidebar-resizing {
+            cursor: col-resize;
+            user-select: none;
+        }
+
         /* =========================
            Navigation mobile : sidebar <-> contenu
            Sous 768px, la sidebar devient un panneau plein écran masqué par défaut,
@@ -132,11 +173,14 @@
                 left: 0;
                 bottom: 0;
                 z-index: 40;
-                width: min(88vw, 360px);
+                width: min(88vw, 360px) !important;
+                min-width: min(88vw, 360px) !important;
+                max-width: min(88vw, 360px) !important;
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
                 box-shadow: 0 24px 80px rgba(0,0,0,0.45);
             }
+            #sidebar-resize-handle { display: none; }
             #sidebar-container.mobile-sidebar-open {
                 transform: translateX(0);
             }
@@ -337,7 +381,8 @@
         </button>
     </nav>
 
-    <aside id="sidebar-container" class="w-80 h-full flex flex-col border-r border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#06060c]/90 backdrop-blur-md z-20 shrink-0 transition-colors duration-250 text-slate-800 dark:text-slate-300">
+    <aside id="sidebar-container" class="relative h-full flex flex-col border-r border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#06060c]/90 backdrop-blur-md z-20 shrink-0 transition-colors duration-250 text-slate-800 dark:text-slate-300">
+        <div id="sidebar-resize-handle" role="separator" aria-orientation="vertical" aria-label="Redimensionner la barre latérale" title="Glisser pour redimensionner. Double-clic pour réinitialiser."></div>
 
         <div class="p-4 flex items-center gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black/15">
             <div class="flex items-center gap-2 shrink-0 select-none">
@@ -4944,7 +4989,7 @@
             legistiqueState.activeDocId = null;
             legistiqueState.editedContent = "";
             await loadLegistiqueWorkspace();
-            if (window.showAppToast) window.showAppToast("Norme validée par le CTC et ouverte au portail public.", "success");
+            if (window.showAppToast) window.showAppToast("Volet légistique enregistré. Les autres validations CTC restent nécessaires.", "success");
         } catch (error) {
             console.error(error);
             if (window.showAppToast) window.showAppToast("Validation refusée par le serveur.", "error");
@@ -5803,7 +5848,43 @@
             const labels = checked.map(b => b.closest('label').textContent.trim());
             summary.textContent = labels.length ? labels.join(' + ') : 'Aucun CTM sélectionné';
         }
+        renderProfileWgOptions(checked.map(b => b.value), null);
         markProfileDirty();
+    }
+
+    function renderProfileWgOptions(ctmIds, selectedWgId) {
+        const select = document.getElementById('profile-wg');
+        if (!select) return;
+        const allWgs = sidebarState.allWorkingGroups || sidebarState.workingGroups || [];
+        const ids = (ctmIds || []).map(String);
+        const scoped = ids.length ? allWgs.filter(w => ids.includes(String(w.ctm))) : allWgs;
+        select.innerHTML = scoped.length
+            ? scoped.map(w => `<option value="${w.id}" ${selectedWgId != null && String(w.id) === String(selectedWgId) ? 'selected' : ''}>${w.code} – ${w.title}</option>`).join('')
+            : '<option value="">Aucun groupe de travail</option>';
+    }
+
+    function renderProfileCtmWg(affectations) {
+        const ctms = sidebarState.ctms || [];
+        const myCtmIds = [...new Set((affectations || []).map(a => String(a.ctm)).filter(Boolean))];
+        const primaryAff = (affectations || []).find(a => a.is_primary_wg) || (affectations || [])[0] || null;
+        const myWgId = primaryAff ? primaryAff.wg : null;
+
+        const choicesEl = document.getElementById('profile-ctm-choices');
+        if (choicesEl && ctms.length) {
+            choicesEl.innerHTML = ctms.map(c => `
+                <label class="profile-ctm-chip flex items-center gap-1.5 px-2 py-1.5 rounded-md text-slate-700 text-[10.5px] font-semibold cursor-pointer dark:text-slate-300">
+                    <input type="checkbox" name="profile-ctm" value="${c.id}" class="accent-blue-600" onchange="enforceCtmLimit(this)" ${myCtmIds.includes(String(c.id)) ? 'checked' : ''}> CTM ${c.number} – ${c.name}
+                </label>
+            `).join('');
+        }
+
+        const summaryEl = document.getElementById('profile-ctm-summary');
+        if (summaryEl) {
+            const labels = ctms.filter(c => myCtmIds.includes(String(c.id))).map(c => `CTM ${c.number} – ${c.name}`);
+            summaryEl.textContent = labels.length ? labels.join(' + ') : 'Aucun CTM affecté';
+        }
+
+        renderProfileWgOptions(myCtmIds, myWgId);
     }
 
     function markProfileDirty() {
@@ -5822,6 +5903,7 @@
             document.getElementById('profile-monthly-research-allowance').value = profileData.monthlyResearchAllowance !== undefined ? `${profileData.monthlyResearchAllowance} USD` : '';
             document.getElementById('profile-presence-count').value = profileData.presenceCount !== undefined ? `${profileData.presenceCount} Présences` : '';
             document.getElementById('profile-role-id').value = profileData.roleId || '';
+            renderProfileCtmWg(profileData.affectations || []);
         }
     }
 
@@ -7404,6 +7486,7 @@
                         ctm: w.ctm?.id || w.ctm,
                         ctmName: w.ctm?.name || w.ctm_name || ""
                     }));
+                    sidebarState.allWorkingGroups = mappedWgs;
                     sidebarState.workingGroups = sidebarState.currentCtmId
                         ? mappedWgs.filter(wg => String(wg.ctm) === String(sidebarState.currentCtmId))
                         : mappedWgs;
@@ -7685,6 +7768,73 @@
             safeCreateIcons();
         }
 
+        function initResizableSidebar() {
+            const sidebar = document.getElementById('sidebar-container');
+            const handle = document.getElementById('sidebar-resize-handle');
+            if (!sidebar || !handle) return;
+
+            const storageKey = 'cnetp-app-sidebar-width';
+            const minWidth = 260;
+            const maxWidth = 520;
+            const defaultWidth = 320;
+            const desktopQuery = window.matchMedia('(min-width: 768px)');
+
+            const clampWidth = (value) => Math.min(maxWidth, Math.max(minWidth, value));
+            const setWidth = (value, persist = false) => {
+                if (!desktopQuery.matches) return;
+                const width = clampWidth(Number(value) || defaultWidth);
+                document.documentElement.style.setProperty('--app-sidebar-width', `${width}px`);
+                handle.setAttribute('aria-valuenow', String(width));
+                if (persist) localStorage.setItem(storageKey, String(width));
+            };
+
+            handle.setAttribute('aria-valuemin', String(minWidth));
+            handle.setAttribute('aria-valuemax', String(maxWidth));
+            setWidth(localStorage.getItem(storageKey) || defaultWidth);
+
+            let startX = 0;
+            let startWidth = defaultWidth;
+            let pointerId = null;
+
+            const stopResize = () => {
+                if (pointerId !== null) {
+                    try { handle.releasePointerCapture(pointerId); } catch (error) {}
+                }
+                pointerId = null;
+                document.body.classList.remove('sidebar-resizing');
+                window.removeEventListener('pointermove', resize);
+                window.removeEventListener('pointerup', stopResize);
+                window.removeEventListener('pointercancel', stopResize);
+            };
+
+            const resize = (event) => {
+                if (pointerId === null) return;
+                setWidth(startWidth + event.clientX - startX, true);
+            };
+
+            handle.addEventListener('pointerdown', (event) => {
+                if (!desktopQuery.matches) return;
+                event.preventDefault();
+                pointerId = event.pointerId;
+                startX = event.clientX;
+                startWidth = sidebar.getBoundingClientRect().width;
+                handle.setPointerCapture(pointerId);
+                document.body.classList.add('sidebar-resizing');
+                window.addEventListener('pointermove', resize);
+                window.addEventListener('pointerup', stopResize);
+                window.addEventListener('pointercancel', stopResize);
+            });
+
+            handle.addEventListener('dblclick', () => {
+                localStorage.removeItem(storageKey);
+                setWidth(defaultWidth);
+            });
+
+            window.addEventListener('resize', () => {
+                if (desktopQuery.matches) setWidth(localStorage.getItem(storageKey) || defaultWidth);
+            });
+        }
+
         function sidebarSelect(type, id) {
             if (type === 'doc') {
                 sidebarState.selectedDocId = id;
@@ -7716,7 +7866,7 @@
         // =========================================================================
         async function showMyProfile() {
             try {
-                let userData, structureName = '', payoutMethod = 'Equity BCDC', accountDetails = '';
+                let userData, structureName = '', payoutMethod = 'Equity BCDC', accountDetails = '', affectations = [];
 
                 try {
                     // Données complètes (expert) : nom, structure ET coordonnées financières réelles
@@ -7726,6 +7876,7 @@
                     structureName = expertData.structure ? expertData.structure.name : '';
                     payoutMethod = expertData.bank_name || payoutMethod;
                     accountDetails = expertData.bank_account || expertData.mobile_money_number || '';
+                    affectations = expertData.affectations || [];
                 } catch (expertError) {
                     // Utilisateur connecté non-expert (ou sans fiche Expert) : on retombe sur les infos de base
                     window.currentExpertId = null;
@@ -7741,7 +7892,8 @@
                     dailyRate: 0,
                     monthlyResearchAllowance: 0,
                     presenceCount: 0,
-                    roleId: 'MEMBRE_P'
+                    roleId: 'MEMBRE_P',
+                    affectations: affectations
                 };
 
                 if (typeof openProfileModal === 'function') {
@@ -7965,6 +8117,7 @@
         function bootstrapApp() {
             try {
                 safeCreateIcons();
+                initResizableSidebar();
                 const userDisplay = document.getElementById('user-display-name');
                 if (userDisplay) userDisplay.textContent = "Expert Connecté";
                 fetchSidebarData();

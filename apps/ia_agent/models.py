@@ -15,8 +15,7 @@ class AgentSession(BaseModel):
         ('pilotage', 'Comité de Pilotage'),
     ]
     PROVIDER_CHOICES = [
-        ('anthropic', 'Claude (Anthropic)'),
-        ('gemini', 'Gemini (Google)'),
+        ('deepseek', 'DeepSeek'),
     ]
 
     user = models.ForeignKey(
@@ -25,7 +24,7 @@ class AgentSession(BaseModel):
         related_name='ia_agent_sessions',
     )
     scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
-    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='anthropic')
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='deepseek')
     title = models.CharField(max_length=200, blank=True)
     is_active = models.BooleanField(default=True)
 

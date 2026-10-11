@@ -124,7 +124,7 @@ def generate_regulatory_advice(text: str) -> dict:
             'error': _('Aucun texte fourni pour l’analyse réglementaire.'),
         }
 
-    provider = 'gemini'
+    provider = 'deepseek'
     llm = get_llm_client(provider)
     if llm is None:
         explanation, proposal = _build_fallback_advice(text)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cnetp-portail-v4';
+const CACHE_NAME = 'cnetp-portail-v6';
 
 const PRECACHE_URLS = [
     '/',

@@ -6,7 +6,7 @@ from datetime import date
 
 from apps.norms.models import Norme
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM
+from apps.governance.models import CTM, WG
 
 User = get_user_model()
 
@@ -53,9 +53,14 @@ class NormePublicationJOAPITest(APITestCase):
         )
         
         # Créer une norme au statut ADOPTED
+        self.ctm = CTM.objects.create(number=1, name='CTM Test', description='Test CTM')
+        self.wg = WG.objects.create(ctm=self.ctm, number=1, name='WG Test')
         self.norme = Norme.objects.create(
             title='Test Norme',
             reference_number='TN-001',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg,
             status='ADOPTED'
         )
     

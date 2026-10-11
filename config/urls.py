@@ -15,9 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve as static_serve
 from django.contrib.auth import views as auth_views
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
@@ -32,7 +33,7 @@ urlpatterns = [
     # API v1
     path('api/v1/', include('api.v1.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
-    path('gemini/', include('apps.gemini_drafts.urls')),
+    path('drafts/', include('apps.gemini_drafts.urls')),
     
     # Documentation OpenAPI/Swagger
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -46,7 +47,12 @@ urlpatterns = [
     path('', include('web.urls')),
 ]
 
-# Servir les fichiers statiques et médias en développement
+# Les fichiers statiques sont servis par WhiteNoise (WhiteNoiseMiddleware).
+# Les médias (uploads) sont servis par Django via une route explicite, y compris
+# lorsque DEBUG=False — en production, préférer un stockage objet ou un proxy.
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}),
+]
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

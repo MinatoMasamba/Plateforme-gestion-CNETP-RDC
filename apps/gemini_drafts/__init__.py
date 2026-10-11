@@ -1,1 +1,1 @@
-# Django app package for Gemini drafts
+# Django app package for AI drafts (DeepSeek)

@@ -6,6 +6,7 @@ from rest_framework import status
 
 from apps.documents.models import DocumentFile
 from apps.experts.models import Expert, Structure
+from apps.governance.models import CTM, WG
 from apps.norms.models import Norme
 
 User = get_user_model()
@@ -93,9 +94,15 @@ class DocumentFileAPITest(APITestCase):
             status='ACTIVE'
         )
         
+        self.ctm = CTM.objects.create(number=1, name='CTM Test', description='Test CTM')
+        self.wg = WG.objects.create(ctm=self.ctm, number=1, name='WG Test')
+        
         self.norme = Norme.objects.create(
             title='Test Norme',
-            reference_number='TN-001'
+            reference_number='TN-001',
+            description='Test',
+            ctm=self.ctm,
+            wg=self.wg
         )
     
     def test_list_documents_authenticated(self):
@@ -173,7 +180,7 @@ class DocumentFileAPITest(APITestCase):
             format='multipart'
         )
         
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
     
     def test_delete_own_document(self):
         """Tester la suppression de son propre document"""

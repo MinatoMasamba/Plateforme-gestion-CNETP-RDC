@@ -41,3 +41,13 @@ db.sqlite3-shm
 *.env
 norme/
 doc/
+
+# Artefacts de test / couverture / lint
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+staticfiles/
+data.json
+

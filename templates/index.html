@@ -34,33 +34,40 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      HERO — grande photo de groupe, responsive, jamais déformée
 ═══════════════════════════════════════════════════════════════════ -->
-<section class="relative">
-    <div class="w-full h-[460px] sm:h-[420px] md:h-[460px] lg:h-[520px] overflow-hidden">
+<section class="relative bg-slate-950">
+    <div class="w-full h-[500px] sm:h-[520px] lg:h-[560px] overflow-hidden">
         <img src="{% static 'img/HKoX2yXXYAAjyrr.jpg' %}" alt="Comité National pour l'Élaboration des Normes — RDC"
              class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-[#0a2540]/80 via-[#0a2540]/20 to-transparent"></div>
+        <div class="absolute inset-0 bg-[#071527]/75"></div>
+        <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950 to-transparent"></div>
     </div>
 
-    <div class="absolute inset-0 flex items-start pt-14 sm:items-center sm:pt-0">
+    <div class="absolute inset-0 flex items-center">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div class="max-w-2xl reveal is-visible">
-                <div class="inline-flex items-center gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 text-[#0a2540] text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-2 sm:mb-5">
-                    République Démocratique du Congo
+            <div class="max-w-3xl reveal is-visible">
+                <div class="mb-5 inline-flex items-center gap-2 border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur">
+                    <span class="h-2 w-2 rounded-full bg-[#fff24b]"></span>
+                    République démocratique du Congo
                 </div>
-                <h1 class="text-xl sm:text-5xl font-extrabold text-white mb-2 sm:mb-4 leading-tight tracking-tight drop-shadow">
-                    Commission Nationale pour l'Élaboration des Normes
-                    de Construction, des Infrastructures et des Travaux Publics
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight tracking-tight drop-shadow">
+                    Le portail national des normes techniques
                 </h1>
-                <p class="text-xs sm:text-lg text-slate-100 mb-4 sm:mb-8 leading-relaxed drop-shadow">
-                    Une plateforme souveraine pour orchestrer la rédaction, la validation et la
-                    publication des normes techniques nationales.
+                <p class="max-w-2xl text-sm sm:text-lg text-slate-100 mb-8 leading-relaxed drop-shadow">
+                    Le CNETP centralise la rédaction, l'examen et la publication des normes applicables à la
+                    construction, aux infrastructures et aux travaux publics.
                 </p>
-                <div class="flex gap-2 sm:gap-3 flex-wrap">
+                <div class="flex gap-3 flex-wrap">
+                    {% if user.is_authenticated %}
                     <a href="{% url 'web:app' %}" class="px-4 py-2.5 sm:px-6 sm:py-3 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-[10px] sm:text-xs hover:bg-yellow-300 transition-colors shadow-lg">
-                        Accéder à l'Espace de Travail
+                        Ouvrir mon espace
                     </a>
+                    {% else %}
+                    <a href="{% url 'web:expert_login' %}" class="px-4 py-2.5 sm:px-6 sm:py-3 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-[10px] sm:text-xs hover:bg-yellow-300 transition-colors shadow-lg">
+                        Se connecter
+                    </a>
+                    {% endif %}
                     <a href="#features" class="px-4 py-2.5 sm:px-6 sm:py-3 bg-white/10 text-white border border-white/40 rounded font-bold uppercase tracking-widest text-[10px] sm:text-xs hover:bg-white/20 transition-colors backdrop-blur-sm">
-                        Découvrir le Fonctionnement
+                        Découvrir le fonctionnement
                     </a>
                 </div>
             </div>
@@ -69,186 +76,158 @@
 </section>
 
 <!-- ── Bandeau statistiques ────────────────────────────────────────────── -->
-<section class="py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="reveal delay-100 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
-            <div class="text-4xl font-black text-[#0095c9]">25+</div>
-            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Normes Éditées</div>
+<section class="px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200 dark:bg-slate-950 dark:border-white/10">
+    <div class="max-w-6xl mx-auto -mt-10 relative z-10 grid grid-cols-2 md:grid-cols-4 border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-slate-900">
+        {% for stat in home_stats %}
+        <div class="reveal p-5 sm:p-7 border-b border-r border-slate-200 last:border-r-0 md:border-b-0 dark:border-white/10">
+            <div class="text-3xl sm:text-4xl font-black text-[#0095c9]">{{ stat.value }}</div>
+            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2 dark:text-slate-400">{{ stat.label }}</div>
         </div>
-        <div class="reveal delay-200 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
-            <div class="text-4xl font-black text-[#0095c9]">200</div>
-            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Experts Actifs</div>
-        </div>
-        <div class="reveal delay-300 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
-            <div class="text-4xl font-black text-[#0095c9]">8</div>
-            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Comités (CTM)</div>
-        </div>
-        <div class="reveal delay-400 bg-white rounded-2xl p-6 border border-slate-200 text-center shadow-sm">
-            <div class="text-4xl font-black text-[#0095c9]">24</div>
-            <div class="text-slate-500 text-[10px] uppercase tracking-wider font-bold mt-2">Groupes (WG)</div>
-        </div>
+        {% endfor %}
     </div>
 </section>
 
 <!-- ── Features ─────────────────────────────────────────────────────────── -->
-<section id="features" class="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+<section id="features" class="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
     <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-16 reveal">
-            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">L'AVENIR DE LA NORMALISATION</h2>
-            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
-                Fini les documents perdus, les échanges par e-mail interminables et les procédures opaques.
-                La plateforme centralise et certifie chaque étape de création d'une norme.
+        <div class="mb-12 reveal max-w-3xl">
+            <p class="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Un processus partagé</p>
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4 dark:text-white">Un même espace pour élaborer et suivre les normes.</h2>
+            <p class="text-slate-600 max-w-2xl text-sm leading-7 dark:text-slate-300">
+                Le portail réunit les experts, les comités techniques et les institutions autour d'un parcours
+                documenté, de la première version à la publication du texte adopté.
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="reveal delay-100 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for item in workflows %}
+            <div class="reveal border border-slate-200 bg-slate-50 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-[#0095c9]/50 dark:border-white/10 dark:bg-white/5">
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
-                    <i data-lucide="file-text" class="w-8 h-8"></i>
+                    <i data-lucide="{{ item.icon }}" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold mb-3 text-slate-800">Édition Collaborative</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Travaillez ensemble sur les textes normatifs avec un support d'Intelligence Artificielle et un suivi rigoureux des versions.</p>
+                <h3 class="text-sm font-bold mb-3 text-slate-900 dark:text-white">{{ item.title }}</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">{{ item.description }}</p>
             </div>
-            <div class="reveal delay-200 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                    <i data-lucide="users" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-sm font-bold mb-3 text-slate-800">Gouvernance Structurée</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Organisation claire autour de 8 Comités Techniques (CTM) et 24 Groupes de Travail (WG) pour une élaboration démocratique.</p>
-            </div>
-            <div class="reveal delay-300 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                    <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-sm font-bold mb-3 text-slate-800">Transparence &amp; Suivi</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Vote électronique, émargement numérique et génération automatique de procès-verbaux pour chaque réunion.</p>
-            </div>
-            <div class="reveal delay-400 rounded-2xl p-8 bg-slate-50 border border-slate-200 hover:-translate-y-1 hover:border-[#0095c9]/40 transition-all duration-300">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-red-500/10 text-red-600 border border-red-500/20">
-                    <i data-lucide="shield" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-sm font-bold mb-3 text-slate-800">Validation &amp; Sécurité</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Un parcours de validation strict (toilettage, enquête publique, ministère) garantissant la souveraineté et l'intégrité.</p>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
 
 <!-- ── Modules ──────────────────────────────────────────────────────────── -->
-<section id="modules" class="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 border-t border-slate-200">
+<section id="modules" class="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 border-t border-slate-200 dark:bg-slate-900 dark:border-white/10">
     <div class="max-w-6xl mx-auto">
         <div class="text-center mb-16 reveal">
-            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4">DES OUTILS SUR-MESURE</h2>
-            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
-                Six modules interconnectés couvrant l'ensemble des besoins administratifs,
-                financiers, légaux et collaboratifs de votre gouvernance.
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight mb-4 dark:text-white">Des outils pour chaque étape</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm dark:text-slate-300">
+                Les modules réunissent les ressources documentaires, les échanges de travail et le suivi
+                administratif nécessaires à la conduite des travaux.
             </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="reveal delay-100 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-100 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-blue-600 bg-blue-500/10 border-blue-500/20">
                     <i data-lucide="globe" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Bibliothèque Publique</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Accédez aux normes officielles publiées, participez aux enquêtes publiques ou téléchargez les textes homologués.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Bibliothèque des normes</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Consultez les normes publiées, les projets soumis à consultation et les documents associés.</p>
             </div>
-            <div class="reveal delay-200 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-200 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-[#0095c9] bg-[#0095c9]/10 border-[#0095c9]/20">
                     <i data-lucide="file-text" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Éditeur de Normes</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">L'atelier de rédaction où les experts débattent, amendent et finalisent le corps technique des normes.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Élaboration des normes</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Rédigez, relisez et consolidez les projets avec les contributions des experts concernés.</p>
             </div>
-            <div class="reveal delay-300 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-300 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-blue-600 bg-blue-500/10 border-blue-500/20">
                     <i data-lucide="users" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Réseau d'Experts</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Un annuaire exclusif regroupant les plus grands ingénieurs, chercheurs et légistes de la nation.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Réseau d'experts</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Identifiez les membres, les compétences et les structures associés aux travaux des comités.</p>
             </div>
-            <div class="reveal delay-100 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-100 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-amber-600 bg-amber-500/10 border-amber-500/20">
                     <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Réunions &amp; Scrutins</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Gérez les convocations, les quorums, et lancez des scrutins officiels à majorité qualifiée en un clic.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Réunions et décisions</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Préparez les réunions, suivez les participants et conservez les décisions prises par les instances.</p>
             </div>
-            <div class="reveal delay-200 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-200 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-red-600 bg-red-500/10 border-red-500/20">
                     <i data-lucide="lock" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Bureau Légistique</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Espace réservé à la vérification juridique pour garantir que chaque terme respecte la législation en vigueur.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Relecture juridique</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Contrôlez la cohérence des textes et leur conformité avec le cadre juridique applicable.</p>
             </div>
-            <div class="reveal delay-300 group bg-white rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer">
+            <div class="reveal delay-300 group bg-white p-8 border border-slate-200 hover:shadow-md transition-all cursor-pointer dark:bg-slate-950 dark:border-white/10">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 border text-amber-600 bg-amber-500/10 border-amber-500/20">
                     <i data-lucide="zap" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors">Gestion &amp; Allocations</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">Suivi des cotisations institutionnelles et automatisation du paiement des jetons de présence pour les experts.</p>
+                <h3 class="text-sm font-bold text-slate-800 mb-2 group-hover:text-[#00688f] transition-colors dark:text-white">Suivi administratif</h3>
+                <p class="text-slate-500 text-xs leading-relaxed dark:text-slate-400">Suivez les engagements, les présences et les éléments administratifs liés aux travaux des experts.</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ── Pour qui ? ───────────────────────────────────────────────────────── -->
-<section id="audience" class="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-slate-200">
+<section id="audience" class="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-slate-200 dark:bg-slate-950 dark:border-white/10">
     <div class="max-w-6xl mx-auto">
         <div class="text-center mb-16 reveal-scale">
-            <h2 class="text-3xl font-bold text-slate-800 tracking-wider mb-4 uppercase">Qui Devrait S'Inscrire ?</h2>
-            <p class="text-slate-500 max-w-2xl mx-auto text-sm">
-                La plateforme est un espace professionnel sécurisé nécessitant une accréditation.
-                Elle rassemble les acteurs majeurs du développement technique national.
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight mb-4 dark:text-white">Qui peut utiliser la plateforme&nbsp;?</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto text-sm dark:text-slate-300">
+                L'accès dépend du rôle et du périmètre de chaque organisation. Les membres habilités disposent
+                d'un espace adapté à leurs responsabilités.
             </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="reveal flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+            <div class="reveal flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors dark:bg-slate-900 dark:border-white/10">
                 <div class="shrink-0">
                     <i data-lucide="briefcase" class="w-10 h-10 text-blue-600 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-3">Experts &amp; Ingénieurs</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Pour co-rédiger les standards, influencer la réglementation technique et valoriser votre expertise au sein de comités prestigieux de niveau national.</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
-                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 dark:text-white">Experts et ingénieurs</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed dark:text-slate-400">Contribuez à la rédaction, à la relecture et à l'évaluation des projets relevant de votre domaine.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold dark:text-cyan-300">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès selon habilitation
                     </div>
                 </div>
             </div>
-            <div class="reveal delay-100 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+            <div class="reveal delay-100 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors dark:bg-slate-900 dark:border-white/10">
                 <div class="shrink-0">
                     <i data-lucide="graduation-cap" class="w-10 h-10 text-blue-600 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-3">Universités &amp; Chercheurs</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Pour connecter la recherche académique au monde industriel, et s'assurer que les normes nationales reflètent l'état de l'art scientifique.</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
-                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 dark:text-white">Universités et recherche</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed dark:text-slate-400">Mettez les travaux scientifiques à la disposition des comités et participez à l'évolution des référentiels.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold dark:text-cyan-300">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès selon habilitation
                     </div>
                 </div>
             </div>
-            <div class="reveal delay-200 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+            <div class="reveal delay-200 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors dark:bg-slate-900 dark:border-white/10">
                 <div class="shrink-0">
                     <i data-lucide="building-2" class="w-10 h-10 text-amber-600 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-3">Industries &amp; Entreprises</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Pour anticiper les nouvelles réglementations, participer aux enquêtes publiques, et garantir la pleine conformité légale de vos réalisations.</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
-                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 dark:text-white">Entreprises et organismes techniques</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed dark:text-slate-400">Suivez les projets, participez aux consultations et préparez vos activités en tenant compte des normes publiées.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold dark:text-cyan-300">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès selon habilitation
                     </div>
                 </div>
             </div>
-            <div class="reveal delay-300 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors">
+            <div class="reveal delay-300 flex flex-col sm:flex-row gap-6 bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:border-[#0095c9]/30 transition-colors dark:bg-slate-900 dark:border-white/10">
                 <div class="shrink-0">
                     <i data-lucide="landmark" class="w-10 h-10 text-red-600 bg-red-500/10 p-2 rounded-xl border border-red-500/20"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-3">Institutions Publiques</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">Pour superviser l'élaboration des textes de loi, valider leur homologation et piloter la stratégie normative pour le développement du pays.</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold">
-                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès sur accréditation
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 dark:text-white">Institutions publiques</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed dark:text-slate-400">Pilotez les travaux de normalisation, instruisez les dossiers et suivez les étapes de validation officielle.</p>
+                    <div class="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#00688f] font-bold dark:text-cyan-300">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Accès selon habilitation
                     </div>
                 </div>
             </div>
@@ -260,16 +239,16 @@
 <section class="py-24 px-4 sm:px-6 lg:px-8 bg-[#0a2540]">
     <div class="max-w-4xl mx-auto text-center">
         <div class="reveal">
-            <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-white tracking-tight">Intégrez le Cercle d'Excellence</h2>
+            <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-white tracking-tight">Participez à l'élaboration des normes</h2>
             <p class="text-slate-300 mb-10 text-base">
-                Devenez acteur de la standardisation nationale. Publiez des textes qui façonneront l'avenir technique de nos infrastructures et industries.
+                Rejoignez les travaux du CNETP et contribuez à des référentiels utiles aux professionnels et aux institutions.
             </p>
             <div class="flex gap-4 justify-center flex-wrap">
                 <a href="{% url 'web:expert_login' %}" class="px-8 py-4 bg-[#fff24b] text-slate-900 rounded font-bold uppercase tracking-widest text-xs hover:bg-yellow-300 transition-colors shadow-lg flex items-center gap-2">
-                    Se Connecter
+                    Se connecter
                 </a>
                 <a href="{% url 'web:app' %}" class="px-8 py-4 bg-white/10 text-white border border-white/20 rounded font-bold uppercase tracking-widest text-xs hover:bg-white/20 transition-colors">
-                    Naviguer sur la Plateforme
+                    Accéder à la plateforme
                 </a>
             </div>
         </div>

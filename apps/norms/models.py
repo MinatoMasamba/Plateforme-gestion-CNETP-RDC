@@ -161,7 +161,9 @@ class Norme(BaseModel):
             'DRAFT': ['INTERNAL_REVIEW', 'CTM_REVIEW'],
             'INTERNAL_REVIEW': ['CTM_REVIEW', 'DRAFT'],
             'CTM_REVIEW': ['LEGISTIC_REVIEW', 'INTERNAL_REVIEW'],
-            'LEGISTIC_REVIEW': ['PUBLIC_INQUIRY', 'CTM_REVIEW'],
+            # La CTC peut transmettre directement au Pilotage après ses examens
+            # internes; l'enquête publique intervient ensuite selon décision.
+            'LEGISTIC_REVIEW': ['PUBLIC_INQUIRY', 'PILOTAGE_REVIEW', 'CTM_REVIEW'],
             'PUBLIC_INQUIRY': ['PILOTAGE_REVIEW', 'CTM_REVIEW'],
             'PILOTAGE_REVIEW': ['FINAL_REVIEW', 'PUBLIC_INQUIRY'],
             'FINAL_REVIEW': ['ADOPTED', 'PUBLIC_INQUIRY'],

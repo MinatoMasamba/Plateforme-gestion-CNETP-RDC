@@ -49,8 +49,8 @@ class LegisticReviewStartSerializer(serializers.ModelSerializer):
         fields = ['legist', 'comments']
 
     def validate_legist(self, value):
-        """Vérifier que le légiste est bien un expert"""
-        if not value.is_active:
+        """Vérifier que le légiste est bien un expert actif"""
+        if not value.user.is_active:
             raise serializers.ValidationError("Le légiste doit être actif")
         return value
 

@@ -13,9 +13,6 @@ ALLOWED_HOSTS = config(
     cast=Csv()
 )
 
-GEMINI_API_URL = config('GEMINI_API_URL', default='')
-GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -106,21 +104,29 @@ else:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': config('SQLITE_NAME', default=str(BASE_DIR / 'db.sqlite3')),
     }
 }
 
-# Configuration PostgreSQL pour production (à décommenter)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': config('DB_NAME', default='cnetp_db'),
-#         'USER': config('DB_USER', default='cnetp_user'),
-#         'PASSWORD': config('DB_PASSWORD', default='cnetp_password'),
-#         'HOST': config('DB_HOST', default='localhost'),
-#         'PORT': config('DB_PORT', default='5432'),
-#     }
-# }
+# Configuration PostgreSQL pilotée par l'environnement.
+# Mettre DB_ENGINE=postgresql (ou DB_ENGINE=postgres) dans .env pour basculer.
+# Par défaut on reste sur SQLite pour le développement.
+DB_ENGINE = config('DB_ENGINE', default='sqlite').strip().lower()
+if DB_ENGINE in ('postgres', 'postgresql', 'django.db.backends.postgresql'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='cnetp_db'),
+            'USER': config('DB_USER', default='cnetp_user'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+            'CONN_MAX_AGE': config('DB_CONN_MAX_AGE', default=600, cast=int),
+            'OPTIONS': {
+                'connect_timeout': config('DB_CONNECT_TIMEOUT', default=10, cast=int),
+            },
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -140,6 +146,18 @@ STATICFILES_DIRS = [
     BASE_DIR / 'web' / 'static' / 'dist',
     BASE_DIR / 'templates' / 'static',
 ]
+
+# WhiteNoise : sert les fichiers statiques compressés directement depuis Django,
+# ce qui permet de tourner en production sans reverse-proxy Nginx.
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
+WHITENOISE_MAX_AGE = config('WHITENOISE_MAX_AGE', default=31536000, cast=int)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -199,8 +217,8 @@ SPECTACULAR_SETTINGS = {
     'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
 }
 
-# CORS Configuration — autorise tous les localhost pour le dev Flutter web
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration — ouvert en dev (DEBUG), restreint en production.
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=DEBUG, cast=bool)
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_PRIVATE_NETWORK = True  # Chrome Private Network Access (localhost → 127.0.0.1)
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://localhost:8000', cast=Csv())
@@ -258,6 +276,9 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'inscription-expert/'
 
+# URL publique de la plateforme — utilisée dans les liens d'activation/confirmation
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 # Celery Configuration — actif si CELERY_BROKER_URL est défini
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=CELERY_BROKER_URL)
@@ -268,6 +289,14 @@ CELERY_TIMEZONE = 'Africa/Kinshasa'
 # True = exécuter les tasks en mode synchrone sans broker (utile en dev sans Redis)
 CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=not bool(CELERY_BROKER_URL), cast=bool)
 
+# Tâches périodiques (Celery Beat). Nécessite un broker (Redis).
+CELERY_BEAT_SCHEDULE = {
+    'digest-notifications-quotidien': {
+        'task': 'apps.mobileapp.tasks.send_all_notification_digests',
+        'schedule': 24 * 60 * 60,  # toutes les 24h
+    },
+}
+
 # Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -277,12 +306,13 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cnetp.cd')
 
-# Agent IA — Claude (Anthropic) — laisser vide pour désactiver
-ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
-ANTHROPIC_MODEL = config('ANTHROPIC_MODEL', default='claude-sonnet-4-5')
-# Agent IA — Gemini (Google) — laisser vide pour désactiver
-GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
-GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-2.0-flash')
+# Agent IA — DeepSeek — laisser vide pour désactiver
+DEEPSEEK_API_KEY = config('DEEPSEEK_API_KEY', default='')
+DEEPSEEK_MODEL = config('DEEPSEEK_MODEL', default='deepseek-chat')
+DEEPSEEK_BASE_URL = config('DEEPSEEK_BASE_URL', default='https://api.deepseek.com')
+DEEPSEEK_MAX_TOKENS = config('DEEPSEEK_MAX_TOKENS', default=8192, cast=int)
+DEEPSEEK_TEMPERATURE = config('DEEPSEEK_TEMPERATURE', default=0.7, cast=float)
+DEEPSEEK_TIMEOUT = config('DEEPSEEK_TIMEOUT', default=120, cast=int)
 IA_AGENT_MAX_TOOL_ITERATIONS = config('IA_AGENT_MAX_TOOL_ITERATIONS', default=8, cast=int)
 
 # WhatsApp via Twilio (laisser vide pour désactiver l'envoi réel)
