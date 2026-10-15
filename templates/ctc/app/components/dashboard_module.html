@@ -1,31 +1,32 @@
-<div class="p-6 text-slate-800 dark:text-slate-300 transition-colors duration-200 w-full h-full">
-    <div class="mb-6 animate-slideIn">
-        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Tableau de Bord Exécutif</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Interface personnalisée selon vos accréditations CNE-ITP.</p>
+<section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8" aria-labelledby="ctc-dashboard-title">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div><p class="premium-eyebrow">Cellule technique de coordination · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
+    <button type="button" onclick="window.switchView('assignations')" class="institutional-primary rounded-lg px-4 py-2 text-sm font-semibold">Mes assignations</button>
+  </div>
+  <div class="institutional-card premium-hero p-5 sm:p-7">
+    <p class="premium-eyebrow">Votre activité</p><h3 class="premium-section-title">Vue d'ensemble</h3>
+    <div class="premium-kpi-grid mt-5">
+      <div class="premium-kpi"><p>Dossiers CTC</p><strong>{{ dashboard_dossiers_count }}</strong><span>Enregistrés dans le circuit</span></div>
+      <div class="premium-kpi"><p>Mes assignations</p><strong>{{ dashboard_assignations_count }}</strong><span>Attribuées à votre poste</span></div>
+      <div class="premium-kpi"><p>Normes suivies</p><strong>{{ ctc_statistics.norm_count }}</strong><span>Rattachement explicite</span></div>
+      <div class="premium-kpi"><p>Tâches en retard</p><strong>{{ ctc_statistics.overdue_count }}</strong><span>Selon leur échéance</span></div>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% if is_direction %}
-        <div class="col-span-full mt-2 mb-1">
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
-                <div class="bg-blue-100 text-blue-700 p-1.5 rounded dark:bg-blue-500/10 dark:text-blue-400"><i data-lucide="file-text" class="w-4 h-4"></i></div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white leading-tight">Direction des Opérations (Pilotage Exécutif)</h3>
-            </div>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Hub de Routage Documentaire</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                {% include "ctc/composants/hub_routage_documentaire.html" %}
-            </div>
-        </div>
-        {% endif %}
-
+  </div>
+  {% include "ctc/app/components/statistics_charts.html" with chart_prefix="dashboard" %}
+  <div class="grid gap-5 xl:grid-cols-2">
+    <section class="institutional-card min-w-0 overflow-hidden" aria-labelledby="ctc-dashboard-assign-title">
+      <div class="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700"><h3 id="ctc-dashboard-assign-title" class="font-bold">Travail attribué</h3><button type="button" onclick="window.switchView('assignations')" aria-label="Voir toutes mes assignations" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Tout voir</button></div>
+      <div class="divide-y divide-slate-200 dark:divide-slate-700">{% for task in assignation_tasks|slice:':5' %}<div class="p-4"><p class="text-xs institutional-muted">{{ task.type_label }} · {{ task.status_display }}</p><p class="mt-1 text-sm font-semibold">{{ task.title }}</p>{% if task.detail_url %}<a href="{{ task.detail_url }}" class="mt-2 inline-block text-sm font-semibold text-blue-700 underline dark:text-blue-300">Ouvrir le dossier</a>{% endif %}</div>{% empty %}<div class="p-4"><p class="text-sm font-semibold">Aucun dossier à réceptionner</p><p class="mt-1 text-sm institutional-muted">Aucune assignation explicite n'attend ce poste.</p></div>{% endfor %}</div>
+    </section>
+    <section class="institutional-card min-w-0 overflow-hidden" aria-labelledby="ctc-dashboard-dossier-title">
+      <div class="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700"><h3 id="ctc-dashboard-dossier-title" class="font-bold">Dossiers normatifs</h3><button type="button" onclick="window.switchView('dossiers')" aria-label="Voir tous les dossiers normatifs" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Tout voir</button></div>
+      <div class="divide-y divide-slate-200 dark:divide-slate-700">{% for dossier in dossiers|slice:':5' %}<div class="grid gap-2 p-4 sm:grid-cols-[1fr_auto] sm:items-center"><div class="min-w-0"><p class="text-xs institutional-muted">{{ dossier.norme.reference_number }} · {{ dossier.get_current_stage_display }}</p><p class="mt-1 text-sm font-semibold">{{ dossier.norme.title }}</p></div><a href="{% url 'web:ctc_norme_read' dossier.norme_id %}" class="text-sm font-semibold text-blue-700 underline dark:text-blue-300">Lire</a></div>{% empty %}<p class="p-4 text-sm institutional-muted">Aucun dossier dans le circuit CTC.</p>{% endfor %}</div>
+    </section>
+  </div>
+  <div class="institutional-card flex flex-wrap items-center justify-between gap-3 p-4"><div class="flex items-center gap-4"><div><h3 class="font-bold">Suivi statistique</h3><p class="mt-1 text-sm institutional-muted">{{ ctc_statistics.sc_count }} sous-commissions et CTM · {{ ctc_statistics.group_count }} groupes suivis.</p></div>{% if ctc_statistics.global_performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ ctc_statistics.global_performance }}; --donut-color: {{ ctc_statistics.global_color }}" aria-label="Performance globale {{ ctc_statistics.global_performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ ctc_statistics.global_performance }}%</span></div></div>{% endif %}</div><button type="button" onclick="window.switchView('statistiques')" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Consulter dans la CTC</button></div>
+  {% if is_direction %}<details class="institutional-card p-4"><summary class="cursor-pointer font-bold">Acheminement documentaire</summary><div class="mt-4">{% include "ctc/composants/hub_routage_documentaire.html" %}</div></details>{% endif %}
+  <h3 class="border-b border-slate-200 pb-2 text-lg font-bold dark:border-slate-700">Outils de votre poste</h3>
+  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {% if can_translate_iso or can_legistique_ctc or can_eco_env_matrix or can_methodologie_chronogramme %}
         <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
             <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
@@ -193,5 +194,5 @@
         </div>
         {% endif %}
 
-    </div>
-</div>
+  </div>
+</section>

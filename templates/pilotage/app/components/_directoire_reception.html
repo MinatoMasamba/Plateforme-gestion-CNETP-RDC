@@ -1,0 +1,13 @@
+<section id="post-{{ poste.n }}-phase{{ phase }}" class="poste-section">
+    <header class="flex flex-wrap items-baseline justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10">
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
+        <p class="text-xs text-slate-500">{{ processes|length }} dossier{{ processes|length|pluralize }} transmis</p>
+    </header>
+    {% for proc in processes %}
+        {% if poste.n == 1 %}
+            {% include "pilotage/app/components/_reception_item.html" with proc=proc is_mine=poste.is_mine poste_n=poste.n peer_received=proc.received_by_rapporteur_at peer_label="le Rapporteur Général" %}
+        {% else %}
+            {% include "pilotage/app/components/_reception_item.html" with proc=proc is_mine=poste.is_mine poste_n=poste.n peer_received=proc.received_by_president_at peer_label="le Président" %}
+        {% endif %}
+    {% empty %}<p class="py-6 text-sm text-slate-500">Aucun dossier transmis en attente de réception.</p>{% endfor %}
+</section>

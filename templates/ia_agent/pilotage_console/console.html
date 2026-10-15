@@ -44,6 +44,9 @@
         .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
         .ia-md pre { background: rgba(0,0,0,.07); padding: .5em .75em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
         .ia-md blockquote { border-left: 3px solid rgba(0,149,201,.4); padding-left: .75em; opacity: .85; }
+        .ia-copy-message { opacity: 0; pointer-events: none; }
+        .ia-message-bubble:hover .ia-copy-message,
+        .ia-message-bubble:focus-within .ia-copy-message { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
@@ -79,7 +82,11 @@
             <div class="flex items-center gap-2 min-w-0">
                 <i data-lucide="sparkles" class="w-4 h-4 text-[#0095c9] shrink-0"></i>
                 <h1 class="text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase truncate">
-                    Assistant IA — Pilotage
+                    <a href="https://minatomasamba.pythonanywhere.com/" target="_blank" rel="noopener noreferrer"
+                       title="Neronne de Source Académique AI" aria-label="Neronne de Source Académique AI"
+                       class="hover:text-[#0095c9] hover:underline transition-colors">
+                        Neronne de Source Académique AI
+                    </a>
                 </h1>
             </div>
             <span class="hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border
@@ -109,10 +116,13 @@
                                bg-[#0095c9] hover:brightness-110 text-white transition-colors">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouvelle session
                 </button>
-                <div class="flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg border transition-colors
-                            border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400">
-                    <i data-lucide="sparkles" class="w-3 h-3"></i> DeepSeek
-                </div>
+                <a href="https://minatomasamba.pythonanywhere.com/" target="_blank" rel="noopener noreferrer"
+                   title="Neronne de Source Académique AI" aria-label="Neronne de Source Académique AI"
+                   class="flex items-center justify-center gap-1.5 py-1.5 px-2 text-[10px] font-bold rounded-lg border transition-colors
+                          border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:underline dark:bg-blue-400/10 dark:text-blue-400 dark:hover:bg-blue-400/20">
+                    <i data-lucide="sparkles" class="w-3 h-3 shrink-0"></i>
+                    <span class="truncate">Neronne de Source Académique AI</span>
+                </a>
             </div>
             <div id="ia-session-list" class="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
                 {% for s in ia_sessions %}
@@ -237,14 +247,60 @@
                 bubble.className = 'bg-[#0095c9] text-white rounded-2xl px-4 py-2.5 max-w-[80%] whitespace-pre-wrap break-words';
                 bubble.innerHTML = iaEsc(msg.content);
             } else {
-                bubble.className = 'ia-md bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-4 py-2.5 max-w-[80%] break-words';
-                bubble.innerHTML = (typeof marked !== 'undefined')
+                bubble.className = 'ia-md ia-message-bubble bg-slate-100 dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-4 py-2.5 max-w-[80%] break-words';
+                const content = document.createElement('div');
+                content.innerHTML = (typeof marked !== 'undefined')
                     ? marked.parse(msg.content || '')
                     : iaEsc(msg.content);
+                content.querySelectorAll('a').forEach(function(link) {
+                    const href = link.getAttribute('href') || '';
+                    const safe = (href.startsWith('/') && !href.startsWith('//')) || /^https?:\/\//i.test(href);
+                    if (!safe) {
+                        link.replaceWith(document.createTextNode(link.textContent || href));
+                        return;
+                    }
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                });
+                bubble.appendChild(content);
+                const copyButton = document.createElement('button');
+                copyButton.type = 'button';
+                copyButton.className = 'ia-copy-message flex items-center gap-1 mt-2 pt-1.5 border-t border-slate-200 dark:border-white/10 text-[11px] text-slate-500 dark:text-slate-400 hover:text-[#0095c9] transition-opacity';
+                copyButton.title = 'Copier le message';
+                copyButton.setAttribute('aria-label', 'Copier le message');
+                copyButton.innerHTML = '<i data-lucide="copy" class="h-3 w-3"></i><span>Copier</span>';
+                copyButton.addEventListener('click', function() {
+                    iaCopyMessage(content.innerText || msg.content || '', copyButton);
+                });
+                bubble.appendChild(copyButton);
             }
             wrap.appendChild(bubble);
             box.appendChild(wrap);
             return wrap;
+        }
+
+        async function iaCopyMessage(text, button) {
+            let copied = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    copied = true;
+                }
+            } catch (error) {}
+            if (!copied) {
+                const area = document.createElement('textarea');
+                area.value = text;
+                area.style.position = 'fixed';
+                area.style.opacity = '0';
+                document.body.appendChild(area);
+                area.focus();
+                area.select();
+                try { copied = document.execCommand('copy'); } catch (error) {}
+                area.remove();
+            }
+            const label = button.querySelector('span');
+            if (label) label.textContent = copied ? 'Copié' : 'Échec';
+            if (copied) setTimeout(function() { if (label) label.textContent = 'Copier'; }, 1600);
         }
 
         function iaArtifactIcon(type) {
@@ -472,6 +528,8 @@
 
                 if (!isOpen && body.dataset.rendered === '0') {
                     body.dataset.rendered = '1';
+                    const artifactLinks = iaBuildArtifactLinks(artifact);
+                    if (artifactLinks) body.appendChild(artifactLinks);
                     if (artifact.artifact_type === 'WG_REQUEST') {
                         body.appendChild(iaBuildWgRequest(artifact));
                     } else if (artifact.artifact_type === 'EMAIL_DRAFT') {
@@ -488,6 +546,24 @@
             box.appendChild(card);
             iaIcons();
             return card;
+        }
+
+        function iaBuildArtifactLinks(artifact) {
+            const links = Array.isArray(artifact.links) ? artifact.links : [];
+            if (!links.length) return null;
+            const wrap = document.createElement('div');
+            wrap.className = 'flex flex-wrap gap-2 mb-3';
+            links.forEach(function(item) {
+                if (!item || typeof item.url !== 'string' || !item.url.startsWith('/') || item.url.startsWith('//')) return;
+                const link = document.createElement('a');
+                link.href = item.url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.className = 'inline-flex items-center gap-1 text-[#0076a3] dark:text-[#0095c9] hover:underline font-semibold';
+                link.innerHTML = '<i data-lucide="external-link" class="h-3 w-3"></i> ' + iaEsc(item.label || 'Ouvrir');
+                wrap.appendChild(link);
+            });
+            return wrap.childNodes.length ? wrap : null;
         }
 
         function iaClearConversation() {

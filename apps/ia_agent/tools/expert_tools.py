@@ -162,6 +162,8 @@ def draft_wg_attribution_request(session, expert_id, target_wg_id, justification
 
     return {
         "artifact_id": artifact.id,
+        "url": f"/api/v1/ia-agent/artifacts/{artifact.id}/",
+        "link_label": "Ouvrir le brouillon de demande WG",
         "status": artifact.status,
         "title": artifact.title,
         "message": (

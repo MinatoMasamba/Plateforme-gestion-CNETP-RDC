@@ -1,234 +1,140 @@
-<div class="p-6 max-w-4xl mx-auto relative text-slate-800 dark:text-slate-300 transition-colors duration-200">
-    
-    <div 
-        id="settings-toast" 
-        class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 font-bold text-sm transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none z-50 dark:bg-white dark:text-slate-900"
-    >
-        <div class="bg-emerald-500 rounded-full p-1 text-white dark:text-white">
-            <i data-lucide="save" class="w-3 h-3"></i>
-        </div>
-        <span>Préférences mises à jour</span>
+<style>
+  #view-parametres .ctc-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0; }
+  #view-parametres .ctc-setting-row + .ctc-setting-row { border-top: 1px solid #d8e0eb; }
+  .dark #view-parametres .ctc-setting-row + .ctc-setting-row { border-color: #334155; }
+  #view-parametres .ctc-setting-switch { appearance: none; -webkit-appearance: none; position: relative; display: inline-block; flex: 0 0 46px; width: 46px; height: 26px; margin: 0; border: 2px solid #64748b; border-radius: 999px; background: #64748b; cursor: pointer; vertical-align: middle; transition: background-color .15s ease, border-color .15s ease; }
+  #view-parametres .ctc-setting-switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0005; transition: transform .15s ease; }
+  #view-parametres .ctc-setting-switch:checked, #view-parametres .ctc-setting-switch[aria-pressed="true"] { background: #5b00e6; border-color: #5b00e6; }
+  #view-parametres .ctc-setting-switch:checked::before, #view-parametres .ctc-setting-switch[aria-pressed="true"]::before { transform: translateX(20px); }
+  #view-parametres .ctc-setting-switch:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+  #view-parametres .ctc-setting-switch:disabled { opacity: .55; cursor: progress; }
+  @media (prefers-reduced-motion: reduce) { #view-parametres .ctc-setting-switch, #view-parametres .ctc-setting-switch::before { transition: none; } }
+</style>
+<section class="institutional-page mx-auto max-w-5xl space-y-5 p-4 sm:p-6" aria-labelledby="settings-title">
+  <div><p class="text-sm institutional-muted">Système</p><h2 id="settings-title" class="text-2xl font-bold">Paramètres</h2><p class="mt-1 text-sm institutional-muted">Les réglages actifs sont appliqués par le serveur. Les autres indiquent le service manquant.</p></div>
+  <form id="ctc-settings-csrf" class="hidden">{% csrf_token %}</form>
+  <p id="ctc-settings-feedback" class="hidden rounded-lg border px-4 py-3 text-sm" role="status" aria-live="polite"></p>
+  <div class="institutional-card p-5">
+    <h3 class="text-lg font-bold">Préférences générales</h3>
+    <div class="ctc-setting-row">
+      <span><span class="block text-sm font-semibold">Mode sombre</span><span class="block text-xs institutional-muted">Le thème est mémorisé sur cet appareil.</span></span>
+      <button type="button" data-theme-toggle class="ctc-setting-switch" aria-pressed="false" aria-label="Activer le thème sombre"></button>
     </div>
-
-    <div class="mb-6 flex items-center gap-3 animate-slideIn">
-        <i data-lucide="settings" class="w-8 h-8 text-slate-400 dark:text-slate-500"></i>
-        <div>
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Préférences Système</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-                Configuration de l'espace de travail pour le profil : <span id="settings-profile-title" class="font-bold text-slate-700 dark:text-slate-200">...</span>
-            </p>
-        </div>
+  </div>
+  <div class="institutional-card p-5">
+    <h3 class="text-lg font-bold">Notifications</h3>
+    <p class="mt-1 text-sm institutional-muted">Ces choix sont enregistrés dans votre compte et appliqués lors de l'envoi des notifications correspondantes.</p>
+    <div class="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
+      <label class="ctc-setting-row text-sm"><span>Notifications du système</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_system" {% if ctc_notification_preferences.enable_system %}checked{% endif %}></label>
+      <label class="ctc-setting-row text-sm"><span>Actualités des normes</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_norm_updates" {% if ctc_notification_preferences.enable_norm_updates %}checked{% endif %}></label>
+      <label class="ctc-setting-row text-sm"><span>Invitations aux réunions</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_reunion_invites" {% if ctc_notification_preferences.enable_reunion_invites %}checked{% endif %}></label>
+      <label class="ctc-setting-row text-sm"><span>Votes</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_votes" {% if ctc_notification_preferences.enable_votes %}checked{% endif %}></label>
+      <label class="ctc-setting-row text-sm"><span>Amendements</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_amendments" {% if ctc_notification_preferences.enable_amendments %}checked{% endif %}></label>
+      <label class="ctc-setting-row text-sm"><span>Paiements</span><input class="ctc-setting-switch" type="checkbox" data-ctc-notification="enable_payments" {% if ctc_notification_preferences.enable_payments %}checked{% endif %}></label>
     </div>
-
-    <div id="settings-sections-container" class="grid grid-cols-1 gap-6">
-        </div>
-</div>
-
+  </div>
+  {% if can_admin_system %}
+  <div class="institutional-card p-5">
+    <h3 class="text-lg font-bold">Sauvegarde globale</h3>
+    {% if ctc_backup_available %}
+    <p class="mt-1 text-sm institutional-muted">Copie de la base SQLite et des documents, avec contrôle de restauration et d'intégrité. L'opération est journalisée.</p>
+    <button type="button" id="ctc-backup-button" class="institutional-primary mt-4 rounded-lg px-4 py-2 text-sm font-semibold">Lancer la sauvegarde</button>
+    {% else %}<p class="mt-2 text-sm institutional-muted">Non disponible : la sauvegarde vérifiée du serveur actuel prend en charge SQLite uniquement.</p>{% endif %}
+  </div>
+  {% endif %}
+  <div class="institutional-card p-5">
+    <h3 class="text-lg font-bold">Intégrations et règles</h3>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+        <h4 class="font-semibold">Synchronisation Drive</h4>
+        {% if ctc_drive_credentials_present and ctc_drive_folder_configured %}
+        <p class="mt-1 text-sm institutional-muted">Dossier CNE-ITP configuré. Versions et pièces des normes adoptées, homologuées ou publiées uniquement.</p>
+        <p class="mt-2 text-sm">{{ ctc_drive_candidate_count }} fichier{{ ctc_drive_candidate_count|pluralize }} éligible{{ ctc_drive_candidate_count|pluralize }} actuellement.</p>
+        {% if can_admin_system %}
+        <label class="ctc-setting-row mt-3 text-sm font-semibold"><span>Transferts automatiques</span><input class="ctc-setting-switch" type="checkbox" id="ctc-drive-toggle" {% if ctc_drive_sync_settings.enabled %}checked{% endif %}></label>
+        <p class="mt-1 text-xs institutional-muted">L'activation lance aussi le transfert des fichiers déjà éligibles. Chaque essai est conservé.</p>
+        {% else %}<p class="mt-2 text-xs institutional-muted">Activation réservée aux postes IT CTC.</p>{% endif %}
+        {% if ctc_drive_recent_attempts %}
+        <h5 class="mt-4 text-sm font-semibold">Derniers transferts</h5>
+        <ul class="mt-2 space-y-1 text-xs">{% for attempt in ctc_drive_recent_attempts %}<li>{{ attempt.get_source_kind_display }} · {{ attempt.get_status_display }} · {{ attempt.created_at|date:"d/m/Y H:i" }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% else %}<p class="mt-1 text-sm institutional-muted">Non disponible : identifiants ou dossier CNE-ITP manquants.</p>{% endif %}
+      </div>
+      {% if is_direction %}
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Délégation de signature temporaire</h4><p class="mt-1 text-sm institutional-muted">Non disponible : habilitation et périmètre de délégation à définir par une autorité compétente.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Alertes Chronogramme Strict</h4><p class="mt-1 text-sm institutional-muted">Non disponible : échéances et règle d'envoi 48 h à raccorder au service de rappel.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Clé d'homologation</h4><p class="mt-1 text-sm institutional-muted">Non disponible : aucune infrastructure de signature ou autorisation de régénération n'est définie.</p></div>
+      {% elif is_analyste %}
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Synchronisation ISO automatique</h4><p class="mt-1 text-sm institutional-muted">Non disponible : source autorisée et tâche planifiée non configurées.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Correcteur de structure</h4><p class="mt-1 text-sm institutional-muted">Non disponible : aucun contrôle serveur n'utilise ce réglage.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Modèle de rapport de non-conformité</h4><p class="mt-1 text-sm institutional-muted">Non disponible : aucun générateur de rapport serveur n'est raccordé.</p></div>
+      {% elif is_logistique %}
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Filtre anti-spam des enquêtes publiques</h4><p class="mt-1 text-sm institutional-muted">Non disponible : aucune règle de rejet serveur n'est définie.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Visibilité budgétaire</h4><p class="mt-1 text-sm institutional-muted">Non disponible : solde trimestriel fiable à raccorder au tableau de bord.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Canal de communication externe</h4><p class="mt-1 text-sm institutional-muted">Non disponible : canaux et routage des messages à configurer.</p></div>
+      {% elif is_numerique %}
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Mode Debug Actif</h4><p class="mt-1 text-sm institutional-muted">Non disponible : la configuration serveur ne peut pas être changée depuis un profil utilisateur.</p></div>
+      <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-700"><h4 class="font-semibold">Rendu cartographique 3D</h4><p class="mt-1 text-sm institutional-muted">Non disponible : aucun moteur SIG 3D n'est connecté.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
 <script>
-    // =========================================================================
-    // ÉTAT GLOBAL LOCAL DU MODULE DE CONFIGURATION
-    // =========================================================================
-    const settingsState = {
-        currentUser: {
-            id: "ctc-1",
-            title: "Directeur Général",
-            pole: "operations", // Options: operations, analyse, logistique, technique
-            role: "ADMIN"
-        },
-        // Stockage des préférences par utilisateur (Équivalent au state React)
-        preferences: {}
-    };
-
-    // =========================================================================
-    // COMPOSANTS DE RENDU TEMPLATE (BLOCS CONFIGURATION)
-    // =========================================================================
-    
-    function createSettingSectionMarkup(title, iconName, optionsHtml) {
-        return `
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm relative overflow-hidden dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center gap-3 rounded-t-xl dark:bg-black/40 dark:border-white/10">
-                <div class="p-2 bg-white rounded-lg shadow-sm border border-slate-200 dark:bg-white/5 dark:border-white/10 text-slate-600 dark:text-slate-300">
-                    <i data-lucide="${iconName}" class="w-5 h-5"></i>
-                </div>
-                <h3 class="font-bold text-slate-800 dark:text-slate-200">${title}</h3>
-            </div>
-            <div class="p-6 space-y-0.5">
-                ${optionsHtml}
-            </div>
-        </div>`;
-    }
-
-    function createToggleOptionMarkup(prefKey, label, description, defaultChecked = false) {
-        const userId = settingsState.currentUser.id;
-        
-        // Résolution de l'état actuel de la checkbox (State de secours si non défini)
-        if (settingsState.preferences[userId] === undefined) {
-            settingsState.preferences[userId] = {};
-        }
-        if (settingsState.preferences[userId][prefKey] === undefined) {
-            settingsState.preferences[userId][prefKey] = defaultChecked;
-        }
-        
-        const isChecked = settingsState.preferences[userId][prefKey];
-
-        return `
-        <div class="flex items-start justify-between py-3 border-b border-slate-100 last:border-0 last:pb-0 dark:border-white/5">
-            <div class="pr-4">
-                <p class="text-sm font-bold text-slate-800 dark:text-slate-200">${label}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${description}</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-1 select-none">
-                <input 
-                    type="checkbox" 
-                    class="sr-only peer" 
-                    ${isChecked ? 'checked' : ''} 
-                    onchange="handlePrefChangeGate('${prefKey}', this.checked)"
-                />
-                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:bg-white/10 dark:after:border-slate-600"></div>
-            </label>
-        </div>`;
-    }
-
-    // =========================================================================
-    // ALGORITHME DE CORRÉLATION ET DISPATCHING DU RENDU
-    // =========================================================================
-    function renderSettingsView() {
-        // Synchronisation du profil avec le Layout Master global (si existant)
-        if (typeof window.state !== 'undefined' && window.state.currentUser) {
-            settingsState.currentUser.id = window.state.currentUser.id;
-            settingsState.currentUser.title = window.state.currentUser.role; // Titre du poste
-            settingsState.currentUser.role = window.state.currentUser.id === 'ctc-1' ? 'ADMIN' : 'MEMBER';
-            
-            // Résolution automatique du pôle d'ingénierie selon la maquette d'architecture
-            if (window.state.currentUser.id === 'ctc-1') settingsState.currentUser.pole = 'operations';
-            else if (window.state.currentUser.id === 'ctc-2') settingsState.currentUser.pole = 'analyse';
-            else if (window.state.currentUser.id === 'ctc-3') settingsState.currentUser.pole = 'logistique';
-            else settingsState.currentUser.pole = 'technique';
-        }
-
-        document.getElementById('settings-profile-title').textContent = settingsState.currentUser.title;
-        const container = document.getElementById('settings-sections-container');
-        const p = settingsState.currentUser.pole;
-
-        // 1. BLOC COMMUN : Préférences Générales
-        let generalOptionsHtml = `
-            ${createToggleOptionMarkup("notifications", "Notifications de Pôle", "Recevoir une alerte mail pour toute nouvelle activité dans votre pôle.", true)}
-            ${createToggleOptionMarkup("drive_sync", "Synchronisation Drive", "Lier automatiquement vos documents validés à l'espace Google Drive de la CNE-ITP.", true)}
-            ${createToggleOptionMarkup("dark_mode", "Mode Sombre (Dark Mode)", "Activer l'interface en thème sombre.", true)}
-        `;
-        let fullHtml = createSettingSectionMarkup("Préférences Générales", "settings", generalOptionsHtml);
-
-        // 2. DISPATCHING DES BLOCS SPÉCIFIQUES AUX PÔLES EXCLUSIFS
-        if (p === 'operations') {
-            let opsHtml = `
-                ${createToggleOptionMarkup("delegation", "Délégation de signature temporaire", "Permet à l'Assistant Exécutif de valider les documents non-stratégiques.", false)}
-                ${createToggleOptionMarkup("alertes_strictes", "Alertes Chronogramme Strict", "Forcer les rappels 48h avant l'expiration du délai d'une Sous-Commission (CTM).", true)}
-                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Clé d'homologation (Comité de Pilotage)</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Renouvellement du token de signature sécurisée.</p>
-                    </div>
-                    <button onclick="triggerTokenRegeneration()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20 transition-colors cursor-pointer">Regénérer</button>
-                </div>
-            `;
-            fullHtml += createSettingSectionMarkup("Administration des Opérations", "shield", opsHtml);
-        } 
-        
-        else if (p === 'analyse') {
-            let analyseHtml = `
-                ${createToggleOptionMarkup("sync_iso", "Synchronisation ISO automatique", "Mettre à jour la base des référentiels internationaux chaque nuit.", true)}
-                ${createToggleOptionMarkup("correcteur_structure", "Correcteur de structure", "Vérification de la mise en forme légistique avant validation.", true)}
-                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                    <label class="text-sm font-bold text-slate-800 dark:text-slate-200 block mb-2">Modèle de rapport de non-conformité par défaut</label>
-                    <select class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-hidden bg-white text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 cursor-pointer">
-                        <option class="dark:bg-slate-900">Format Juridique National (SG-ITP)</option>
-                        <option class="dark:bg-slate-900">Format Scientifique Universitaire</option>
-                        <option class="dark:bg-slate-900">Format Analyse d'impacts environnementaux</option>
-                    </select>
-                </div>
-            `;
-            fullHtml += createSettingSectionMarkup("Outils d'Analyse Documentaire", "globe", analyseHtml);
-        } 
-        
-        else if (p === 'logistique') {
-            let logHtml = `
-                ${createToggleOptionMarkup("filtre_spam", "Filtre anti-spam Enquêtes Publiques", "Rejeter automatiquement les avis ne contenant pas d'information de contact valide.", true)}
-                ${createToggleOptionMarkup("visibilite_budget", "Visibilité Budgétaire", "Afficher le solde du trimestre courant en haut du tableau de bord.", settingsState.currentUser.id === 'gaf_sg_itp')}
-                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                    <label class="text-sm font-bold text-slate-800 dark:text-slate-200 block mb-2">Canal de communication externe</label>
-                    <select class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-hidden bg-white text-slate-800 focus:border-blue-500 dark:bg-black/40 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 cursor-pointer">
-                        <option class="dark:bg-slate-900">Portail public (CNE-ITP.cd)</option>
-                        <option class="dark:bg-slate-900">Canaux syndicaux / industriels (FEC)</option>
-                    </select>
-                </div>
-            `;
-            fullHtml += createSettingSectionMarkup("Logistique & Relations Publiques", "briefcase", logHtml);
-        } 
-        
-        else if (p === 'technique') {
-            let techHtml = `
-                ${createToggleOptionMarkup("mode_debug", "Mode Debug Actif", "Afficher les logs système dans l'interface et enregistrer les erreurs réseau.", true)}
-                ${createToggleOptionMarkup("rendu_3d", "Rendu Cartographique 3D", "Activer l'interface matérielle pour l'affichage de couches SIG haute résolution.", true)}
-                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg flex items-center justify-between dark:bg-black/50 dark:border-white/5">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="database" class="w-5 h-5 text-emerald-400"></i>
-                            <div>
-                                <p class="text-white text-sm font-bold">Sauvegarde Globale</p>
-                                <p class="text-slate-400 text-xs mt-0.5">Dernier backup : Il y a 3 heures</p>
-                            </div>
-                        </div>
-                        <button onclick="executeDatabaseBackup()" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold rounded text-xs hover:bg-emerald-500/30 transition-colors cursor-pointer">Lancer Backup</button>
-                    </div>
-                </div>
-            `;
-            fullHtml += createSettingSectionMarkup("Serveur & Infrastructures (IT/SIG)", "server", techHtml);
-        }
-
-        container.innerHTML = fullHtml;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    // =========================================================================
-    // HANDLERS D'INTERACTION ET MUTATIONS DE L'ÉTAT
-    // =========================================================================
-    
-    function handlePrefChangeGate(prefKey, isChecked) {
-        const userId = settingsState.currentUser.id;
-        settingsState.preferences[userId][prefKey] = isChecked;
-        
-        // Déclenchement de l'action synchrone du Thème si la clé est dark_mode
-        if (prefKey === "dark_mode" && window.CNETPTheme) {
-            window.CNETPTheme.toggle();
-        }
-
-        flashToastFeedback();
-    }
-
-    function flashToastFeedback() {
-        const toast = document.getElementById('settings-toast');
-        if (!toast) return;
-
-        // Équivalent exact du cycle d'affichage React
-        toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-        toast.classList.add('opacity-100', 'translate-y-0');
-
-        setTimeout(() => {
-            toast.classList.remove('opacity-100', 'translate-y-0');
-            toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-        }, 2000);
-    }
-
-    function triggerTokenRegeneration() {
-        alert("Génération d'une nouvelle clé d'homologation d'autorité. Le jeton d'infrastructure AES-256 a été mis à jour.");
-        flashToastFeedback();
-    }
-
-    function executeDatabaseBackup() {
-        alert("Initialisation de la sauvegarde à chaud de la base de données PostgreSQL CNE-ITP... Miroir de redondance stocké sur le serveur principal.");
-        flashToastFeedback();
-    }
-
-    // Auto-initialisation au montage
-    setTimeout(renderSettingsView, 50);
+(function () {
+  const root = document.getElementById('view-parametres');
+  if (!root) return;
+  const csrf = root.querySelector('#ctc-settings-csrf input[name="csrfmiddlewaretoken"]')?.value;
+  const feedback = root.querySelector('#ctc-settings-feedback');
+  function report(message, failed) {
+    feedback.textContent = message;
+    feedback.classList.remove('hidden');
+    feedback.classList.toggle('border-red-500', failed);
+    feedback.classList.toggle('border-blue-500', !failed);
+  }
+  root.querySelectorAll('[data-ctc-notification]').forEach(input => input.addEventListener('change', async () => {
+    const previous = !input.checked;
+    input.disabled = true;
+    try {
+      const response = await fetch('{% url "web:ctc_notification_settings" %}', {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({key: input.dataset.ctcNotification, enabled: input.checked})
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Enregistrement impossible.');
+      report('Préférence enregistrée sur le serveur.', false);
+    } catch (error) {
+      input.checked = previous;
+      report(error.message, true);
+    } finally { input.disabled = false; }
+  }));
+  const backup = root.querySelector('#ctc-backup-button');
+  backup?.addEventListener('click', async () => {
+    backup.disabled = true;
+    report('Sauvegarde en cours…', false);
+    try {
+      const response = await fetch('{% url "web:ctc_backup" %}', {method: 'POST', headers: {'X-CSRFToken': csrf}});
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Sauvegarde impossible.');
+      report(result.message, false);
+    } catch (error) { report(error.message, true); }
+    finally { backup.disabled = false; }
+  });
+  const drive = root.querySelector('#ctc-drive-toggle');
+  drive?.addEventListener('change', async () => {
+    const previous = !drive.checked;
+    drive.disabled = true;
+    try {
+      const response = await fetch('{% url "web:ctc_drive_settings" %}', {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({enabled: drive.checked})
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Synchronisation impossible.');
+      report(result.enabled ? 'Synchronisation activée sur le serveur.' : 'Synchronisation désactivée sur le serveur.', false);
+    } catch (error) {
+      drive.checked = previous;
+      report(error.message, true);
+    } finally { drive.disabled = false; }
+  });
+})();
 </script>

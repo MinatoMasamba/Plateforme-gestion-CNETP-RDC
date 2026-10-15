@@ -572,11 +572,22 @@ class ExecutiveLevel(BaseModel):
 
 
 class Tache(BaseModel):
-    """Tâches et checklist pour les groupes de travail"""
+    """Tâche de production suivie par la coordination technique."""
     working_group = models.ForeignKey(
         WG,
-        on_delete=models.CASCADE,
-        related_name='tasks'
+        on_delete=models.PROTECT,
+        related_name='tasks',
+        null=True,
+        blank=True,
+        verbose_name="Groupe historique",
+    )
+    target_group = models.ForeignKey(
+        'governance.GroupeCible',
+        on_delete=models.PROTECT,
+        related_name='tasks',
+        null=True,
+        blank=True,
+        verbose_name="Groupe de travail",
     )
     norme = models.ForeignKey(
         'norms.Norme',
@@ -609,15 +620,84 @@ class Tache(BaseModel):
         blank=True,
         related_name='assigned_tasks'
     )
+    backup_assignee = models.ForeignKey(
+        Expert,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='backup_tasks',
+        verbose_name="Remplaçant",
+    )
     due_date = models.DateField(null=True, blank=True)
+    priority = models.CharField(
+        max_length=12,
+        choices=[
+            ('LOW', 'Basse'),
+            ('NORMAL', 'Normale'),
+            ('HIGH', 'Haute'),
+            ('CRITICAL', 'Critique'),
+        ],
+        default='NORMAL',
+    )
+    weight = models.PositiveSmallIntegerField(
+        default=3,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name="Poids",
+    )
+    weight_source = models.CharField(
+        max_length=12,
+        choices=[('DEFAULT', 'Valeur par défaut'), ('MANUAL', 'Valeur configurée')],
+        default='DEFAULT',
+    )
+    expected_minutes = models.PositiveIntegerField(null=True, blank=True, verbose_name="Effort attendu (minutes)")
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    deliverable_reference = models.CharField(max_length=500, blank=True, verbose_name="Preuve documentaire")
+    review_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('NOT_REVIEWED', 'Non évalué'),
+            ('ACCEPTED', 'Accepté'),
+            ('RETURNED', 'Retourné'),
+        ],
+        default='NOT_REVIEWED',
+    )
+    reviewed_by = models.ForeignKey(
+        Expert,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_tasks',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    blocked_by = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='unblocks',
+        verbose_name="Bloquée par",
+    )
     
     class Meta:
-        verbose_name = "Tâche WG"
-        verbose_name_plural = "Tâches WG"
+        verbose_name = "Tâche de groupe"
+        verbose_name_plural = "Tâches de groupe"
         ordering = ['-created_at']
+        permissions = [
+            ('manage_task_planning', 'Gérer les objectifs et pondérations'),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.working_group_id and not self.target_group_id:
+            raise ValidationError('La tâche doit être rattachée à un groupe de travail.')
+        if self.working_group_id and self.target_group_id:
+            raise ValidationError('Choisir le groupe historique ou le groupe courant, pas les deux.')
+        if self.backup_assignee_id and self.backup_assignee_id == self.assigned_to_id:
+            raise ValidationError('Le remplaçant doit être distinct du responsable.')
     
     def __str__(self):
-        return f"{self.titre} ({self.working_group.name})"
+        group = self.target_group or self.working_group
+        return f"{self.titre} ({group.name if group else 'Rattachement à confirmer'})"
 
 
 class CTCProcessus(BaseModel):
@@ -1069,3 +1149,177 @@ class PlatformFreeze(BaseModel):
 
     def __str__(self):
         return "Plateforme verrouillée" if self.is_locked else "Plateforme déverrouillée"
+
+
+class Demande(BaseModel):
+    """Demande transverse (instruction, action, signalement) qui fait circuler le travail.
+
+    Modèle de base unique du module « Production » : un ordre du Directoire vers
+    un groupe (instruction), une action confiée à un responsable, ou un
+    signalement vers la CTC. Chaque création et chaque changement de statut est
+    journalisé dans :model:`JournalDemande`.
+    """
+    TYPE_CHOICES = [
+        ('INSTRUCTION', 'Instruction'),
+        ('ACTION', 'Action'),
+        ('SIGNALEMENT', 'Signalement'),
+    ]
+    STATUS_CHOICES = [
+        ('ENVOYEE', 'Envoyée'),
+        ('LUE', 'Lue'),
+        ('EN_COURS', 'En cours'),
+        ('EXECUTEE', 'Exécutée'),
+    ]
+    GRAVITE_CHOICES = [
+        ('FAIBLE', 'Faible'),
+        ('NORMALE', 'Normale'),
+        ('HAUTE', 'Haute'),
+        ('CRITIQUE', 'Critique'),
+    ]
+    # Transitions autorisées (le même flux sert instruction, action et signalement).
+    TRANSITIONS = {
+        'ENVOYEE': ['LUE', 'EN_COURS', 'EXECUTEE'],
+        'LUE': ['EN_COURS', 'EXECUTEE'],
+        'EN_COURS': ['EXECUTEE'],
+        'EXECUTEE': [],
+    }
+
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='INSTRUCTION', verbose_name="Type")
+    emetteur = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, related_name='demandes_emises',
+        verbose_name="Émetteur"
+    )
+    destinataire = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True, related_name='demandes_recues',
+        verbose_name="Responsable"
+    )
+    groupe = models.ForeignKey(
+        WG, on_delete=models.PROTECT, null=True, blank=True, related_name='demandes',
+        verbose_name="Groupe de travail"
+    )
+    sous_commission = models.ForeignKey(
+        CTM, on_delete=models.PROTECT, null=True, blank=True, related_name='demandes',
+        verbose_name="Sous-commission"
+    )
+    norme = models.ForeignKey(
+        'norms.Norme', on_delete=models.SET_NULL, null=True, blank=True, related_name='demandes',
+        verbose_name="Norme"
+    )
+    objet = models.CharField(max_length=300, verbose_name="Objet")
+    message = models.TextField(blank=True, verbose_name="Message")
+    echeance = models.DateField(null=True, blank=True, verbose_name="Échéance")
+    gravite = models.CharField(max_length=20, choices=GRAVITE_CHOICES, blank=True, verbose_name="Gravité")
+    statut = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ENVOYEE', verbose_name="Statut")
+
+    # ── Instructions de production (Cellule Technique de Coordination) ─────
+    nb_normes = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Nombre de normes à produire"
+    )
+    province = models.CharField(max_length=100, blank=True, verbose_name="Province")
+    commune = models.CharField(max_length=100, blank=True, verbose_name="Commune")
+    territoire = models.CharField(max_length=100, blank=True, verbose_name="Territoire")
+    district = models.CharField(max_length=100, blank=True, verbose_name="District")
+    quartier = models.CharField(max_length=100, blank=True, verbose_name="Quartier")
+    avenue_rue = models.CharField(max_length=150, blank=True, verbose_name="Avenue ou rue")
+
+    class Meta:
+        verbose_name = "Demande"
+        verbose_name_plural = "Demandes"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['type', 'statut']),
+            models.Index(fields=['groupe', 'statut']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_type_display()} — {self.objet} ({self.get_statut_display()})"
+
+    @property
+    def destinee_a(self):
+        """Destinataire lisible : responsable, groupe ou sous-commission."""
+        if self.destinataire:
+            return self.destinataire.full_name
+        if self.groupe:
+            return str(self.groupe)
+        if self.sous_commission:
+            return f"Sous-commission {self.sous_commission.number} — {self.sous_commission.name}"
+        return 'Direction'
+
+    def transition(self, nouveau_statut, acteur=None, commentaire=''):
+        """Change le statut en respectant le flux autorisé et journalise la transition."""
+        ancien = self.statut
+        if nouveau_statut not in dict(self.STATUS_CHOICES):
+            raise ValueError("Statut inconnu.")
+        if nouveau_statut == ancien:
+            return self
+        if nouveau_statut not in self.TRANSITIONS.get(ancien, []):
+            raise ValueError(f"Transition refusée : {ancien} → {nouveau_statut}.")
+        self.statut = nouveau_statut
+        self.save(update_fields=['statut', 'updated_at'])
+        JournalDemande.objects.create(
+            demande=self, statut_avant=ancien, statut_apres=nouveau_statut,
+            commentaire=commentaire, acteur=acteur,
+        )
+        return self
+
+
+class JournalDemande(models.Model):
+    """Historique des transitions de statut d'une demande (traçabilité)."""
+    demande = models.ForeignKey(Demande, on_delete=models.CASCADE, related_name='journal')
+    statut_avant = models.CharField(max_length=20, blank=True)
+    statut_apres = models.CharField(max_length=20)
+    commentaire = models.TextField(blank=True)
+    acteur = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
+        verbose_name="Acteur"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Journal de demande"
+        verbose_name_plural = "Journaux de demandes"
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.demande.objet} : {self.statut_avant or '—'} → {self.statut_apres}"
+
+
+class CopilRapport(BaseModel):
+    """Rapport officiel émis par le Comité de Pilotage (COPIL).
+
+    Consultable depuis l'onglet « Instruction » de la CTC. Le contenu est
+    rendu au format A4 (même en-tête/pied que la lecture d'une norme) et peut
+    s'étendre sur plusieurs feuilles selon sa longueur.
+    """
+    reference = models.CharField(max_length=100, blank=True, verbose_name="Référence")
+    titre = models.CharField(max_length=300, verbose_name="Titre")
+    contenu = models.TextField(blank=True, verbose_name="Contenu")
+    emetteur = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='copil_rapports', verbose_name="Émetteur (COPIL)",
+    )
+    date_rapport = models.DateField(null=True, blank=True, verbose_name="Date du rapport")
+
+    class Meta:
+        verbose_name = "Rapport COPIL"
+        verbose_name_plural = "Rapports COPIL"
+        ordering = ['-date_rapport', '-created_at']
+
+    def __str__(self):
+        return f"{self.reference or 'Rapport'} — {self.titre}"
+
+
+from .phoenix_models import (  # noqa: E402,F401
+    OrganisationVersion, Organe, PosteOrganisation, GroupeCible, ChoixOrganisationExpert,
+    CorrespondanceStructure, CorrespondanceGroupe, AffectationSousCommission, MandatOrganisation,
+    HabilitationAction, RattachementDocumentaire, JournalMigration,
+    CircuitOrganisation, DossierPhoenix, PiecePhoenix, DecisionPhoenix, EnquetePhoenix,
+    ReunionPhoenix, ParticipationPhoenix,
+)
+
+from .activity_models import (  # noqa: E402,F401
+    ActivitySession, ActivityPulse, WorkExpectation, OffPlatformWork,
+    JustifiedAbsence, BusinessCalendarDay, ActivitySilencePeriod,
+    ActivityDispute, ActivityAccessLog, ActivityAlert, ActivityAggregate,
+    SavedActivityView,
+)

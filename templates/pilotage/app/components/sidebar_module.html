@@ -25,7 +25,7 @@
         <i data-lucide="flag" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
         <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#db3832] text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
         <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">
-            {% if my_poste.n == 1 %}Validation finale{% elif my_poste.n == 2 %}Quitus technique{% elif my_poste.n == 3 %}Quitus technique{% elif my_poste.n == 4 %}Vérification PV{% else %}Réception CTC{% endif %}
+            {% if my_poste.n == 1 %}Validation finale{% elif my_poste.n == 2 %}Quitus technique{% elif my_poste.n == 3 %}Quitus technique{% elif my_poste.n == 4 %}Vérification PV{% else %}Réception technique{% endif %}
         </span>
     </button>
 
@@ -41,6 +41,7 @@
         </span>
     </button>
     {% endif %}
+    {% include "pilotage/composants/activity_links.html" with mobile=True %}
 </nav>
 
 <aside id="directoire-sidebar"
@@ -49,9 +50,9 @@
               fixed lg:static inset-y-0 left-0 z-40">
 
     <div class="p-5 border-b border-slate-200 dark:border-white/[8%]">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hidden lg:block">Comité de Pilotage Élargi</p>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hidden lg:block">Pilotage CNE-ITP</p>
         <p class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mt-1 leading-tight">{{ my_poste.title }}</p>
-        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight hidden sm:block">{{ my_poste.origin }}</p>
+
     </div>
 
     <nav class="flex-1 py-4 px-3 space-y-1.5">
@@ -94,6 +95,7 @@
             <p class="text-[11px] sm:text-[13px] font-bold leading-snug">{{ my_poste.phase3_title|default:"Homologation" }}</p>
         </button>
         {% endif %}
+        {% include "pilotage/composants/activity_links.html" %}
     </nav>
 
     <div class="p-4 border-t border-slate-200 dark:border-white/[8%]">

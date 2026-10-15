@@ -152,4 +152,10 @@ def get_chart_data(session, metric, filters=None):
         status='APPROVED',
     )
 
-    return {"artifact_id": artifact.id, "title": title, "chart_spec": chart_spec}
+    return {
+        "artifact_id": artifact.id,
+        "url": f"/api/v1/ia-agent/artifacts/{artifact.id}/",
+        "link_label": "Ouvrir l'artefact de pilotage",
+        "title": title,
+        "chart_spec": chart_spec,
+    }

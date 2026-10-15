@@ -172,4 +172,10 @@ def propose_external_reference(session, ctm_id, title, description, referential_
         object_id=object_id,
     )
 
-    return {"artifact_id": artifact.id, "status": artifact.status, "title": artifact.title}
+    return {
+        "artifact_id": artifact.id,
+        "url": f"/api/v1/ia-agent/artifacts/{artifact.id}/",
+        "link_label": "Ouvrir le brouillon de proposition",
+        "status": artifact.status,
+        "title": artifact.title,
+    }

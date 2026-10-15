@@ -20,6 +20,9 @@ Paramètres d'inclusion :
     .ia-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; font-size: .88em; }
     .ia-md pre { background: rgba(0,0,0,.07); padding: .4em .6em; border-radius: 6px; overflow-x: auto; font-size: .85em; }
     .ia-md blockquote { border-left: 3px solid rgba(0,149,201,.4); padding-left: .6em; opacity: .85; }
+    .ia-copy-message { opacity: 0; pointer-events: none; }
+    .ia-message-bubble:hover .ia-copy-message,
+    .ia-message-bubble:focus-within .ia-copy-message { opacity: 1; pointer-events: auto; }
 </style>
 
 <div id="ia-agent-toggle-btn" class="{{ widget_position|default:'bottom-6 right-6' }} z-[60] hover:z-[80] focus-within:z-[80]">
@@ -49,7 +52,11 @@ Paramètres d'inclusion :
             <div class="leading-tight min-w-0">
                 <p class="text-sm font-bold">Assistant IA CNE-ITP</p>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                    <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-white/25 text-white">DeepSeek</span>
+                    <a href="https://minatomasamba.pythonanywhere.com/" target="_blank" rel="noopener noreferrer"
+                       title="Neronne de Source Académique AI" aria-label="Neronne de Source Académique AI"
+                       class="max-w-[210px] truncate px-2 py-0.5 text-[10px] font-bold rounded bg-white/25 text-white hover:bg-white/35 hover:underline transition-colors">
+                        Neronne de Source Académique AI
+                    </a>
                 </div>
             </div>
         </div>
@@ -60,7 +67,7 @@ Paramètres d'inclusion :
 
     <div id="ia-agent-messages" class="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm bg-slate-50 dark:bg-[#020204]">
         <div id="ia-agent-empty-hint" class="py-8 text-center">
-            <p class="text-xs text-slate-400">Pose ta question à l'assistant IA DeepSeek.</p>
+            <p class="text-xs text-slate-400">Pose ta question à Neronne de Source Académique AI.</p>
         </div>
     </div>
 
@@ -128,7 +135,7 @@ Paramètres d'inclusion :
         if (!box) return;
         box.innerHTML =
             '<div id="ia-agent-empty-hint" class="py-8 text-center">'
-            + '<p class="text-xs text-slate-400 px-4">Assistant DeepSeek — envoie un message pour démarrer.</p>'
+            + '<p class="text-xs text-slate-400 px-4">Neronne de Source Académique AI — envoie un message pour démarrer.</p>'
             + '</div>';
     }
 
@@ -250,14 +257,60 @@ Paramètres d'inclusion :
             bubble.className = 'bg-blue-600 text-white rounded-2xl px-3 py-2 max-w-[85%] whitespace-pre-wrap break-words';
             bubble.innerHTML = iaEsc(msg.content);
         } else {
-            bubble.className = 'ia-md bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-3 py-2 max-w-[85%] break-words';
-            bubble.innerHTML = (typeof marked !== 'undefined')
+            bubble.className = 'ia-md ia-message-bubble bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 dark:text-slate-200 rounded-2xl px-3 py-2 max-w-[85%] break-words';
+            const content = document.createElement('div');
+            content.innerHTML = (typeof marked !== 'undefined')
                 ? marked.parse(msg.content || '')
                 : iaEsc(msg.content);
+            content.querySelectorAll('a').forEach(function(link) {
+                const href = link.getAttribute('href') || '';
+                const safe = (href.startsWith('/') && !href.startsWith('//')) || /^https?:\/\//i.test(href);
+                if (!safe) {
+                    link.replaceWith(document.createTextNode(link.textContent || href));
+                    return;
+                }
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            });
+            bubble.appendChild(content);
+            const copyButton = document.createElement('button');
+            copyButton.type = 'button';
+            copyButton.className = 'ia-copy-message flex items-center gap-1 mt-2 pt-1.5 border-t border-slate-200 dark:border-white/10 text-[11px] text-slate-500 dark:text-slate-400 hover:text-[#0095c9] transition-opacity';
+            copyButton.title = 'Copier le message';
+            copyButton.setAttribute('aria-label', 'Copier le message');
+            copyButton.innerHTML = '<i data-lucide="copy" class="h-3 w-3"></i><span>Copier</span>';
+            copyButton.addEventListener('click', function() {
+                iaCopyMessage(content.innerText || msg.content || '', copyButton);
+            });
+            bubble.appendChild(copyButton);
         }
         wrap.appendChild(bubble);
         box.appendChild(wrap);
         return wrap;
+    }
+
+    async function iaCopyMessage(text, button) {
+        let copied = false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                copied = true;
+            }
+        } catch (error) {}
+        if (!copied) {
+            const area = document.createElement('textarea');
+            area.value = text;
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.focus();
+            area.select();
+            try { copied = document.execCommand('copy'); } catch (error) {}
+            area.remove();
+        }
+        const label = button.querySelector('span');
+        if (label) label.textContent = copied ? 'Copié' : 'Échec';
+        if (copied) setTimeout(function() { if (label) label.textContent = 'Copier'; }, 1600);
     }
 
     function iaRenderArtifact(artifact) {
@@ -270,6 +323,9 @@ Paramètres d'inclusion :
         title.className = 'font-semibold mb-1.5 flex items-center gap-1.5';
         title.innerHTML = iaArtifactIcon(artifact.artifact_type) + ' ' + iaEsc(artifact.title || '');
         card.appendChild(title);
+
+        const artifactLinks = iaBuildArtifactLinks(artifact);
+        if (artifactLinks) card.appendChild(artifactLinks);
 
         if (artifact.artifact_type === 'WG_REQUEST') {
             const link = document.createElement('a');
@@ -303,6 +359,24 @@ Paramètres d'inclusion :
             CHART: '<i data-lucide="bar-chart-3" class="h-3.5 w-3.5"></i>',
         };
         return icons[type] || '';
+    }
+
+    function iaBuildArtifactLinks(artifact) {
+        const links = Array.isArray(artifact.links) ? artifact.links : [];
+        if (!links.length) return null;
+        const wrap = document.createElement('div');
+        wrap.className = 'flex flex-wrap gap-2 mb-2';
+        links.forEach(function(item) {
+            if (!item || typeof item.url !== 'string' || !item.url.startsWith('/') || item.url.startsWith('//')) return;
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline';
+            link.innerHTML = '<i data-lucide="external-link" class="h-3 w-3"></i> ' + iaEsc(item.label || 'Ouvrir');
+            wrap.appendChild(link);
+        });
+        return wrap.childNodes.length ? wrap : null;
     }
 
     function iaBuildEmailForm(artifact) {

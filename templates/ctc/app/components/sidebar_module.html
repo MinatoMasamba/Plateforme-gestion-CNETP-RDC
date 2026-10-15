@@ -1,262 +1,133 @@
-<aside id="main-sidebar-aside" class="hidden md:flex bg-[#07111f] text-slate-300 w-64 h-full flex-col shrink-0 overflow-hidden border-r border-white/5">
-    <div class="p-5 border-b border-white/10 bg-black/20 shrink-0">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 select-none">Votre Pôle Opérationnel</div>
-        <div id="sidebar-user-pole-text" class="text-sm font-black text-white uppercase tracking-wide truncate">{{ pole_label }}</div>
+{{ sidebar_nav_config|json_script:"sidebar-nav-config" }}
+<aside id="main-sidebar-aside" class="cnetp-sidebar hidden md:flex fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex-col overflow-y-auto scrollbar-none" style="width: var(--ctc-sidebar-w, 16rem)">
+  <div class="border-b border-[color:var(--ui-border)] p-5">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#74b9ff] to-[#b7eaf7] flex items-center justify-center text-white shrink-0 shadow-sm">
+        <i data-lucide="network" class="w-4.5 h-4.5"></i>
+      </div>
+      <div class="min-w-0">
+        <p class="text-[10px] uppercase tracking-[0.16em] text-slate-400 font-bold">Cellule technique</p>
+        <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ pole_label }}</p>
+      </div>
     </div>
-
-    {{ sidebar_nav_config|json_script:"sidebar-nav-config" }}
-
-    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-none">
-        <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2 select-none">Général</p>
-        <div id="sidebar-nav-principal" class="space-y-1"></div>
-
-        <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 select-none">Cycle des Normes</p>
-        <div id="sidebar-pole-conditional-section" class="space-y-1"></div>
-
-        <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 select-none">Outils Collaboratifs</p>
-        <div class="space-y-1">
-            <button onclick="triggerDirectoryActionGate()" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group">
-                <i data-lucide="mail" class="w-4 h-4 text-[#0095c9] group-hover:scale-105 transition-transform"></i>
-                <span>Annuaire & Mail Interne</span>
-            </button>
-            <button onclick="setSidebarViewGate('ctc_requests')" class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group">
-                <i data-lucide="send" class="w-4 h-4 text-teal-400 group-hover:scale-105 transition-transform"></i>
-                <span>Demandes à Traiter</span>
-            </button>
-            <button onclick="setSidebarViewGate('reunions')" id="sidebar-btn-reunions" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group">
-                <i data-lucide="video" class="w-4 h-4 text-emerald-400 group-hover:scale-105 transition-transform"></i>
-                <span>Planifier une Réunion</span>
-            </button>
-            <button onclick="setSidebarViewGate('drive')" id="sidebar-btn-drive" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group">
-                <i data-lucide="hard-drive" class="w-4 h-4 text-amber-400 group-hover:scale-105 transition-transform"></i>
-                <span>Espace Drive</span>
-            </button>
-        </div>
-
-        <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 select-none">Système</p>
-        <div id="sidebar-nav-systeme" class="space-y-1"></div>
-    </nav>
-
-    <div class="p-4 border-t border-white/10 bg-black/20">
-        <a href="{% url 'web:expert_profile' %}" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
-            <div class="w-10 h-10 rounded-full bg-[#0095c9] text-white flex items-center justify-center font-black shrink-0 group-hover:scale-105 transition-transform">
-                {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
-            </div>
-            <div class="min-w-0">
-                <p class="text-sm font-semibold text-white truncate group-hover:text-blue-400 transition-colors">{{ expert.user.get_full_name }}</p>
-                <p class="text-xs text-slate-400 truncate">{{ pole_label }}</p>
-            </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white ml-auto transition-colors"></i>
-        </a>
-    </div>
-
-    <div class="flex h-1.5 w-full shrink-0" aria-hidden="true">
-        <div class="flex-1 bg-[#0095c9]"></div>
-        <div class="flex-1 bg-[#fff24b]"></div>
-        <div class="flex-1 bg-[#db3832]"></div>
-    </div>
+    {% if poste %}<p class="mt-3 text-xs text-slate-500 dark:text-slate-400">{{ poste.title }}</p>{% endif %}
+  </div>
+  <nav class="flex-1 p-3 space-y-1" aria-label="Navigation CTC">
+    <h2 class="cnetp-sidebar__heading">Travail</h2><div id="sidebar-nav-principal" class="space-y-1"></div>
+    <h2 class="cnetp-sidebar__heading mt-3">Supervision</h2><div id="sidebar-nav-supervision" class="space-y-1"></div>
+    <h2 class="cnetp-sidebar__heading mt-3">Outils</h2><div id="sidebar-nav-outils" class="space-y-1"></div>
+    <h2 class="cnetp-sidebar__heading mt-3">Système</h2><div id="sidebar-nav-systeme" class="space-y-1"></div>
+  </nav>
+  <a href="{% url 'web:expert_profile' %}" class="flex items-center gap-3 border-t border-[color:var(--ui-border)] p-4 text-sm font-semibold text-slate-600 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-white/5 transition-colors">
+    <span class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold uppercase shrink-0">
+      {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
+    </span>
+    <span class="truncate">{{ expert.user.get_full_name|default:expert.user.username }}</span>
+  </a>
+  <div id="sidebar-resize-handle" class="cnetp-sidebar-resize hidden md:block" aria-hidden="true"></div>
 </aside>
-
-<nav id="mobile-dock" class="md:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
-    <button onclick="switchView('dashboard')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="dashboard">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Tableau de bord</span>
-    </button>
-    <button onclick="switchView('dossiers')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="dossiers">
-        <i data-lucide="folders" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Dossiers Normatifs</span>
-    </button>
-    <button onclick="switchView('assignations')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="assignations">
-        <i data-lucide="file-check" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-badge hidden absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white transition-opacity"></span>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Mes Assignations</span>
-    </button>
-    <button onclick="switchView('ctc_requests')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="ctc_requests">
-        <i data-lucide="send" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Demandes</span>
-    </button>
-    <button onclick="switchView('reunions')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="reunions">
-        <i data-lucide="video" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Réunions</span>
-    </button>
-    <button onclick="switchView('drive')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="drive">
-        <i data-lucide="hard-drive" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Espace Drive</span>
-    </button>
-    <button onclick="switchView('parametres')" class="dock-link group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#07111f] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-52 hover:justify-start hover:px-3 hover:shadow-xl hover:translate-x-1 active:translate-x-1" data-target="parametres">
-        <i data-lucide="settings" class="w-5 h-5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-        <span class="dock-label max-w-0 group-hover:max-w-[10rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-sm font-medium">Paramètres</span>
-    </button>
-</nav>
-
+<button id="sidebar-reopen-btn" type="button" onclick="window.reopenSidebar && window.reopenSidebar()" title="Ouvrir le menu" class="hidden fixed left-3 top-[4.5rem] z-50 p-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:text-slate-900 transition-colors">
+  <i data-lucide="panel-left" class="w-4 h-4"></i>
+</button>
+<div id="mobile-dock" class="hidden fixed inset-0 z-40 bg-slate-950/50 md:hidden" aria-hidden="true"></div>
 <script>
-    const sidebarState = {
-        currentView: 'dashboard',
-        currentUser: {
-            pole: "{{ sidebar_pole|escapejs }}" || null
-        }
-    };
+  const sidebarConfigEl = document.getElementById('sidebar-nav-config');
+  const sidebarNavConfig = sidebarConfigEl ? JSON.parse(sidebarConfigEl.textContent) : {};
+  const sidebarAllowedViews = new Set(['dashboard', 'dossiers', 'assignations', 'ctc_requests', 'assistant_executif', 'financial', 'statistiques', 'homologations', 'archives', 'parametres', 'reunions', 'instructions']);
+  let sidebarCurrentView = 'dashboard';
 
-    const sidebarConfigEl = document.getElementById('sidebar-nav-config');
-    const sidebarNavConfig = sidebarConfigEl ? JSON.parse(sidebarConfigEl.textContent) : {};
-    const PRINCIPAL_ITEMS = sidebarNavConfig.principal || [
-        { view: 'dashboard', label: 'Tableau de bord', icon: 'layout-dashboard' },
-        { view: 'dossiers', label: 'Dossiers Normatifs', icon: 'folders' },
-        { view: 'assignations', label: 'Mes Assignations', icon: 'file-check' }
-    ];
-
-    const SYSTEM_ITEMS = sidebarNavConfig.system || [
-        { view: 'archives', label: 'Archives', icon: 'history' },
-        { view: 'parametres', label: 'Paramètres', icon: 'settings' }
-    ];
-
-    function renderSidebarButtons(container, items) {
-        if (!container) return;
-        container.innerHTML = items.map(item => {
-            const active = sidebarState.currentView === item.view;
-            return `
-                <button onclick="setSidebarViewGate('${item.view}')" id="sidebar-btn-${item.view}" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group ${active ? 'text-white bg-[#0095c9] shadow-sm font-bold' : 'hover:text-white hover:bg-white/5 text-slate-400'}">
-                    <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0 transition-transform ${active ? '' : 'group-hover:scale-105'}"></i>
-                    <span class="truncate">${item.label}</span>
-                </button>
-            `;
-        }).join('');
-    }
-
-    function renderConditionalPoleSection() {
-        const container = document.getElementById('sidebar-pole-conditional-section');
-        if (!container) return;
-
-        const p = sidebarState.currentUser.pole;
-        let html = '';
-        if (p === 'operations') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">Direction</p>
-                <button onclick="setSidebarViewGate('homologations')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="shield-check" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform"></i>
-                    <span class="truncate">Homologations</span>
-                </button>
-            `;
-        } else if (p === 'analyse') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">Expertise</p>
-                <button onclick="setSidebarViewGate('outils')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="pen-tool" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform"></i>
-                    <span class="truncate">Outils d'Évaluation</span>
-                </button>
-            `;
-        } else if (p === 'logistique') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">Relations</p>
-                <button onclick="setSidebarViewGate('enquetes')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="radio" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform text-blue-400"></i>
-                    <span class="truncate">Enquêtes & Public</span>
-                </button>
-            `;
-        } else if (p === 'gaf') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">Finances</p>
-                <button onclick="setSidebarViewGate('financial')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="banknote" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform text-purple-400"></i>
-                    <span class="truncate">Budget & Comptabilité</span>
-                </button>
-            `;
-        } else if (p === 'assistant_executif') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">Traitement</p>
-                <button onclick="setSidebarViewGate('assistant_executif')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="inbox" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform text-teal-400"></i>
-                    <span class="truncate">Assistant Exécutif</span>
-                </button>
-                <button onclick="setSidebarViewGate('ctc_requests')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="file-check" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform text-amber-400"></i>
-                    <span class="truncate">Demandes à Traiter</span>
-                </button>
-            `;
-        } else if (p === 'technique') {
-            html = `
-                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-6 select-none">IT & Data</p>
-                <button onclick="setSidebarViewGate('serveurs')" class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer group hover:text-white hover:bg-white/5 text-slate-400">
-                    <i data-lucide="database" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform text-emerald-400"></i>
-                    <span class="truncate">Serveurs & SIG</span>
-                </button>
-            `;
-        }
-        container.innerHTML = html;
-    }
-
-    function renderSidebarContent() {
-        renderSidebarButtons(document.getElementById('sidebar-nav-principal'), PRINCIPAL_ITEMS);
-        renderSidebarButtons(document.getElementById('sidebar-nav-systeme'), SYSTEM_ITEMS);
-        renderConditionalPoleSection();
-        updateStaticButtons();
-        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-    }
-
-    function updateStaticButtons() {
-        const reunionsBtn = document.getElementById('sidebar-btn-reunions');
-        const driveBtn = document.getElementById('sidebar-btn-drive');
-
-        if (reunionsBtn) {
-            reunionsBtn.className = sidebarState.currentView === 'reunions'
-                ? "sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-white bg-[#0095c9] shadow-sm font-bold cursor-pointer"
-                : "sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group text-slate-400";
-        }
-        if (driveBtn) {
-            driveBtn.className = sidebarState.currentView === 'drive'
-                ? "sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-white bg-[#0095c9] shadow-sm font-bold cursor-pointer"
-                : "sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg hover:text-white hover:bg-white/5 transition-colors cursor-pointer group text-slate-400";
-        }
-
-        document.querySelectorAll('#mobile-dock .dock-link').forEach(btn => {
-            const isActive = btn.getAttribute('data-target') === sidebarState.currentView;
-            btn.classList.toggle('ring-2', isActive);
-            btn.classList.toggle('ring-[#fff24b]', isActive);
-        });
-    }
-
-    function setSidebarViewGate(viewId) {
-        sidebarState.currentView = viewId;
-        if (typeof window.switchView === 'function') {
-            window.switchView(viewId);
-        } else {
-            renderSidebarContent();
-        }
-        toggleDock(false);
-    }
-
-    function triggerDirectoryActionGate() {
-        if (typeof window.openDirectoryModal === 'function') {
-            window.openDirectoryModal();
-        }
-    }
-
-    function toggleDock(forceOpen) {
-        const dock = document.getElementById('mobile-dock');
-        if (!dock) return;
-        const open = typeof forceOpen === 'boolean' ? forceOpen : dock.classList.contains('hidden');
-        dock.classList.toggle('hidden', !open);
-        dock.classList.toggle('flex', open);
-    }
-
-    document.addEventListener('click', function(event) {
-        const dock = document.getElementById('mobile-dock');
-        const menuBtn = document.getElementById('mobile-menu-btn');
-        if (!dock || dock.classList.contains('hidden')) return;
-
-        const clickedInsideDock = dock.contains(event.target);
-        const clickedMenuBtn = menuBtn && menuBtn.contains(event.target);
-        if (!clickedInsideDock && !clickedMenuBtn) {
-            toggleDock(false);
-        }
+  function renderSidebarButtons(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.replaceChildren();
+    const seen = new Set();
+    (items || []).filter(item => sidebarAllowedViews.has(item.view)).forEach(item => {
+      if (seen.has(item.view)) return;
+      seen.add(item.view);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'sidebar-nav-btn';
+      button.classList.toggle('is-active', sidebarCurrentView === item.view);
+      button.setAttribute('aria-current', sidebarCurrentView === item.view ? 'page' : 'false');
+      const icon = document.createElement('i'); icon.dataset.lucide = item.icon;
+      icon.className = 'h-4 w-4 shrink-0';
+      const label = document.createElement('span'); label.textContent = item.label;
+      button.append(icon, label);
+      button.addEventListener('click', () => setSidebarViewGate(item.view));
+      container.append(button);
     });
+  }
+  function renderSidebarContent() {
+    renderSidebarButtons('sidebar-nav-principal', sidebarNavConfig.principal);
+    renderSidebarButtons('sidebar-nav-supervision', sidebarNavConfig.supervision);
+    renderSidebarButtons('sidebar-nav-outils', sidebarNavConfig.outils);
+    renderSidebarButtons('sidebar-nav-systeme', sidebarNavConfig.system);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+  function setSidebarViewGate(viewId) {
+    if (!sidebarAllowedViews.has(viewId)) return;
+    if (typeof window.switchView === 'function') window.switchView(viewId);
+    toggleDock(false);
+  }
+  function toggleDock(forceOpen) {
+    const overlay = document.getElementById('mobile-dock');
+    const aside = document.getElementById('main-sidebar-aside');
+    const open = typeof forceOpen === 'boolean' ? forceOpen : aside.classList.contains('hidden');
+    aside.classList.toggle('hidden', !open); aside.classList.toggle('flex', open);
+    overlay.classList.toggle('hidden', !open); overlay.setAttribute('aria-hidden', String(!open));
+    document.getElementById('mobile-menu-btn')?.setAttribute('aria-expanded', String(open));
+  }
+  document.getElementById('mobile-dock')?.addEventListener('click', () => toggleDock(false));
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') toggleDock(false); });
+  window.updateSidebarForTab = function(viewId) { sidebarCurrentView = viewId; renderSidebarContent(); };
+  renderSidebarContent();
 
-    window.updateSidebarForTab = function(activeViewId) {
-        sidebarState.currentView = activeViewId;
-        renderSidebarContent();
+  (function initSidebarResize() {
+    const aside = document.getElementById('main-sidebar-aside');
+    const handle = document.getElementById('sidebar-resize-handle');
+    const reopen = document.getElementById('sidebar-reopen-btn');
+    if (!aside || !handle) return;
+    const KEY = 'ctc-sidebar-width';
+    const DEFAULT = 256, MAX = 480;
+    const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
+    let width = parseFloat(localStorage.getItem(KEY));
+    if (!width || width < 0) width = DEFAULT;
+
+    function apply(w) {
+      width = Math.max(0, Math.min(MAX, w));
+      const closed = width < 40;
+      aside.classList.toggle('is-closed', closed);
+      aside.style.setProperty('--ctc-sidebar-w', width + 'px');
+      if (reopen) reopen.classList.toggle('hidden', !closed);
+      localStorage.setItem(KEY, width);
+    }
+
+    window.reopenSidebar = function () {
+      let w = parseFloat(localStorage.getItem(KEY)) || DEFAULT;
+      if (w < 40) w = DEFAULT;
+      apply(w);
     };
 
-    setTimeout(renderSidebarContent, 50);
+    apply(width);
+
+    let dragging = false;
+    handle.addEventListener('mousedown', (e) => {
+      if (!isDesktop()) return;
+      dragging = true;
+      handle.classList.add('is-dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (dragging) apply(e.clientX);
+    });
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove('is-dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  })();
 </script>

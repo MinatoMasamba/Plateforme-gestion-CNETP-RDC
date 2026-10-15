@@ -1,0 +1,6 @@
+<button id="ctm-nav-{{ view }}" type="button" data-ctm-view="{{ view }}" aria-controls="ctm-content" class="ctm-nav-item{% if grouped %} ctm-nav-group{% endif %}">
+    <i data-lucide="{{ icon }}" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
+    <span class="flex-1 text-left">{{ label }}</span>
+    {% if count != None %}<span class="ctm-nav-count">{{ count }}</span>{% endif %}
+    {% if grouped %}<span class="ctm-nav-count">Tout</span>{% endif %}
+</button>

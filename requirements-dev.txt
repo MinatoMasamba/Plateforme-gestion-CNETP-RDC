@@ -1,0 +1,9 @@
+# Dépendances de développement / tests E2E uniquement (ne pas déployer en prod).
+-r requirements.txt
+
+# Tests navigateur
+playwright>=1.48
+pytest-playwright>=0.5
+
+# Tests de charge
+locust>=2.32

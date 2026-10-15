@@ -1,0 +1,112 @@
+{% extends 'pilotage/phoenix/base.html' %}{% load static %}{% block page_header %}
+<nav class="pf-breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'web:phoenix_organisation' %}">Organisation</a><span aria-hidden="true">›</span><span>{% if is_activation %}Mise en service{% else %}{{ page_title }}{% endif %}</span></nav>
+<div class="pf-head">
+<div><h1>{% if is_activation %}Mise en service CNE-ITP{% else %}{{ page_title }}{% endif %}</h1><p>{{ version.name }} · {{ version.get_status_display }}{% if instance %} · {{ instance }}{% elif is_new %} · Nouvelle fiche{% endif %}</p></div>
+{% if is_activation %}{% elif instance %}<span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span>{% else %}<span class="pf-badge pf-badge-new">Nouvelle fiche</span>{% endif %}
+</div>
+{% endblock %}{% block content %}
+<style>
+.pf-breadcrumb{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;font-size:.78rem;color:#64748b;margin-bottom:.85rem}
+.pf-breadcrumb a{color:#0095c9;font-weight:600}
+.pf-breadcrumb a:hover{text-decoration:underline}
+.pf-head{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;justify-content:space-between}
+.pf-head h1{font-size:1.6rem;font-weight:800;line-height:1.2}
+.pf-head p{margin-top:.4rem;font-size:.82rem;color:#64748b}
+.pf-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .8rem;border-radius:999px;font-size:.72rem;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.pf-badge-proposed{background:rgba(0,149,201,.12);color:#0278a3;border-color:rgba(0,149,201,.3)}
+.pf-badge-validated,.pf-badge-active{background:rgba(16,185,129,.12);color:#047857;border-color:rgba(16,185,129,.3)}
+.pf-badge-suspended{background:rgba(234,88,12,.12);color:#c2410c;border-color:rgba(234,88,12,.3)}
+.pf-badge-archived,.pf-badge-new{background:rgba(100,116,139,.12);color:#475569;border-color:rgba(100,116,139,.3)}
+.dark .pf-badge-proposed{color:#7dd3fc}
+.dark .pf-badge-validated,.dark .pf-badge-active{color:#6ee7b7}
+.dark .pf-badge-suspended{color:#fdba74}
+.dark .pf-badge-archived,.dark .pf-badge-new{color:#cbd5e1}
+.pf-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5rem;align-items:start}
+@media(min-width:1024px){.pf-grid{grid-template-columns:minmax(0,1fr) 320px}}
+.pf-main{display:flex;flex-direction:column;gap:1.25rem;min-width:0}
+.pf-card{background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.25rem 1.4rem}
+.dark .pf-card{background:#0d1117;border-color:rgba(255,255,255,.08)}
+.pf-card>header h2{font-size:1rem;font-weight:700}
+.pf-card>header p{margin-top:.25rem;font-size:.78rem;color:#64748b}
+.pf-fields{display:grid;gap:1.1rem 1.4rem;margin-top:1.15rem}
+@media(min-width:640px){.pf-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pf-field.pf-wide{grid-column:1/-1}
+.pf-label{display:flex;flex-wrap:wrap;gap:.45rem;align-items:baseline;font-size:.82rem;font-weight:600;color:#334155}
+.dark .pf-label{color:#e2e8f0}
+.pf-req{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#0095c9}
+.pf-help{margin-top:.4rem;font-size:.72rem;color:#64748b}
+.pf-error{display:flex;gap:.4rem;align-items:flex-start;margin-top:.45rem;font-size:.75rem;color:#dc2626}
+.dark .pf-error{color:#fca5a5}
+.pf-alert{display:flex;gap:.6rem;align-items:flex-start;border-radius:.8rem;background:#fee2e2;color:#991b1b;padding:1rem 1.15rem;font-size:.85rem}
+.dark .pf-alert{background:rgba(127,29,29,.35);color:#fecaca}
+.pf-side{display:flex;flex-direction:column;gap:1rem}
+@media(min-width:1024px){.pf-side{position:sticky;top:1rem}}
+.pf-summary dl{display:flex;flex-direction:column;gap:.85rem;margin-top:1rem}
+.pf-summary dt{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b}
+.pf-summary dd{font-size:.85rem;font-weight:600;margin-top:.2rem}
+.pf-summary .pf-badge{margin-top:.2rem}
+.pf-note{font-size:.78rem;color:#64748b;line-height:1.6}
+.pf-actions{position:sticky;bottom:0;z-index:20;display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;margin-top:1.25rem;padding:.9rem 1.2rem;background:rgba(255,255,255,.95);border:1px solid #e2e8f0;border-radius:1rem;box-shadow:0 -6px 20px rgba(15,23,42,.06);backdrop-filter:blur(8px)}
+.dark .pf-actions{background:rgba(13,17,23,.94);border-color:rgba(255,255,255,.1);box-shadow:0 -6px 20px rgba(0,0,0,.4)}
+.pf-actions-left{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+.pf-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:44px;padding:.7rem 1.35rem;border-radius:.7rem;font-size:.85rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s}
+.pf-btn:focus-visible{outline:2px solid #0095c9;outline-offset:2px}
+.pf-btn-primary{background:#0095c9;color:#fff}
+.pf-btn-primary:hover{background:#007ba8}
+.pf-btn-secondary{border-color:#cbd5e1;color:#334155;background:transparent}
+.pf-btn-secondary:hover{background:rgba(148,163,184,.12)}
+.dark .pf-btn-secondary{border-color:rgba(255,255,255,.18);color:#e2e8f0}
+.pf-unsaved{font-size:.75rem;font-weight:600;color:#c2410c}
+.pf-combo{position:relative}
+.pf-combo-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0;pointer-events:none}
+.pf-combo-control{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;margin-top:.5rem;min-height:44px;padding:.7rem;border:1px solid #cbd5e1;border-radius:.65rem;background:transparent;text-align:left;color:inherit;cursor:pointer}
+.pf-combo-control:focus-visible{outline:2px solid #0095c9;outline-offset:1px}
+.pf-combo-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-combo-value.is-placeholder{color:#94a3b8}
+.pf-combo-chevron{display:inline-flex;color:#94a3b8}
+.pf-combo-pop{position:absolute;z-index:40;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #cbd5e1;border-radius:.7rem;box-shadow:0 14px 34px rgba(15,23,42,.2);padding:.5rem;max-height:18rem;display:flex;flex-direction:column}
+.pf-combo-pop[hidden]{display:none}
+.dark .pf-combo-pop{background:#0f172a;border-color:rgba(255,255,255,.12)}
+.pf-combo-list{list-style:none;margin:.4rem 0 0;padding:0;overflow-y:auto}
+.pf-combo-option{padding:.55rem .6rem;border-radius:.5rem;font-size:.82rem;cursor:pointer}
+.pf-combo-option:hover,.pf-combo-option[aria-selected=true]{background:rgba(0,149,201,.12)}
+.pf-combo-option.is-clear{color:#94a3b8}
+.pf-combo-empty{padding:.6rem;font-size:.8rem;color:#94a3b8}
+</style>
+{% if form.non_field_errors %}<div class="pf-alert" role="alert"><span aria-hidden="true">⚠</span><div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div></div>{% endif %}
+{% if is_activation %}
+<section class="pf-card"><header><h2>Conditions de mise en service</h2><p>La mise en service concerne les nouveaux dossiers. Les dossiers existants conservent leurs acteurs et leur ancien circuit.</p></header><ul style="margin-top:1rem;list-style:disc;padding-left:1.2rem;font-size:.82rem;color:#64748b">{% for issue in readiness %}<li style="margin-top:.4rem">{{ issue }}</li>{% empty %}<li style="margin-top:.4rem">Les prérequis sont renseignés. Saisir les références de mise en service.</li>{% endfor %}</ul></section>
+<form method="post" class="pf-form">{% csrf_token %}
+<div class="pf-grid"><div class="pf-main"><section class="pf-card"><header><h2>Références de mise en service</h2><p>Chaque référence atteste la décision correspondante.</p></header><div class="pf-fields">{% for field in form %}<div class="pf-field pf-wide"><label class="pf-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="pf-req">obligatoire</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<p class="pf-error"><span aria-hidden="true">⚠</span>{{ error }}</p>{% endfor %}</div>{% endfor %}</div></section></div>
+<aside class="pf-side"><div class="pf-card pf-summary"><h2 style="font-size:1rem;font-weight:700">Résumé</h2><dl><div><dt>Édition</dt><dd>{{ version.name }}</dd></div><div><dt>Statut</dt><dd><span class="pf-badge pf-badge-{{ version.status|lower }}">{{ version.get_status_display }}</span></dd></div></dl></div><p class="pf-note">Cette opération est attribuée et inscrite au journal de préparation.</p></aside></div>
+<div class="pf-actions"><div class="pf-actions-left"><a href="{% url 'web:phoenix_management' %}" class="pf-btn pf-btn-secondary">Annuler</a><span class="pf-unsaved" data-unsaved hidden>Modifications non enregistrées</span></div><button type="submit" class="pf-btn pf-btn-primary">Mettre en service</button></div>
+</form>
+{% if version.status == 'ACTIVE' %}<form method="post" class="pf-form pf-card" style="margin-top:1.25rem">{% csrf_token %}<input type="hidden" name="operation" value="suspend"><header><h2>Suspension des nouvelles opérations</h2><p>Les dossiers, pièces, décisions et accès de consultation sont conservés.</p></header><div class="pf-fields"><div class="pf-field pf-wide"><label class="pf-label" for="suspend-reason">Motif de suspension<span class="pf-req">obligatoire</span></label><textarea id="suspend-reason" name="reason" rows="3" required></textarea></div></div><div class="pf-actions"><span></span><button type="submit" class="pf-btn pf-btn-secondary" style="border-color:#c2410c;color:#c2410c">Suspendre les nouvelles opérations</button></div></form>{% endif %}
+{% else %}
+<form method="post" class="pf-form">
+{% csrf_token %}
+{% if kind == 'circuit' %}<div class="pf-alert" role="status" style="background:rgba(0,149,201,.1);color:#0278a3"><span aria-hidden="true">ℹ</span><p>Le canevas proposé doit être adapté aux décisions officielles : quorums, pouvoirs, pièces, retours, consultations et signatures. Le statut « Validé » atteste ces règles et fige cette édition.</p></div>{% endif %}
+<div class="pf-grid">
+<div class="pf-main">
+{% if sections %}{% for section in sections %}<section class="pf-card"><header><h2>{{ section.title }}</h2>{% if section.description %}<p>{{ section.description }}</p>{% endif %}</header><div class="pf-fields">{% for field in section.fields %}<div class="pf-field{% if field.name == 'domain' or field.name == 'composition' or field.name == 'configuration' or field.name == 'description' or field.name == 'content' %} pf-wide{% endif %}"><label class="pf-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="pf-req">obligatoire</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p class="pf-help">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p class="pf-error"><span aria-hidden="true">⚠</span>{{ error }}</p>{% endfor %}</div>{% endfor %}</div></section>{% endfor %}{% else %}<section class="pf-card"><header><h2>Informations</h2></header><div class="pf-fields">{% for field in form %}<div class="pf-field{% if field.name == 'domain' or field.name == 'composition' or field.name == 'configuration' or field.name == 'description' or field.name == 'content' %} pf-wide{% endif %}"><label class="pf-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="pf-req">obligatoire</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p class="pf-help">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p class="pf-error"><span aria-hidden="true">⚠</span>{{ error }}</p>{% endfor %}</div>{% endfor %}</div></section>{% endif %}
+</div>
+<aside class="pf-side">
+<div class="pf-card pf-summary"><header><h2>Résumé</h2></header>
+{% if instance %}<dl>
+{% if kind == 'organe' %}<div><dt>Type d’organe</dt><dd>{{ instance.get_type_display }}</dd></div>{% endif %}
+<div><dt>Statut</dt><dd><span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span></dd></div>
+{% if kind == 'organe' %}<div><dt>Postes</dt><dd>{{ summary.poste_count }}</dd></div><div><dt>Groupes de travail</dt><dd>{{ summary.groupe_count }}</dd></div>{% endif %}
+{% if kind == 'poste' %}<div><dt>Mandats</dt><dd>{{ summary.mandate_count }}</dd></div>{% endif %}
+<div><dt>Créé le</dt><dd>{{ summary.created_at|date:"d/m/Y à H:i" }}</dd></div>
+<div><dt>Dernière modification</dt><dd>{{ summary.updated_at|date:"d/m/Y à H:i" }}</dd></div>
+{% if summary.updated_by %}<div><dt>Modifié par</dt><dd>{{ summary.updated_by.get_full_name|default:summary.updated_by.username }}</dd></div>{% endif %}
+</dl>{% else %}<p class="pf-note">Cette fiche n’est pas encore enregistrée. Le résumé s’affichera après la première sauvegarde.</p>{% endif %}
+</div>
+<p class="pf-note">Cette opération est attribuée et inscrite au journal de préparation. L’historique n’est jamais écrasé : une nouvelle décision clôt le mandat précédent.</p>
+</aside>
+</div>
+<div class="pf-actions"><div class="pf-actions-left"><a href="{% if return_url %}{{ return_url }}{% else %}{% url 'web:phoenix_workspace' %}{% endif %}" class="pf-btn pf-btn-secondary">Annuler</a><span class="pf-unsaved" data-unsaved hidden>Modifications non enregistrées</span></div><button type="submit" class="pf-btn pf-btn-primary">{% if is_new %}Créer la fiche{% else %}Enregistrer{% endif %}</button></div>
+</form>
+{% endif %}
+<script src="{% static 'js/phoenix-form.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Organisation CNE-ITP</title>
+<script src="{% static 'js/theme.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
+<script src="{% static 'vendor/tailwindcss.js' %}"></script>
+<script>tailwind.config={darkMode:'class'};</script>
+<style>
+    [data-org-section][hidden]{display:none!important}
+    .org-nav{display:block;padding:.75rem 1rem;border-left:3px solid transparent;font-size:.8rem;color:#64748b}
+    .dark .org-nav{color:#94a3b8}
+    .org-nav:hover{background:rgba(148,163,184,.08)}
+    .org-nav[aria-current=page]{color:#0095c9;border-color:#0095c9;background:rgba(0,149,201,.08);font-weight:600}
+    .org-nav:focus-visible{outline:2px solid #0095c9;outline-offset:-2px}
+    .org-table{width:100%;text-align:left;font-size:.8rem;border-collapse:collapse}
+    .org-table th{font-size:.7rem;font-weight:600;color:#64748b;padding:.85rem .8rem;border-bottom:1px solid rgba(148,163,184,.3)}
+    .org-table td{padding:1rem .8rem;vertical-align:top;border-bottom:1px solid rgba(148,163,184,.15)}
+    .org-link{color:#0095c9;font-size:.75rem;font-weight:600}
+    .org-link:hover{text-decoration:underline}
+    .org-toolbar{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center}
+</style>
+</head>
+<body class="cnetp-premium h-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+<div class="shrink-0">
+    <div class="h-1.5 flex" aria-hidden="true"><div class="flex-1 bg-[#0095c9]"></div><div class="flex-1 bg-[#fff24b]"></div><div class="flex-1 bg-[#db3832]"></div></div>
+    <header class="flex items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-black px-5 py-3">
+        <div class="flex items-center gap-4 min-w-0">
+            <a href="{% url 'web:pilotage_directoire_app' %}" class="org-link shrink-0">← Bureau Directoire</a>
+            {% include "composants/logo_block.html" with size=40 on_dark=False %}
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+            <span class="text-xs text-slate-500">{{ version.get_status_display|default:"Préparation" }}</span>
+            {% include 'pilotage/composants/theme_toggle.html' %}
+        </div>
+    </header>
+</div>
+<div class="flex flex-1 min-h-0">
+    <aside class="hidden md:flex w-60 shrink-0 flex-col border-r border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0a10]">
+        <div class="px-5 py-6"><p class="text-xs text-slate-500">Administration institutionnelle</p><p class="text-base font-semibold mt-1">CNE-ITP</p></div>
+        <nav aria-label="Organisation CNE-ITP" class="flex-1 overflow-y-auto">
+            <a class="org-nav" href="#copil" data-org-nav="copil" aria-controls="copil">COPIL</a>
+            <a class="org-nav" href="#st" data-org-nav="st" aria-controls="st">Secrétariat technique</a>
+            <a class="org-nav" href="#sc" data-org-nav="sc" aria-controls="sc">Sous-commissions</a>
+            <a class="org-nav" href="#journal" data-org-nav="journal" aria-controls="journal">Journal de préparation</a>
+        </nav>
+        <div class="px-5 py-5 border-t border-slate-200 dark:border-white/10 space-y-3">
+            {% if can_manage %}<a class="org-link block" href="{% url 'web:phoenix_management' %}">Nominations, habilitations et circuits</a>{% endif %}
+            <a class="org-link block" href="{% url 'web:phoenix_workspace' %}">Dossiers et supervision</a>
+            <a class="org-link block" href="{% url 'web:pilotage_dashboard' %}">Tableau de bord Pilotage</a>
+        </div>
+    </aside>
+    <div class="flex flex-1 flex-col min-w-0 min-h-0">
+        <label class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-white/10 text-xs">
+            <span>Rubrique</span><select id="organisation-mobile-section" class="flex-1 min-w-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-2">
+                <option value="copil">COPIL</option><option value="st">Secrétariat technique</option><option value="sc">Sous-commissions</option><option value="journal">Journal</option>
+            </select>
+        </label>
+        <main id="organisation-content" tabindex="-1" class="flex-1 min-h-0 overflow-y-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-7 lg:px-9 py-7 space-y-8">
+            <header>
+                <div class="flex flex-wrap items-baseline justify-between gap-3"><h1 class="text-xl font-semibold">Organisation CNE-ITP</h1>{% if can_manage and version %}<a class="org-link" href="{% url 'web:phoenix_config_edit' 'version' version.pk %}">Modifier l’organisation</a>{% endif %}</div>
+                <p class="text-sm text-slate-500 mt-2">Composition des organes, sous-commissions et nominations.</p>
+            </header>
+            {% for message in messages %}<p role="status" class="text-sm border-l-2 border-[#0095c9] pl-4">{{ message }}</p>{% endfor %}
+            {% if version %}
+            <dl class="institutional-card flex flex-wrap gap-x-8 gap-y-4 p-5 text-xs">
+                <div><dt class="text-slate-500">Postes COPIL</dt><dd id="copil-post-count" class="text-lg font-semibold mt-1">{{ copil_post_count }}</dd></div>
+                <div><dt class="text-slate-500">Postes du Secrétariat technique</dt><dd id="st-post-count" class="text-lg font-semibold mt-1">{{ st_post_count }}</dd></div>
+                <div><dt class="text-slate-500">Sous-commissions</dt><dd id="sc-count" class="text-lg font-semibold mt-1">{{ sc_list|length }}</dd></div>
+                <div><dt class="text-slate-500">Experts affectés</dt><dd id="sc-expert-count" class="text-lg font-semibold mt-1">{{ migrated_expert_count }}</dd></div>
+                <div><dt class="text-slate-500">À examiner</dt><dd id="sc-review-count" class="text-lg font-semibold mt-1">{{ pending_experts|length }}</dd></div>
+            </dl>
+            <section id="copil" data-org-section="copil" class="space-y-6">
+                <div class="org-toolbar justify-between"><h2 class="text-lg font-semibold">Comité de Pilotage · {{ copil_post_count }} postes</h2>{% if can_manage %}<div class="org-toolbar">{% if copil %}<a class="org-link" href="{% url 'web:phoenix_config_edit' 'organe' copil.pk %}">Modifier le COPIL</a><a class="org-link" href="{% url 'web:phoenix_config_create' 'poste' %}?organe={{ copil.pk }}">Ajouter un poste</a>{% else %}<a class="org-link" href="{% url 'web:phoenix_config_create' 'organe' %}">Créer le COPIL</a>{% endif %}</div>{% endif %}</div>
+                {% for group in copil_groups %}{% if group.posts %}<div><h3 class="font-semibold text-sm mb-2">{{ group.label }} · {{ group.posts|length }}</h3>{% include 'pilotage/composants/organisation_posts.html' with posts=group.posts %}</div>{% endif %}{% endfor %}
+            </section>
+            <section id="st" data-org-section="st" hidden class="space-y-7">
+                <div class="org-toolbar justify-between"><h2 class="text-lg font-semibold">Secrétariat technique · {{ st_post_count }} postes</h2>{% if can_manage %}<div class="org-toolbar">{% if st %}<a class="org-link" href="{% url 'web:phoenix_config_edit' 'organe' st.pk %}">Modifier le Secrétariat technique</a><a class="org-link" href="{% url 'web:phoenix_config_create' 'poste' %}?organe={{ st.pk }}">Ajouter un poste de coordination</a>{% endif %}<a class="org-link" href="{% url 'web:phoenix_config_create' 'organe' %}{% if st %}?parent={{ st.pk }}{% endif %}">Ajouter un organe ou un pôle</a></div>{% endif %}</div>
+                {% if st %}<div><h3 class="text-sm font-semibold mb-2">Coordination · {{ st.postes.all|length }} postes</h3>{% include 'pilotage/composants/organisation_posts.html' with posts=st.postes.all %}</div>{% endif %}
+                {% for pole in poles %}<div class="space-y-3"><div class="org-toolbar justify-between"><h3 class="text-sm font-semibold">{{ pole.official_name|default:pole.name }} · {{ pole.postes.all|length }} postes</h3>{% if can_manage %}<div class="org-toolbar"><a class="org-link" href="{% url 'web:phoenix_config_edit' 'organe' pole.pk %}">Modifier le pôle</a><a class="org-link" href="{% url 'web:phoenix_config_create' 'poste' %}?organe={{ pole.pk }}">Ajouter un poste</a></div>{% endif %}</div>{% include 'pilotage/composants/organisation_posts.html' with posts=pole.postes.all %}</div>{% endfor %}
+            </section>
+            <section id="sc" data-org-section="sc" hidden class="space-y-6">
+                <div class="org-toolbar justify-between"><h2 class="text-lg font-semibold">Sous-commissions · {{ sc_list|length }}</h2>{% if can_manage %}<a class="org-link" href="{% url 'web:phoenix_config_create' 'organe' %}">Ajouter une sous-commission</a>{% endif %}</div>
+                <p class="text-sm text-slate-500">SC-SOCLE est un nom provisoire. Les dénominations et les effectifs sont renseignés à partir des décisions institutionnelles.</p>
+                {% for sc in sc_list %}<div class="institutional-card space-y-4 p-5" data-organe-id="{{ sc.pk }}">
+                    <div class="org-toolbar justify-between"><div><h3 class="font-semibold">{{ sc.code }} — {{ sc.official_name|default:sc.name }}</h3><p class="text-xs text-slate-500 mt-1">{{ sc.get_status_display }}</p></div>{% if can_manage %}<div class="org-toolbar"><a class="org-link" href="{% url 'web:phoenix_config_edit' 'organe' sc.pk %}">Modifier</a><a class="org-link" href="{% url 'web:phoenix_config_create' 'poste' %}?organe={{ sc.pk }}">Ajouter un poste</a><a class="org-link" href="{% url 'web:phoenix_config_create' 'gt' %}?sc={{ sc.pk }}">Ajouter un groupe de travail</a></div>{% endif %}</div>
+                    <p class="text-sm text-slate-500">{{ sc.domain }}</p>
+                    <div class="overflow-x-auto"><table class="org-table"><caption class="text-left text-sm font-semibold py-3">Experts affectés · {{ sc.migrated_experts|length }}</caption><thead><tr><th>Expert</th><th>Structure</th><th>Statut</th></tr></thead><tbody>{% for assignment in sc.migrated_experts %}<tr data-expert-assignment-id="{{ assignment.pk }}"><td class="font-semibold">{{ assignment.expert.full_name|default:assignment.expert.user.username }}</td><td>{{ assignment.expert.structure.acronym|default:assignment.expert.structure.name }}</td><td><span class="text-emerald-600 font-semibold">Affecté</span></td></tr>{% empty %}<tr><td colspan="3" class="text-slate-500">Aucun expert n’est encore affecté à cette sous-commission.</td></tr>{% endfor %}</tbody></table></div>
+                    {% include 'pilotage/composants/organisation_posts.html' with posts=sc.postes.all %}
+                    <div class="overflow-x-auto"><table class="org-table"><caption class="text-left text-sm font-semibold py-3">Groupes de travail</caption><thead><tr><th>Groupe</th><th>Activité</th><th>Statut</th>{% if can_manage %}<th>Gestion</th>{% endif %}</tr></thead><tbody>{% for group in sc.groupes.all %}<tr><td>{{ group.code }} — {{ group.name }}</td><td>{{ group.get_activity_display }}</td><td>{{ group.get_status_display }}</td>{% if can_manage %}<td><a class="org-link" href="{% url 'web:phoenix_config_edit' 'gt' group.pk %}">Modifier</a><a class="org-link block mt-2" href="{% url 'web:phoenix_config_create' 'mandat' %}?groupe={{ group.pk }}">Nommer</a></td>{% endif %}</tr>{% empty %}<tr><td colspan="4" class="text-slate-500">Aucun groupe de travail cible enregistré.</td></tr>{% endfor %}</tbody></table></div>
+                </div>{% empty %}<p class="text-sm text-slate-500">Aucune sous-commission enregistrée.</p>{% endfor %}
+                <div class="overflow-x-auto pt-5 border-t border-slate-200 dark:border-white/10"><table class="org-table"><caption class="text-left text-sm font-semibold py-3">Experts à orienter · {{ pending_experts|length }}</caption><thead><tr><th>Expert</th><th>Structure</th><th>Action requise</th></tr></thead><tbody>{% for assignment in pending_experts %}<tr><td class="font-semibold">{{ assignment.expert.full_name|default:assignment.expert.user.username }}</td><td>{{ assignment.expert.structure.acronym|default:assignment.expert.structure.name }}</td><td>{{ assignment.ui_reason }}</td></tr>{% empty %}<tr><td colspan="3" class="text-slate-500">Aucune orientation individuelle en attente.</td></tr>{% endfor %}</tbody></table></div>
+            </section>
+            <section id="journal" data-org-section="journal" hidden class="space-y-6">
+                <h2 class="text-lg font-semibold">Journal de préparation</h2>
+                {% if can_manage %}<form method="post" action="{% url 'web:phoenix_organisation' %}#journal" class="space-y-3 border-b border-slate-200 dark:border-white/10 pb-6">{% csrf_token %}<input type="hidden" name="operation" value="note"><label for="preparation-note" class="text-sm font-semibold">Ajouter une note</label><textarea id="preparation-note" name="reason" rows="3" maxlength="5000" required class="block w-full border border-slate-200 dark:border-white/10 bg-transparent p-3 text-sm"></textarea><button class="px-4 py-2 bg-[#0095c9] text-white text-sm font-semibold">Enregistrer la note</button></form>{% endif %}
+                <div class="overflow-x-auto"><table class="org-table"><thead><tr><th scope="col">Date</th><th scope="col">Auteur</th><th scope="col">Opération</th><th scope="col">Motif</th></tr></thead><tbody>{% for entry in journal %}<tr><td class="whitespace-nowrap">{{ entry.created_at|date:"d/m/Y à H:i:s" }}</td><td>{{ entry.actor_name|default:"Non enregistré" }}</td><td>{{ entry.operation_label }}</td><td class="whitespace-pre-wrap">{{ entry.reason }}</td></tr>{% empty %}<tr><td colspan="4">Aucune opération enregistrée.</td></tr>{% endfor %}</tbody></table></div>
+            </section>
+            <footer class="border-t border-slate-200 dark:border-white/10 pt-5 text-xs text-slate-500">Structure {{ version.get_status_display|lower }}<p class="mt-2">Document de référence : {{ version.source_document }}</p></footer>
+            {% else %}<p class="text-sm text-slate-500">Le référentiel CNE-ITP n’est pas encore chargé.</p>{% endif %}
+        </div></main>
+    </div>
+</div>
+<script src="{% static 'js/organisation-navigation.js' %}"></script>
+</body></html>

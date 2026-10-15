@@ -1,129 +1,54 @@
-<!-- ═══════════════════════════════════════════════════════════════════
-     CONSOLE GLOBALE — Bureau Directoire uniquement
-     Visibilité transverse : 8 CTM + WGs + Verrouillage Plateforme (Président)
-═══════════════════════════════════════════════════════════════════ -->
-
-<!-- KPI Row -->
+<!-- Console de supervision de la structure Phoenix validée. -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-center">
-        <p class="text-2xl font-black text-[#0095c9]">{{ total_ctms }}</p>
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">CTM Actifs</p>
-    </div>
-    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-center">
-        <p class="text-2xl font-black text-[#0095c9]">{{ total_wgs }}</p>
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Groupes de Travail</p>
-    </div>
-    <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-emerald-400">200</p>
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Experts Nommés</p>
-    </div>
-    <div class="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-center">
-        <p class="text-2xl font-black text-red-400">{{ pending_requests_count }}</p>
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Demandes en Attente</p>
-    </div>
+    <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-center"><p class="text-2xl font-black text-[#0095c9]">{{ total_scs }}</p><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Sous-commissions</p></div>
+    <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center"><p class="text-2xl font-black text-emerald-500">{{ migrated_expert_count }}</p><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Experts</p></div>
+    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-center"><p class="text-2xl font-black text-amber-500">{{ pending_sc_expert_count }}</p><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">À examiner</p></div>
+    <div class="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-center"><p class="text-2xl font-black text-red-400">{{ normes_travaillees_count }}</p><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">Normes travaillées</p></div>
 </div>
 
-{% if user_sub_role == 'president' %}
-<!-- Verrouillage de la Plateforme — Président uniquement -->
-<div class="mb-6 p-5 rounded-2xl border {% if platform_locked %}border-red-400/30 bg-red-400/5{% else %}border-[#0095c9]/25 bg-[#0095c9]/5{% endif %}">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-            <h3 class="text-sm font-extrabold {% if platform_locked %}text-red-400{% else %}text-[#0095c9]{% endif %} flex items-center gap-2">
-                <i data-lucide="{% if platform_locked %}lock{% else %}unlock{% endif %}" class="w-4 h-4"></i>
-                Verrouillage de la plateforme — CTC &amp; CTM
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">
-                {% if platform_locked %}
-                    Plateforme verrouillée{% if platform_locked_by %} par {{ platform_locked_by }}{% endif %}{% if platform_locked_at %} le {{ platform_locked_at|date:"d/m/Y à H:i" }}{% endif %}.
-                    Toutes les actions CTC et de cadrage CTM sont suspendues.
-                {% else %}
-                    Action souveraine : bloque immédiatement toutes les actions opérationnelles de la CTC
-                    (demandes, approbations, méthodologie) et du cadrage CTM (Phases 1 &amp; 2) sur toute la plateforme.
-                {% endif %}
-            </p>
-        </div>
-        <button id="platform-freeze-btn" onclick="togglePlatformFreeze(this)"
-                class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition-colors shadow-lg w-full sm:w-auto
-                       {% if platform_locked %}bg-red-500 hover:bg-red-400{% else %}bg-[#0095c9] hover:bg-[#0095c9]{% endif %} text-white">
-            <i data-lucide="{% if platform_locked %}unlock{% else %}lock{% endif %}" class="w-4 h-4"></i>
-            {% if platform_locked %}Déverrouiller{% else %}Verrouiller{% endif %}
-        </button>
-    </div>
+<div class="flex items-center justify-between gap-3 mb-3">
+    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 flex items-center gap-2"><i data-lucide="network" class="w-3.5 h-3.5"></i> Les 7 sous-commissions techniques</h3>
+    <button type="button" class="institutional-primary px-3 py-2 text-xs font-bold" data-global-instruction-open>Donner une instruction</button>
 </div>
-{% endif %}
-
-<!-- Grille des 8 CTM -->
-<h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-    <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i> État des 8 Comités Techniques Miroirs
-</h3>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-    {% for item in ctms_with_stats %}
-    <a href="{% url 'web:pilotage_ctm_detail' item.ctm.number %}"
-       class="module-card block rounded-xl border p-4
-                border-slate-200 dark:border-white/[8%]
-                bg-white dark:bg-white/[3%] hover:border-[#0095c9]/30 dark:hover:border-[#0095c9]/25
-                cursor-pointer">
-        <div class="flex items-start justify-between mb-2">
-            <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase
-                         bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
-                CTM {{ item.ctm.number }}
-            </span>
-            <span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} experts</span>
-        </div>
-        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">
-            {{ item.ctm.name }}
-        </p>
-        <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-white/5">
-            <span class="text-[10px] text-slate-500">{{ item.wg_count }} WG{{ item.wg_count|pluralize }}</span>
-            {% if item.ctm.iso_reference %}
-            <span class="text-[9px] font-mono text-slate-400">{{ item.ctm.iso_reference }}</span>
-            {% endif %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+    {% for item in scs_with_stats %}
+    <a href="{% url 'web:activity_current_subcommission' item.sc.pk %}" class="module-card institutional-focus block rounded-xl border border-slate-200 dark:border-white/[8%] bg-white dark:bg-white/[3%] p-4 hover:border-[#0095c9]/40 dark:hover:border-[#0095c9]/40 cursor-pointer transition-colors">
+        <div class="flex items-start justify-between gap-3 mb-2"><span class="text-[9px] font-black px-2 py-1 rounded-md uppercase bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">{{ item.sc.code }}</span><span class="text-[9px] font-bold text-slate-500">{{ item.member_count }} expert{{ item.member_count|pluralize }}</span></div>
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug min-h-8">{{ item.sc.official_name|default:item.sc.name }}</p>
+        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-white/5 max-h-32 overflow-y-auto space-y-1.5">
+            {% for assignment in item.experts %}<div class="flex items-center gap-2 text-[10px] text-slate-600 dark:text-slate-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="truncate">{{ assignment.expert.full_name|default:assignment.expert.user.username }}</span></div>{% empty %}<p class="text-[10px] italic text-slate-400">Aucun expert classé dans cette sous-commission.</p>{% endfor %}
         </div>
     </a>
-    {% empty %}
-    <div class="col-span-4 text-center py-8 text-sm text-slate-500 italic">
-        Aucun CTM trouvé — configurez les Comités Techniques Miroirs.
-    </div>
-    {% endfor %}
+    {% empty %}<div class="sm:col-span-2 xl:col-span-3 text-center py-8 text-sm text-slate-500 italic">La structure des sous-commissions n'est pas encore disponible.</div>{% endfor %}
 </div>
 
-<!-- Section Gestion des Accès -->
+<div class="institutional-drawer" data-global-instruction-drawer hidden><div class="institutional-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="global-instruction-title"><button type="button" class="float-right rounded-lg border px-3 py-2" data-global-instruction-close>Fermer</button><h2 id="global-instruction-title" class="text-xl font-bold">Donner une instruction</h2><p class="mt-3 text-sm institutional-muted">Portée : toutes les sous-commissions et leurs groupes. L’envoi global, les pièces jointes, la récurrence et le suivi par destinataire sont non disponibles dans ce lot.</p><p class="mt-5 institutional-badge">Non disponible</p></div></div>
+<script>
+(() => { const drawer = document.querySelector('[data-global-instruction-drawer]'); const open = document.querySelector('[data-global-instruction-open]'); const close = drawer?.querySelector('[data-global-instruction-close]'); open?.addEventListener('click', () => { drawer.hidden = false; close?.focus(); }); function hide() { drawer.hidden = true; open?.focus(); } close?.addEventListener('click', hide); drawer?.addEventListener('click', event => { if (event.target === drawer) hide(); }); document.addEventListener('keydown', event => { if (event.key === 'Escape' && drawer && !drawer.hidden) hide(); }); })();
+</script>
+
 {% if can_manage_access %}
 <div class="mt-6 p-4 rounded-xl border border-slate-200 dark:border-white/[8%] bg-white/50 dark:bg-white/[2%]">
-    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-        <i data-lucide="key" class="w-3.5 h-3.5"></i> Gestion des Accès Experts
-    </h3>
-    <p class="text-xs text-slate-500 mb-3">
-        Le Bureau Directoire peut débloquer ou suspendre l'accès d'un expert à la plateforme.
-    </p>
-    <div class="flex gap-2">
-        <a href="{% url 'web:pilotage_expert_access' %}"
-           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors
-                  border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5
-                  text-slate-600 dark:text-slate-400">
-            <i data-lucide="users" class="w-3.5 h-3.5"></i> Gérer les Experts
-        </a>
-    </div>
+    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2"><i data-lucide="key" class="w-3.5 h-3.5"></i> Gestion des accès experts</h3>
+    <p class="text-xs text-slate-500 mb-3">Consultez la sous-commission de chaque expert et gérez son accès à la plateforme.</p>
+    <a href="{% url 'web:pilotage_expert_access' %}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400"><i data-lucide="users" class="w-3.5 h-3.5"></i> Gérer les experts</a>
 </div>
 {% endif %}
 
 {% if user_sub_role == 'president' %}
+<div class="mt-8 p-5 rounded-xl border {% if platform_locked %}border-red-400/30 bg-red-400/5{% else %}border-[#0095c9]/25 bg-[#0095c9]/5{% endif %}">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div><h3 class="text-sm font-extrabold flex items-center gap-2"><i data-lucide="{% if platform_locked %}lock{% else %}unlock{% endif %}" class="w-4 h-4"></i>Verrouillage de la plateforme</h3><p class="text-xs text-slate-500 mt-1">{% if platform_locked %}Plateforme verrouillée{% if platform_locked_by %} par {{ platform_locked_by }}{% endif %}{% if platform_locked_at %} le {{ platform_locked_at|date:"d/m/Y à H:i" }}{% endif %}. Les actions opérationnelles sont suspendues.{% else %}Cette action suspend les opérations techniques et le cadrage sur toute la plateforme.{% endif %}</p></div>
+        <button id="platform-freeze-btn" onclick="togglePlatformFreeze(this)" class="rounded-lg border px-4 py-2 text-xs font-bold w-full sm:w-auto">{% if platform_locked %}Déverrouiller{% else %}Verrouiller{% endif %}</button>
+    </div>
+</div>
 <script>
 function togglePlatformFreeze(btn) {
     const verb = {{ platform_locked|yesno:"true,false" }} ? 'déverrouiller' : 'verrouiller';
-    if (!confirm(`Confirmez-vous vouloir ${verb} la plateforme CTC/CTM ?`)) return;
-    window.withButtonLoading(btn, () => window.fetchWithTimeout("{% url 'web:pilotage_platform_freeze_toggle' %}", {
-        method: 'POST',
-        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            showToast(data.message, 'success');
-            setTimeout(() => location.reload(), 800);
-        } else {
-            throw new Error(data.error || 'Une erreur est survenue.');
-        }
+    if (!confirm(`Confirmez-vous vouloir ${verb} la plateforme ?`)) return;
+    window.withButtonLoading(btn, () => window.fetchWithTimeout("{% url 'web:pilotage_platform_freeze_toggle' %}", {method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'}}).then(r => r.json()).then(data => {
+        if (data.ok) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 800); }
+        else { throw new Error(data.error || 'Une erreur est survenue.'); }
     }));
 }
 </script>

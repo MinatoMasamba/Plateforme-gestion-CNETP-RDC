@@ -1,0 +1,523 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mettre à jour mon profil — CNE-ITP</title>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+    <script src="{% static 'js/network-utils.js' %}"></script>
+    <script>
+        const theme = localStorage.getItem('theme-preference') || 'light';
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 100: '#06060c', 200: '#020204' },
+                        brand: {
+                            50: '#E6F6FD', 100: '#CCEDFB', 200: '#99DBF7', 300: '#66C9F3',
+                            400: '#33B7EF', 500: '#009FE3', 600: '#0080B8', 700: '#00608A',
+                            800: '#00405C', 900: '#00202E',
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.98)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-y-auto flex items-center justify-center p-4 transition-colors duration-300 bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300">
+
+    <div class="fixed top-0 inset-x-0 h-1 flex z-30">
+        <div class="flex-1 bg-[#009FE3]"></div>
+        <div class="flex-1 bg-[#FFED00]"></div>
+        <div class="flex-1 bg-[#E30613]"></div>
+    </div>
+
+    <div class="fixed inset-0 pointer-events-none transition-opacity duration-300 bg-gradient-to-br from-brand-50 to-slate-100 dark:from-brand-900/10 dark:via-black dark:to-slate-900/20"></div>
+    <div class="fixed top-1/4 -left-1/4 w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <button id="theme-toggle" type="button" title="Changer de thème"
+        class="fixed top-6 right-6 z-50 p-3 rounded-full backdrop-blur-md transition-all bg-white/80 border border-slate-200 hover:bg-white text-slate-700 hover:shadow-xl dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:text-yellow-500 dark:shadow-lg">
+        <i id="theme-toggle-icon" data-lucide="moon" class="w-5 h-5"></i>
+    </button>
+
+    <div class="w-full max-w-2xl mx-auto relative z-10 py-12 animate-fade-in-up">
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(0,159,227,0.15)]">
+                <i data-lucide="user-cog" class="w-8 h-8 text-brand-400"></i>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-widest uppercase text-center mb-2 text-slate-900 dark:text-white">
+                Mise à jour du profil
+            </h1>
+            <p class="text-brand-500 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-center">
+                Espace expert CNE-ITP
+            </p>
+        </div>
+
+        <div class="border rounded-3xl p-6 sm:p-10 backdrop-blur-xl relative overflow-hidden transition-colors duration-300 bg-white/90 border-slate-200 shadow-xl dark:bg-[#06060c]/80 dark:border-white/5 dark:shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-500/20 via-brand-400/80 to-brand-500/20"></div>
+
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <h2 id="step-title" class="text-xl font-bold text-slate-900 dark:text-white">Identité & coordonnées</h2>
+                        <p id="step-desc" class="text-xs text-slate-600 dark:text-slate-500">Vérifiez les informations de votre dossier.</p>
+                    </div>
+                    <span id="step-indicator" class="text-xs font-mono font-bold bg-brand-500/10 text-brand-500 px-3 py-1.5 rounded-lg border border-brand-500/20">
+                        Étape 1 / 3
+                    </span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                    <div id="step-progress-bar" class="bg-brand-500 h-full transition-all duration-300" style="width: 33.333%;"></div>
+                </div>
+            </div>
+
+            {% if messages %}
+            <div class="space-y-3 mb-6">
+                {% for message in messages %}
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 px-4 py-3 text-sm flex items-start gap-3 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div id="form-error-box" class="{% if form.errors %}flex{% else %}hidden{% endif %} overflow-hidden mb-6 transition-all duration-300">
+                <div class="bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium p-4 rounded-xl flex items-start gap-3 w-full">
+                    <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-px text-red-500"></i>
+                    <div class="leading-relaxed flex flex-col gap-1 w-full" id="form-error-text">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <form id="profile-update-form" method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Step 1: Identity -->
+                <div data-step="1" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Prénom</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500 text-slate-400">
+                                    <i data-lucide="type" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" value="{{ form.first_name.value|default:'' }}" required placeholder="Votre prénom"
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40" />
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Nom et post-nom</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500 text-slate-400">
+                                    <i data-lucide="type" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" value="{{ form.last_name.value|default:'' }}" required placeholder="Votre nom et post-nom"
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Email (non modifiable)</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="mail" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="email" value="{{ expert.user.email }}" readonly
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl text-sm font-medium bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed dark:bg-white/[0.03] dark:border-white/10 dark:text-slate-400" />
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Numéro WhatsApp</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500 text-slate-400">
+                                    <i data-lucide="phone" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="tel" name="{{ form.whatsapp_number.name }}" id="{{ form.whatsapp_number.id_for_label }}" value="{{ form.whatsapp_number.value|default:'' }}" placeholder="+243 81 234 5678"
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Téléphone</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500 text-slate-400">
+                                    <i data-lucide="phone-call" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="text" name="{{ form.phone.name }}" id="{{ form.phone.id_for_label }}" value="{{ form.phone.value|default:'' }}" placeholder="+243 ..."
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40" />
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Province</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500 text-slate-400">
+                                    <i data-lucide="map-pin" class="h-4.5 w-4.5"></i>
+                                </div>
+                                <input type="text" name="{{ form.province.name }}" id="{{ form.province.id_for_label }}" value="{{ form.province.value|default:'' }}" placeholder="Province"
+                                    class="block w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Skills & CV -->
+                <div data-step="2" class="space-y-6 hidden">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Domaines de compétence <span class="text-red-500">*</span></label>
+                        <div class="relative group">
+                            <textarea name="{{ form.specialties.name }}" id="{{ form.specialties.id_for_label }}" rows="3" required placeholder="Ex: Géotechnique tropicale, Dimensionnement des ponts, BIM ISO 19650..."
+                                class="block w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium resize-y bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40">{{ form.specialties.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Biographie professionnelle</label>
+                        <div class="relative group">
+                            <textarea name="{{ form.bio.name }}" id="{{ form.bio.id_for_label }}" rows="4" placeholder="Présentez votre parcours et vos réalisations..."
+                                class="block w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium resize-y bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-600 dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40">{{ form.bio.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 pl-1">Curriculum Vitae (CV)</label>
+                        <div class="relative px-4 py-5 border-2 border-dashed rounded-xl transition-colors text-center group cursor-pointer border-slate-300 hover:border-brand-500 bg-slate-50 dark:border-white/10 dark:hover:border-brand-500/40 dark:bg-white/5">
+                            <input type="file" name="{{ form.cv.name }}" id="id_cv" accept=".pdf,.doc,.docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                            <div id="cv-empty-ui" class="flex flex-col items-center gap-2">
+                                <div class="p-3 rounded-full transition-all bg-white text-slate-500 shadow-sm group-hover:text-brand-500 group-hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:group-hover:text-brand-400 dark:group-hover:bg-brand-500/10">
+                                    <i data-lucide="upload" class="h-6 w-6"></i>
+                                </div>
+                                <span class="text-sm font-bold text-slate-800 dark:text-white">Cliquez pour joindre un CV actualisé</span>
+                                <span class="text-xs text-slate-500">Format PDF, DOC, DOCX (Max: 5MB)</span>
+                            </div>
+                            <div id="cv-selected-ui" class="hidden flex-col items-center gap-2">
+                                <i data-lucide="check-circle" class="h-8 w-8 text-green-500"></i>
+                                <span class="text-sm font-bold text-green-600 dark:text-green-400">Document attaché</span>
+                                <span id="cv-filename" class="text-xs text-slate-500 dark:text-slate-400"></span>
+                            </div>
+                        </div>
+                        {% if expert.cv %}
+                        <p class="text-xs text-slate-500 pl-1">CV actuel conservé si aucun nouveau fichier n'est choisi.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Step 3: Assignment -->
+                <div data-step="3" class="space-y-6 hidden">
+                    {% if form.ctm.field.queryset %}
+                    <div class="p-5 border rounded-2xl border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="h-4 w-4 mt-0.5 flex items-center justify-center text-brand-500 shrink-0">
+                                <i data-lucide="layers" class="h-4 w-4"></i>
+                            </div>
+                            <div>
+                                <label class="text-sm font-bold text-slate-900 dark:text-white block select-none">Affectation technique</label>
+                                <p class="text-xs text-slate-500">Choisissez d'abord un CTM : les groupes de travail s'afficheront en conséquence.</p>
+                            </div>
+                        </div>
+                        <div class="pl-7 space-y-4">
+                            <div class="space-y-2">
+                                <label for="{{ form.ctm.id_for_label }}" class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Sous-commission (CTM) <span class="text-red-500">*</span></label>
+                                <div class="relative group">
+                                    <select name="{{ form.ctm.name }}" id="{{ form.ctm.id_for_label }}" required
+                                        class="block w-full px-4 pr-10 py-3 border rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40">
+                                        <option value="" disabled {% if not form.ctm.value %}selected{% endif %}>Sélectionnez votre CTM</option>
+                                        {% for ctm in form.ctm.field.queryset %}
+                                            <option value="{{ ctm.pk }}" {% if form.ctm.value|stringformat:"s" == ctm.pk|stringformat:"s" %}selected{% endif %}>CTM {{ ctm.number }} — {{ ctm.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="{{ form.wg.id_for_label }}" class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Groupe de travail <span class="text-red-500">*</span></label>
+                                <div class="relative group">
+                                    <select name="{{ form.wg.name }}" id="{{ form.wg.id_for_label }}" required
+                                        class="block w-full px-4 pr-10 py-3 border rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all text-sm font-medium bg-white border-slate-300 text-slate-900 focus:ring-brand-500/30 focus:border-brand-500 hover:border-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-brand-500/40 dark:focus:border-brand-500/40">
+                                        <option value="" disabled {% if not form.wg.value %}selected{% endif %}>Sélectionnez d'abord un CTM</option>
+                                        {% for wg in form.wg.field.queryset %}
+                                            <option value="{{ wg.pk }}" {% if form.wg.value|stringformat:"s" == wg.pk|stringformat:"s" %}selected{% endif %}>WG {{ wg.ctm.number }}.{{ wg.number }} — {{ wg.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-5 border rounded-2xl border-amber-300/40 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10">
+                        <p class="flex items-start gap-3 text-sm text-amber-900 dark:text-amber-100">
+                            <i data-lucide="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0"></i>
+                            <span>Aucun CTM n'est actuellement disponible. Vous pouvez toutefois actualiser vos informations et votre CV ; l'affectation sera confirmée ultérieurement.</span>
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 flex items-start gap-3 p-4 rounded-xl bg-brand-500/5 border border-brand-500/10">
+                        <i data-lucide="info" class="w-5 h-5 shrink-0 text-brand-500 mt-0.5"></i>
+                        <p class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">
+                            Votre déclaration d'affectation sera transmise pour examen. Les anciens groupes de travail et les travaux déjà réalisés sont conservés.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-4">
+                    <button type="button" id="prev-btn" onclick="navigateStep(-1)"
+                        class="hidden px-6 py-3.5 bg-slate-200 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 text-slate-900 dark:text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all active:scale-95 flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Précédent</span>
+                    </button>
+
+                    <button type="button" id="next-btn" onclick="navigateStep(1)"
+                        class="w-full py-4 bg-brand-500 text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-brand-400 shadow-[0_4px_20px_rgba(0,159,227,0.2)] transition-all flex items-center justify-center gap-3 group active:scale-95 ml-auto">
+                        <span>Étape Suivante</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button type="submit" id="submit-btn"
+                        class="hidden w-full py-4 bg-brand-500 text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-brand-400 shadow-[0_4px_20px_rgba(0,159,227,0.2)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 group active:scale-95 ml-auto">
+                        <span>Enregistrer ma mise à jour</span>
+                        <i data-lucide="check" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 sm:p-8 border-t transition-colors bg-slate-50/80 border-slate-200 dark:bg-white/5 dark:border-white/5">
+                <p class="text-xs text-slate-600 dark:text-slate-400">
+                    Vous souhaitez consulter votre profil ?
+                    <a href="{% url 'web:expert_profile' %}" class="text-brand-500 hover:text-brand-400 font-bold transition-colors uppercase tracking-wider ml-1">
+                        Mon profil
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalSteps = 3;
+        let currentStep = 1;
+
+        const STEP_DETAILS = {
+            1: { title: "Identité & coordonnées", desc: "Vérifiez les informations de votre dossier.", width: "33.333%" },
+            2: { title: "Compétences & CV", desc: "Actualisez vos domaines de compétence et votre CV.", width: "66.666%" },
+            3: { title: "Affectation", desc: "Choisissez un CTM puis son groupe de travail.", width: "100%" }
+        };
+
+        // Groupes de travail par CTM (générés depuis la base)
+        const WG_DATABASE = {
+            {% for ctm in form.ctm.field.queryset %}
+                "{{ ctm.pk }}": [
+                    {% for wg in ctm.working_groups.all %}
+                        {"id": "{{ wg.pk }}", "label": "WG {{ ctm.number }}.{{ wg.number }} — {{ wg.name }}"}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        function updateWorkingGroups() {
+            const ctmSelect = document.getElementById('{{ form.ctm.id_for_label }}');
+            const wgSelect = document.getElementById('{{ form.wg.id_for_label }}');
+            if (!ctmSelect || !wgSelect) return;
+
+            const previous = wgSelect.value;
+            const selectedCtm = ctmSelect.value;
+            wgSelect.replaceChildren(new Option("Sélectionnez d'abord un CTM", ''));
+
+            if (selectedCtm && WG_DATABASE[selectedCtm]) {
+                WG_DATABASE[selectedCtm].forEach(wg => {
+                    const opt = new Option(wg.label, wg.id);
+                    opt.className = "bg-white dark:bg-slate-900";
+                    wgSelect.appendChild(opt);
+                });
+            }
+
+            if ([...wgSelect.options].some(o => o.value === previous)) {
+                wgSelect.value = previous;
+            }
+        }
+
+        function navigateStep(direction) {
+            if (!validateCurrentStep()) return;
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('hidden');
+            currentStep += direction;
+            if (currentStep < 1) currentStep = 1;
+            if (currentStep > totalSteps) currentStep = totalSteps;
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('hidden');
+
+            document.getElementById('step-title').textContent = STEP_DETAILS[currentStep].title;
+            document.getElementById('step-desc').textContent = STEP_DETAILS[currentStep].desc;
+            document.getElementById('step-indicator').textContent = `Étape ${currentStep} / ${totalSteps}`;
+            document.getElementById('step-progress-bar').style.width = STEP_DETAILS[currentStep].width;
+
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (currentStep === 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+                nextBtn.className = "w-full py-4 bg-brand-500 text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-brand-400 shadow-[0_4px_20px_rgba(0,159,227,0.2)] transition-all flex items-center justify-center gap-3 group active:scale-95 ml-auto";
+                submitBtn.classList.add('hidden');
+            } else if (currentStep === totalSteps) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                nextBtn.className = "px-6 py-3.5 bg-brand-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-brand-400 transition-all flex items-center gap-2 ml-auto";
+                submitBtn.classList.add('hidden');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function validateCurrentStep() {
+            const currentContainer = document.querySelector(`[data-step="${currentStep}"]`);
+            const inputs = Array.from(currentContainer.querySelectorAll('input[required], select[required], textarea[required]'));
+            hideError();
+
+            for (const input of inputs) {
+                const isDisabled = input.disabled;
+                const isVisible = input.offsetParent !== null || input.getClientRects().length > 0;
+                if (isDisabled || !isVisible) continue;
+                const value = (input.value || '').trim();
+                if (value === '') {
+                    showError("Veuillez remplir tous les champs obligatoires avant de poursuivre.");
+                    input.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        const errorBox = document.getElementById('form-error-box');
+        const errorText = document.getElementById('form-error-text');
+
+        function showError(msg) {
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+            errorText.innerHTML = `<span>${msg}</span>`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideError() {
+            errorBox.classList.remove('flex');
+            errorBox.classList.add('hidden');
+        }
+
+        const fileInput = document.getElementById('id_cv');
+        const emptyUI = document.getElementById('cv-empty-ui');
+        const selectedUI = document.getElementById('cv-selected-ui');
+        const filenameText = document.getElementById('cv-filename');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    const file = this.files[0];
+                    if (file.size > 5 * 1024 * 1024) {
+                        showError('Le fichier CV ne doit pas dépasser 5 MB.');
+                        this.value = '';
+                        emptyUI.classList.remove('hidden');
+                        selectedUI.classList.add('hidden');
+                        selectedUI.classList.remove('flex');
+                    } else {
+                        hideError();
+                        filenameText.textContent = file.name;
+                        emptyUI.classList.add('hidden');
+                        selectedUI.classList.remove('hidden');
+                        selectedUI.classList.add('flex');
+                    }
+                }
+            });
+        }
+
+        document.getElementById('profile-update-form').addEventListener('submit', function(e) {
+            if (!validateCurrentStep()) {
+                e.preventDefault();
+                return;
+            }
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <div class="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                <span>Enregistrement en cours...</span>
+            `;
+        });
+
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            var isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
+            var icon = document.getElementById('theme-toggle-icon');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (window.lucide) lucide.createIcons();
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+
+            const ctmSelect = document.getElementById('{{ form.ctm.id_for_label }}');
+            if (ctmSelect) {
+                ctmSelect.addEventListener('change', updateWorkingGroups);
+                updateWorkingGroups();
+            }
+
+            const startStep = {{ wizard_start_step|default:1 }};
+            if (startStep > 1) {
+                currentStep = 1;
+                for (let i = 1; i < startStep; i++) {
+                    document.querySelector(`[data-step="${currentStep}"]`).classList.add('hidden');
+                    currentStep += 1;
+                    document.querySelector(`[data-step="${currentStep}"]`).classList.remove('hidden');
+                }
+                document.getElementById('step-title').textContent = STEP_DETAILS[currentStep].title;
+                document.getElementById('step-desc').textContent = STEP_DETAILS[currentStep].desc;
+                document.getElementById('step-indicator').textContent = `Étape ${currentStep} / ${totalSteps}`;
+                document.getElementById('step-progress-bar').style.width = STEP_DETAILS[currentStep].width;
+                document.getElementById('prev-btn').classList.remove('hidden');
+                document.getElementById('next-btn').classList.toggle('hidden', currentStep === totalSteps);
+                document.getElementById('submit-btn').classList.toggle('hidden', currentStep !== totalSteps);
+            }
+        });
+    </script>
+</body>
+</html>

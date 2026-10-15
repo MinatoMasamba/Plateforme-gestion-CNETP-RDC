@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} · CNE-ITP{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root { --act-blue:#075985; --act-green:#15803d; --act-gray:#64748b; --act-orange:#c2410c; --act-red:#b91c1c; }
+  .activity-shell { background:linear-gradient(180deg,#f8fafc 0,#eef4f8 100%); min-height:72vh; }
+  .activity-card { border:1px solid #dbe4ec; background:#fff; border-radius:1rem; box-shadow:0 7px 24px rgba(15,23,42,.055); }
+  .activity-kpi { position:relative; min-height:154px; transition:transform .18s ease,box-shadow .18s ease; }
+  .activity-kpi:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(15,23,42,.09); }
+  .activity-kpi:focus-visible,.activity-action:focus-visible { outline:3px solid #38bdf8; outline-offset:3px; }
+  .activity-label { font-size:.69rem; line-height:1rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#64748b; }
+  .activity-value { font-size:2rem; line-height:2.3rem; font-weight:900; letter-spacing:-.04em; color:#0f172a; }
+  .status-badge { display:inline-flex; align-items:center; gap:.35rem; border-radius:999px; padding:.25rem .6rem; font-size:.7rem; font-weight:800; }
+  .status-blue{background:#e0f2fe;color:#075985}.status-green{background:#dcfce7;color:#166534}.status-gray{background:#f1f5f9;color:#475569}.status-orange{background:#ffedd5;color:#9a3412}.status-red{background:#fee2e2;color:#991b1b}
+  .segmented { display:flex; overflow:hidden; height:.58rem; border-radius:999px; background:#e2e8f0; }
+  .activity-table th { color:#64748b; font-size:.69rem; letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+  .activity-drawer { transform:translateX(105%); transition:transform .25s ease; }
+  .activity-drawer.is-open { transform:translateX(0); }
+  .activity-overlay { opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  .activity-overlay.is-open { opacity:1; pointer-events:auto; }
+  .chart-box { min-height:290px; width:100%; }
+  @media (prefers-reduced-motion:reduce){.activity-kpi,.activity-drawer,.activity-overlay{transition:none!important}.activity-kpi:hover{transform:none}}
+  @media (max-width:640px){.activity-value{font-size:1.65rem}.activity-card{border-radius:.85rem}.chart-box{min-height:240px}}
+  .dark .activity-shell{background:#020617}.dark .activity-card{background:#0f172a;border-color:#263449}.dark .activity-value{color:#f8fafc}.dark .activity-table th{color:#94a3b8}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="activity-shell" data-activity-root data-light-mode="{{ light_data_mode|yesno:'true,false' }}"
+     data-source-url="{% url 'web:activity_metric_sources' %}"
+     data-ctm-id="{% if subcommission and historical %}{{ subcommission.pk }}{% elif group.ctm_id %}{{ group.ctm_id }}{% elif norme.ctm_id %}{{ norme.ctm_id }}{% endif %}"
+     data-wg-id="{% if group and historical %}{{ group.pk }}{% elif norme.wg_id %}{{ norme.wg_id }}{% endif %}"
+     data-target-group-id="{% if group and not historical %}{{ group.pk }}{% endif %}"
+     data-norme-id="{% if norme %}{{ norme.pk }}{% endif %}">
+  <header class="border-b border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/95">
+    <div class="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <a href="{% url 'web:activity_dashboard' %}" class="activity-label text-sky-700 hover:text-sky-900">Cellule technique de coordination</a>
+          <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl">{{ page_title }}</h1>
+          {% block subtitle %}<p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Repérez les normes qui risquent de ne pas respecter leur planning.</p>{% endblock %}
+        </div>
+        <form method="get" class="flex flex-wrap items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900" aria-label="Filtres de période">
+          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Du
+            <input type="date" name="debut" value="{{ period_start|date:'Y-m-d' }}" class="mt-1 block rounded-lg border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          </label>
+          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Au
+            <input type="date" name="fin" value="{{ period_end|date:'Y-m-d' }}" class="mt-1 block rounded-lg border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          </label>
+          <label class="flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+            <input type="checkbox" name="leger" value="1" {% if light_data_mode %}checked{% endif %}> Données légères
+          </label>
+          <button class="activity-action min-h-10 rounded-lg bg-slate-900 px-4 text-xs font-black uppercase tracking-wider text-white hover:bg-sky-800">Appliquer</button>
+        </form>
+      </div>
+      <nav class="mt-5 flex flex-wrap gap-2 text-xs font-bold" aria-label="Navigation supervision">
+        <a href="{% url 'web:activity_dashboard' %}" class="rounded-full bg-slate-900 px-4 py-2 text-white">Vue globale</a>
+        <a href="{% url 'web:my_activity_data' %}" class="rounded-full border border-slate-300 bg-white px-4 py-2 text-slate-700 hover:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Ce qui est enregistré sur moi</a>
+        <a href="{% url 'web:app' %}" class="rounded-full border border-slate-300 bg-white px-4 py-2 text-slate-700 hover:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Espace de travail</a>
+      </nav>
+    </div>
+  </header>
+  <main class="mx-auto max-w-[1500px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    {% if messages %}{% for message in messages %}<div class="activity-card border-l-4 border-l-sky-600 p-4 text-sm font-semibold">{{ message }}</div>{% endfor %}{% endif %}
+    {% block activity_content %}{% endblock %}
+  </main>
+
+  <div id="activity-drawer-overlay" class="activity-overlay fixed inset-0 z-[70] bg-slate-950/45" hidden></div>
+  <aside id="activity-drawer" class="activity-drawer fixed inset-y-0 right-0 z-[80] w-full max-w-xl overflow-y-auto border-l border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-950" aria-hidden="true" aria-labelledby="activity-drawer-title">
+    <div class="flex items-start justify-between gap-4">
+      <div><p class="activity-label">Événements sources</p><h2 id="activity-drawer-title" class="mt-1 text-xl font-black">Détail de l’indicateur</h2></div>
+      <button type="button" data-close-drawer class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" aria-label="Fermer le volet">Fermer</button>
+    </div>
+    <div id="activity-drawer-content" class="mt-6 space-y-3 text-sm"></div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/activity-supervision.js' %}" defer></script>
+{% block activity_scripts %}{% endblock %}
+{% endblock %}

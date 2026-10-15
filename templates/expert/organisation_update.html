@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0095c9">
+    <title>Actualiser mon profil expert | CNE-ITP</title>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+    <script>tailwind.config = {darkMode: 'class'};</script>
+    <style>
+        body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+        #wizard-form input:not([type=hidden]):not([type=checkbox]), #wizard-form select, #wizard-form textarea {
+            display:block; width:100%; min-width:0; border:1px solid #cbd5e1; border-radius:.8rem;
+            background:#fff; color:#0f172a; padding:.78rem .95rem; font-size:.9rem; line-height:1.35;
+        }
+        #wizard-form textarea { min-height:7rem; resize:vertical; }
+        #wizard-form input[type=file] { padding:.7rem; font-size:.8rem; }
+        #wizard-form input:focus, #wizard-form select:focus, #wizard-form textarea:focus {
+            outline:2px solid #0095c9; outline-offset:1px; border-color:#0095c9;
+        }
+        #wizard-form input::placeholder, #wizard-form textarea::placeholder { color:#94a3b8; }
+        .dark #wizard-form input:not([type=hidden]):not([type=checkbox]), .dark #wizard-form select, .dark #wizard-form textarea {
+            border-color:#334155; background:#0f172a; color:#f8fafc;
+        }
+        .dark #wizard-form select option { background:#0f172a; color:#f8fafc; }
+        .step-pane[hidden], .step-action[hidden] { display:none !important; }
+        .step-chip[aria-current=step] { border-color:#0095c9; color:#0079a5; background:#e9f7fd; }
+        .dark .step-chip[aria-current=step] { color:#67d5ff; background:rgba(0,149,201,.12); }
+        .step-chip[aria-current=step] .step-number { background:#0095c9; color:white; }
+        @media (max-width:640px) {
+            #wizard-form input:not([type=hidden]):not([type=checkbox]), #wizard-form select, #wizard-form textarea { font-size:16px; }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 dark:bg-[#06060c] dark:text-slate-200">
+    <div class="flex h-1.5" aria-hidden="true"><div class="flex-1 bg-[#0095c9]"></div><div class="flex-1 bg-[#fff24b]"></div><div class="flex-1 bg-[#db3832]"></div></div>
+    <header class="border-b border-slate-200 bg-white/95 dark:border-white/10 dark:bg-[#0a0b10]/95">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <div class="flex min-w-0 items-center gap-3">
+                <img src="{% static 'img/logo-cnetp.png' %}" alt="CNE-ITP" class="h-10 w-10 shrink-0 rounded-full border border-slate-200 bg-white object-cover">
+                <div class="min-w-0"><p class="truncate text-xs font-extrabold uppercase tracking-[.16em] text-[#0095c9]">CNE-ITP</p><p class="truncate text-xs font-semibold text-slate-600 dark:text-slate-300">Espace expert</p></div>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+                <a href="{% url 'web:expert_profile' %}" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/5"><i data-lucide="arrow-left" class="h-4 w-4"></i><span class="hidden sm:inline">Mon profil</span><span class="sm:hidden">Retour</span></a>
+                {% include "pilotage/composants/theme_toggle.html" %}
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-6xl px-4 pb-12 pt-7 sm:px-6 sm:pt-10">
+        <div class="mb-6 max-w-3xl">
+            <p class="mb-2 text-[11px] font-extrabold uppercase tracking-[.2em] text-[#0095c9]">Actualisation du dossier expert</p>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Mon profil, mon CV et mon rattachement</h1>
+            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">Vérifiez vos informations, actualisez vos compétences, puis indiquez où classer votre groupe de travail dans la nouvelle organisation.</p>
+        </div>
+
+        {% if messages %}{% for message in messages %}<div role="status" class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">{{ message }}</div>{% endfor %}{% endif %}
+        {% if latest_choice %}<div class="mb-5 flex items-start gap-3 rounded-xl border border-[#0095c9]/25 bg-[#0095c9]/5 px-4 py-3 text-sm dark:border-[#0095c9]/30 dark:bg-[#0095c9]/10">
+            <i data-lucide="clock-3" class="mt-0.5 h-4 w-4 shrink-0 text-[#0095c9]"></i>
+            <p>Dernier choix transmis : <strong>{{ latest_choice.sc.name }}</strong> · {% if latest_choice.source_wg %}{{ latest_choice.source_wg.name }}{% elif latest_choice.groupe %}{{ latest_choice.groupe.name }}{% else %}{{ latest_choice.groupe_souhaite }}{% endif %}. En attente d’examen.</p>
+        </div>{% endif %}
+
+        <form id="wizard-form" method="post" enctype="multipart/form-data" novalidate class="grid min-w-0 gap-5 lg:grid-cols-[245px_minmax(0,1fr)] lg:gap-7">
+            {% csrf_token %}
+            <aside class="min-w-0 lg:sticky lg:top-6 lg:self-start">
+                <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[.04] sm:p-4">
+                    <p class="hidden px-2 pb-3 text-[10px] font-extrabold uppercase tracking-[.18em] text-slate-500 lg:block">Votre progression</p>
+                    <ol class="grid grid-cols-3 gap-2 lg:grid-cols-1" aria-label="Étapes du formulaire">
+                        <li><button type="button" data-step-target="1" class="step-chip flex w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-transparent px-1 py-2 text-center text-[11px] font-bold text-slate-500 transition-colors sm:px-3 sm:text-xs lg:flex-row lg:gap-2 lg:text-left"><span class="step-number flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">1</span><span class="min-w-0 leading-4">Identité<span class="hidden lg:inline"> & coordonnées</span></span></button></li>
+                        <li><button type="button" data-step-target="2" class="step-chip flex w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-transparent px-1 py-2 text-center text-[11px] font-bold text-slate-500 transition-colors sm:px-3 sm:text-xs lg:flex-row lg:gap-2 lg:text-left"><span class="step-number flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">2</span><span class="min-w-0 leading-4"><span class="lg:hidden">CV</span><span class="hidden lg:inline">Compétences & CV</span></span></button></li>
+                        <li><button type="button" data-step-target="3" class="step-chip flex w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-transparent px-1 py-2 text-center text-[11px] font-bold text-slate-500 transition-colors sm:px-3 sm:text-xs lg:flex-row lg:gap-2 lg:text-left"><span class="step-number flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">3</span><span class="min-w-0 leading-4"><span class="lg:hidden">Structure</span><span class="hidden lg:inline">Organisation</span></span></button></li>
+                    </ol>
+                </div>
+                <div class="mt-4 hidden rounded-2xl border border-slate-200 bg-white p-5 text-xs leading-5 text-slate-600 dark:border-white/10 dark:bg-white/[.04] dark:text-slate-400 lg:block"><i data-lucide="info" class="mb-2 h-4 w-4 text-[#0095c9]"></i><p>Votre déclaration de rattachement sera examinée. Elle ne modifie pas vos affectations actuelles.</p></div>
+            </aside>
+
+            <div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0c0e15]">
+                <div class="h-1.5 bg-slate-100 dark:bg-white/10"><div id="step-progress-bar" class="h-full bg-[#0095c9] transition-all duration-300" style="width:33.333%"></div></div>
+                <div class="px-5 pt-6 sm:px-8 sm:pt-8">
+                    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-5 dark:border-white/10">
+                        <div class="min-w-0"><p id="step-indicator" class="mb-1 text-[10px] font-extrabold uppercase tracking-[.18em] text-[#0095c9]">Étape 1 sur 3</p><h2 id="step-title" class="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">Identité et coordonnées</h2><p id="step-description" class="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">Confirmez les informations utilisées pour votre dossier.</p></div>
+                        <span class="rounded-lg border border-[#0095c9]/20 bg-[#0095c9]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0079a5] dark:text-[#5acfff]">Profil expert</span>
+                    </div>
+                    {% if user_form.errors or expert_form.errors or choice_form.errors %}<div role="alert" class="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-100">Veuillez corriger les champs signalés avant d’enregistrer.</div>{% endif %}
+                    <div id="step-client-error" role="alert" class="mt-5 hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-100"></div>
+                </div>
+
+                <div class="px-5 py-6 sm:px-8 sm:py-8">
+                    <section class="step-pane space-y-5" data-step="1" aria-label="Identité et coordonnées">
+                        <div class="grid min-w-0 gap-5 sm:grid-cols-2">
+                            <div><label for="{{ user_form.first_name.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Prénom <span class="text-red-600">*</span></label>{{ user_form.first_name }}{% for error in user_form.first_name.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div><label for="{{ user_form.last_name.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nom et post-nom <span class="text-red-600">*</span></label>{{ user_form.last_name }}{% for error in user_form.last_name.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div><label for="{{ user_form.phone.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Téléphone</label>{{ user_form.phone }}{% for error in user_form.phone.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div><label for="{{ user_form.province.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Province</label>{{ user_form.province }}{% for error in user_form.province.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div class="sm:col-span-2"><label for="{{ user_form.profile_picture.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Photo de profil</label>{{ user_form.profile_picture }}{% for error in user_form.profile_picture.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                        </div>
+                    </section>
+
+                    <section class="step-pane space-y-5" data-step="2" aria-label="Compétences et CV">
+                        <div><label for="{{ expert_form.specialties.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Domaines de compétence</label>{{ expert_form.specialties }}{% for error in expert_form.specialties.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                        <div><label for="{{ user_form.bio.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Biographie professionnelle</label>{{ user_form.bio }}{% for error in user_form.bio.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                        <div class="grid min-w-0 gap-5 sm:grid-cols-2">
+                            <div><label for="{{ expert_form.whatsapp_number.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Numéro WhatsApp</label>{{ expert_form.whatsapp_number }}{% for error in expert_form.whatsapp_number.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div><label for="{{ expert_form.cv.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Curriculum vitae</label>{{ expert_form.cv }}{% if expert.cv %}<p class="mt-1.5 break-all text-xs text-slate-500">CV actuel conservé si aucun nouveau fichier n’est choisi.</p>{% endif %}{% for error in expert_form.cv.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                        </div>
+                    </section>
+
+                    <section class="step-pane space-y-6" data-step="3" aria-label="Nouvelle organisation">
+                        <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-sm leading-6 text-slate-700 dark:text-slate-300"><p class="font-semibold">{{ version.name }}</p><p class="mt-1 text-xs leading-5">Choisissez une sous-commission et classez-y un groupe de travail existant. Les correspondances suggérées servent de repère ; votre déclaration sera examinée.</p></div>
+                        <div class="grid min-w-0 gap-5 sm:grid-cols-2">
+                            <div><label for="{{ choice_form.sc.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nouvelle sous-commission <span class="text-red-600">*</span></label>{{ choice_form.sc }}{% for error in choice_form.sc.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            <div><label for="{{ choice_form.source_wg.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Groupe de travail existant <span class="text-red-600">*</span></label>{{ choice_form.source_wg }}{% for error in choice_form.source_wg.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                        </div>
+                        {% if not has_groups %}<p class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">Aucun groupe de travail existant n’est disponible.</p>{% endif %}
+                        <div class="border-t border-slate-100 pt-5 dark:border-white/10">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Coordonnées de paiement</h3><p class="mt-1 text-xs text-slate-500">Vérifiez ces informations si elles ont changé.</p>
+                            <div class="mt-4 grid min-w-0 gap-5 sm:grid-cols-2">
+                                <div><label for="{{ expert_form.mobile_money_number.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Mobile Money</label>{{ expert_form.mobile_money_number }}{% for error in expert_form.mobile_money_number.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                                <div><label for="{{ expert_form.bank_name.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Banque</label>{{ expert_form.bank_name }}{% for error in expert_form.bank_name.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                                <div class="sm:col-span-2"><label for="{{ expert_form.bank_account.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Compte bancaire</label>{{ expert_form.bank_account }}{% for error in expert_form.bank_account.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 dark:border-white/10 dark:bg-white/[.025] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                    <button id="prev-btn" type="button" hidden class="step-action min-h-11 rounded-xl border border-slate-300 px-5 text-sm font-semibold text-slate-700 hover:bg-white dark:border-white/15 dark:text-slate-200 dark:hover:bg-white/5">← Étape précédente</button>
+                    <span class="hidden text-xs text-slate-500 sm:block">Les champs marqués * sont obligatoires.</span>
+                    <button id="next-btn" type="button" hidden class="step-action min-h-11 rounded-xl bg-[#0095c9] px-6 text-sm font-bold text-white hover:bg-[#007da8]">Étape suivante →</button>
+                    <button id="submit-btn" type="submit" class="step-action min-h-11 rounded-xl bg-[#0095c9] px-6 text-sm font-bold text-white hover:bg-[#007da8]">Enregistrer et transmettre</button>
+                </div>
+            </div>
+        </form>
+    </main>
+    <script>
+        const groups = JSON.parse('{{ groups_json|escapejs }}');
+        const sc = document.getElementById('id_sc');
+        const group = document.getElementById('id_source_wg');
+        const selectedGroup = group.value;
+        function refreshGroups() {
+            const selected = group.value || selectedGroup;
+            group.replaceChildren(new Option('Choisir un groupe existant', ''));
+            const preferred = document.createElement('optgroup'); preferred.label = 'Groupes correspondant à cette sous-commission';
+            const others = document.createElement('optgroup'); others.label = 'Autres groupes à classer';
+            groups.forEach(item => {
+                const option = new Option(`${item.own ? 'Mon groupe · ' : ''}${item.label}`, item.id);
+                (item.suggested_sc_ids.includes(Number(sc.value)) ? preferred : others).appendChild(option);
+            });
+            if (preferred.children.length) group.appendChild(preferred);
+            if (others.children.length) group.appendChild(others);
+            if ([...group.options].some(option => option.value === selected)) group.value = selected;
+        }
+        sc.addEventListener('change', refreshGroups);
+        refreshGroups();
+
+        const form = document.getElementById('wizard-form');
+        const panes = [...form.querySelectorAll('.step-pane')];
+        const chips = [...form.querySelectorAll('.step-chip')];
+        const errorBox = document.getElementById('step-client-error');
+        const details = [
+            {title:'Identité et coordonnées', description:'Confirmez les informations utilisées pour votre dossier.'},
+            {title:'Compétences et CV', description:'Actualisez votre présentation professionnelle et votre CV.'},
+            {title:'Nouvelle organisation', description:'Classez votre groupe et vérifiez vos coordonnées de paiement.'},
+        ];
+        let currentStep = 1;
+        function showStep(step, scroll = true) {
+            currentStep = Math.max(1, Math.min(3, step));
+            panes.forEach((pane, index) => { pane.hidden = index + 1 !== currentStep; });
+            chips.forEach((chip, index) => {
+                if (index + 1 === currentStep) chip.setAttribute('aria-current', 'step');
+                else chip.removeAttribute('aria-current');
+            });
+            document.getElementById('step-title').textContent = details[currentStep - 1].title;
+            document.getElementById('step-description').textContent = details[currentStep - 1].description;
+            document.getElementById('step-indicator').textContent = `Étape ${currentStep} sur 3`;
+            document.getElementById('step-progress-bar').style.width = `${currentStep / 3 * 100}%`;
+            document.getElementById('prev-btn').hidden = currentStep === 1;
+            document.getElementById('next-btn').hidden = currentStep === 3;
+            document.getElementById('submit-btn').hidden = currentStep !== 3;
+            errorBox.classList.add('hidden');
+            if (scroll) form.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+        function validateStep(step) {
+            const pane = panes[step - 1];
+            const invalid = [...pane.querySelectorAll('input, select, textarea')].find(input => !input.checkValidity());
+            if (!invalid) return true;
+            showStep(step, false);
+            errorBox.textContent = 'Vérifiez les champs obligatoires de cette étape avant de continuer.';
+            errorBox.classList.remove('hidden');
+            invalid.focus();
+            invalid.reportValidity();
+            return false;
+        }
+        document.getElementById('prev-btn').addEventListener('click', () => showStep(currentStep - 1));
+        document.getElementById('next-btn').addEventListener('click', () => { if (validateStep(currentStep)) showStep(currentStep + 1); });
+        chips.forEach(chip => chip.addEventListener('click', () => {
+            const target = Number(chip.dataset.stepTarget);
+            if (target < currentStep || Array.from({length:target-currentStep}, (_, index) => currentStep + index).every(validateStep)) showStep(target);
+        }));
+        form.addEventListener('submit', event => {
+            for (let step = 1; step <= 3; step++) {
+                if (!validateStep(step)) { event.preventDefault(); return; }
+            }
+        });
+        showStep({{ wizard_start_step|default:1 }}, false);
+        if (window.lucide) lucide.createIcons();
+    </script>
+</body>
+</html>

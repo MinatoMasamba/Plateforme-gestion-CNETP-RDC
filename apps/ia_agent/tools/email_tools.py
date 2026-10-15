@@ -52,6 +52,8 @@ def create_email_draft(session, to_email, subject, body, related_artifact_id=Non
 
     return {
         "artifact_id": artifact.id,
+        "url": f"/api/v1/ia-agent/artifacts/{artifact.id}/",
+        "link_label": "Ouvrir le brouillon d'email",
         "status": artifact.status,
         "message": (
             "Brouillon d'email préparé, en attente de validation et d'envoi manuel par "

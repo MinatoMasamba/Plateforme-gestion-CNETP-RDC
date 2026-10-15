@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from apps.experts.models import Expert, Structure
 from apps.governance.models import CTM, ComitePilotage, TechnicalCell, WG, Affectation
+from apps.governance.models import Organe, GroupeCible
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
@@ -22,6 +23,17 @@ class UserProfileForm(forms.ModelForm):
         }
 
 
+class ExpertCVUserForm(UserProfileForm):
+    """Identité demandée dans le parcours de mise à jour, comme à l'inscription."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+        self.fields['last_name'].label = 'Nom et post-nom'
+        self.fields['last_name'].widget.attrs['placeholder'] = 'Votre nom et post-nom'
+
+
 class ExpertProfileForm(forms.ModelForm):
     class Meta:
         model = Expert
@@ -34,6 +46,153 @@ class ExpertProfileForm(forms.ModelForm):
             'bank_account': forms.TextInput(attrs={'placeholder': 'Compte bancaire', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
             'cv': forms.ClearableFileInput(attrs={'class': 'w-full text-sm'}),
         }
+
+
+class ExpertProfileUpdateForm(forms.Form):
+    """Nouveau formulaire autonome de mise à jour du profil expert.
+
+    Reprend le parcours de la candidature (identité, compétences/CV,
+    affectation) sans dépendre du wizard Phoenix existant.
+    """
+
+    first_name = forms.CharField(max_length=150, label="Prénom")
+    last_name = forms.CharField(max_length=150, label="Nom et post-nom")
+    phone = forms.CharField(max_length=20, required=False, label="Téléphone")
+    province = forms.CharField(max_length=100, required=False, label="Province")
+    whatsapp_number = forms.CharField(max_length=20, required=False, label="Numéro WhatsApp")
+    specialties = forms.CharField(max_length=500, label="Domaines de compétence")
+    bio = forms.CharField(required=False, label="Biographie professionnelle")
+    cv = forms.FileField(required=False, label="Curriculum Vitae (CV)")
+    ctm = forms.ModelChoiceField(
+        queryset=CTM.objects.none(), required=False, label="Sous-commission (CTM)",
+    )
+    wg = forms.ModelChoiceField(
+        queryset=WG.objects.none(), required=False, label="Groupe de travail",
+    )
+
+    def __init__(self, *args, user=None, expert=None, version=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.expert = expert
+        self.version = version
+
+        self.fields['ctm'].queryset = CTM.objects.all().order_by('number')
+
+        ctm_id = None
+        if self.is_bound:
+            ctm_id = self.data.get('ctm')
+        elif expert is not None:
+            ctm_id = getattr(expert, 'ctm_id', None)
+
+        if ctm_id:
+            self.fields['wg'].queryset = (
+                WG.objects.filter(ctm_id=ctm_id).select_related('ctm').order_by('number')
+            )
+        else:
+            self.fields['wg'].queryset = WG.objects.none()
+
+        if self.fields['ctm'].queryset.exists():
+            self.fields['ctm'].required = True
+            self.fields['wg'].required = True
+
+        if not self.is_bound:
+            if user:
+                self.fields['first_name'].initial = user.first_name
+                self.fields['last_name'].initial = user.last_name
+                self.fields['phone'].initial = user.phone
+                self.fields['province'].initial = user.province
+                self.fields['bio'].initial = user.bio
+            if expert:
+                self.fields['specialties'].initial = expert.specialties
+                self.fields['whatsapp_number'].initial = expert.whatsapp_number
+                if getattr(expert, 'ctm_id', None):
+                    self.fields['ctm'].initial = expert.ctm_id
+                    current = (
+                        expert.governance_affectations
+                        .filter(ctm_id=expert.ctm_id, wg__isnull=False)
+                        .select_related('wg').first()
+                    )
+                    if current:
+                        self.fields['wg'].initial = current.wg_id
+
+    def clean_cv(self):
+        cv = self.cleaned_data.get('cv')
+        if cv and cv.size > 5 * 1024 * 1024:
+            raise ValidationError("Le fichier CV ne doit pas dépasser 5 MB.", code='cv_too_large')
+        return cv
+
+    def clean(self):
+        cleaned = super().clean()
+        ctm = cleaned.get('ctm')
+        wg = cleaned.get('wg')
+        if wg and ctm and wg.ctm_id != ctm.id:
+            raise ValidationError(
+                "Le groupe de travail sélectionné n'appartient pas au CTM choisi.",
+                code='wg_ctm_mismatch',
+            )
+        return cleaned
+
+    def save(self):
+        data = self.cleaned_data
+        user = self.user
+        expert = self.expert
+
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.phone = data.get('phone') or ''
+        user.province = data.get('province') or ''
+        user.bio = data.get('bio') or ''
+        user.save(update_fields=['first_name', 'last_name', 'phone', 'province', 'bio'])
+
+        expert.specialties = data.get('specialties') or ''
+        expert.whatsapp_number = data.get('whatsapp_number') or ''
+        if data.get('cv'):
+            expert.cv = data['cv']
+        ctm = data.get('ctm')
+        wg = data.get('wg')
+        if ctm:
+            expert.ctm = ctm
+        expert.save()
+
+        affectation = None
+        if ctm and wg:
+            from apps.governance.models import Affectation
+            affectation, _ = Affectation.objects.get_or_create(
+                expert=expert,
+                ctm=ctm,
+                wg=wg,
+                defaults={'is_primary_ctm': True, 'is_primary_wg': True},
+            )
+        return affectation
+
+
+class ExpertOrganisationChoiceForm(forms.Form):
+    sc = forms.ModelChoiceField(
+        label='Nouvelle sous-commission', queryset=Organe.objects.none(),
+        empty_label='Choisir une sous-commission',
+    )
+    source_wg = forms.ModelChoiceField(
+        label='Groupe de travail actuel à classer', queryset=WG.objects.all(),
+        empty_label='Choisir un groupe existant',
+    )
+
+    def __init__(self, *args, version, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.version = version
+        for field in self.fields.values():
+            field.widget.attrs['class'] = (
+                'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 '
+                'text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white'
+            )
+        self.fields['sc'].queryset = Organe.objects.filter(
+            version=version, type=Organe.Type.SC,
+        ).exclude(status='ARCHIVED').order_by('code')
+        self.fields['source_wg'].queryset = WG.objects.select_related('ctm').order_by('ctm__number', 'number', 'name')
+
+    def clean(self):
+        cleaned = super().clean()
+        sc = cleaned.get('sc')
+        return cleaned
 
 
 class User_Simple(forms.ModelForm):

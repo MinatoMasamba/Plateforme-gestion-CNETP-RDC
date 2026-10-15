@@ -1,0 +1,9 @@
+<section id="post-{{ poste.n }}-phase{{ phase }}" class="poste-section">
+    <header class="flex flex-wrap items-baseline justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10">
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
+        {% for group in poste.cadrage_groups %}{% if group.phase == phase %}<p class="text-xs text-slate-500">{{ group.items|length }} dossier{{ group.items|length|pluralize }} en attente</p>{% endif %}{% endfor %}
+    </header>
+    {% for group in poste.cadrage_groups %}{% if group.phase == phase %}
+        {% include "pilotage/app/components/_cadrage_group.html" with group=group is_mine=poste.is_mine %}
+    {% endif %}{% endfor %}
+</section>

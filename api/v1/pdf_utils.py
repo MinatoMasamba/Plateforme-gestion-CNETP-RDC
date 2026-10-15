@@ -1,22 +1,55 @@
 import io
+import os
 from datetime import datetime
+from xml.sax.saxutils import escape as _xml_escape
+
+from django.conf import settings
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
-    HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    HRFlowable, Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 )
 
 
-# ─── Palette de couleurs CNETP ──────────────────────────────────────────────
+# ─── Palette officielle — Charte graphique du Gouvernement RDC ──────────────
+RDC_BLUE = colors.HexColor("#0095c9")    # Pantone 801C
+RDC_YELLOW = colors.HexColor("#fff24b")  # Pantone 803C
+RDC_RED = colors.HexColor("#db3832")     # Pantone 485C
 
 BLUE_CNETP = colors.HexColor("#1a3a5c")
 GOLD_CNETP = colors.HexColor("#c8a84b")
 LIGHT_GREY = colors.HexColor("#f2f4f7")
 MID_GREY = colors.HexColor("#6b7280")
+DARK = colors.HexColor("#0f172a")
+BORDER = colors.HexColor("#d1d5db")
+
+LOGO_PATH = settings.BASE_DIR / "templates" / "static" / "img" / "logo-cnetp.png"
+if not os.path.exists(LOGO_PATH):
+    LOGO_PATH = settings.BASE_DIR / "web" / "static" / "dist" / "img" / "logo-cnetp.png"
+
+
+def _esc(value):
+    """Échappe le texte pour le mini-langage de balisage ReportLab."""
+    return _xml_escape(str(value if value is not None else ""))
+
+
+def _qr_png_bytes(data):
+    """Génère un QR code PNG (bytes) ou None si la librairie est absente."""
+    try:
+        import qrcode
+
+        img = qrcode.make(data)
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception:
+        return None
+
 
 
 def _base_styles():
@@ -108,138 +141,203 @@ def _page_footer(canvas, doc):
     canvas.restoreState()
 
 
-# ─── Génération PDF d'une norme ─────────────────────────────────────────────
+# ─── Éléments de marque (Charte graphique du Gouvernement RDC) ──────────────
+
+def _norm_styles():
+    styles = _base_styles()
+    styles.add(ParagraphStyle(name="BrandTitle", fontSize=9.5, fontName="Helvetica-Bold",
+                              textColor=DARK, leading=11))
+    styles.add(ParagraphStyle(name="BrandSub", fontSize=8, fontName="Helvetica",
+                              textColor=MID_GREY, leading=10))
+    styles.add(ParagraphStyle(name="DocH1", fontSize=15, fontName="Helvetica-Bold",
+                              textColor=DARK, alignment=TA_CENTER, spaceBefore=4, spaceAfter=2))
+    styles.add(ParagraphStyle(name="DocH2", fontSize=12, fontName="Helvetica-Bold",
+                              textColor=DARK, spaceBefore=10, spaceAfter=3))
+    styles.add(ParagraphStyle(name="DocBody", fontSize=10, fontName="Helvetica",
+                              textColor=DARK, leading=15))
+    styles.add(ParagraphStyle(name="MetaLabel", fontSize=6.5, fontName="Helvetica-Bold",
+                              textColor=MID_GREY, alignment=TA_CENTER, leading=8))
+    styles.add(ParagraphStyle(name="MetaValue", fontSize=9.5, fontName="Helvetica-Bold",
+                              textColor=DARK, alignment=TA_CENTER, leading=12))
+    styles.add(ParagraphStyle(name="CenterSmall", fontSize=8, fontName="Helvetica",
+                              textColor=MID_GREY, alignment=TA_CENTER))
+    return styles
+
+
+def _tricolor_vertical(width=0.32 * cm, height=1.6 * cm):
+    """Ligne d'État verticale : Bleu / Jaune / Rouge à parts égales."""
+    seg = height / 3.0
+    table = Table([[""], [""], [""]], colWidths=[width], rowHeights=[seg, seg, seg])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), RDC_BLUE),
+        ("BACKGROUND", (0, 1), (0, 1), RDC_YELLOW),
+        ("BACKGROUND", (0, 2), (0, 2), RDC_RED),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    return table
+
+
+def _tricolor_horizontal(width, height=0.14 * cm):
+    """Ligne d'État horizontale : Bleu / Jaune / Rouge à parts égales."""
+    table = Table([["", "", ""]], colWidths=[width / 3.0] * 3, rowHeights=[height])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), RDC_BLUE),
+        ("BACKGROUND", (1, 0), (1, 0), RDC_YELLOW),
+        ("BACKGROUND", (2, 0), (2, 0), RDC_RED),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    return table
+
+
+def _brand_block(styles):
+    """Bloc-armoirie + Ligne d'État (parts égales) + intitulé officiel."""
+    text = [
+        Paragraph("RÉPUBLIQUE DÉMOCRATIQUE DU CONGO", styles["BrandTitle"]),
+        Paragraph("Cellule Technique de Coordination - CNE-ITP", styles["BrandSub"]),
+        Paragraph("<i>Lecteur normatif – Secrétariat technique</i>", styles["BrandSub"]),
+    ]
+    if os.path.exists(LOGO_PATH):
+        logo = Image(str(LOGO_PATH), width=1.55 * cm, height=1.55 * cm)
+    else:
+        logo = Paragraph("", styles["BrandSub"])
+    table = Table([[logo, _tricolor_vertical(), text]],
+                  colWidths=[1.75 * cm, 0.5 * cm, 14.0 * cm])
+    table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    return table
+
+
+def _meta_cartouche(norme, version, styles):
+    ctm_no = norme.ctm.number if norme.ctm else "—"
+    wg_no = f"{ctm_no}.{norme.wg.number}" if norme.wg else "—"
+    status_display = dict(norme._meta.get_field("status").choices).get(norme.status, norme.status)
+    ver = f"v{version.version_number}" if version else "—"
+    labels = ["Référence", "CTM / WG", "Statut", "Version"]
+    values = [norme.reference_number, f"{ctm_no} / {wg_no}", status_display, ver]
+    head = [Paragraph(_esc(label).upper(), styles["MetaLabel"]) for label in labels]
+    body = [Paragraph(_esc(value), styles["MetaValue"]) for value in values]
+    table = Table([head, body], colWidths=[4.25 * cm] * 4)
+    table.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, BORDER),
+        ("BACKGROUND", (0, 0), (-1, 0), LIGHT_GREY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    return table
+
+
+def _make_norm_footer(norme, qr_bytes):
+    """Pied de page réglementaire (référence, mentions, copyright, QR) collé en bas."""
+    def _footer(canvas, doc):
+        canvas.saveState()
+        canvas.setStrokeColor(BORDER)
+        canvas.setLineWidth(0.5)
+        canvas.line(2 * cm, 2.3 * cm, A4[0] - 2 * cm, 2.3 * cm)
+
+        canvas.setFont("Helvetica-Bold", 8)
+        canvas.setFillColor(DARK)
+        canvas.drawString(2 * cm, 1.65 * cm, norme.reference_number)
+        canvas.setFont("Helvetica", 7.5)
+        canvas.setFillColor(MID_GREY)
+        canvas.drawString(2 * cm, 1.25 * cm,
+                          "Document généré via la plateforme CNE-ITP — Usage interne")
+        canvas.drawCentredString(
+            A4[0] / 2, 0.85 * cm,
+            "© 2026 Gouvernement de la République Démocratique du Congo. Tous droits réservés.")
+        canvas.drawRightString(A4[0] - 2 * cm, 1.65 * cm, f"Page {doc.page}")
+
+        if qr_bytes:
+            try:
+                canvas.drawImage(ImageReader(io.BytesIO(qr_bytes)),
+                                 A4[0] - 4.0 * cm, 0.72 * cm, 1.4 * cm, 1.4 * cm, mask="auto")
+            except Exception:
+                pass
+        canvas.restoreState()
+    return _footer
+
+
+# ─── Génération PDF d'une norme (fidèle à la page de lecture CTC) ────────────
 
 def generate_norm_pdf(norme, version=None):
     """
-    Génère un PDF pour une norme CNETP.
-    version : instance NormeVersion optionnelle ; si None, prend la dernière.
+    Génère un PDF A4 pour une norme, calqué sur la page de lecture CTC
+    (bandeau d'État RDC, cartouche de métadonnées, sections, pied + QR).
+    version : instance NormeVersion optionnelle ; sinon la dernière version.
     Retourne bytes.
     """
+    if version is None:
+        version = norme.get_latest_version()
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=A4,
         leftMargin=2 * cm, rightMargin=2 * cm,
-        topMargin=2 * cm, bottomMargin=2.5 * cm,
+        topMargin=1.8 * cm, bottomMargin=3.2 * cm,
+        title=f"{norme.reference_number} — {norme.title}",
     )
-    styles = _base_styles()
+    styles = _norm_styles()
     elements = []
 
-    # En-tête
-    elements += _header_block(
-        styles,
-        title=f"PROJET DE NORME — {norme.reference_number}",
-        subtitle=norme.title,
-    )
+    # Bandeau institutionnel (armoiries + Ligne d'État + intitulé)
+    elements.append(_brand_block(styles))
+    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(_tricolor_horizontal(17 * cm))
+    elements.append(Spacer(1, 0.55 * cm))
 
-    # Informations générales
-    elements.append(Paragraph("Informations générales", styles["SectionHeader"]))
-    elements.append(HRFlowable(width="100%", thickness=0.5, color=GOLD_CNETP, spaceAfter=6))
+    # En-tête documentaire centré
+    elements.append(Paragraph("RÉPUBLIQUE DÉMOCRATIQUE DU CONGO", styles["CenterSmall"]))
+    elements.append(Paragraph("<b>Cellule Technique de Coordination — CNE-ITP</b>", styles["DocH1"]))
+    elements.append(Paragraph(_esc(norme.title.upper()), styles["DocH1"]))
+    elements.append(Spacer(1, 0.35 * cm))
 
-    ctm_name = norme.ctm.name if norme.ctm else "—"
-    wg_name = norme.wg.name if norme.wg else "—"
-    status_display = dict(norme._meta.get_field("status").choices).get(norme.status, norme.status)
-    created_str = norme.created_at.strftime("%d/%m/%Y") if norme.created_at else "—"
-    pub_str = norme.publication_date.strftime("%d/%m/%Y") if norme.publication_date else "—"
-    iso_ref = norme.iso_reference or "—"
-    arso_ref = getattr(norme, "arso_reference", None) or "—"
+    # Cartouche de métadonnées
+    elements.append(_meta_cartouche(norme, version, styles))
+    elements.append(Spacer(1, 0.6 * cm))
 
-    info_rows = [
-        ("Référence", norme.reference_number),
-        ("Titre", norme.title),
-        ("Statut", status_display),
-        ("Comité Technique Miroir", ctm_name),
-        ("Groupe de Travail", wg_name),
-        ("Date de création", created_str),
-        ("Date de publication", pub_str),
-        ("Référence ISO", iso_ref),
-        ("Référence ARSO", arso_ref),
-    ]
-    if norme.jo_reference:
-        info_rows.append(("Référence Journal Officiel", norme.jo_reference))
-
-    elements.append(_info_table(info_rows, styles))
-    elements.append(Spacer(1, 0.5 * cm))
-
-    # Description
+    # Préambule
     if norme.description:
-        elements.append(Paragraph("Description", styles["SectionHeader"]))
-        elements.append(HRFlowable(width="100%", thickness=0.5, color=GOLD_CNETP, spaceAfter=6))
-        elements.append(Paragraph(norme.description, styles["BodySmall"]))
-        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Paragraph("Préambule", styles["DocH2"]))
+        elements.append(_tricolor_horizontal(3 * cm))
+        elements.append(Spacer(1, 0.15 * cm))
+        for para in norme.description.split("\n"):
+            if para.strip():
+                elements.append(Paragraph(_esc(para.strip()), styles["DocBody"]))
+        elements.append(Spacer(1, 0.25 * cm))
 
-    # Contenu de la version
-    if version is None:
-        version = norme.versions.order_by("-version_number").first()
-
-    if version:
-        ver_label = f"Version {version.version_number}"
-        if version.title:
-            ver_label += f" — {version.title}"
-        elements.append(Paragraph(ver_label, styles["SectionHeader"]))
-        elements.append(HRFlowable(width="100%", thickness=0.5, color=GOLD_CNETP, spaceAfter=6))
-
-        author_name = "—"
-        if version.version_author:
-            author_name = version.version_author.get_full_name() or version.version_author.username
-        created_v = version.created_at.strftime("%d/%m/%Y") if version.created_at else "—"
-
-        elements.append(_info_table([
-            ("Auteur", author_name),
-            ("Date", created_v),
-            ("Résumé", version.summary or "—"),
-            ("Brouillon", "Oui" if version.is_draft else "Non"),
-        ], styles))
-        elements.append(Spacer(1, 0.3 * cm))
-
-        if version.content:
-            elements.append(Paragraph("Contenu", styles["SectionHeader"]))
-            elements.append(HRFlowable(width="100%", thickness=0.5, color=GOLD_CNETP, spaceAfter=6))
-            for para in version.content.split("\n\n"):
-                para = para.strip()
-                if para:
-                    elements.append(Paragraph(para.replace("\n", "<br/>"), styles["BodySmall"]))
-                    elements.append(Spacer(1, 0.2 * cm))
-
-        # Tableau des changements
-        changes = list(version.changes.all())
-        if changes:
-            elements.append(Spacer(1, 0.3 * cm))
-            elements.append(Paragraph("Historique des modifications", styles["SectionHeader"]))
-            elements.append(HRFlowable(width="100%", thickness=0.5, color=GOLD_CNETP, spaceAfter=6))
-
-            header = [
-                Paragraph("Section", styles["Label"]),
-                Paragraph("Type", styles["Label"]),
-                Paragraph("Justification", styles["Label"]),
-            ]
-            rows = [header]
-            for ch in changes:
-                type_display = {"ADD": "Ajout", "REMOVE": "Suppression", "MODIFY": "Modification"}.get(
-                    ch.change_type, ch.change_type
-                )
-                rows.append([
-                    Paragraph(ch.section or "—", styles["BodySmall"]),
-                    Paragraph(type_display, styles["BodySmall"]),
-                    Paragraph(ch.change_reason or "—", styles["BodySmall"]),
-                ])
-
-            tbl = Table(rows, colWidths=[2.5 * cm, 3 * cm, 11.5 * cm])
-            tbl.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), BLUE_CNETP),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GREY]),
-                ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#d1d5db")),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ]))
-            elements.append(tbl)
+    # Corps : sections issues du contenu structuré de la version
+    if version and version.content:
+        for block in version.get_structured_content():
+            title = (block.get("title") or "").strip()
+            content = (block.get("content") or "").strip()
+            if title:
+                elements.append(Paragraph(_esc(title), styles["DocH2"]))
+                elements.append(_tricolor_horizontal(3 * cm))
+                elements.append(Spacer(1, 0.1 * cm))
+            for line in content.split("\n"):
+                if line.strip():
+                    elements.append(Paragraph(_esc(line.strip()), styles["DocBody"]))
+            elements.append(Spacer(1, 0.2 * cm))
     else:
-        elements.append(Paragraph("Aucune version disponible.", styles["BodySmall"]))
+        elements.append(Paragraph("Aucune version disponible.", styles["DocBody"]))
 
-    doc.build(elements, onLaterPages=_page_footer, onFirstPage=_page_footer)
+    qr_bytes = _qr_png_bytes(
+        f"{(settings.SITE_URL or '').rstrip('/')}/ctc/norme/{norme.id}/lecture/ | {norme.reference_number}"
+    )
+    footer = _make_norm_footer(norme, qr_bytes)
+    doc.build(elements, onFirstPage=footer, onLaterPages=footer)
     return buffer.getvalue()
 
 

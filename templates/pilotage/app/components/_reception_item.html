@@ -7,15 +7,12 @@
      `peer_label` (str — "le Président" / "le Rapporteur Général").
 ═══════════════════════════════════════════════════════════════════ -->
 <div id="reception-row-{{ proc.id }}-{{ poste_n }}"
-     class="rounded-2xl border border-emerald-400/20 bg-white/70 dark:bg-white/[2%] backdrop-blur-sm p-5 animate-fadeIn">
+     class="border-b border-slate-200 dark:border-white/10 py-5">
     <div class="flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="flex items-start gap-3 flex-1 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
-                <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
-            </div>
             <div class="min-w-0">
-                <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                    {{ proc.norme.reference_number }} — {{ proc.norme.title|truncatechars:60 }}
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {{ proc.norme.reference_number }} — {{ proc.norme.title }}
                 </p>
                 <p class="text-[10px] text-slate-500 mt-0.5">
                     Signé et transmis par {{ proc.signed_out_by.full_name|default:"le Coordonnateur Technique Principal" }}

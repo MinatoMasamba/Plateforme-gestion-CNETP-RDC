@@ -166,4 +166,10 @@ def flag_norm_overlap(session, ctm_id, wg_a_id, wg_b_id, analysis_text, recommen
         status='DRAFT',
     )
 
-    return {"artifact_id": artifact.id, "status": artifact.status, "title": artifact.title}
+    return {
+        "artifact_id": artifact.id,
+        "url": f"/api/v1/ia-agent/artifacts/{artifact.id}/",
+        "link_label": "Ouvrir le brouillon de signalement",
+        "status": artifact.status,
+        "title": artifact.title,
+    }

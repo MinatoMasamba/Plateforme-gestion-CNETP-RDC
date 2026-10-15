@@ -1,0 +1,46 @@
+<div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-200 dark:border-white/10">
+        <h3 class="text-sm font-bold">Suivi des dossiers techniques</h3>
+        <p class="text-xs text-slate-500 mt-1">Étapes de traitement et transmissions au Comité de Pilotage.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-white/5 text-slate-500">
+                <tr>
+                    <th scope="col" class="px-5 py-3">Dossier</th>
+                    <th scope="col" class="px-5 py-3">Sous-commission</th>
+                    <th scope="col" class="px-5 py-3">Étape actuelle</th>
+                    <th scope="col" class="px-5 py-3">Dernière mise à jour</th>
+                    <th scope="col" class="px-5 py-3">Transmission au Pilotage</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                {% for process in ctc_activity_page %}
+                <tr>
+                    <td class="px-5 py-4">
+                        <a href="{% url 'web:pilotage_norme_history' process.norme.pk %}" class="font-bold text-[#0095c9] hover:underline">{{ process.norme.reference_number }}</a>
+                        <p class="text-slate-500 mt-1">{{ process.norme.title }}</p>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">{{ process.phoenix_sc_code|default:'À orienter' }}</td>
+                    <td class="px-5 py-4">{{ process.get_current_stage_display }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap">{{ process.updated_at|date:"d/m/Y à H:i" }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap">{% if process.transmitted_to_pilotage_at %}{{ process.transmitted_to_pilotage_at|date:"d/m/Y à H:i" }}{% elif process.current_stage == 'SIGNED_OUT' %}Date non enregistrée{% else %}En attente{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">Aucun dossier technique n’est actuellement enregistré.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if ctc_activity_page.has_other_pages %}
+    <nav aria-label="Pages de l’activité technique" class="flex items-center justify-between gap-3 px-5 py-4 border-t border-slate-200 dark:border-white/10 text-xs">
+        {% if ctc_activity_page.has_previous %}
+        <a href="?{{ ctc_supervision.query }}&amp;ctc_tab=dossiers&amp;ctc_page={{ ctc_activity_page.previous_page_number }}#panel-ctc" class="font-semibold text-[#0095c9] hover:underline">Précédent</a>
+        {% else %}<span></span>{% endif %}
+        <span class="text-slate-500">Page {{ ctc_activity_page.number }} sur {{ ctc_activity_page.paginator.num_pages }}</span>
+        {% if ctc_activity_page.has_next %}
+        <a href="?{{ ctc_supervision.query }}&amp;ctc_tab=dossiers&amp;ctc_page={{ ctc_activity_page.next_page_number }}#panel-ctc" class="font-semibold text-[#0095c9] hover:underline">Suivant</a>
+        {% else %}<span></span>{% endif %}
+    </nav>
+    {% endif %}
+</div>

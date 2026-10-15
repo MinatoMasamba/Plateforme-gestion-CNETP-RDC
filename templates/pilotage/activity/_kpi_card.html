@@ -1,0 +1,6 @@
+<button type="button" class="activity-card activity-kpi w-full p-5 text-left" data-metric="{{ key }}" data-label="{{ label }}" data-value="{% if metric.configured %}{{ metric.value }} %{% else %}Non configuré{% endif %}" data-sources="{{ metric.sources|default:0 }}">
+  <div class="flex items-start justify-between gap-3"><span class="activity-label">{{ label }}</span><span class="h-2.5 w-2.5 rounded-full bg-{{ accent }}-500" aria-hidden="true"></span></div>
+  <div class="mt-4 activity-value">{% if metric.configured %}{{ metric.value|floatformat:1 }} %{% else %}<span class="text-xl">Non configuré</span>{% endif %}</div>
+  <p class="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ help }}</p>
+  <div class="mt-3 flex items-center justify-between gap-2 text-[11px] text-slate-500"><span>{{ metric.sources|default:0 }} source{{ metric.sources|default:0|pluralize }}</span><span>Mis à jour {{ metrics.updated_at|default:kinshasa_now|date:'H:i' }}</span></div>
+</button>

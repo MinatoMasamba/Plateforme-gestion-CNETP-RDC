@@ -1,0 +1,12 @@
+<div class="overflow-x-auto">
+    <table class="org-table">
+        <thead><tr><th scope="col">Fonction</th><th scope="col">Origine institutionnelle</th><th scope="col">Titulaire</th><th scope="col">Statut</th>{% if can_manage %}<th scope="col">Gestion</th>{% endif %}</tr></thead>
+        <tbody>{% for post in posts %}<tr data-post-id="{{ post.pk }}">
+            <td><p class="font-semibold">{{ post.title|default:"Fonction à renseigner" }}</p><p class="text-xs text-slate-500 mt-1">{{ post.code }}</p></td>
+            <td>{{ post.origin_label|default:"À renseigner" }}</td>
+            <td>{% for mandate in post.current_holders %}<p>{{ mandate.expert.full_name }}</p><p class="text-xs text-slate-500">{{ mandate.appointment_reference }} · {{ mandate.start_date|date:"d/m/Y" }}</p>{% empty %}<span class="text-slate-500">Vacant</span>{% endfor %}</td>
+            <td>{{ post.get_status_display }}</td>
+            {% if can_manage %}<td class="whitespace-nowrap"><a class="org-link" href="{% url 'web:phoenix_config_edit' 'poste' post.pk %}">Modifier</a><a class="org-link block mt-2" href="{% url 'web:phoenix_config_create' 'mandat' %}?poste={{ post.pk }}">Nommer</a></td>{% endif %}
+        </tr>{% empty %}<tr><td colspan="5" class="text-slate-500">Aucun poste enregistré.</td></tr>{% endfor %}</tbody>
+    </table>
+</div>

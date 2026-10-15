@@ -18,14 +18,18 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
+from django.utils.dateparse import parse_date
+from django.conf import settings
+from django.urls import reverse
 
 from apps.experts.models import Expert
 from web.pilotage_views import get_pilotage_context
 from apps.governance.models import (
     TechnicalCell, CTCMembership, CTCOperationalRequest,
     PilotageMembreship, PosteNominatifCTC, CTM, CTCProcessus, PlatformFreeze,
+    Demande, JournalDemande, CopilRapport, WG,
 )
 from apps.mobileapp.signals import create_notification_for_user
 from apps.validation.models import (
@@ -363,6 +367,14 @@ def get_ctc_context(expert: Expert) -> dict | None:
         {'view': 'archives', 'label': 'Archives', 'icon': 'history'},
         {'view': 'parametres', 'label': 'Paramètres', 'icon': 'settings'},
     ]
+    sidebar_nav_config['supervision'] = [
+        {'view': 'statistiques', 'label': 'Suivi statistique', 'icon': 'chart-no-axes-combined'},
+        {'view': 'homologations', 'label': 'Homologations', 'icon': 'shield-check'},
+    ]
+    sidebar_nav_config['outils'] = [
+        {'view': 'instructions', 'label': 'Instruction', 'icon': 'clipboard-list'},
+        {'view': 'reunions', 'label': 'Réunions', 'icon': 'calendar-days'},
+    ]
     ctx['sidebar_nav_config'] = sidebar_nav_config
 
     # ── Données workflow CTCProcessus ──────────────────────────────────────
@@ -452,6 +464,32 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
     if ctx is None:
         return None
 
+    # Ces préférences sont celles effectivement consultées par le service
+    # de dispatch, et non un état local de l'interface.
+    from apps.mobileapp.models import NotificationPreference
+    ctx['ctc_notification_preferences'] = (
+        NotificationPreference.objects.filter(user=expert.user).first()
+        or NotificationPreference(user=expert.user)
+    )
+    ctx['ctc_backup_available'] = (
+        ctx.get('can_admin_system')
+        and settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3'
+    )
+    ctx['ctc_drive_credentials_present'] = all((
+        settings.GDRIVE_CLIENT_ID,
+        settings.GDRIVE_CLIENT_SECRET,
+        settings.GDRIVE_REFRESH_TOKEN,
+    ))
+    ctx['ctc_drive_folder_configured'] = bool(settings.GDRIVE_ROOT_FOLDER_ID)
+    from apps.documents.models import DriveSyncAttempt, DriveSyncSettings
+    from apps.documents.drive_sync import candidate_count
+    ctx['ctc_drive_sync_settings'] = (
+        DriveSyncSettings.objects.filter(pk=1).first()
+        or DriveSyncSettings(pk=1, include_adopted=True)
+    )
+    ctx['ctc_drive_candidate_count'] = candidate_count()
+    ctx['ctc_drive_recent_attempts'] = DriveSyncAttempt.objects.order_by('-created_at')[:5]
+
     # CTMs pour le hub de routage (Direction) et la modale CTM
     ctms = CTM.objects.prefetch_related('working_groups').order_by('number')
     ctms_list = [
@@ -507,6 +545,7 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
             'title': processus.norme.title,
             'status_display': stage_label,
             'view_target': 'dossiers',
+            'detail_url': reverse('web:ctc_norme_read', args=[processus.norme_id]),
             'anchor': None,
             'category': 'personnelle',
             'category_label': "Mes Assignations Personnelles",
@@ -530,6 +569,7 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
             'title': review.norme.title,
             'status_display': status_display,
             'view_target': 'dossiers',
+            'detail_url': reverse('web:ctc_norme_read', args=[review.norme_id]),
             'anchor': meta['anchor'],
             'category': 'personnelle',
             'category_label': "Mes Assignations Personnelles",
@@ -590,6 +630,27 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
     )
     ctc_ctx_json = {k: ctx.get(k) for k in _json_safe_keys}
 
+    from web.ctc_statistics import build_ctc_statistics
+    from apps.governance.activity_supervision import activity_access_for
+    ctc_statistics = build_ctc_statistics()
+
+    # ── Instructions CTC (onglet « Instruction ») ───────────────────────────
+    from apps.governance.models import CopilRapport, Demande
+    global_instruction = (
+        Demande.objects.filter(type='INSTRUCTION', sous_commission__isnull=True, groupe__isnull=True)
+        .select_related('emetteur__user')
+        .order_by('-created_at').first()
+    )
+    ctms_instructions = []
+    for ctm in ctms:
+        last = (
+            Demande.objects.filter(type='INSTRUCTION', sous_commission=ctm)
+            .select_related('emetteur__user')
+            .order_by('-created_at').first()
+        )
+        ctms_instructions.append({'ctm': ctm, 'last_instruction': last or global_instruction})
+    copil_rapports = list(CopilRapport.objects.select_related('emetteur__user').order_by('-date_rapport', '-created_at'))
+
     return {
         'expert': expert,
         'ctms_list': ctms_list,
@@ -597,8 +658,17 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
         'ctc_directory': ctc_directory,
         'dossiers': dossiers,
         'assignation_tasks': assignation_tasks,
+        'ctc_statistics': ctc_statistics,
+        'ctc_can_view_task_sources': activity_access_for(expert.user)['can_view_contributions'],
+        'dashboard_dossiers_count': dossiers.count(),
+        'dashboard_assignations_count': len(assignation_tasks),
+        'homologated_norms': Norme.all_objects.filter(status__in=['HOMOLOGATED', 'PUBLISHED']).order_by('-homologation_date', 'reference_number'),
+        'archived_norms': Norme.all_objects.filter(status='ARCHIVED').order_by('-updated_at', 'reference_number'),
         'ctc_ctx_json': ctc_ctx_json,
         'sidebar_pole': _SIDEBAR_POLE_MAP.get(ctx.get('ctc_pole'), ''),
+        'global_instruction': global_instruction,
+        'ctms_instructions': ctms_instructions,
+        'copil_rapports': copil_rapports,
         **ctx,
     }
 
@@ -652,11 +722,24 @@ class CTCCtmDetailView(View):
 
         ctm = get_object_or_404(CTM, number=number)
 
+        from web.ctc_statistics import _performance, _performance_color, _legacy_coordination
+        from apps.governance.models import Tache
+        from apps.norms.models import Norme
+
         wgs_with_stats = []
         for wg in ctm.working_groups.select_related(
             'president__user', 'rapporteur__user', 'secretary__user'
         ).order_by('number'):
-            wgs_with_stats.append({'wg': wg, 'member_count': wg.affectations.count()})
+            tasks = list(Tache.objects.filter(working_group=wg).select_related('norme').order_by('due_date', 'titre'))
+            norms = list(Norme.all_objects.filter(wg=wg).order_by('title'))
+            performance = _performance(tasks)
+            wgs_with_stats.append({
+                'wg': wg,
+                'member_count': wg.affectations.count(),
+                'performance': performance,
+                'color': _performance_color(performance),
+                'norms': norms,
+            })
 
         affectations = (
             ctm.affectations
@@ -678,6 +761,7 @@ class CTCCtmDetailView(View):
 
         context = {
             'ctm': ctm,
+            'coordination': _legacy_coordination(ctm),
             'wgs_with_stats': wgs_with_stats,
             'affectations': affectations,
             'normes_en_cours': normes_en_cours,
@@ -1189,9 +1273,32 @@ class CTCNormeReadView(View):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# VUE API : CONTEXTE CTC JSON
+# QR DE TRAÇABILITÉ D'UNE NORME (pied de page du lecteur CTC)
 # ─────────────────────────────────────────────────────────────────────────────
 
+@login_required(login_url='/se-connecter/')
+def ctc_norme_qr_view(request, pk):
+    """Génère un QR code PNG encodant le lien de lecture + la référence de la norme."""
+    norme = get_object_or_404(Norme, pk=pk)
+    base = (settings.SITE_URL or '').rstrip('/')
+    payload = f"{base}/ctc/norme/{norme.id}/lecture/ | {norme.reference_number}"
+
+    try:
+        import qrcode
+        from io import BytesIO
+
+        img = qrcode.make(payload)
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        return HttpResponse(buffer.getvalue(), content_type='image/png')
+    except Exception:
+        # Repli : QR minimal en SVG si la librairie n'est pas disponible.
+        return HttpResponse(status=204)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VUE API : CONTEXTE CTC JSON
+# ─────────────────────────────────────────────────────────────────────────────
 @login_required(login_url='/se-connecter/')
 def ctc_context_api(request):
     """Retourne le contexte de privilèges CTC en JSON pour les composants JS."""
@@ -1205,3 +1312,67 @@ def ctc_context_api(request):
 
     payload = {k: v for k, v in ctx.items() if isinstance(v, (bool, str, int, list, type(None)))}
     return JsonResponse(payload)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INSTRUCTIONS CTC (onglet « Instruction »)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required(login_url='/se-connecter/')
+def ctc_instruction_create(request):
+    """Crée une instruction de production (globale ou pour un CTM précis)."""
+    expert = Expert.objects.filter(user=request.user).select_related('structure').first()
+    if not expert:
+        return JsonResponse({'ok': False, 'error': 'Expert introuvable.'}, status=403)
+    if not CTCMembership.objects.filter(expert=expert).exists():
+        return JsonResponse({'ok': False, 'error': 'Accès réservé aux membres de la CTC.'}, status=403)
+    if PlatformFreeze.get_solo().is_locked:
+        return JsonResponse({'ok': False, 'error': 'Plateforme verrouillée.'}, status=423)
+
+    objet = (request.POST.get('objet') or '').strip()
+    message = (request.POST.get('message') or '').strip()
+    if not objet and not message:
+        return JsonResponse({'ok': False, 'error': "Le texte de l'instruction est requis."}, status=400)
+
+    ctm_id = (request.POST.get('ctm_id') or '').strip()
+    ctm = CTM.objects.filter(pk=ctm_id).first() if ctm_id.isdigit() else None
+
+    nb_normes = request.POST.get('nb_normes') or ''
+    nb_normes = int(nb_normes) if nb_normes.isdigit() else None
+    echeance = parse_date(request.POST.get('echeance') or '') if (request.POST.get('echeance') or '').strip() else None
+
+    demande = Demande.objects.create(
+        type='INSTRUCTION',
+        emetteur=expert,
+        sous_commission=ctm,
+        objet=objet or message[:120],
+        message=message or objet,
+        echeance=echeance,
+        nb_normes=nb_normes,
+        province=(request.POST.get('province') or '').strip(),
+        commune=(request.POST.get('commune') or '').strip(),
+        territoire=(request.POST.get('territoire') or '').strip(),
+        district=(request.POST.get('district') or '').strip(),
+        quartier=(request.POST.get('quartier') or '').strip(),
+        avenue_rue=(request.POST.get('avenue_rue') or '').strip(),
+        statut='ENVOYEE',
+        created_by=request.user,
+        updated_by=request.user,
+    )
+    JournalDemande.objects.create(
+        demande=demande, statut_avant='', statut_apres='ENVOYEE', acteur=expert, commentaire='Création'
+    )
+
+    scope = f"CTM {ctm.number} — {ctm.name}" if ctm else "toutes les sous-commissions"
+    return JsonResponse({'ok': True, 'message': f'Instruction envoyée à {scope}.', 'demande_id': demande.id})
+
+
+@login_required(login_url='/se-connecter/')
+def ctc_copil_rapport(request, pk=None):
+    """Affiche le rapport COPIL au format A4 (lecture, multi-pages par défilement)."""
+    if pk:
+        rapport = get_object_or_404(CopilRapport, pk=pk)
+    else:
+        rapport = CopilRapport.objects.select_related('emetteur__user').order_by('-date_rapport', '-created_at').first()
+
+    return render(request, 'ctc/copil_rapport.html', {'rapport': rapport})

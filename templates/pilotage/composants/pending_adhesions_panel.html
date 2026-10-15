@@ -1,0 +1,95 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     PANNEAU DEMANDES D'ADHÉSION — Bureau Directoire uniquement
+     Activation / Refus des experts en attente
+═══════════════════════════════════════════════════════════════════ -->
+{% if pending_experts %}
+<div class="space-y-3">
+    {% for expert in pending_experts %}
+    <div id="adhesion-row-{{ expert.pk }}"
+         class="rounded-2xl border border-[#0095c9]/20 bg-white dark:bg-white/[2%] p-5">
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+
+            <!-- Info candidat -->
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center
+                            text-xs font-black text-[#0095c9] shrink-0">
+                    {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {{ expert.full_name }}
+                    </p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">
+                        {{ expert.user.email }}
+                        {% if expert.structure %} · {{ expert.structure.acronym }}{% endif %}
+                    </p>
+                    <p class="text-[10px] text-slate-400 mt-1">
+                        Inscrit le {{ expert.created_at|date:"d/m/Y à H:i" }}
+                    </p>
+                    {% if expert.specialties %}
+                    <p class="text-[10px] text-slate-500 mt-1.5">
+                        <span class="font-semibold">Spécialités :</span> {{ expert.specialties|truncatechars:120 }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-2 sm:items-end shrink-0 min-w-[180px]">
+                <label class="block text-[9.5px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Motif de refus (optionnel)
+                </label>
+                <input type="text" id="reject-reason-{{ expert.pk }}"
+                       placeholder="Motif…"
+                       class="w-full text-[10.5px] rounded-lg border px-2.5 py-1.5
+                              border-slate-200 dark:border-white/10 bg-transparent
+                              text-slate-600 dark:text-slate-400 placeholder-slate-400
+                              focus:outline-none focus:ring-1 focus:ring-[#0095c9]/50">
+                <div class="flex gap-2 w-full">
+                    <button onclick="handleAdhesion({{ expert.pk }}, 'activate')"
+                            class="flex-1 py-2 rounded-xl text-[10px] font-extrabold uppercase
+                                   bg-emerald-500 hover:bg-emerald-400 text-white
+                                   transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Activer
+                    </button>
+                    <button onclick="handleAdhesion({{ expert.pk }}, 'reject')"
+                            class="flex-1 py-2 rounded-xl text-[10px] font-extrabold uppercase border
+                                   border-red-400/30 text-red-400 hover:bg-red-400/10
+                                   transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i> Refuser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="rounded-2xl border border-dashed border-emerald-400/20 p-10 text-center">
+    <i data-lucide="inbox" class="w-10 h-10 text-emerald-400/40 mx-auto mb-3"></i>
+    <p class="text-sm font-semibold text-slate-500">Aucune demande d'adhésion en attente</p>
+    <p class="text-xs text-slate-400 mt-1">
+        Tous les experts inscrits ont été traités.
+    </p>
+</div>
+{% endif %}
+
+<script>
+function handleAdhesion(expertId, action) {
+    const reason = document.getElementById('reject-reason-' + expertId)?.value || '';
+    window.fetchWithTimeout("{% url 'web:pilotage_expert_status_action' 0 %}".replace('0', expertId), {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({ action: action, reason: reason }).toString(),
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            showToast(data.message, 'success');
+            const row = document.getElementById('adhesion-row-' + expertId);
+            if (row) row.remove();
+        } else {
+            throw new Error(data.error || 'Une erreur est survenue.');
+        }
+    }).catch(err => showToast(err.message || String(err), 'error'));
+}
+</script>

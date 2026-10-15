@@ -15,7 +15,7 @@ class AgentSession(BaseModel):
         ('pilotage', 'Comité de Pilotage'),
     ]
     PROVIDER_CHOICES = [
-        ('deepseek', 'DeepSeek'),
+        ('deepseek', 'Neronne de Source Académique AI'),
     ]
 
     user = models.ForeignKey(
@@ -109,6 +109,69 @@ class AgentArtifact(BaseModel):
 
     def __str__(self):
         return f"{self.get_artifact_type_display()} — {self.title or self.pk} ({self.status})"
+
+
+class RAGDocument(BaseModel):
+    """Source versionnée indexée pour la recherche documentaire de l'assistant."""
+
+    SOURCE_KIND_CHOICES = [
+        ('DOCUMENT', 'Document de la plateforme'),
+        ('NORME', 'Norme'),
+        ('NORME_VERSION', 'Version de norme'),
+        ('EXPERT_CV', 'CV expert'),
+    ]
+    STATUS_CHOICES = [
+        ('INDEXED', 'Indexé'),
+        ('EMPTY', 'Sans texte exploitable'),
+        ('ERROR', 'Erreur d extraction'),
+    ]
+
+    source_kind = models.CharField(max_length=20, choices=SOURCE_KIND_CHOICES)
+    source_key = models.CharField(max_length=180, unique=True)
+    title = models.CharField(max_length=500)
+    mime_type = models.CharField(max_length=120, blank=True)
+    content_hash = models.CharField(max_length=64, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='INDEXED')
+    metadata = models.JSONField(default=dict, blank=True)
+    extraction_error = models.TextField(blank=True)
+    indexed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Source RAG'
+        verbose_name_plural = 'Sources RAG'
+        indexes = [
+            models.Index(fields=['source_kind', 'status']),
+            models.Index(fields=['content_hash']),
+        ]
+
+    def __str__(self):
+        return f'{self.title} ({self.source_kind})'
+
+
+class RAGChunk(models.Model):
+    """Passage sourcé retourné par la recherche, avec localisation explicite."""
+
+    document = models.ForeignKey(RAGDocument, on_delete=models.CASCADE, related_name='chunks')
+    ordinal = models.PositiveIntegerField()
+    content = models.TextField()
+    page_number = models.PositiveIntegerField(null=True, blank=True)
+    section = models.CharField(max_length=500, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = 'Passage RAG'
+        verbose_name_plural = 'Passages RAG'
+        ordering = ['document_id', 'ordinal']
+        constraints = [
+            models.UniqueConstraint(fields=['document', 'ordinal'], name='unique_rag_chunk_order'),
+        ]
+        indexes = [
+            models.Index(fields=['document', 'page_number']),
+        ]
+
+    def __str__(self):
+        location = f'page {self.page_number}' if self.page_number else self.section or f'#{self.ordinal}'
+        return f'{self.document.title} — {location}'
 
 
 class AgentScopeConfig(BaseModel):

@@ -699,7 +699,7 @@ class NormeVersionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ChangementVersionViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet de lecture pour les changements de version"""
-    queryset = ChangementVersion.objects.select_related(
+    queryset = ChangementVersion.objects.filter(version__norme__circuit_version='LEGACY').select_related(
         'version__norme', 'previous_version__norme'
     )
     serializer_class = ChangementVersionSerializer

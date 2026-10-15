@@ -71,8 +71,8 @@
                     <div class="min-w-0 flex-1">
                         <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">Gestion des Accès Experts</h2>
                         <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                            Le Bureau Directoire peut débloquer ou suspendre l'accès d'un expert à la plateforme,
-                            et l'exclure d'un Groupe de Travail / CTM.
+                            Le Bureau Directoire peut consulter la sous-commission d'un expert,
+                            puis débloquer ou suspendre son accès à la plateforme.
                         </p>
                     </div>
                 </div>
@@ -98,8 +98,8 @@
                             <tr class="text-left text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 dark:border-white/[8%]">
                                 <th class="px-2 py-2">Expert</th>
                                 <th class="px-2 py-2">Structure</th>
-                                <th class="px-2 py-2">CTM Principal</th>
-                                <th class="px-2 py-2">Affectations (WG / CTM)</th>
+                                <th class="px-2 py-2">Sous-commission</th>
+                                <th class="px-2 py-2">Classement</th>
                                 <th class="px-2 py-2">Statut</th>
                                 <th class="px-2 py-2">Accès</th>
                             </tr>
@@ -111,20 +111,15 @@
                                 <td class="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{{ e.full_name }}</td>
                                 <td class="px-2 py-2 text-slate-500 whitespace-nowrap">{{ e.structure.acronym }}</td>
                                 <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
-                                    {% if e.ctm %}CTM {{ e.ctm.number }}{% else %}<span class="italic">—</span>{% endif %}
+                                    {% for a in e.current_sc_assignments %}{% if a.sc %}{{ a.sc.code }}{% else %}<span class="text-amber-500">À examiner</span>{% endif %}{% empty %}<span class="italic">—</span>{% endfor %}
                                 </td>
                                 <td class="px-2 py-2">
                                     <div class="flex flex-wrap gap-1.5">
-                                        {% for a in e.governance_affectations.all %}
-                                        <span id="affectation-{{ a.pk }}"
+                                        {% for a in e.current_sc_assignments %}
+                                        <span
                                               class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
                                                      bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
-                                            CTM {{ a.ctm.number }} / WG {{ a.ctm.number }}.{{ a.wg.number }} — {{ a.role }}
-                                            <button onclick="excludeAffectation({{ a.pk }}, document.getElementById('affectation-{{ a.pk }}'), this)"
-                                                    title="Exclure de ce WG / CTM"
-                                                    class="hover:text-red-400 transition-colors">
-                                                <i data-lucide="x" class="w-3 h-3"></i>
-                                            </button>
+                                            {% if a.sc %}{{ a.sc.code }} — {{ a.sc.official_name|default:a.sc.name }}{% else %}À examiner{% endif %}
                                         </span>
                                         {% empty %}
                                         <span class="text-[10px] text-slate-400 italic">Aucune</span>
@@ -241,24 +236,6 @@
         }
 
         // ── Exclure un expert d'un WG / CTM ─────────────────────────────────────
-        async function excludeAffectation(affectationId, chipEl, btn) {
-            if (!confirm("Confirmer l'exclusion de cet expert de ce Groupe de Travail / CTM ?")) return;
-
-            await window.withButtonLoading(btn, async () => {
-                const resp = await window.fetchWithTimeout(`/pilotage/gestion-acces/affectation/${affectationId}/exclure/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                });
-                const data = await resp.json();
-                if (!data.ok) {
-                    throw new Error(data.error || 'Erreur.');
-                }
-
-                showToast(data.message, 'success');
-                chipEl.remove();
-            });
-        }
-
         // ── Toast notification ──────────────────────────────────────────────────
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');

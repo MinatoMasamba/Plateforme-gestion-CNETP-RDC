@@ -19,6 +19,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/android-chrome-512x512.png' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon-32x32.png' %}">
     <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
@@ -48,12 +49,12 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
-    <div id="pwa-install-banner" class="fixed bottom-4 left-4 right-4 z-[60] hidden">
-        <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+<body class="cnetp-premium h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
+    <div id="pwa-install-banner" class="fixed bottom-3 left-3 right-3 z-[60] hidden">
+        <div class="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white/95 shadow-xl backdrop-blur px-3 py-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
-                <div class="text-xs font-black uppercase tracking-[0.28em] text-slate-500">Application web</div>
-                <div class="text-sm font-semibold text-slate-900">Installez CNE-ITP sur votre appareil pour un accès rapide et hors ligne.</div>
+                <div class="text-xs font-bold text-slate-500">Application web</div>
+                <div class="text-sm font-semibold text-slate-900">Installer CNE-ITP pour un accès rapide.</div>
                 <div id="pwa-install-help" class="text-[11px] text-slate-500 mt-1"></div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -105,7 +106,7 @@
             </a>
             <span class="text-slate-300 dark:text-white/15 hidden sm:inline">|</span>
             <h1 class="text-[12px] sm:text-sm font-extrabold tracking-tight text-slate-700 dark:text-white uppercase">
-                Comité de Pilotage Élargi
+                Pilotage CNE-ITP
             </h1>
             <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border hidden sm:inline-block
                          bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30
@@ -130,11 +131,11 @@
             <!-- Indicateur normes CTC en attente de réception (Président / Rapporteur) -->
             {% if can_acknowledge_reception and pending_pilotage_reception_count > 0 %}
             <button onclick="switchPilotagePanel('panel-reception')"
-                    title="{{ pending_pilotage_reception_count }} norme{{ pending_pilotage_reception_count|pluralize }} CTC à réceptionner"
+                    title="{{ pending_pilotage_reception_count }} dossier{{ pending_pilotage_reception_count|pluralize }} technique{{ pending_pilotage_reception_count|pluralize }} à réceptionner"
                     class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
                            bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
                 <i data-lucide="file-check-2" class="w-3.5 h-3.5 animate-pulse"></i>
-                {{ pending_pilotage_reception_count }}<span class="hidden sm:inline"> norme{{ pending_pilotage_reception_count|pluralize }} CTC à réceptionner</span>
+                {{ pending_pilotage_reception_count }}<span class="hidden sm:inline"> dossier{{ pending_pilotage_reception_count|pluralize }} technique{{ pending_pilotage_reception_count|pluralize }} à réceptionner</span>
             </button>
             {% endif %}
 
@@ -179,6 +180,14 @@
             </a>
             {% endif %}
 
+            <!-- Instructions historiques déjà prises en charge côté serveur -->
+            <a href="{% url 'web:instructions' %}" title="Instructions existantes"
+               class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
+                      bg-violet-500/10 text-violet-400 border-violet-500/30 hover:bg-violet-500/20 transition-colors">
+                <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Instructions existantes</span>
+            </a>
+
             <!-- Assistant IA Pilotage -->
             <a href="{% url 'web:pilotage_ia_console' %}" title="Assistant IA Pilotage"
                class="p-2 rounded-lg border border-slate-200 dark:border-white/10
@@ -207,11 +216,7 @@
              class="hidden fixed inset-0 bg-slate-900/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
         <nav id="mobile-dock" class="lg:hidden hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
-            <button data-panel="panel-ctm" onclick="switchPilotagePanel(this.dataset.panel)"
-                    class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl">
-                <i data-lucide="layout-dashboard" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-                <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">Supervision</span>
-            </button>
+            {% include "pilotage/composants/activity_links.html" with mobile=True %}
             {% if can_trigger_steps %}
             <button data-panel="panel-cadrage" onclick="switchPilotagePanel(this.dataset.panel)"
                     class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl">
@@ -223,7 +228,14 @@
             <button data-panel="panel-reception" onclick="switchPilotagePanel(this.dataset.panel)"
                     class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl">
                 <i data-lucide="file-check-2" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
-                <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">Réception CTC</span>
+                <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">Réception technique</span>
+            </button>
+            {% endif %}
+            {% if can_manage_access %}
+            <button data-panel="panel-adhesions" onclick="switchPilotagePanel(this.dataset.panel)"
+                    class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl hover:shadow-black/30 hover:translate-x-1 active:translate-x-1 active:shadow-xl">
+                <i data-lucide="user-plus" class="w-4.5 h-4.5 shrink-0 text-slate-300 group-hover:text-white transition-colors"></i>
+                <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-out text-[11px] font-semibold tracking-wide uppercase">Adhésions</span>
             </button>
             {% endif %}
             {% if can_approve_requests %}
@@ -242,7 +254,7 @@
 
             <div class="p-5 border-b border-slate-200 dark:border-white/[8%] flex items-start justify-between gap-2">
                 <div class="min-w-0">
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Comité de Pilotage Élargi</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pilotage CNE-ITP</p>
                     <p class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mt-1 leading-tight">Tableau de bord</p>
                     <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 leading-tight">{{ pilotage_member_count }} membre{{ pilotage_member_count|pluralize }} enregistré{{ pilotage_member_count|pluralize }}</p>
                 </div>
@@ -253,17 +265,7 @@
             </div>
 
             <nav class="flex-1 py-4 px-3 space-y-1.5">
-                {% if can_view_global_console %}
-                <button onclick="switchPilotagePanel('panel-ctm')" data-panel="panel-ctm"
-                        class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
-                               border border-transparent transition-all
-                               hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
-                    <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
-                        <i data-lucide="grid-3x3" class="w-4 h-4 text-[#0095c9]"></i>
-                    </div>
-                    <p class="text-xs sm:text-[13px] font-bold leading-snug flex-1">Supervision des 8 CTM</p>
-                </button>
-                {% endif %}
+                {% include "pilotage/composants/activity_links.html" %}
 
                 {% if can_trigger_steps %}
                 <button onclick="switchPilotagePanel('panel-cadrage')" data-panel="panel-cadrage"
@@ -290,10 +292,31 @@
                     <div class="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
                         <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
                     </div>
-                    <p class="text-xs sm:text-[13px] font-bold leading-snug flex-1">Réception CTC</p>
+                    <p class="text-xs sm:text-[13px] font-bold leading-snug flex-1">Réception technique</p>
                     {% if pending_pilotage_reception_count > 0 %}
                     <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 border border-emerald-400/30 shrink-0">
                         {{ pending_pilotage_reception_count }}
+                    </span>
+                    {% endif %}
+                </button>
+                {% endif %}
+
+                {% if can_manage_access or can_approve_requests %}
+                <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 mt-4">Demandes</p>
+                {% endif %}
+
+                {% if can_manage_access %}
+                <button onclick="switchPilotagePanel('panel-adhesions')" data-panel="panel-adhesions"
+                        class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
+                               border border-transparent transition-all
+                               hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <p class="text-xs sm:text-[13px] font-bold leading-snug flex-1">Demandes d'adhésion</p>
+                    {% if pending_experts_count > 0 %}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 border border-emerald-400/30 shrink-0">
+                        {{ pending_experts_count }}
                     </span>
                     {% endif %}
                 </button>
@@ -318,11 +341,14 @@
             </nav>
 
             <div class="p-4 border-t border-slate-200 dark:border-white/[8%]">
-                <a href="{% url 'web:app' %}"
-                   class="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                    Retour à l'Espace de Travail
-                </a>
+                <button type="button" onclick="window.location.href='{% url 'web:expert_profile' %}'"
+                        title="Ouvrir les paramètres"
+                        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold
+                               text-slate-500 hover:text-slate-800 hover:bg-slate-100
+                               dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5 transition-colors">
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    Paramètres
+                </button>
             </div>
         </aside>
         {% endif %}
@@ -357,7 +383,7 @@
 
         <!-- ── Profil 1 : Bureau Directoire ─────────────────────────────── -->
         {% if can_view_global_console %}
-        <section id="panel-ctm" class="pilotage-view hidden animate-up" style="animation-delay:.05s">
+        <section id="panel-sc" class="pilotage-view hidden animate-up" style="animation-delay:.05s">
             <div class="flex items-center gap-2 mb-4">
                 <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#0095c9]"></i>
                 <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">
@@ -365,6 +391,14 @@
                 </h2>
             </div>
             {% include "pilotage/composants/console_globale.html" %}
+        </section>
+
+        <section id="panel-ctc" class="pilotage-view hidden animate-up" style="animation-delay:.05s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="activity" class="w-4 h-4 text-[#0095c9]"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-[#0095c9]">Activité opérationnelle</h2>
+            </div>
+            {% include "pilotage/composants/activity_ctc.html" %}
         </section>
         {% endif %}
 
@@ -545,7 +579,7 @@
             <div class="flex items-center gap-2 mb-4">
                 <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
                 <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
-                    Réception CTC
+                    Réception technique
                 </h2>
                 {% if pending_pilotage_reception_count > 0 %}
                 <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
@@ -574,6 +608,25 @@
                 {% endif %}
             </div>
             {% include "pilotage/composants/pending_requests_panel.html" %}
+        </section>
+        {% endif %}
+
+        <!-- ── Directoire : Panneau demandes d'adhésion (experts à activer) ──── -->
+        {% if can_manage_access %}
+        <section id="panel-adhesions" class="pilotage-view hidden animate-up" style="animation-delay:.45s">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="user-plus" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+                    Demandes d'adhésion
+                </h2>
+                {% if pending_experts_count > 0 %}
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full
+                             bg-emerald-400/15 text-emerald-400 border border-emerald-400/30">
+                    {{ pending_experts_count }} en attente
+                </span>
+                {% endif %}
+            </div>
+            {% include "pilotage/composants/pending_adhesions_panel.html" %}
         </section>
         {% endif %}
 
@@ -635,10 +688,14 @@
 
         // ── Navigation sidebar → un seul panneau affiché à la fois ────────────
         function switchPilotagePanel(id) {
+            const target = document.getElementById(id);
+            if (!target || !target.classList.contains('pilotage-view')) return;
             document.querySelectorAll('.pilotage-view').forEach(el => el.classList.add('hidden'));
-            document.getElementById(id)?.classList.remove('hidden');
+            target.classList.remove('hidden');
             document.querySelectorAll('#pilotage-sidebar .sidebar-nav-btn').forEach(btn => {
                 btn.classList.toggle('sidebar-nav-active', btn.dataset.panel === id);
+                if (btn.dataset.panel === id) btn.setAttribute('aria-current', 'page');
+                else btn.removeAttribute('aria-current');
             });
             document.querySelectorAll('#mobile-dock .dock-link').forEach(btn => {
                 btn.classList.toggle('ring-2', btn.dataset.panel === id);
@@ -648,10 +705,17 @@
             });
             document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
             if (window.innerWidth < 1024) window.setPilotageSidebarOpen(false);
+            history.replaceState(null, '', '#' + id);
         }
 
-        const initialPilotagePanel = document.querySelector('.pilotage-view');
-        if (initialPilotagePanel) switchPilotagePanel(initialPilotagePanel.id);
+        function openPilotagePanelFromLocation() {
+            const requestedPanel = document.getElementById(location.hash.slice(1));
+            const initialPanel = requestedPanel?.classList.contains('pilotage-view')
+                ? requestedPanel : document.querySelector('.pilotage-view');
+            if (initialPanel) switchPilotagePanel(initialPanel.id);
+        }
+        window.addEventListener('hashchange', openPilotagePanelFromLocation);
+        openPilotagePanelFromLocation();
 
         // ── Ouverture du modal de demande de permission ───────────────────────
         function openPermissionModal(resourceName) {

@@ -75,6 +75,10 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
         return Response({
             'explanation': result['explanation'],
             'proposal': result['proposal'],
+            'summary': result.get('summary', result['explanation']),
+            'edits': result.get('edits', []),
+            'applied_text': result.get('applied_text', text),
+            'fallback': result.get('fallback', False),
             'raw': result['raw'],
             'provider': result['provider'],
         })

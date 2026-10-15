@@ -29,6 +29,16 @@
         .animate-up { animation: slideUp .35s ease-out forwards; }
         .module-card { transition: transform .2s, box-shadow .2s; }
         .module-card:hover { transform: translateY(-2px); }
+        [data-ctm-panel][hidden], #ctm-activity[hidden] { display: none !important; }
+        .ctm-nav-item { display: flex; align-items: center; gap: .65rem; width: 100%; padding: .7rem .8rem; border-radius: .75rem; color: #64748b; font-size: .75rem; font-weight: 600; transition: background .15s, color .15s; }
+        .ctm-nav-item:hover { background: rgba(148,163,184,.1); color: #0f172a; }
+        .dark .ctm-nav-item { color: #94a3b8; }
+        .dark .ctm-nav-item:hover { color: #f8fafc; }
+        .ctm-nav-item[aria-current="page"] { background: rgba(0,149,201,.12); color: #0095c9; box-shadow: inset 3px 0 #0095c9; }
+        .ctm-nav-item:focus-visible { outline: 2px solid #0095c9; outline-offset: 2px; }
+        .ctm-nav-count { font-size: .625rem; min-width: 1.4rem; padding: .1rem .35rem; border-radius: .4rem; background: rgba(148,163,184,.1); text-align: center; }
+        .ctm-nav-group { font-weight: 700; }
+        @media (prefers-reduced-motion: reduce) { .animate-up { animation: none; } }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-[#06060c] text-slate-800 dark:text-slate-200">
@@ -65,11 +75,64 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto w-full bg-slate-50/50 dark:bg-[#020204]/40">
-        <div class="max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 sm:py-8 space-y-5 sm:space-y-6">
+    <div class="flex flex-1 min-h-0">
+        <aside class="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-slate-200 dark:border-white/[8%] bg-white/70 dark:bg-white/[2%]">
+            <div class="px-5 pt-6 pb-4">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Comité technique miroir</p>
+                <p class="text-base font-extrabold text-slate-800 dark:text-white mt-1">CTM {{ ctm.number }}</p>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ ctm.name }}</p>
+            </div>
+            <nav aria-label="Rubriques du CTM" class="overflow-y-auto px-3 pb-5 space-y-1">
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="presentation" icon="layout-dashboard" label="Présentation" %}
+                <p class="px-3 pt-5 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Supervision</p>
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="statistics" icon="chart-no-axes-combined" label="Synthèse de l’activité" %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="journal" icon="history" label="Journal des actions" %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="team" icon="user-round-check" label="Contributions de l’équipe" %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="documents" icon="files" label="Documents et versions" %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="dossiers" icon="folders" label="Dossiers du CTM" %}
+                <div class="pt-4">
+                    {% include "pilotage/composants/ctm_navigation_item.html" with view="organisation" icon="network" label="Organisation" grouped=True %}
+                </div>
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="groups" icon="git-branch" label="Groupes de travail" count=wgs_with_stats|length %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="experts" icon="users" label="Experts membres" count=affectations|length %}
+                <div class="pt-4">
+                    {% include "pilotage/composants/ctm_navigation_item.html" with view="normes" icon="library" label="Toutes les normes" grouped=True %}
+                </div>
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="progress" icon="file-cog" label="Normes en cours" count=normes_en_cours|length %}
+                {% include "pilotage/composants/ctm_navigation_item.html" with view="published" icon="badge-check" label="Normes publiées" count=normes_publiees|length %}
+            </nav>
+        </aside>
+        <div class="flex flex-col flex-1 min-w-0 min-h-0">
+            <label class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-white/[8%] bg-white dark:bg-[#06060c] text-xs font-semibold">
+                <span class="text-slate-500">Rubrique</span>
+                <select id="ctm-mobile-view" class="min-w-0 flex-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                    <option value="presentation">Présentation</option>
+                    <optgroup label="Supervision">
+                        <option value="statistics">Synthèse de l’activité</option>
+                        <option value="journal">Journal des actions</option>
+                        <option value="team">Contributions de l’équipe</option>
+                        <option value="documents">Documents et versions</option>
+                        <option value="dossiers">Dossiers du CTM</option>
+                    </optgroup>
+                    <optgroup label="Organisation">
+                        <option value="organisation">Toute l’organisation</option>
+                        <option value="groups">Groupes de travail</option>
+                        <option value="experts">Experts membres</option>
+                    </optgroup>
+                    <optgroup label="Normes">
+                        <option value="normes">Toutes les normes</option>
+                        <option value="progress">Normes en cours</option>
+                        <option value="published">Normes publiées</option>
+                    </optgroup>
+                </select>
+            </label>
+    <main id="ctm-content" class="flex-1 min-h-0 overflow-y-auto w-full bg-slate-50/50 dark:bg-[#020204]/40" tabindex="-1" aria-label="Contenu du CTM">
+        <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-5 sm:py-8 space-y-5 sm:space-y-6">
+
+            <section id="ctm-activity">{% include "pilotage/composants/activity_ctc.html" with ctm_sidebar=True %}</section>
 
             <!-- ── En-tête CTM ─────────────────────────────────────────────── -->
-            <div class="rounded-3xl border border-[#0095c9]/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-4 sm:p-6 module-card animate-up">
+            <div id="ctm-presentation" data-ctm-panel="presentation" hidden class="rounded-3xl border border-[#0095c9]/20 bg-white/70 dark:bg-white/[3%] backdrop-blur-md p-4 sm:p-6 module-card animate-up">
                 <div class="flex items-start gap-3 sm:gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
                         <i data-lucide="grid-3x3" class="w-6 h-6 text-[#0095c9]"></i>
@@ -130,7 +193,7 @@
             </div>
 
             <!-- ── Groupes de Travail ──────────────────────────────────────── -->
-            <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
+            <div id="ctm-groups" data-ctm-panel="groups" hidden class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.05s">
                 <h3 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="git-branch" class="w-4 h-4"></i> Groupes de travail
                 </h3>
@@ -160,7 +223,7 @@
             </div>
 
             <!-- ── Experts membres ─────────────────────────────────────────── -->
-            <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
+            <div id="ctm-experts" data-ctm-panel="experts" hidden class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.1s">
                 <h3 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="users" class="w-4 h-4"></i> Experts membres
                 </h3>
@@ -205,7 +268,7 @@
             </div>
 
             <!-- ── Normes en travail ───────────────────────────────────────── -->
-            <div class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
+            <div id="ctm-progress" data-ctm-panel="progress" hidden class="rounded-3xl border border-slate-200 dark:border-white/[8%] bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.15s">
                 <h3 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#0095c9] flex items-center gap-2 mb-4">
                     <i data-lucide="file-cog" class="w-4 h-4"></i> Normes en cours
                 </h3>
@@ -301,7 +364,7 @@
             </div>
 
             <!-- ── Normes déjà publiées ────────────────────────────────────── -->
-            <div class="rounded-3xl border border-emerald-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.2s">
+            <div id="ctm-published" data-ctm-panel="published" hidden class="rounded-3xl border border-emerald-400/20 bg-white/60 dark:bg-white/[2%] backdrop-blur-md p-6 animate-up" style="animation-delay:.2s">
                 <h3 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-2 mb-4">
                     <i data-lucide="badge-check" class="w-4 h-4"></i> Normes publiées
                 </h3>
@@ -356,6 +419,10 @@
 
         </div>
     </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/ctm-navigation.js' %}"></script>
 
     <script>
         function toggleTheme() {

@@ -195,7 +195,7 @@ def get_llm_client(provider=None):
 
 def unavailable_message(provider=None):
     return (
-        "L'agent IA DeepSeek n'est pas configuré (clé DEEPSEEK_API_KEY manquante). "
+        "Neronne de Source Académique AI n'est pas configuré (clé de service manquante). "
         "Merci de contacter l'administrateur."
     )
 
@@ -204,13 +204,13 @@ def api_error_message(exc):
     msg = str(exc)
     low = msg.lower()
     if "402" in msg or "insufficient balance" in low or "insufficient_balance" in low:
-        return "Solde DeepSeek insuffisant — recharge sur platform.deepseek.com → Billing."
+        return "Le service de Neronne de Source Académique AI a atteint sa limite de crédit. Contacte l'administrateur."
     if "429" in msg or "rate limit" in low or "quota" in low or "resource_exhausted" in low:
         return "Quota API dépassé. Attends quelques instants puis réessaie."
     if "401" in msg or "authentication" in low or "invalid api key" in low or "invalid_api_key" in low or "unauthenticated" in low:
-        return "Clé API DeepSeek invalide ou expirée. Vérifie la configuration DEEPSEEK_API_KEY."
+        return "Le service de Neronne de Source Académique AI est momentanément mal configuré. Contacte l'administrateur."
     if "peer closed" in low or "overloaded" in low or "529" in msg or "503" in msg or "500" in msg:
-        return "Le service IA DeepSeek est momentanément indisponible ou saturé. Réessaie dans quelques instants."
+        return "Neronne de Source Académique AI est momentanément indisponible ou saturé. Réessaie dans quelques instants."
     if "timeout" in low or "timed out" in low:
         return "La requête a expiré. Réessaie dans un instant."
-    return f"Erreur lors de la communication avec l'IA DeepSeek : {msg[:250]}"
+    return f"Erreur lors de la communication avec Neronne de Source Académique AI : {msg[:250]}"

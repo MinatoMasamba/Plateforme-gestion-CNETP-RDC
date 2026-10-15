@@ -9,3 +9,4 @@ class IaAgentConfig(AppConfig):
     def ready(self):
         from .tools import load_tools
         load_tools()
+        from . import signals  # noqa: F401

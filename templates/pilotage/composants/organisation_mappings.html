@@ -1,0 +1,6 @@
+<div class="overflow-x-auto"><table class="org-table"><caption class="text-left py-3 text-sm font-semibold">{{ title }}</caption><thead><tr><th scope="col">Structure source</th><th scope="col">Cible</th><th scope="col">Périmètre</th><th scope="col">Statut</th>{% if can_prepare %}<th scope="col">Gestion</th>{% endif %}</tr></thead><tbody>{% for mapping in mappings %}<tr>
+    <td>{% if kind == 'ctm' %}CTM {{ mapping.ctm.number }}<p class="text-xs text-slate-500 mt-1">{{ mapping.ctm.name }}</p>{% else %}WG {{ mapping.wg.ctm.number }}.{{ mapping.wg.number }}<p class="text-xs text-slate-500 mt-1">{{ mapping.wg.name }}</p>{% endif %}</td>
+    <td>{{ mapping.sc.code|default:"SC à confirmer" }}{% if kind == 'wg' %}<p class="text-xs text-slate-500 mt-1">{{ mapping.gt.code|default:"GT à confirmer" }}</p>{% endif %}</td>
+    <td>{{ mapping.domain }}<p class="text-xs text-slate-500 mt-2">{{ mapping.justification }}</p></td><td>{{ mapping.get_status_display }}</td>
+    {% if can_prepare %}<td><a class="org-link" href="{% url 'web:phoenix_mapping' kind mapping.pk %}">{% if mapping.status == 'PROPOSED' %}Modifier{% else %}Consulter la décision{% endif %}</a></td>{% endif %}
+</tr>{% empty %}<tr><td colspan="5" class="text-slate-500">Aucune correspondance enregistrée.</td></tr>{% endfor %}</tbody></table></div>

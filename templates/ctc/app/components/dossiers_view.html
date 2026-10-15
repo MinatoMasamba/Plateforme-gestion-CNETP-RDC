@@ -35,7 +35,7 @@
 
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm whitespace-nowrap">
+            <table class="institutional-table institutional-table--stacked w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 dark:bg-black/40 dark:text-slate-400 dark:border-white/10">
                     <tr>
                         <th class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Identifiant</th>
@@ -51,12 +51,12 @@
                         onclick="openNormeRead('{% url 'web:ctc_norme_read' p.norme.id %}')"
                         data-title="{{ p.norme.title|lower }} {{ p.norme.reference_number|lower }}"
                         data-etape="{{ p.current_stage }}">
-                        <td class="px-6 py-4">
+                        <td data-label="Référence" class="px-6 py-4">
                             <span class="font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1 rounded dark:bg-white/5 dark:border-white/10 dark:text-slate-300 pointer-events-none">
                                 {{ p.norme.reference_number }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td data-label="Dossier" class="px-6 py-4">
                             <span class="inline-flex font-bold text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors pointer-events-none">
                                 {{ p.norme.title }}
                             </span>
@@ -64,7 +64,7 @@
                                 Origine : CTM {{ p.norme.ctm.number }} · {{ p.norme.ctm.name }} • Reçu le {{ p.created_at|date:"d/m/Y" }}
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td data-label="Étape" class="px-6 py-4">
                             {% if p.current_stage == 'RECEPTION' %}
                             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400">
                                 <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
@@ -92,13 +92,13 @@
                             </div>
                             {% endif %}
                         </td>
-                        <td class="px-6 py-4">
+                        <td data-label="Statut" class="px-6 py-4">
                             <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
                                 <i data-lucide="clock" class="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0"></i>
                                 <span>Mis à jour {{ p.updated_at|timesince }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td data-label="Action" class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <a href="{% url 'web:ctc_norme_read' p.norme.id %}"
                                    target="_blank"

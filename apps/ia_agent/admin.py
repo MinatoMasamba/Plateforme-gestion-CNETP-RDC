@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import AgentArtifact, AgentMessage, AgentPosteContext, AgentScopeConfig, AgentSession
+from .models import (
+    AgentArtifact,
+    AgentMessage,
+    AgentPosteContext,
+    AgentScopeConfig,
+    AgentSession,
+    RAGChunk,
+    RAGDocument,
+)
 
 
 class AgentMessageInline(admin.TabularInline):
@@ -23,6 +31,21 @@ class AgentArtifactAdmin(admin.ModelAdmin):
     list_display = ['id', 'session', 'artifact_type', 'title', 'status', 'created_at']
     list_filter = ['artifact_type', 'status']
     search_fields = ['title']
+
+
+@admin.register(RAGDocument)
+class RAGDocumentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'source_kind', 'status', 'indexed_at', 'updated_at']
+    list_filter = ['source_kind', 'status']
+    search_fields = ['title', 'source_key', 'content_hash']
+    readonly_fields = ['created_at', 'updated_at', 'indexed_at', 'content_hash']
+
+
+@admin.register(RAGChunk)
+class RAGChunkAdmin(admin.ModelAdmin):
+    list_display = ['document', 'ordinal', 'page_number', 'section']
+    search_fields = ['content', 'section', 'document__title']
+    list_filter = ['document__source_kind']
 
 
 @admin.register(AgentScopeConfig)

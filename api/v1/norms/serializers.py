@@ -165,8 +165,10 @@ class NormeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Vérifier que WG appartient au CTM"""
-        wg = data.get('wg')
-        ctm = data.get('ctm')
+        wg = data.get('wg', getattr(self.instance, 'wg', None))
+        ctm = data.get('ctm', getattr(self.instance, 'ctm', None))
+        if not ctm or not wg:
+            raise serializers.ValidationError('Le circuit historique exige un CTM et un groupe de travail.')
 
         if wg and wg.ctm != ctm:
             raise serializers.ValidationError(

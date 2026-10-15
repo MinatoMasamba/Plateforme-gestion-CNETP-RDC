@@ -50,4 +50,6 @@ htmlcov/
 .ruff_cache/
 staticfiles/
 data.json
+/.local_backups/
+/.phoenix_documents/
 

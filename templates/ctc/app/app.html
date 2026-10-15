@@ -20,6 +20,7 @@
     <link rel="shortcut icon" href="{% static 'img/favicon-32x32.png' %}">
 
     <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
@@ -70,7 +71,7 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300 transition-colors duration-300">
+<body class="cnetp-premium h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300 transition-colors duration-300">
     <div id="pwa-install-banner" class="fixed bottom-4 left-4 right-4 z-[60] hidden">
         <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
@@ -129,6 +130,9 @@
                 <div id="view-assignations" class="view-container hidden">
                     {% include "ctc/app/components/assignations_view.html" %}
                 </div>
+                <div id="view-statistiques" class="view-container hidden">{% include "ctc/app/components/statistiques_view.html" %}</div>
+                <div id="view-homologations" class="view-container hidden">{% include "ctc/app/components/homologations_view.html" %}</div>
+                <div id="view-instructions" class="view-container hidden">{% include "ctc/app/components/instruction_module.html" %}</div>
 
                 <div id="view-reunions" class="view-container hidden">
                     {% include "ctc/app/components/reunions_view.html" %}
@@ -139,17 +143,13 @@
                 </div>
 
                 <div id="view-archives" class="view-container hidden">
-                    {% include "ctc/app/components/placeholder_view.html" %}
+                    {% include "ctc/app/components/archives_view.html" %}
                 </div>
 
                 <div id="view-parametres" class="view-container hidden">
                     {% include "ctc/app/components/parametres_module.html" %}
                 </div>
 
-                <div id="view-fallback" class="view-container hidden p-12 text-center text-slate-400">
-                    <i data-lucide="construction" class="w-10 h-10 mx-auto mb-3"></i>
-                    <p class="text-sm font-semibold">Module en cours de développement pour ce pôle.</p>
-                </div>
 
             </div>
         </main>
@@ -246,9 +246,18 @@
         // des inclus Django, on bascule simplement leur visibilité (pas d'AJAX).
         // =========================================================================
         window.switchView = function(viewId) {
+            const target = document.getElementById('view-' + viewId);
+            if (!target) return;
+            const current = document.querySelector('.view-container:not(.hidden)');
             document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById('view-' + viewId) || document.getElementById('view-fallback');
             target.classList.remove('hidden');
+            if (current !== target) {
+                const viewport = document.querySelector('main');
+                if (viewport) viewport.scrollTop = 0;
+            }
+            if (window.location.hash !== '#' + viewId) {
+                window.history.replaceState(null, '', '#' + viewId);
+            }
 
             if (typeof window.updateSidebarForTab === 'function') {
                 window.updateSidebarForTab(viewId);
@@ -258,8 +267,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             safeCreateIcons();
-            window.switchView('dashboard');
+            window.switchView(window.location.hash.slice(1) || 'dashboard');
         });
+        window.addEventListener('hashchange', () => window.switchView(window.location.hash.slice(1) || 'dashboard'));
     </script>
     <script>
         (() => {

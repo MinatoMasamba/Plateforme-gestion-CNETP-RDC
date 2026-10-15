@@ -1,0 +1,58 @@
+{% extends "pilotage/activity/base.html" %}
+
+{% block subtitle %}<div class="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400"><span>{% if historical %}Sous-commission {{ group.ctm.number }} · {% endif %}{{ group.name }}</span>{% if historical %}<span class="status-badge status-gray">Historique</span>{% endif %}</div>{% endblock %}
+
+{% block activity_content %}
+{% include "pilotage/activity/_kpis.html" %}
+<section class="institutional-card p-5">
+  <div class="flex flex-wrap items-start justify-between gap-4"><div><p class="activity-label">{% if historical %}Sous-commission historique {{ group.ctm.number }}{% else %}{{ group.sc.name }}{% endif %}</p><h2 class="mt-1 text-xl font-bold">{{ group.name }}</h2><p class="mt-1 text-sm institutional-muted">Pondération du groupe : Non configurée</p></div><button type="button" class="institutional-primary px-4 py-2" data-group-instruction-open>Donner une instruction</button></div>
+</section>
+<section class="institutional-card p-5" aria-labelledby="group-norms-title"><h2 id="group-norms-title" class="text-xl font-bold">Toutes les normes du groupe</h2><div class="mt-4 overflow-x-auto"><table class="institutional-table institutional-table--stacked"><thead><tr><th>Norme</th><th>Statut</th><th>Étape</th><th>Échéance</th></tr></thead><tbody>{% for norme in normes %}<tr><td data-label="Norme"><a href="{% url 'web:activity_norm' norme.pk %}" class="font-semibold underline">{{ norme.title }}</a></td><td data-label="Statut">{{ norme.get_status_display }}</td><td data-label="Étape">{{ norme.get_status_display }}</td><td data-label="Échéance">Non configurée</td></tr>{% empty %}<tr><td colspan="4" class="institutional-muted">Aucune norme rattachée de façon confirmée à ce groupe.</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="institutional-card p-5"><h2 class="text-xl font-bold">Experts du groupe</h2><ul class="mt-4 space-y-2">{% for item in group_experts %}<li class="rounded-lg border p-3 text-sm"><a href="{% url 'web:activity_expert' item.expert.pk %}" class="font-semibold underline">{{ item.expert.full_name }}</a><p class="mt-1 institutional-muted">Dernière action : {% if item.latest %}{{ item.latest.titre }}{% else %}Non configurée{% endif %} · {{ item.current_count }} tâche{{ item.current_count|pluralize }} en cours · {{ item.deliverable_count }} livrable{{ item.deliverable_count|pluralize }}</p></li>{% empty %}<li class="institutional-empty">Aucun expert explicitement affecté à ce groupe.</li>{% endfor %}</ul></section>
+
+<section class="activity-card overflow-hidden" data-work-view>
+  <div class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
+    <div><p class="activity-label">Même source, trois lectures</p><h2 class="mt-1 text-lg font-black">Normes et tâches du groupe</h2></div>
+    <div class="inline-flex w-fit rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800" role="tablist">
+      <button data-view-tab="table" class="rounded-lg bg-white px-4 py-2 shadow-sm dark:bg-slate-950" role="tab" aria-selected="true">Tableau</button>
+      <button data-view-tab="kanban" class="rounded-lg px-4 py-2" role="tab">Kanban</button>
+      <button data-view-tab="timeline" class="rounded-lg px-4 py-2" role="tab">Frise</button>
+    </div>
+  </div>
+
+  <div data-view-panel="table" class="overflow-x-auto">
+    {% if tasks %}
+    <table class="activity-table w-full min-w-[950px] text-sm">
+      <thead class="bg-slate-50 dark:bg-slate-900"><tr><th class="p-4 text-left">Norme / tâche</th><th class="p-4 text-left">Étape</th><th class="p-4 text-left">Échéance</th><th class="p-4 text-left">Avancement</th><th class="p-4 text-left">Responsable</th><th class="p-4 text-left">Pondération</th><th class="p-4 text-left">État</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        {% for task in tasks %}<tr class="hover:bg-slate-50 dark:hover:bg-slate-900"><td class="p-4"><a {% if task.norme_id %}href="{% url 'web:activity_norm' task.norme_id %}"{% endif %} class="font-black text-slate-950 dark:text-white">{{ task.titre }}</a><div class="mt-1 text-xs text-slate-500">{% if task.norme %}{{ task.norme.reference_number }}{% else %}Rattachement à confirmer{% endif %}</div></td><td class="p-4">{{ task.norme.get_status_display|default:'—' }}</td><td class="p-4">{{ task.due_date|date:'d/m/Y'|default:'Non configurée' }}</td><td class="p-4"><div class="w-28"><div class="flex justify-between text-xs"><span>{{ task.progress }} %</span></div><div class="mt-1 h-2 rounded-full bg-slate-200"><div class="h-2 rounded-full bg-sky-600" style="width:{{ task.progress }}%"></div></div></div></td><td class="p-4">{{ task.assigned_to.full_name|default:'Sans responsable' }}{% if task.backup_assignee %}<div class="text-xs text-slate-500">Remplaçant : {{ task.backup_assignee.full_name }}</div>{% endif %}</td><td class="p-4"><strong>{{ task.weight }}/5</strong><div class="text-[11px] text-slate-500">{{ task.get_weight_source_display }}</div></td><td class="p-4"><span class="status-badge {% if task.status == 'COMPLETED' %}status-green{% elif task.status == 'BLOCKED' %}status-red{% elif task.status == 'IN_PROGRESS' %}status-blue{% else %}status-gray{% endif %}">{{ task.get_status_display }}</span></td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="p-12 text-center"><h3 class="font-black">Aucune tâche configurée</h3><p class="mt-1 text-sm text-slate-500">Ajoutez une tâche avec un responsable, une échéance et un rattachement documentaire.</p>{% if activity_access.can_manage_targets %}<a href="/admin/governance/tache/add/" class="mt-4 inline-block rounded-lg bg-sky-700 px-4 py-2 text-sm font-bold text-white">Configurer les tâches</a>{% endif %}</div>{% endif %}
+  </div>
+
+  <div data-view-panel="kanban" class="hidden overflow-x-auto p-4">
+    <p class="mb-4 rounded-lg bg-sky-50 p-3 text-xs text-sky-900">Le déplacement demande confirmation, puis le serveur vérifie la permission et la transition. Toute transition refusée laisse la carte à sa place.</p>
+    <div class="grid min-w-[1200px] grid-cols-5 gap-4">
+      {% for status in status_columns %}<section class="rounded-xl bg-slate-100 p-3 dark:bg-slate-900" data-kanban-column="{{ status }}"><h3 class="mb-3 text-xs font-black uppercase tracking-wider text-slate-600">{% if status == 'PLANNED' %}Planifiées{% elif status == 'IN_PROGRESS' %}En cours{% elif status == 'BLOCKED' %}Bloquées{% elif status == 'ON_HOLD' %}En attente{% else %}Terminées{% endif %}</h3><div class="min-h-32 space-y-3" data-dropzone>{% for task in tasks %}{% if task.status == status %}<article class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950" draggable="{% if activity_access.can_manage_targets %}true{% else %}false{% endif %}" data-task-id="{{ task.pk }}" data-task-title="{{ task.titre }}" data-transition-url="{% url 'web:activity_task_transition' task.pk %}"><strong class="text-sm">{{ task.titre }}</strong><p class="mt-1 text-xs text-slate-500">{{ task.assigned_to.full_name|default:'Sans responsable' }}</p><div class="mt-3 flex justify-between text-[11px] text-slate-500"><span>{{ task.weight }}/5</span><span>{{ task.due_date|date:'d/m/Y'|default:'Sans échéance' }}</span></div></article>{% endif %}{% endfor %}</div></section>{% endfor %}
+    </div>
+  </div>
+
+  <div data-view-panel="timeline" class="hidden p-5">
+    <div class="space-y-4">{% for task in tasks %}<div class="grid gap-2 sm:grid-cols-[220px_1fr_100px] sm:items-center"><div><strong class="text-sm">{{ task.titre }}</strong><p class="text-xs text-slate-500">{{ task.norme.reference_number|default:'Rattachement à confirmer' }}</p></div><div class="relative h-8 rounded-lg bg-slate-100 dark:bg-slate-800"><div class="absolute inset-y-1 left-1 rounded-md {% if task.status == 'BLOCKED' %}bg-red-500{% elif task.status == 'COMPLETED' %}bg-green-600{% else %}bg-sky-600{% endif %}" style="width:max(4%,{{ task.progress }}%)"></div></div><div class="text-right text-xs font-bold">{{ task.due_date|date:'d/m/Y'|default:'À planifier' }}</div></div>{% empty %}<p class="py-10 text-center text-sm text-slate-500">Aucune échéance à afficher.</p>{% endfor %}</div>
+  </div>
+</section>
+{% if activity_access.can_manage_targets and tasks %}
+<section class="activity-card p-5">
+  <p class="activity-label">Configuration en masse</p><h2 class="mt-1 text-lg font-black">Appliquer les mêmes paramètres à plusieurs tâches</h2><p class="mt-1 text-xs text-slate-500">Les champs laissés vides conservent leur valeur actuelle. Un poids saisi devient une valeur configurée.</p>
+  <form method="post" action="{% url 'web:activity_tasks_bulk_configure' %}" class="mt-5 grid gap-5 xl:grid-cols-[1fr_360px]">{% csrf_token %}
+    <fieldset class="grid gap-2 sm:grid-cols-2"><legend class="sr-only">Tâches à modifier</legend>{% for task in tasks %}<label class="flex items-start gap-2 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-700"><input type="checkbox" name="task_ids" value="{{ task.pk }}" class="mt-1"><span><strong>{{ task.titre }}</strong><small class="mt-1 block text-slate-500">{{ task.weight }}/5 · {{ task.get_priority_display }} · {{ task.due_date|date:'d/m/Y'|default:'sans échéance' }}</small></span></label>{% endfor %}</fieldset>
+    <div class="space-y-3"><label class="block text-xs font-bold">Poids (1 à 5)<input type="number" min="1" max="5" name="weight" class="mt-1 w-full rounded-lg border-slate-300"></label><label class="block text-xs font-bold">Priorité<select name="priority" class="mt-1 w-full rounded-lg border-slate-300"><option value="">Conserver</option><option value="LOW">Basse</option><option value="NORMAL">Normale</option><option value="HIGH">Haute</option><option value="CRITICAL">Critique</option></select></label><label class="block text-xs font-bold">Échéance<input type="date" name="due_date" class="mt-1 w-full rounded-lg border-slate-300"></label><button class="w-full rounded-lg bg-sky-700 px-4 py-3 text-sm font-black text-white">Appliquer à la sélection</button></div>
+  </form>
+</section>
+{% endif %}
+<div class="institutional-drawer" data-group-instruction-drawer hidden><div class="institutional-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="group-instruction-title"><button type="button" class="float-right rounded-lg border px-3 py-2" data-group-instruction-close>Fermer</button><h2 id="group-instruction-title" class="text-xl font-bold">Donner une instruction</h2><p class="mt-3 text-sm institutional-muted">Portée : ce groupe uniquement. Envoi et suivi par destinataire : Non disponible dans ce lot.</p><p class="mt-5 institutional-badge">Non disponible</p></div></div>
+{% endblock %}
+{% block activity_scripts %}<script>
+(() => { const drawer = document.querySelector('[data-group-instruction-drawer]'); const open = document.querySelector('[data-group-instruction-open]'); const close = drawer?.querySelector('[data-group-instruction-close]'); open?.addEventListener('click', () => { drawer.hidden = false; close?.focus(); }); function hide() { drawer.hidden = true; open?.focus(); } close?.addEventListener('click', hide); drawer?.addEventListener('click', event => { if (event.target === drawer) hide(); }); document.addEventListener('keydown', event => { if (event.key === 'Escape' && drawer && !drawer.hidden) hide(); }); })();
+</script>{% endblock %}

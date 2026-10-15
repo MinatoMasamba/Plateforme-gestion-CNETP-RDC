@@ -86,6 +86,17 @@ class AuditLog(models.Model):
         return f"{self.action} {self.object_repr} par {self.user} le {self.timestamp}"
 
 
+class AuditTextChange(models.Model):
+    """Texte avant/après, réservé aux lecteurs habilités du journal de supervision."""
+    audit_log = models.ForeignKey(AuditLog, on_delete=models.CASCADE, related_name='text_changes')
+    field_name = models.CharField(max_length=100)
+    old_text = models.TextField(blank=True)
+    new_text = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['audit_log', 'field_name'], name='unique_audit_text_field')]
+
+
 class PasswordResetCode(models.Model):
     """Code à 6 chiffres pour réinitialisation de mot de passe."""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reset_codes')

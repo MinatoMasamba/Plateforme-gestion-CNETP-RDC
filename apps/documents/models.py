@@ -103,3 +103,43 @@ class DocumentFile(BaseModel):
                 return f"{size:.1f} {unit}"
             size /= 1024
         return f"{size:.1f} TB"
+
+
+class DriveSyncSettings(BaseModel):
+    """Activation explicite du transfert CNE-ITP, distincte des identifiants OAuth."""
+
+    enabled = models.BooleanField(default=False)
+    include_adopted = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Configuration de synchronisation Drive'
+
+
+class DriveSyncAttempt(BaseModel):
+    """Historique conservé des tentatives de transfert d'un fichier."""
+
+    SOURCE_CHOICES = [
+        ('NORM_CURRENT', 'Version courante de norme'),
+        ('NORM_JO', 'Journal officiel'),
+        ('DOCUMENT', 'Document lié à une norme'),
+    ]
+    STATUS_CHOICES = [
+        ('PENDING', 'En cours'),
+        ('SENT', 'Envoyé'),
+        ('FAILED', 'Échec'),
+    ]
+    source_kind = models.CharField(max_length=20, choices=SOURCE_CHOICES)
+    source_id = models.PositiveBigIntegerField()
+    source_name = models.CharField(max_length=500)
+    sha256 = models.CharField(max_length=64)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    drive_file_id = models.CharField(max_length=255, blank=True)
+    error = models.TextField(blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['source_kind', 'source_id', 'sha256']),
+            models.Index(fields=['status', '-created_at']),
+        ]

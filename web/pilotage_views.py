@@ -19,7 +19,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
@@ -30,12 +31,14 @@ from apps.experts.models import Expert
 from apps.governance.models import (
     ComitePilotage, PilotageMembreship, PosteNominatif,
     CTM, WG, Affectation, PermissionRequest, CTCProcessus, NormeCadrage,
-    PlatformFreeze,
+    PlatformFreeze, OrganisationVersion, Organe, CorrespondanceStructure,
+    AffectationSousCommission,
 )
 from apps.mobileapp.signals import create_notification_for_user
 from apps.norms.models import Norme
 from apps.norms.models import NormeComment
 from apps.validation.models import EconomicReview, IndustrialConsultation, LegisticReview, ScheduleReview
+from apps.governance.ctc_supervision import build_ctc_supervision
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -714,15 +717,28 @@ def get_pilotage_context(expert: Expert) -> dict | None:
     else:
         sub_role = role.lower()
 
-    # ── CTMs de spécialité (ATF uniquement) ──────────────────────────────────
+    # Les anciens numéros servent seulement à résoudre le périmètre SC.
     specialty_ctm_ids = _ATF_SPECIALTY_CTM.get(sub_role, [])
-    specialty_ctms = CTM.objects.filter(number__in=specialty_ctm_ids) if specialty_ctm_ids else []
+    specialty_sc_ids = list(CorrespondanceStructure.objects.filter(
+        version__code='phoenix-2026-10', status='VALIDATED',
+        ctm__number__in=specialty_ctm_ids, sc__isnull=False,
+    ).values_list('sc_id', flat=True).distinct())
+    specialty_scs = Organe.objects.filter(pk__in=specialty_sc_ids).order_by('code')
 
     # ── Demandes de permission en attente (Directoire seulement) ─────────────
     pending_requests = (
         PermissionRequest.objects
         .filter(status='PENDING')
         .select_related('requester__user', 'requester__structure')
+        .order_by('-created_at')
+        if is_directoire else []
+    )
+
+    # ── Demandes d'adhésion en attente (experts à activer) ───────────────────
+    pending_experts = (
+        Expert.objects
+        .filter(status='PENDING')
+        .select_related('user', 'structure')
         .order_by('-created_at')
         if is_directoire else []
     )
@@ -788,9 +804,10 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         'can_upload_reports':     is_conseiller,
 
         # ── Profil 3 : Administrateurs Techniques & Financiers ───────────────
-        # Console Audit Technique — CTMs de spécialité
+        # Console Audit Technique — sous-commissions de spécialité
         'can_audit_ctm':          is_atf,
-        'specialty_ctms':         specialty_ctms,
+        'specialty_scs':          specialty_scs,
+        'specialty_sc_ids':       specialty_sc_ids,
         'specialty_ctm_ids':      specialty_ctm_ids,
         # Widget Validation Financière — exclusif FONER
         'can_audit_financials':   (sub_role == 'foner'),
@@ -815,6 +832,8 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         # ── Données pour le Directoire ────────────────────────────────────────
         'pending_requests':       pending_requests,
         'pending_requests_count': len(pending_requests) if is_directoire else 0,
+        'pending_experts':        pending_experts,
+        'pending_experts_count':  len(pending_experts) if is_directoire else 0,
 
         # ── Étape 5 : réception des normes transmises par la CTC ─────────────
         'can_acknowledge_reception':       can_acknowledge_reception,
@@ -861,19 +880,36 @@ class PilotageDashboardView(View):
             )
             return redirect('web:app')
 
-        # Données globales pour le Directoire (console de supervision)
-        ctms = CTM.objects.prefetch_related('working_groups').order_by('number')
-        ctms_with_stats = []
-        total_wgs = 0
-        for ctm in ctms:
-            wgs = ctm.working_groups.all()
-            wg_count = wgs.count()
-            total_wgs += wg_count
-            ctms_with_stats.append({
-                'ctm': ctm,
-                'wg_count': wg_count,
-                'member_count': ctm.affectations.count(),
-            })
+        # La navigation Pilotage expose uniquement la structure Phoenix validée.
+        organisation = OrganisationVersion.objects.filter(code='phoenix-2026-10').first()
+        active_sc_assignments = AffectationSousCommission.objects.filter(
+            status=AffectationSousCommission.Status.MIGRATED,
+        ).select_related('expert__user', 'expert__structure')
+        scs_with_stats = []
+        direct_sc_by_ctm = {}
+        if organisation:
+            scs = organisation.organes.filter(
+                type=Organe.Type.SC, status=OrganisationVersion.Status.VALIDATED,
+            ).prefetch_related(Prefetch(
+                'expert_assignments', queryset=active_sc_assignments,
+                to_attr='active_expert_assignments',
+            )).order_by('code')
+            for sc in scs:
+                assignments = list(sc.active_expert_assignments)
+                scs_with_stats.append({
+                    'sc': sc,
+                    'member_count': len(assignments),
+                    'experts': assignments,
+                })
+            direct_sc_by_ctm = dict(
+                CorrespondanceStructure.objects.filter(
+                    version=organisation, status='VALIDATED', sc__isnull=False,
+                ).values_list('ctm_id', 'sc__code')
+            )
+        migrated_expert_count = sum(item['member_count'] for item in scs_with_stats)
+        pending_sc_expert_count = AffectationSousCommission.objects.filter(
+            version=organisation, status=AffectationSousCommission.Status.REVIEW,
+        ).count() if organisation else 0
 
         # My permission requests (autres collèges)
         my_requests = (
@@ -907,12 +943,36 @@ class PilotageDashboardView(View):
         )
         pilotage_member_count = PilotageMembreship.objects.count()
         pilotage_post_count = PosteNominatif.objects.count()
+        normes_travaillees_count = Norme.objects.exclude(status__in=['PUBLISHED', 'ARCHIVED']).count()
+
+        ctc_activity_stages = []
+        ctc_activity_page = None
+        ctc_supervision_context = {}
+        if priv['can_view_global_console']:
+            processes = CTCProcessus.objects.select_related('norme__ctm')
+            stage_counts = dict(
+                processes.values('current_stage')
+                .annotate(total=Count('pk'))
+                .values_list('current_stage', 'total')
+            )
+            ctc_activity_stages = [
+                {'label': label, 'count': stage_counts.get(stage, 0)}
+                for stage, label in CTCProcessus.STAGE_CHOICES
+            ]
+            ctc_activity_page = Paginator(
+                processes.order_by('-updated_at', '-pk'), 25,
+            ).get_page(request.GET.get('ctc_page'))
+            for process in ctc_activity_page.object_list:
+                process.phoenix_sc_code = direct_sc_by_ctm.get(process.norme.ctm_id)
+            ctc_supervision_context = build_ctc_supervision(request)
 
         context = {
             'expert': expert,
-            'ctms_with_stats': ctms_with_stats,
-            'total_wgs': total_wgs,
-            'total_ctms': len(ctms_with_stats),
+            'organisation': organisation,
+            'scs_with_stats': scs_with_stats,
+            'total_scs': len(scs_with_stats),
+            'migrated_expert_count': migrated_expert_count,
+            'pending_sc_expert_count': pending_sc_expert_count,
             'my_permission_requests': my_requests,
             'legistic_reviews': legistic_reviews,
             'economic_reviews': economic_reviews,
@@ -920,6 +980,10 @@ class PilotageDashboardView(View):
             'schedule_reviews': schedule_reviews,
             'pilotage_member_count': pilotage_member_count,
             'pilotage_post_count': pilotage_post_count,
+            'normes_travaillees_count': normes_travaillees_count,
+            'ctc_activity_stages': ctc_activity_stages,
+            'ctc_activity_page': ctc_activity_page,
+            **ctc_supervision_context,
             **priv,
         }
         return render(request, self.template_name, context)
@@ -1542,45 +1606,12 @@ class PilotageCTMDetailView(View):
         if not priv or not priv['can_view_global_console']:
             messages.info(
                 request,
-                "Le détail des Comités Techniques Miroirs est réservé au Bureau Directoire."
+                "La supervision des sous-commissions est réservée au Pilotage."
             )
             return redirect('web:pilotage_dashboard')
 
-        ctm = get_object_or_404(CTM, number=number)
-
-        wgs_with_stats = []
-        for wg in ctm.working_groups.select_related(
-            'president__user', 'rapporteur__user', 'secretary__user'
-        ).order_by('number'):
-            wgs_with_stats.append({'wg': wg, 'member_count': wg.affectations.count()})
-
-        affectations = (
-            ctm.affectations
-            .select_related('expert__user', 'expert__structure', 'wg')
-            .order_by('wg__number', 'expert__user__last_name')
-        )
-
-        normes_en_cours = (
-            ctm.normes.exclude(status='PUBLISHED')
-            .select_related('wg')
-            .prefetch_related('comments__author__user')
-            .order_by('wg__number', '-created_at')
-        )
-        normes_publiees = (
-            ctm.normes.filter(status='PUBLISHED')
-            .select_related('wg')
-            .order_by('-publication_date')
-        )
-
-        context = {
-            'ctm': ctm,
-            'wgs_with_stats': wgs_with_stats,
-            'affectations': affectations,
-            'normes_en_cours': normes_en_cours,
-            'normes_publiees': normes_publiees,
-            **priv,
-        }
-        return render(request, self.template_name, context)
+        # Les anciennes URL aboutissent à la structure institutionnelle active.
+        return redirect('/pilotage/organisation/#sc')
 
 
 @method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
@@ -1661,11 +1692,16 @@ class PilotageExpertAccessView(View):
 
         experts = (
             Expert.objects
-            .select_related('user', 'structure', 'ctm')
+            .select_related('user', 'structure')
             .prefetch_related(
                 Prefetch(
-                    'governance_affectations',
-                    queryset=Affectation.objects.select_related('ctm', 'wg').order_by('ctm__number', 'wg__number'),
+                    'subcommission_assignments',
+                    queryset=AffectationSousCommission.objects.filter(
+                        version__code='phoenix-2026-10',
+                        status__in=(AffectationSousCommission.Status.MIGRATED,
+                                    AffectationSousCommission.Status.REVIEW),
+                    ).select_related('sc').order_by('sc__code'),
+                    to_attr='current_sc_assignments',
                 )
             )
             .order_by('user__last_name', 'user__first_name')
@@ -1706,15 +1742,24 @@ class PilotageExpertStatusActionView(View):
             target.status = 'SUSPENDED'
         elif action == 'activate':
             target.status = 'ACTIVE'
+            target.accepted_by = expert
+            target.accepted_at = timezone.now()
+        elif action == 'reject':
+            target.status = 'REJECTED'
+            target.rejected_by = expert
+            target.rejected_at = timezone.now()
+            target.rejection_reason = (request.POST.get('reason') or '').strip()
         else:
             return JsonResponse({'ok': False, 'error': 'Action invalide.'}, status=400)
 
-        target.save(update_fields=['status'])
+        target.save(update_fields=[
+            'status', 'accepted_by', 'accepted_at', 'rejected_by', 'rejected_at', 'rejection_reason',
+        ])
 
-        verb = 'suspendu' if action == 'suspend' else 'rétabli'
+        verb = {'suspend': 'suspendu', 'activate': 'activé', 'reject': 'refusé'}[action]
         return JsonResponse({
             'ok': True,
-            'message': f"Accès de {target.full_name} {verb}.",
+            'message': f"Adhésion de {target.full_name} {verb}.",
             'new_status': target.status,
             'new_status_label': target.get_status_display(),
         })

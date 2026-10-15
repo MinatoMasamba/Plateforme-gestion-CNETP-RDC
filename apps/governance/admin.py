@@ -1,8 +1,15 @@
 from django.contrib import admin
+from . import phoenix_admin  # noqa: F401
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Count
-from .models import CTM, WG, Affectation, ComitePilotage, PilotageMembreship, PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC, OriginStructure, ExecutiveLevel, CTCProcessus, NormeCadrage
+from .models import (CTM, WG, Affectation, ComitePilotage, PilotageMembreship,
+    PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC,
+    OriginStructure, ExecutiveLevel, CTCProcessus, NormeCadrage, Tache,
+    ActivitySession, ActivityPulse, WorkExpectation, OffPlatformWork,
+    JustifiedAbsence, BusinessCalendarDay, ActivitySilencePeriod,
+    ActivityDispute, ActivityAccessLog, ActivityAlert, ActivityAggregate,
+    SavedActivityView, Demande, JournalDemande)
 
 # Ensure ComitePilotage objects expose a 'role' attribute to avoid errors
 # when other admin modules assume a membership-like object is returned.
@@ -412,3 +419,100 @@ class NormeCadrageAdmin(admin.ModelAdmin):
         return obj.conformity_quitus_complete
     conformity_quitus_complete.boolean = True
     conformity_quitus_complete.short_description = "Quitus conformité complet"
+
+
+class JournalDemandeInline(admin.TabularInline):
+    model = JournalDemande
+    extra = 0
+    fields = ('statut_avant', 'statut_apres', 'acteur', 'commentaire', 'created_at')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(Demande)
+class DemandeAdmin(admin.ModelAdmin):
+    list_display = ('objet', 'type', 'emetteur', 'destinee_a', 'statut', 'echeance', 'created_at')
+    list_filter = ('type', 'statut', 'gravite')
+    search_fields = ('objet', 'message', 'emetteur__user__last_name', 'destinataire__user__last_name')
+    raw_id_fields = ('emetteur', 'destinataire', 'groupe', 'sous_commission', 'norme')
+    inlines = [JournalDemandeInline]
+
+
+@admin.register(Tache)
+class TacheAdmin(admin.ModelAdmin):
+    list_display = ('titre', 'norme', 'working_group', 'target_group', 'assigned_to', 'priority', 'weight', 'status', 'due_date')
+    list_filter = ('status', 'priority', 'weight_source', 'review_status')
+    search_fields = ('titre', 'norme__reference_number', 'assigned_to__user__last_name')
+    raw_id_fields = ('assigned_to', 'backup_assignee', 'norme', 'working_group', 'target_group', 'reviewed_by')
+    filter_horizontal = ('blocked_by',)
+
+
+@admin.register(ActivitySession)
+class ActivitySessionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'started_at', 'last_seen_at', 'active_seconds', 'state', 'channel')
+    list_filter = ('state', 'channel')
+    search_fields = ('user__username', 'user__last_name')
+    readonly_fields = ('id', 'user', 'device_id', 'tab_id', 'started_at', 'last_seen_at', 'ended_at', 'active_seconds', 'state', 'ip_address', 'user_agent', 'timezone_name', 'current_path', 'ctm', 'working_group', 'target_group', 'norme')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ActivityPulse)
+class ActivityPulseAdmin(admin.ModelAdmin):
+    list_display = ('session', 'bucket', 'credited_seconds', 'visible', 'interacted')
+    readonly_fields = ('session', 'bucket', 'received_at', 'credited_seconds', 'visible', 'interacted')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(WorkExpectation)
+class WorkExpectationAdmin(admin.ModelAdmin):
+    list_display = ('expert', 'weekly_minutes', 'effective_from', 'effective_to', 'mandate')
+    raw_id_fields = ('expert', 'mandate')
+
+
+class DeclarationAdmin(admin.ModelAdmin):
+    list_filter = ('status',)
+    raw_id_fields = ('expert', 'reviewed_by')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+admin.site.register(OffPlatformWork, DeclarationAdmin)
+admin.site.register(JustifiedAbsence, DeclarationAdmin)
+admin.site.register(BusinessCalendarDay)
+admin.site.register(ActivitySilencePeriod)
+admin.site.register(ActivityDispute)
+admin.site.register(ActivityAlert)
+admin.site.register(SavedActivityView)
+
+
+@admin.register(ActivityAccessLog)
+class ActivityAccessLogAdmin(admin.ModelAdmin):
+    list_display = ('viewer', 'target_expert', 'detail_level', 'created_at')
+    readonly_fields = ('viewer', 'target_expert', 'detail_level', 'purpose', 'ip_address', 'created_at')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ActivityAggregate)
+class ActivityAggregateAdmin(admin.ModelAdmin):
+    list_display = ('period_type', 'period_start', 'user', 'active_seconds', 'declared_seconds', 'source_count', 'calculated_at')
+    list_filter = ('period_type', 'disputed')
+    readonly_fields = [field.name for field in ActivityAggregate._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

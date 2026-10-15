@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.core.ctc_audit.CTCAuditMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -105,6 +106,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': config('SQLITE_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+        # Réduit les erreurs « database is locked » en concurrence (dev).
+        # NB: activer WAL une seule fois via `PRAGMA journal_mode=WAL;`
+        # (voir `python manage.py enable_sqlite_wal`).
+        'OPTIONS': {
+            'timeout': config('SQLITE_TIMEOUT', default=30, cast=int),
+        },
     }
 }
 
@@ -304,6 +311,11 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+GDRIVE_CLIENT_ID = config('GDRIVE_CLIENT_ID', default='')
+GDRIVE_CLIENT_SECRET = config('GDRIVE_CLIENT_SECRET', default='')
+GDRIVE_REFRESH_TOKEN = config('GDRIVE_REFRESH_TOKEN', default='')
+# Un dossier dédié CNE-ITP est obligatoire avant tout transfert.
+GDRIVE_ROOT_FOLDER_ID = config('GDRIVE_ROOT_FOLDER_ID', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cnetp.cd')
 
 # Agent IA — DeepSeek — laisser vide pour désactiver

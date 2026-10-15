@@ -1,0 +1,48 @@
+<div class="premium-chart-grid">
+  <section class="premium-chart-card" aria-labelledby="{{ chart_prefix }}-stages-title">
+    <div class="premium-chart-heading">
+      <div><p class="premium-eyebrow">Production normative</p><h3 id="{{ chart_prefix }}-stages-title">Normes par statut</h3></div>
+      <span class="premium-chart-total">{{ ctc_statistics.norm_count }} norme{{ ctc_statistics.norm_count|pluralize }}</span>
+    </div>
+    {% if ctc_statistics.stage_donut %}
+    <div class="premium-mix">
+      <div class="premium-donut premium-donut--mix" role="img" aria-label="Répartition des normes par statut">
+        <div class="premium-donut__ring" style="--donut-gradient: {{ ctc_statistics.stage_donut.gradient }}"></div>
+        <div class="premium-donut__center">
+          <span class="premium-donut__value">{{ ctc_statistics.stage_donut.total }}</span>
+          <span class="premium-donut__label">normes</span>
+        </div>
+      </div>
+      <div class="premium-donut-legend" role="list" aria-label="Détail des statuts">
+        {% for item in ctc_statistics.stage_donut.legend %}
+        <div class="premium-donut-legend__item" role="listitem">
+          <span class="premium-donut-legend__name"><span class="premium-donut-legend__dot" style="background: {{ item.color }}"></span><span>{{ item.label }}</span></span>
+          <span class="premium-donut-legend__value">{{ item.count }} · {{ item.percent }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <p class="premium-chart-note">Chaque segment représente des normes réellement rattachées à un groupe.</p>
+    {% else %}<p class="premium-chart-empty">Aucune norme rattachée. Graphique non configuré.</p>{% endif %}
+  </section>
+  <section class="premium-chart-card" aria-labelledby="{{ chart_prefix }}-groups-title">
+    <div class="premium-chart-heading">
+      <div><p class="premium-eyebrow">Répartition par groupe</p><h3 id="{{ chart_prefix }}-groups-title">Normes suivies</h3></div>
+      <span class="premium-chart-total">{{ ctc_statistics.group_count }} groupe{{ ctc_statistics.group_count|pluralize }}</span>
+    </div>
+    {% if ctc_statistics.group_norm_rows %}
+    <div class="premium-chart-list premium-chart-list--scroll" role="list" aria-label="Normes par groupe de travail">
+      {% for group in ctc_statistics.group_norm_rows %}
+      <div class="premium-chart-row" role="listitem">
+        {% if chart_prefix == 'stat' %}<button type="button" data-ctc-stat-target="{{ group.target }}" class="premium-chart-button" aria-label="Voir les normes du groupe {{ group.label }}">
+        {% else %}<div class="premium-chart-button premium-chart-button--static">{% endif %}
+          <span class="premium-chart-label"><span><small>{{ group.parent }}</small> {{ group.label }}</span><strong>{{ group.count }}</strong></span>
+          <span class="premium-chart-track" aria-hidden="true"><span class="premium-chart-fill premium-chart-fill--cyan" style="width: {{ group.width }}%"></span></span>
+        {% if chart_prefix == 'stat' %}</button>{% else %}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <p class="premium-chart-note">Groupes présentés par sous-commission, dans l’ordre alphabétique.</p>
+    {% else %}<p class="premium-chart-empty">Aucun groupe avec norme rattachée. Graphique non configuré.</p>{% endif %}
+  </section>
+</div>

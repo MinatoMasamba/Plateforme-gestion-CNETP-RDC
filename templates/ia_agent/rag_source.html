@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ source.title }} — Source assistant IA</title>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Source assistant IA</p>
+                <h1 class="text-2xl font-bold text-slate-900">{{ source.title }}</h1>
+                <p class="text-sm text-slate-500 mt-1">{{ source.get_source_kind_display }} · {{ source.status }}</p>
+            </div>
+            <div class="flex gap-2">
+                {% if object_url %}
+                <a href="{{ object_url }}" class="rounded-lg bg-[#0095c9] px-3 py-2 text-sm font-semibold text-white hover:brightness-110">
+                    Ouvrir la source
+                </a>
+                {% endif %}
+                <a href="javascript:history.back()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-white">
+                    Retour
+                </a>
+            </div>
+        </div>
+
+        {% if download_url %}
+        <p class="mb-5 text-sm"><a class="text-[#0076a3] hover:underline" href="{{ download_url }}" target="_blank">Ouvrir le fichier original</a></p>
+        {% endif %}
+
+        <section class="space-y-3">
+            {% for chunk in chunks %}
+            <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {% if chunk.page_number %}Page {{ chunk.page_number }}{% endif %}
+                    {% if chunk.section %} · {{ chunk.section }}{% endif %}
+                </div>
+                <p class="whitespace-pre-line text-sm leading-6">{{ chunk.content }}</p>
+            </article>
+            {% empty %}
+            <p class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Aucun texte exploitable n'est disponible pour cette source.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

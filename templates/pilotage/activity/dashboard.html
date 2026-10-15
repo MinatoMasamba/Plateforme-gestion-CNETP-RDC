@@ -1,0 +1,61 @@
+{% extends "pilotage/activity/base.html" %}
+
+{% block activity_content %}
+{% include "pilotage/activity/_kpis.html" %}
+
+<section class="grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+  <div class="activity-card overflow-hidden">
+    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+      <div><p class="activity-label">Exceptions d’abord</p><h2 class="mt-1 text-lg font-black">À traiter</h2></div>
+      <span class="status-badge {% if exceptions %}status-red{% else %}status-green{% endif %}">{{ exceptions|length }} situation{{ exceptions|length|pluralize }}</span>
+    </div>
+    {% if exceptions %}
+    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+      {% for item in exceptions %}
+      <article class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
+          <span class="status-badge {% if item.severity == 'ACTION' %}status-red{% else %}status-orange{% endif %}">{% if item.severity == 'ACTION' %}● Action requise{% else %}◆ À surveiller{% endif %}</span>
+          <h3 class="mt-2 truncate font-bold text-slate-950 dark:text-white">{{ item.label }}</h3>
+          <p class="mt-1 text-xs text-slate-500">{{ item.detail }}</p>
+        </div>
+        {% if item.task.norme_id %}<a href="{% url 'web:activity_norm' item.task.norme_id %}" class="activity-action shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black hover:border-sky-500">Ouvrir</a>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="px-6 py-12 text-center"><div class="text-3xl">✓</div><h3 class="mt-3 font-black">Aucune exception ouverte</h3><p class="mt-1 text-sm text-slate-500">Les tâches configurées ne présentent pas d’écart à traiter sur cette période.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="activity-card overflow-hidden">
+    <div class="border-b border-slate-200 px-5 py-4 dark:border-slate-700"><p class="activity-label">Périmètres</p><h2 class="mt-1 text-lg font-black">Sous-commissions</h2></div>
+    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+      {% for sc in subcommissions %}
+      <a href="{% if sc.kind == 'historical' %}{% url 'web:activity_subcommission' sc.number %}{% else %}{% url 'web:activity_current_subcommission' sc.id %}{% endif %}?debut={{ period_start|date:'Y-m-d' }}&fin={{ period_end|date:'Y-m-d' }}" class="flex items-center justify-between gap-4 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900">
+        <div class="min-w-0 flex-1"><div class="flex items-center gap-2"><strong>{{ sc.code }}</strong>{% if sc.badge %}<span class="status-badge status-gray">{{ sc.badge }}</span>{% endif %}</div><p class="mt-1 text-xs text-slate-500">{{ sc.name }} · {{ sc.group_count }} groupe{{ sc.group_count|pluralize }}</p><div class="mt-2 max-h-32 space-y-1 overflow-y-auto">{% for row in sc.group_rows %}<p class="flex justify-between gap-2 text-xs"><span>{{ row.group.name }}</span><span>{% if row.metrics.production.configured %}{{ row.metrics.production.value|floatformat:0 }} %{% else %}Non configuré{% endif %}</span></p>{% empty %}<p class="text-xs text-slate-500">Aucun groupe confirmé</p>{% endfor %}</div></div>
+        <div class="text-right"><span class="font-black">{% if sc.metrics.production.configured %}{{ sc.metrics.production.value|floatformat:0 }} %{% else %}Non configuré{% endif %}</span><p class="text-[10px] uppercase tracking-wider text-slate-500">Production</p></div>
+      </a>
+      {% empty %}
+      <div class="p-8 text-center text-sm text-slate-500">Aucun périmètre disponible. <a href="{% url 'web:phoenix_organisation' %}" class="font-bold text-sky-700">Confirmer le rattachement</a></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="activity-card p-5" aria-labelledby="heatmap-title">
+  <div class="flex flex-wrap items-end justify-between gap-3"><div><p class="activity-label">Tendance</p><h2 id="heatmap-title" class="mt-1 text-lg font-black">Avancement pondéré par semaine</h2></div><p class="text-xs text-slate-500">Gris : données insuffisantes · orange : écart à surveiller · bleu : progression soutenue</p></div>
+  {% if not light_data_mode %}<div id="activity-heatmap" class="chart-box mt-5" role="img" aria-label="Carte de chaleur de l’avancement par sous-commission et par semaine"></div>{% endif %}
+  <div class="mt-5 overflow-x-auto {% if not light_data_mode %}sr-only{% endif %}">
+    <table class="activity-table w-full min-w-[650px] text-sm"><thead><tr><th class="p-2 text-left">Sous-commission</th>{% for week in heatmap.weeks %}<th class="p-2 text-center">{{ week|date:'d/m' }}</th>{% endfor %}</tr></thead><tbody>{% for row in heatmap.rows %}<tr><td class="p-2 font-bold">{{ row.label }}</td>{% for value in row.values %}<td class="p-2 text-center">{% if value != None %}{{ value|floatformat:0 }} %{% else %}—{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+  </div>
+</section>
+
+<section class="activity-card p-5" aria-labelledby="load-title">
+  <div><p class="activity-label">Charge planifiée</p><h2 id="load-title" class="mt-1 text-lg font-black">Tâches par sous-commission</h2><p class="mt-1 text-xs text-slate-500">Les périmètres restent dans l’ordre institutionnel. Aucun classement d’experts n’est produit.</p></div>
+  {% if not light_data_mode %}<div id="activity-load-chart" class="chart-box mt-5" role="img" aria-label="Barres horizontales de charge par sous-commission"></div>{% else %}
+  <div class="mt-5 space-y-3">{% for sc in subcommissions %}<div><div class="flex justify-between text-xs"><strong>{{ sc.code }}</strong><span>{{ sc.metrics.production.sources }} tâche{{ sc.metrics.production.sources|pluralize }}</span></div><div class="mt-1 h-2 rounded-full bg-slate-200"><div class="h-2 rounded-full bg-sky-600" style="width:{% if sc.metrics.production.value %}{{ sc.metrics.production.value }}{% else %}0{% endif %}%"></div></div></div>{% endfor %}</div>
+  {% endif %}
+</section>
+
+<script id="activity-chart-data" type="application/json">{{ chart_payload_json|safe }}</script>
+{% endblock %}

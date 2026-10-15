@@ -17,10 +17,61 @@ class AgentMessageSerializer(serializers.ModelSerializer):
 
 
 class AgentArtifactSerializer(serializers.ModelSerializer):
+    links = serializers.SerializerMethodField()
+
     class Meta:
         model = AgentArtifact
         fields = [
             'id', 'session', 'message', 'artifact_type', 'title', 'payload', 'status',
-            'created_at', 'updated_at',
+            'created_at', 'updated_at', 'links',
         ]
         read_only_fields = fields
+
+    def get_links(self, obj):
+        """Retourne uniquement des liens internes générés côté serveur."""
+        payload = obj.payload or {}
+        links = payload.get('links') if isinstance(payload.get('links'), list) else []
+
+        if not links and obj.artifact_type == 'WG_REQUEST':
+            if payload.get('expert_id'):
+                links.append({
+                    'label': f"Voir l'expert {payload.get('expert_name', '')}".strip(),
+                    'url': f"/api/v1/experts/{payload['expert_id']}/",
+                })
+            if payload.get('wg_id'):
+                links.append({
+                    'label': payload.get('wg_label', 'Voir le groupe de travail'),
+                    'url': f"/api/v1/wg/{payload['wg_id']}/",
+                })
+        elif not links and obj.artifact_type == 'NORM_OVERLAP':
+            if payload.get('ctm_id'):
+                links.append({
+                    'label': f"Voir le CTM {payload.get('ctm_number', payload['ctm_id'])}",
+                    'url': f"/api/v1/ctm/{payload['ctm_id']}/",
+                })
+            for key in ('wg_a', 'wg_b'):
+                group = payload.get(key) or {}
+                if group.get('id'):
+                    links.append({
+                        'label': group.get('label', f"Voir le groupe {group['id']}"),
+                        'url': f"/api/v1/wg/{group['id']}/",
+                    })
+        elif not links and obj.artifact_type == 'EXTERNAL_PROPOSAL':
+            if payload.get('norme_id'):
+                links.append({
+                    'label': payload.get('norme_reference', 'Voir la norme'),
+                    'url': f"/api/v1/norms/{payload['norme_id']}/",
+                })
+            if payload.get('ctm_id'):
+                links.append({
+                    'label': f"Voir le CTM {payload['ctm_id']}",
+                    'url': f"/api/v1/ctm/{payload['ctm_id']}/",
+                })
+
+        return [
+            {'label': str(item.get('label') or 'Ouvrir'), 'url': item['url']}
+            for item in links
+            if isinstance(item, dict)
+            and isinstance(item.get('url'), str)
+            and item['url'].startswith('/')
+        ]

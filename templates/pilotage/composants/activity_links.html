@@ -1,0 +1,31 @@
+{% if can_view_global_console %}
+{% if mobile %}
+<a href="{% url 'web:phoenix_organisation' %}" class="dock-link flex items-center justify-center w-12 h-12 rounded-full bg-[#0f2d59] text-white" title="Organisation CNE-ITP" aria-label="Organisation CNE-ITP"><i data-lucide="network" class="w-5 h-5"></i></a>
+<a href="{% url 'web:activity_dashboard' %}"
+   class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl">
+    <i data-lucide="activity" class="w-5 h-5 shrink-0"></i>
+    <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all text-xs font-semibold">Activité des sous-commissions</span>
+</a>
+<a href="{% url 'web:pilotage_dashboard' %}#panel-sc" data-panel="panel-sc"
+   class="dock-link group relative flex items-center justify-center w-12 h-12 aspect-square rounded-full bg-[#0f2d59] text-white shadow-md overflow-hidden transition-all duration-300 ease-out hover:w-56 hover:justify-start hover:px-3 hover:shadow-xl">
+    <i data-lucide="grid-3x3" class="w-5 h-5 shrink-0"></i>
+    <span class="dock-label max-w-0 group-hover:max-w-[12rem] group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all text-xs font-semibold">Supervision des sous-commissions</span>
+</a>
+{% else %}
+<a href="{% url 'web:phoenix_organisation' %}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300"><div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0"><i data-lucide="network" class="w-4 h-4 text-[#0095c9]"></i></div><span class="text-xs sm:text-[13px] font-bold">Organisation CNE-ITP</span></a>
+<a href="{% url 'web:activity_dashboard' %}"
+   class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left border border-transparent transition-all hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
+    <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+        <i data-lucide="activity" class="w-4 h-4 text-[#0095c9]"></i>
+    </div>
+    <span class="text-xs sm:text-[13px] font-bold leading-snug">Activité des sous-commissions</span>
+</a>
+<a href="{% url 'web:pilotage_dashboard' %}#panel-sc" data-panel="panel-sc"
+   class="sidebar-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left border border-transparent transition-all hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300">
+    <div class="w-9 h-9 rounded-xl bg-[#0095c9]/15 flex items-center justify-center shrink-0">
+        <i data-lucide="grid-3x3" class="w-4 h-4 text-[#0095c9]"></i>
+    </div>
+    <span class="text-xs sm:text-[13px] font-bold leading-snug">Supervision des sous-commissions</span>
+</a>
+{% endif %}
+{% endif %}

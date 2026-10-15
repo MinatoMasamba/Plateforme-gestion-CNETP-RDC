@@ -1,0 +1,89 @@
+<section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-8 p-4 sm:p-6 lg:p-10" aria-labelledby="statistics-title" id="ctc-statistics">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div><p class="premium-eyebrow">Supervision · Cellule technique de coordination</p><h2 id="statistics-title" class="premium-page-title">Suivi statistique</h2><p class="mt-1 text-sm institutional-muted">Une vue des sous-commissions, groupes et normes rattachés explicitement.</p></div>
+    <span class="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold dark:border-slate-600">Lecture seule</span>
+  </div>
+
+  <div data-ctc-stat-panel="overview" class="space-y-5">
+    <section aria-labelledby="ctc-stat-global-title" class="institutional-card premium-hero p-5 sm:p-7">
+      <p class="premium-eyebrow">Vue d'ensemble</p><h3 id="ctc-stat-global-title" class="premium-section-title">Statistique globale</h3>
+      <p class="mt-1 text-sm institutional-muted">Les mesures de progression utilisent seulement les tâches affectées explicitement. Aucun classement automatique.</p>
+      <div class="premium-kpi-grid mt-6">
+        <div class="premium-kpi"><p>Normes rattachées</p><strong>{{ ctc_statistics.norm_count }}</strong><span>Dans les groupes suivis</span></div>
+        <div class="premium-kpi"><p>Sous-commissions et CTM</p><strong>{{ ctc_statistics.sc_count }}</strong><span>Référentiel courant et historique</span></div>
+        <div class="premium-kpi"><p>Groupes de travail</p><strong>{{ ctc_statistics.group_count }}</strong><span>Avec rattachement explicite</span></div>
+        <div class="premium-kpi"><p>Avancement des tâches</p><strong{% if ctc_statistics.global_performance is None %} class="premium-kpi-empty"{% endif %}>{% if ctc_statistics.global_performance is not None %}{{ ctc_statistics.global_performance }} %{% else %}Non configuré{% endif %}</strong><span>{{ ctc_statistics.task_count }} tâche{{ ctc_statistics.task_count|pluralize }} · {{ ctc_statistics.overdue_count }} en retard</span></div>
+      </div>
+    </section>
+    {% include "ctc/app/components/statistics_charts.html" with chart_prefix="stat" %}
+    <section aria-labelledby="ctc-stat-sc-title"><h3 id="ctc-stat-sc-title" class="mb-4 text-lg font-bold">Sous-commissions</h3>
+      <div class="grid gap-6 lg:grid-cols-2">
+        {% for row in ctc_statistics.rows %}
+        <article class="institutional-card premium-glass min-w-0 p-6 flex flex-col gap-5">
+          <button type="button" data-ctc-stat-target="{{ row.id }}" class="w-full rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" aria-label="Voir {{ row.code }} : {{ row.name }}">
+            <span class="block text-xs font-semibold institutional-muted">{{ row.code }}</span>
+            <span class="mt-1.5 block text-lg font-bold leading-snug">{{ row.name }}</span>
+            <span class="premium-status premium-status--neutral mt-3">{{ row.status }}</span>
+          </button>
+          <div class="flex-1 border-t border-slate-200 pt-4 dark:border-slate-700"><p class="mb-3 text-xs font-semibold institutional-muted">Groupes de travail · {{ row.groups|length }}</p>
+            <div class="max-h-48 space-y-2.5 overflow-y-auto pr-1 scrollbar-none" aria-label="Groupes de {{ row.name }}">
+              {% for group in row.groups %}<button type="button" data-ctc-stat-target="{{ group.id }}" class="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 px-3.5 py-3 text-left text-sm hover:bg-sky-50/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-slate-700 dark:hover:bg-slate-800"><span class="min-w-0 truncate">{{ group.name }}</span><span class="shrink-0 flex items-center gap-2"><span class="h-2 w-2 rounded-full" style="background: {{ group.color }}"></span><strong>{% if group.performance is not None %}{{ group.performance }} %{% else %}Non configuré{% endif %}</strong></span></button>{% empty %}<p class="text-sm institutional-muted">Groupes à confirmer dans ce référentiel.</p>{% endfor %}
+            </div>
+          </div>
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <span class="text-xs font-semibold institutional-muted">Performance</span>
+            {% if row.performance is not None %}
+            <span class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ row.performance }}; --donut-color: {{ row.color }}" aria-label="Performance {{ row.performance }} pour cent">
+              <span class="premium-donut__ring"></span>
+              <span class="premium-donut__center"><span class="premium-donut__value">{{ row.performance }}%</span></span>
+            </span>
+            {% else %}<span class="premium-status premium-status--neutral">Non configuré</span>{% endif %}
+          </div>
+        </article>{% empty %}<p class="institutional-empty">Aucune sous-commission enregistrée.</p>{% endfor %}
+      </div>
+    </section>
+  </div>
+
+  {% for row in ctc_statistics.rows %}
+  <section data-ctc-stat-panel="{{ row.id }}" class="hidden space-y-5" aria-label="{{ row.code }}">
+    <button type="button" data-ctc-stat-target="overview" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Retour aux sous-commissions</button>
+    <div class="institutional-card premium-glass p-5 flex flex-wrap items-center justify-between gap-4">
+      <div class="min-w-0"><p class="text-xs font-semibold institutional-muted">{{ row.code }} · {{ row.status }}</p><h3 class="mt-1 text-xl font-bold">{{ row.name }}</h3></div>
+      {% if row.performance is not None %}
+      <div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ row.performance }}; --donut-color: {{ row.color }}" aria-label="Performance {{ row.performance }} pour cent">
+        <div class="premium-donut__ring"></div>
+        <div class="premium-donut__center"><span class="premium-donut__value">{{ row.performance }}%</span><span class="premium-donut__label">perform.</span></div>
+      </div>
+      {% endif %}
+    </div>
+    <div><h4 class="mb-2 text-sm font-bold institutional-muted">Structure de coordination</h4><div class="grid gap-3 sm:grid-cols-3">{% for post in row.coordination %}<div class="institutional-card p-4"><p class="text-xs font-semibold institutional-muted">{{ post.title }}</p><p class="mt-2 text-sm font-semibold">{{ post.holder }}</p></div>{% endfor %}</div></div>
+    <div><h4 class="mb-3 text-lg font-bold">Groupes de travail</h4><div class="grid gap-3 lg:grid-cols-2">{% for group in row.groups %}<button type="button" data-ctc-stat-target="{{ group.id }}" class="institutional-card premium-glass w-full p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 flex items-center justify-between gap-3"><span class="min-w-0"><span class="text-xs institutional-muted">{{ group.code }} · {{ group.status }}</span><span class="mt-1 block font-semibold">{{ group.name }}</span><span class="mt-2 block text-sm institutional-muted">{{ group.norms|length }} norme{{ group.norms|length|pluralize }}</span></span>{% if group.performance is not None %}<span class="premium-donut premium-donut--value premium-donut--sm shrink-0" style="--donut-value: {{ group.performance }}; --donut-color: {{ group.color }}" aria-label="Performance {{ group.performance }} pour cent"><span class="premium-donut__ring"></span><span class="premium-donut__center"><span class="premium-donut__value">{{ group.performance }}%</span></span></span>{% else %}<span class="premium-status premium-status--neutral shrink-0">Non configuré</span>{% endif %}</button>{% empty %}<p class="text-sm institutional-muted">Groupes à confirmer dans ce référentiel.</p>{% endfor %}</div></div>
+  </section>
+  {% for group in row.groups %}
+  <section data-ctc-stat-panel="{{ group.id }}" class="hidden space-y-5" aria-label="{{ group.name }}">
+    <button type="button" data-ctc-stat-target="{{ row.id }}" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Retour à {{ row.code }}</button>
+    <div class="institutional-card premium-glass p-5 flex flex-wrap items-center justify-between gap-4"><div class="min-w-0"><p class="text-xs institutional-muted">{{ row.code }} · {{ group.code }}</p><h3 class="mt-1 text-xl font-bold">{{ group.name }}</h3><p class="mt-1 text-xs institutional-muted">Σ poids × progression ÷ Σ poids planifiés · {{ group.tasks|length }} tâche{{ group.tasks|length|pluralize }}</p></div>{% if group.performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ group.performance }}; --donut-color: {{ group.color }}" aria-label="Performance {{ group.performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ group.performance }}%</span></div></div>{% endif %}</div>
+    <div class="institutional-card overflow-hidden"><h4 class="border-b border-slate-200 p-4 font-bold dark:border-slate-700">Toutes les normes</h4><div class="divide-y divide-slate-200 dark:divide-slate-700">{% for norm in group.norms %}<div class="grid gap-1 p-4 text-sm sm:grid-cols-[1fr_auto] sm:items-center"><span class="min-w-0 font-medium">{{ norm.title }}</span><span class="institutional-muted">{{ norm.get_status_display }}</span></div>{% empty %}<p class="p-4 text-sm institutional-muted">Aucune norme explicitement rattachée à ce groupe.</p>{% endfor %}</div></div>
+    {% if ctc_can_view_task_sources %}
+    <details class="institutional-card p-4"><summary class="cursor-pointer font-semibold">Tâches sources · {{ group.tasks|length }}</summary><div class="mt-3 divide-y divide-slate-200 dark:divide-slate-700">{% for task in group.tasks %}<div class="grid gap-1 py-2 text-sm sm:grid-cols-[1fr_auto]"><span>{{ task.titre }}</span><span>{{ task.get_status_display }} · {{ task.progress }} % · poids {{ task.weight }}</span></div>{% empty %}<p class="text-sm institutional-muted">Aucune tâche rattachée.</p>{% endfor %}</div></details>
+    {% endif %}
+  </section>
+  {% endfor %}{% endfor %}
+</section>
+<script>
+(() => {
+  const root = document.getElementById('ctc-statistics');
+  if (!root) return;
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-ctc-stat-target]');
+    if (!button || !root.contains(button)) return;
+    const target = button.dataset.ctcStatTarget;
+    const panel = Array.from(root.querySelectorAll('[data-ctc-stat-panel]')).find(item => item.dataset.ctcStatPanel === target);
+    if (!panel) return;
+    root.querySelectorAll('[data-ctc-stat-panel]').forEach(item => item.classList.toggle('hidden', item !== panel));
+    panel.scrollIntoView({block: 'start'});
+    (panel.querySelector('h3, h4, button') || panel).setAttribute('tabindex', '-1');
+    (panel.querySelector('h3, h4, button') || panel).focus({preventScroll: true});
+  });
+})();
+</script>

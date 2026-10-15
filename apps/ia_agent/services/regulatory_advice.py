@@ -3,7 +3,27 @@ from typing import Tuple
 from django.utils.translation import gettext_lazy as _
 
 from .llm_client import LLMResponse, api_error_message, get_llm_client, unavailable_message
+from .targeted_edits import apply_edits, build_edits_from_proposal, parse_targeted_json
 
+
+
+TARGETED_SYSTEM_INSTRUCTION = (
+    "Tu es un correcteur de texte normatif CNETP. Tu ne réécris JAMAIS tout le document : "
+    "tu corriges uniquement les lignes, cellules ou fragments mal écrits, incohérents ou non conformes. "
+    "Tu réponds STRICTEMENT en JSON valide, sans aucun texte autour, de la forme exacte : "
+    '{"summary": "<résumé court>", "edits": [{"find": "<texte exact à corriger>", '
+    '"replace": "<texte corrigé>", "reason": "<raison>"}]}. '
+    "Contraintes impératives : 'find' doit être copié EXACTEMENT, caractère par caractère, "
+    "depuis le texte fourni (une seule ligne ou un seul fragment/cellule par édition) ; "
+    "ne propose QUE des corrections nécessaires ; si le texte est déjà correct, renvoie edits = []. "
+    "N'utilise aucun tableau markdown."
+)
+
+TARGETED_USER_TEMPLATE = (
+    "Analyse le texte normatif ci-dessous et corrige uniquement ce qui est mal écrit ou incohérent "
+    "(orthographe, terminologie normative, numérotation, unités, cohérence). "
+    "Ne reformule pas les passages déjà corrects. Réponds en JSON.\n\nTexte :\n{text}"
+)
 
 SYSTEM_INSTRUCTION = (
     "Tu es un assistant réglementaire spécialisé dans la révision de textes normatifs et "
@@ -134,15 +154,18 @@ def generate_regulatory_advice(text: str) -> dict:
             'raw': '',
             'explanation': explanation,
             'proposal': proposal,
+            'summary': explanation,
+            'edits': [],
+            'applied_text': text,
             'fallback': True,
         }
 
     messages = [
-        {'role': 'user', 'content': f"{USER_INSTRUCTION}\n\nTexte :\n{text}"},
+        {'role': 'user', 'content': TARGETED_USER_TEMPLATE.format(text=text)},
     ]
 
     try:
-        response: LLMResponse = llm.complete(SYSTEM_INSTRUCTION, messages, tools_spec=None)
+        response: LLMResponse = llm.complete(TARGETED_SYSTEM_INSTRUCTION, messages, tools_spec=None)
     except Exception as exc:
         explanation, proposal = _build_fallback_advice(text)
         return {
@@ -151,6 +174,9 @@ def generate_regulatory_advice(text: str) -> dict:
             'raw': '',
             'explanation': explanation,
             'proposal': proposal,
+            'summary': explanation,
+            'edits': [],
+            'applied_text': text,
             'fallback': True,
             'error': api_error_message(exc),
         }
@@ -163,15 +189,37 @@ def generate_regulatory_advice(text: str) -> dict:
             'raw': '',
             'explanation': explanation,
             'proposal': proposal,
+            'summary': explanation,
+            'edits': [],
+            'applied_text': text,
             'fallback': True,
             'error': _("L’IA n’a pas renvoyé de résultat lisible pour cette demande."),
         }
 
-    explanation, proposal = _split_response(response.text)
+    # 1) Chemin préféré : la réponse est un JSON d'éditions ciblées.
+    summary, edits = parse_targeted_json(response.text)
+
+    if summary is None:
+        # 2) Repli : réponse en texte libre -> on dérive un diff ligne à ligne
+        #    pour ne cibler que les lignes réellement modifiées.
+        explanation, proposal = _split_response(response.text)
+        summary = explanation
+        edits = build_edits_from_proposal(text, proposal) if proposal else []
+        proposal_out = proposal
+    else:
+        proposal_out = None
+
+    applied_text, annotated_edits = apply_edits(text, edits)
+    if proposal_out is None:
+        proposal_out = applied_text
+
     return {
         'success': True,
         'provider': provider,
         'raw': response.text,
-        'explanation': explanation or response.text,
-        'proposal': proposal or response.text,
+        'explanation': summary or response.text,
+        'proposal': proposal_out or applied_text,
+        'summary': summary or '',
+        'edits': annotated_edits,
+        'applied_text': applied_text,
     }

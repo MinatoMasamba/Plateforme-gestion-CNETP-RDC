@@ -1,0 +1,17 @@
+{% load static %}
+<div id="ctc-supervision" {% if ctm_sidebar %}data-ctm-sidebar="true"{% endif %} class="space-y-6">
+    {% include "pilotage/composants/ctc_supervision_overview.html" %}
+    <div role="tablist" aria-label="Vues de supervision technique" class="{% if ctm_sidebar %}hidden {% endif %}flex gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <button id="ctc-tab-journal" role="tab" type="button" data-ctc-tab="journal" aria-controls="ctc-view-journal" aria-selected="true" class="shrink-0 rounded-xl border border-[#0095c9] bg-[#0095c9]/10 text-[#0095c9] px-4 py-2.5">Journal des actions</button>
+        <button id="ctc-tab-team" role="tab" type="button" data-ctc-tab="team" aria-controls="ctc-view-team" aria-selected="false" class="shrink-0 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2.5">Équipe</button>
+        <button id="ctc-tab-documents" role="tab" type="button" data-ctc-tab="documents" aria-controls="ctc-view-documents" aria-selected="false" class="shrink-0 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2.5">Documents</button>
+        <button id="ctc-tab-dossiers" role="tab" type="button" data-ctc-tab="dossiers" aria-controls="ctc-view-dossiers" aria-selected="false" class="shrink-0 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2.5">{{ ctc_supervision.dossier_label }}</button>
+    </div>
+    {% include "pilotage/composants/ctc_supervision_journal.html" %}
+    {% include "pilotage/composants/ctc_supervision_team_documents.html" %}
+    <section id="ctc-view-dossiers" role="tabpanel" aria-labelledby="ctc-tab-dossiers" class="ctc-supervision-view hidden">
+        {% if ctc_supervision.is_ctm %}{% include "pilotage/composants/activity_ctm_dossiers.html" %}{% else %}{% include "pilotage/composants/activity_ctc_dossiers.html" %}{% endif %}
+    </section>
+</div>
+{{ ctc_chart_data|json_script:"ctc-chart-data" }}
+<script src="{% static 'js/ctc-supervision.js' %}" defer></script>

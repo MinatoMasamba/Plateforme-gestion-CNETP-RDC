@@ -1,0 +1,81 @@
+{% extends "pilotage/activity/base.html" %}
+{% block footer %}{% endblock %}
+
+{% block subtitle %}
+<div class="mt-2 flex flex-wrap items-center gap-3 text-sm">
+  <span>{{ subcommission.code|default:subcommission.name }}</span>
+  <span class="institutional-badge">{% if historical %}Historique{% else %}{{ subcommission.get_status_display }}{% endif %}</span>
+  <button type="button" class="institutional-primary ml-auto px-4 py-2" data-instruction-open>Donner une instruction</button>
+</div>
+{% endblock %}
+
+{% block activity_content %}
+{% if historical %}
+<section aria-labelledby="coordination-title"><h2 id="coordination-title" class="mb-3 text-xl font-bold">Structure de coordination historique</h2><div class="grid gap-3 md:grid-cols-3"><div class="institutional-card p-5"><h3 class="font-bold">Président</h3><p class="mt-2 text-sm institutional-muted">{{ subcommission.scientific_president.full_name|default:'Poste vacant' }}</p></div><div class="institutional-card p-5"><h3 class="font-bold">Rapporteur</h3><p class="mt-2 text-sm institutional-muted">{{ subcommission.rapporteur.full_name|default:'Poste vacant' }}</p></div><div class="institutional-card p-5"><h3 class="font-bold">Secrétaire</h3><p class="mt-2 text-sm institutional-muted">{{ subcommission.secretary.full_name|default:'Poste vacant' }}</p></div></div></section>
+{% include "pilotage/activity/_kpis.html" %}
+{% else %}
+<section aria-labelledby="coordination-title">
+  <h2 id="coordination-title" class="mb-3 text-xl font-bold">Structure de coordination</h2>
+  <div class="grid gap-3 md:grid-cols-3">
+    {% for item in coordination %}<div class="institutional-card p-5"><h3 class="font-bold">{{ item.title }}</h3><p class="mt-2 text-sm institutional-muted">{% if item.holder %}{{ item.holder.expert.full_name }}{% elif item.post %}Titulaire à confirmer{% else %}Poste à confirmer{% endif %}</p></div>{% endfor %}
+  </div>
+</section>
+<section aria-labelledby="normes-title" data-sc-norms>
+  <h2 id="normes-title" class="mb-3 text-xl font-bold">Normes de la sous-commission</h2>
+  <div class="flex flex-wrap gap-2" role="tablist" aria-label="Statut des normes">
+    <button type="button" role="tab" aria-selected="true" data-norm-tab="waiting" class="institutional-badge">En attente · {{ norm_sections.waiting|length }}</button>
+    <button type="button" role="tab" aria-selected="false" data-norm-tab="working" class="institutional-badge">En plein travail · {{ norm_sections.working|length }}</button>
+    <button type="button" role="tab" aria-selected="false" data-norm-tab="produced" class="institutional-badge">Produites · {{ norm_sections.produced|length }}</button>
+    <button type="button" role="tab" aria-selected="false" data-norm-tab="unconfirmed" class="institutional-badge">Non rattachées · {{ norm_sections.unconfirmed|length }}</button>
+  </div>
+  <div class="institutional-card mt-3 p-4" data-norm-panel="waiting">
+    {% for binding in norm_sections.waiting %}<p class="border-b py-3"><strong>{{ binding.norme.title }}</strong><span class="block text-sm institutional-muted">En attente : {{ binding.norme.get_status_display }}{% if binding.gt %} · {{ binding.gt.name }}{% endif %}</span></p>{% empty %}<p class="institutional-muted">Aucune norme en attente rattachée de façon confirmée.</p>{% endfor %}
+  </div>
+  <div class="institutional-card mt-3 hidden p-4" data-norm-panel="working">
+    {% for binding in norm_sections.working %}<p class="border-b py-3"><strong>{{ binding.norme.title }}</strong><span class="block text-sm institutional-muted">{{ binding.norme.get_status_display }} · {% if binding.gt %}{{ binding.gt.name }}{% else %}Groupe à confirmer{% endif %} · Échéance : Non configurée</span></p>{% empty %}<p class="institutional-muted">Aucune norme en plein travail rattachée de façon confirmée.</p>{% endfor %}
+  </div>
+  <div class="institutional-card mt-3 hidden p-4" data-norm-panel="produced">
+    {% for binding in norm_sections.produced %}<p class="border-b py-3"><strong>{{ binding.norme.title }}</strong><span class="block text-sm institutional-muted">{{ binding.norme.get_status_display }}</span></p>{% empty %}<p class="institutional-muted">Aucune norme produite rattachée de façon confirmée.</p>{% endfor %}
+  </div>
+  <div class="institutional-card mt-3 hidden p-4" data-norm-panel="unconfirmed">
+    {% for binding in norm_sections.unconfirmed %}<p class="border-b py-3"><strong>{{ binding.norme.title }}</strong><span class="block text-sm institutional-muted">Rattachement à confirmer{% if binding.gt %} · {{ binding.gt.name }}{% endif %}</span></p>{% empty %}<p class="institutional-muted">Aucun rattachement documentaire proposé pour cette sous-commission.</p>{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section aria-labelledby="groups-title">
+  <div class="mb-3 flex items-baseline justify-between gap-3"><h2 id="groups-title" class="text-xl font-bold">Groupes de travail</h2><span class="text-sm institutional-muted">{{ groups|length }} groupe{{ groups|length|pluralize }}</span></div>
+  <div class="institutional-card max-h-[480px] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-700">
+    {% for row in groups %}
+    <article class="p-4">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div><p class="text-xs institutional-muted">{{ row.group.code|default:row.group.number }}</p><h3 class="font-bold">{{ row.group.name }}</h3><p class="mt-1 text-sm institutional-muted">{{ row.expert_activity|length }} expert{{ row.expert_activity|length|pluralize }} · Pondération : Non configurée · Avancement : {% if row.metrics.advancement.configured %}{{ row.metrics.advancement.value|floatformat:0 }} %{% else %}Non configuré{% endif %}</p></div>
+        {% if activity_access.can_view_contributions %}<a class="rounded-lg border px-3 py-2 text-sm font-semibold" href="{% if historical %}{% url 'web:activity_group' row.group.pk %}{% else %}{% url 'web:activity_current_group' row.group.pk %}{% endif %}">Voir le groupe</a>{% else %}<span class="institutional-badge">Fiche non disponible pour ce poste</span>{% endif %}
+      </div>
+      {% if row.metrics.advancement.configured %}<div class="mt-3 max-w-40" role="img" aria-label="Avancement {{ row.metrics.advancement.value|floatformat:0 }} pour cent"><div class="h-2 rounded-full bg-slate-200 dark:bg-slate-700"><div class="h-2 rounded-full bg-blue-600" style="width:{{ row.metrics.advancement.value }}%"></div></div></div>{% endif %}
+      {% if row.expert_activity %}<details class="mt-3"><summary class="cursor-pointer text-sm font-semibold">Experts et activité</summary><ul class="mt-2 space-y-2">{% for item in row.expert_activity %}<li class="text-sm">{% if activity_access.can_view_contributions %}<a class="underline" href="{% url 'web:activity_expert' item.expert.pk %}">{{ item.expert.full_name }}</a>{% else %}{{ item.expert.full_name }}{% endif %} · Dernière action : {% if item.latest %}{{ item.latest.titre }}{% else %}Non configurée{% endif %} · {{ item.current_count }} tâche{{ item.current_count|pluralize }} en cours · {{ item.deliverable_count }} livrable{{ item.deliverable_count|pluralize }}</li>{% endfor %}</ul></details>{% endif %}
+    </article>
+    {% empty %}<div class="institutional-empty m-4">Aucun groupe de travail confirmé. Rattachement à confirmer.</div>{% endfor %}
+  </div>
+</section>
+<section class="institutional-card p-5" aria-labelledby="activity-title"><h2 id="activity-title" class="text-xl font-bold">Travail précis</h2><p class="mt-2 text-sm institutional-muted">Sélectionnez un groupe, puis un expert pour consulter ses tâches et livrables. La période se règle en haut de page.</p><div class="mt-4 space-y-2">{% for row in groups %}{% if activity_access.can_view_contributions %}<a class="block rounded-lg border px-4 py-3" href="{% if historical %}{% url 'web:activity_group' row.group.pk %}{% else %}{% url 'web:activity_current_group' row.group.pk %}{% endif %}">{{ row.group.name }} · Voir les événements et livrables</a>{% endif %}{% endfor %}</div></section>
+<div class="institutional-drawer" data-instruction-drawer hidden><div class="institutional-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="instruction-title"><button type="button" class="float-right rounded-lg border px-3 py-2" data-instruction-close>Fermer</button><h2 id="instruction-title" class="text-xl font-bold">Donner une instruction</h2><p class="mt-3 text-sm institutional-muted">Portée : tous les groupes de cette sous-commission. Envoi et suivi par destinataire : Non disponible dans ce lot.</p><p class="mt-5 institutional-badge">Non disponible</p></div></div>
+{% endblock %}
+
+{% block activity_scripts %}<script>
+(() => {
+  const root = document.querySelector('[data-sc-norms]');
+  root?.querySelectorAll('[data-norm-tab]').forEach(tab => tab.addEventListener('click', () => {
+    root.querySelectorAll('[data-norm-tab]').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+    root.querySelectorAll('[data-norm-panel]').forEach(panel => panel.classList.toggle('hidden', panel.dataset.normPanel !== tab.dataset.normTab));
+  }));
+  const drawer = document.querySelector('[data-instruction-drawer]');
+  const open = document.querySelector('[data-instruction-open]');
+  const close = drawer?.querySelector('[data-instruction-close]');
+  open?.addEventListener('click', () => { drawer.hidden = false; close?.focus(); });
+  function hide() { drawer.hidden = true; open?.focus(); }
+  close?.addEventListener('click', hide);
+  drawer?.addEventListener('click', event => { if (event.target === drawer) hide(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && drawer && !drawer.hidden) hide(); });
+})();
+</script>{% endblock %}

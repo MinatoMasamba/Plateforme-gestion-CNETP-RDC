@@ -1,4 +1,12 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from .supervision_views import PilotageNormeHistoryView, PilotageActivityHistoryView
+from .organisation_views import PhoenixOrganisationView, PhoenixMappingView
+from .expert_organisation_views import ExpertOrganisationUpdateView
+from .profile_update_views import ExpertProfileUpdateNoticeView, ExpertProfileUpdateView
+from .phoenix_views import (PhoenixManagementView, PhoenixConfigurationView, PhoenixActivationView,
+    PhoenixWorkspaceView, PhoenixDossierCreateView, PhoenixDossierView, PhoenixPieceDownloadView,
+    PhoenixExportView, PhoenixMappingDecisionView)
 from .views import (AboutView, App, ContactView, ExpertLoginView, HomeView,
                     ExpertRegistrationView, User_RegistrationView, UserLoginView,
                     wg_redirect, service_worker_view, app_manifest_view, app_service_worker_view,
@@ -30,14 +38,49 @@ from .ctc_views import (
     CTCIndustrialActionView,
     CTCTransmitPilotageView,
     CTCNormeReadView,
+    ctc_norme_qr_view,
     CTCCtmDetailView,
     ctc_context_api,
+    ctc_instruction_create,
+    ctc_copil_rapport,
 )
-from apps.ia_agent.views_web import PilotageIAConsoleView
+from .ctc_settings_views import CTCNotificationSettingsView, CTCBackupView, CTCDriveSettingsView
+from apps.ia_agent.views_web import PilotageIAConsoleView, RAGSourceDownloadView, RAGSourceView
+from .activity_views import (
+    ActivityDashboardView, ActivitySubcommissionView, ActivityCurrentSubcommissionView,
+    ActivityGroupView, ActivityCurrentGroupView, ActivityNormView, ActivityExpertView,
+    MyActivityDataView, activity_heartbeat, activity_task_transition,
+    activity_task_configure, declare_off_platform_work, declare_absence,
+    create_activity_dispute, answer_activity_alert, export_subcommission_activity,
+    activity_metric_sources,
+    activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
+)
+from .production_views import InstructionDashboardView, instruction_create, demande_transition
 
 app_name = 'web'
 
 urlpatterns = [
+    path('pilotage/organisation/gestion/', PhoenixManagementView.as_view(), name='phoenix_management'),
+    path('pilotage/organisation/configuration/<str:kind>/', PhoenixConfigurationView.as_view(), name='phoenix_config_create'),
+    path('pilotage/organisation/configuration/<str:kind>/<int:pk>/', PhoenixConfigurationView.as_view(), name='phoenix_config_edit'),
+    path('pilotage/organisation/mise-en-service/', PhoenixActivationView.as_view(), name='phoenix_activation'),
+    path('pilotage/organisation/correspondance/<str:kind>/<int:pk>/decision/', PhoenixMappingDecisionView.as_view(), name='phoenix_mapping_decision'),
+    path('pilotage/organisation/dossiers/', PhoenixWorkspaceView.as_view(), name='phoenix_workspace'),
+    path('pilotage/organisation/dossiers/nouveau/', PhoenixDossierCreateView.as_view(), name='phoenix_dossier_create'),
+    path('pilotage/organisation/dossiers/<int:pk>/', PhoenixDossierView.as_view(), name='phoenix_dossier'),
+    path('pilotage/organisation/pieces/<int:pk>/', PhoenixPieceDownloadView.as_view(), name='phoenix_piece_download'),
+    path('pilotage/organisation/dossiers/export/', PhoenixExportView.as_view(), name='phoenix_export'),
+    path('pilotage/organisation/dossiers/<int:pk>/export/', PhoenixExportView.as_view(), name='phoenix_dossier_export'),
+    path('phoenix/', PhoenixWorkspaceView.as_view()),
+    # Alias protégés conservés pour les liens signés et téléchargements anciens.
+    # Les liens émis par l'interface utilisent tous les chemins canoniques ci-dessus.
+    path('phoenix/nouveau/', PhoenixDossierCreateView.as_view()),
+    path('phoenix/dossiers/<int:pk>/', PhoenixDossierView.as_view()),
+    path('phoenix/pieces/<int:pk>/', PhoenixPieceDownloadView.as_view()),
+    path('phoenix/export/', PhoenixExportView.as_view()),
+    path('phoenix/dossiers/<int:pk>/export/', PhoenixExportView.as_view()),
+    path('pilotage/organisation/', PhoenixOrganisationView.as_view(), name='phoenix_organisation'),
+    path('pilotage/organisation/correspondance/<str:kind>/<int:pk>/', PhoenixMappingView.as_view(), name='phoenix_mapping'),
     # ========== Pages Principales ==========
     path('', HomeView.as_view(), name='home'),
     path('sw.js', service_worker_view, name='service_worker'),
@@ -69,16 +112,43 @@ urlpatterns = [
     path('pilotage/conseillers/', PilotageConseillersAppView.as_view(), name='pilotage_conseillers_app'),
     path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
     path('pilotage/ctm/<int:number>/', PilotageCTMDetailView.as_view(), name='pilotage_ctm_detail'),
+    path('pilotage/activites/', ActivityDashboardView.as_view(), name='activity_dashboard'),
+    path('pilotage/sous-commissions/<int:number>/activite/', ActivitySubcommissionView.as_view(), name='activity_subcommission'),
+    path('pilotage/sous-commissions/courantes/<int:pk>/activite/', ActivityCurrentSubcommissionView.as_view(), name='activity_current_subcommission'),
+    path('pilotage/groupes-travail/<int:pk>/activite/', ActivityGroupView.as_view(), name='activity_group'),
+    path('pilotage/groupes-travail/courants/<int:pk>/activite/', ActivityCurrentGroupView.as_view(), name='activity_current_group'),
+    path('pilotage/normes/<int:pk>/activite/', ActivityNormView.as_view(), name='activity_norm'),
+    path('pilotage/experts/<int:pk>/activite/', ActivityExpertView.as_view(), name='activity_expert'),
+    path('pilotage/sous-commissions/<int:number>/activite/export.csv', export_subcommission_activity, name='activity_subcommission_export'),
+    path('pilotage/activite/taches/<int:pk>/transition/', activity_task_transition, name='activity_task_transition'),
+    path('pilotage/activite/taches/<int:pk>/configuration/', activity_task_configure, name='activity_task_configure'),
+    path('pilotage/activite/taches/configuration-groupee/', activity_tasks_bulk_configure, name='activity_tasks_bulk_configure'),
+    path('pilotage/activite/alertes/<int:pk>/reponse/', answer_activity_alert, name='activity_alert_answer'),
+    path('pilotage/activite/declarations/<str:kind>/<int:pk>/decision/', review_activity_declaration, name='review_activity_declaration'),
+    path('pilotage/activite/contestations/<int:pk>/decision/', review_activity_dispute, name='review_activity_dispute'),
+    path('pilotage/activite/sources/', activity_metric_sources, name='activity_metric_sources'),
+    path('pilotage/norme/<int:pk>/historique/', PilotageNormeHistoryView.as_view(), name='pilotage_norme_history'),
+    path('pilotage/activite/<int:pk>/historique/', PilotageActivityHistoryView.as_view(), name='pilotage_activity_history'),
     path('pilotage/norme/<int:pk>/commenter/', PilotageNormeCommentView.as_view(), name='pilotage_norme_comment'),
     path('pilotage/gestion-acces/', PilotageExpertAccessView.as_view(), name='pilotage_expert_access'),
     path('pilotage/gestion-acces/expert/<int:pk>/statut/', PilotageExpertStatusActionView.as_view(), name='pilotage_expert_status_action'),
     path('pilotage/gestion-acces/affectation/<int:pk>/exclure/', PilotageAffectationExcludeView.as_view(), name='pilotage_affectation_exclude'),
     path('pilotage/plateforme/verrouillage/', PilotagePlatformFreezeToggleView.as_view(), name='pilotage_platform_freeze_toggle'),
     path('pilotage/ia-agent/', PilotageIAConsoleView.as_view(), name='pilotage_ia_console'),
+    path('assistant/source/<int:pk>/', RAGSourceView.as_view(), name='ia_rag_source'),
+    path('assistant/source/<int:pk>/download/', RAGSourceDownloadView.as_view(), name='ia_rag_source_download'),
     path('api/pilotage/contexte/', pilotage_context_api, name='pilotage_context_api'),
+
+    # ─── Module Production : instructions / actions / signalements ───────────
+    path('instructions/', InstructionDashboardView.as_view(), name='instructions'),
+    path('instructions/creer/', instruction_create, name='instruction_create'),
+    path('instructions/<int:pk>/transition/', demande_transition, name='demande_transition'),
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────
     path('ctc/', CTCDashboardView.as_view(), name='ctc_dashboard'),
+    path('ctc/parametres/notifications/', CTCNotificationSettingsView.as_view(), name='ctc_notification_settings'),
+    path('ctc/parametres/sauvegarde/', CTCBackupView.as_view(), name='ctc_backup'),
+    path('ctc/parametres/drive/', CTCDriveSettingsView.as_view(), name='ctc_drive_settings'),
     path('ctc/demande-operationnelle/', CTCOperationalRequestView.as_view(), name='ctc_operational_request'),
     path('ctc/approuver-demande/<int:pk>/', CTCApproveRequestView.as_view(), name='ctc_approve_request'),
     path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
@@ -87,7 +157,19 @@ urlpatterns = [
     path('ctc/consultation-industrielle/<int:pk>/', CTCIndustrialActionView.as_view(), name='ctc_industrial_action'),
     path('ctc/dossiers/<int:pk>/transmettre-pilotage/', CTCTransmitPilotageView.as_view(), name='ctc_transmit_pilotage'),
     path('ctc/norme/<int:pk>/lecture/', CTCNormeReadView.as_view(), name='ctc_norme_read'),
+    path('ctc/norme/<int:pk>/qr/', ctc_norme_qr_view, name='ctc_norme_qr'),
     path('ctc/ctm/<int:number>/', CTCCtmDetailView.as_view(), name='ctc_ctm_detail'),
+    path('ctc/instructions/creer/', ctc_instruction_create, name='ctc_instruction_create'),
+    path('ctc/copil/rapport/', ctc_copil_rapport, name='ctc_copil_rapport'),
+    path('ctc/copil/rapport/<int:pk>/', ctc_copil_rapport, name='ctc_copil_rapport_detail'),
     path('api/ctc/contexte/', ctc_context_api, name='ctc_context_api'),
+    path('api/activite/presence/', activity_heartbeat, name='activity_heartbeat'),
     path('profil/', ExpertProfileView.as_view(), name='expert_profile'),
+    path('mise-a-jour-profil/', ExpertProfileUpdateNoticeView.as_view(), name='expert_profile_update_notice'),
+    path('mise-a-jour-profil/formulaire/', ExpertProfileUpdateView.as_view(), name='expert_profile_update'),
+    path('profil/actualiser-cv/', ExpertOrganisationUpdateView.as_view(), name='expert_organisation_update'),
+    path('profil/mes-donnees-activite/', MyActivityDataView.as_view(), name='my_activity_data'),
+    path('profil/mes-donnees-activite/travail-declare/', declare_off_platform_work, name='declare_off_platform_work'),
+    path('profil/mes-donnees-activite/absence/', declare_absence, name='declare_activity_absence'),
+    path('profil/mes-donnees-activite/contestation/', create_activity_dispute, name='create_activity_dispute'),
 ]

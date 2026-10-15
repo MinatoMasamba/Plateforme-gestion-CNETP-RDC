@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.core.models import BaseModel, User
 from apps.governance.models import CTM, WG
 from apps.experts.models import Expert
+from .managers import LegacyNormeManager, LegacyVersionManager
 
 
 class Norme(BaseModel):
@@ -22,8 +23,11 @@ class Norme(BaseModel):
     reference_number = models.CharField(max_length=50, unique=True, help_text="Ex: CNETP-001-2024")
     
     description = models.TextField()
-    ctm = models.ForeignKey(CTM, on_delete=models.PROTECT, related_name='normes')
-    wg = models.ForeignKey(WG, on_delete=models.PROTECT, related_name='normes')
+    ctm = models.ForeignKey(CTM, on_delete=models.PROTECT, related_name='normes', null=True, blank=True)
+    wg = models.ForeignKey(WG, on_delete=models.PROTECT, related_name='normes', null=True, blank=True)
+    circuit_version = models.CharField(max_length=10, choices=[('LEGACY', 'Circuit historique'), ('PHOENIX', 'Circuit Phoenix')], default='LEGACY', editable=False)
+    objects = LegacyNormeManager()
+    all_objects = models.Manager()
 
     # Squelette normatif explicite
     standard_family = models.CharField(max_length=10, choices=STANDARD_FAMILY_CHOICES, default='NCD')
@@ -100,6 +104,9 @@ class Norme(BaseModel):
     lock_timeout = models.DateTimeField(null=True, blank=True)
     
     class Meta:
+        base_manager_name = 'all_objects'
+        default_manager_name = 'objects'
+        constraints = [models.CheckConstraint(condition=models.Q(circuit_version='PHOENIX') | models.Q(circuit_version='LEGACY', ctm__isnull=False, wg__isnull=False), name='norme_legacy_has_ctm_wg')]
         verbose_name = "Norme"
         verbose_name_plural = "Normes"
         ordering = ['-created_at']
@@ -174,6 +181,8 @@ class Norme(BaseModel):
         }
 
     def can_transition_to(self, new_status):
+        if self.circuit_version != 'LEGACY':
+            return False
         return new_status in self.workflow_transitions().get(self.status, [])
 
     def transition_to(self, new_status, save=True):
@@ -202,8 +211,12 @@ class NormeVersion(BaseModel):
     # Tracking
     version_author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    objects = LegacyVersionManager()
+    all_objects = models.Manager()
     
     class Meta:
+        base_manager_name = 'all_objects'
+        default_manager_name = 'objects'
         verbose_name = "Version de Norme"
         verbose_name_plural = "Versions de Normes"
         unique_together = ('norme', 'version_number')

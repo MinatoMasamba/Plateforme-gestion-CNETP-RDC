@@ -1,0 +1,20 @@
+<section id="ctc-view-journal" role="tabpanel" aria-labelledby="ctc-tab-journal" class="ctc-supervision-view rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-200 dark:border-white/10"><h4 class="text-sm font-bold">Qui a fait quoi, quand et depuis quel espace ?</h4></div>
+    <div class="overflow-x-auto"><table class="w-full text-xs text-left">
+        <thead class="bg-slate-50 dark:bg-white/5 text-slate-500"><tr><th scope="col" class="px-5 py-3">Date et heure</th><th scope="col" class="px-5 py-3">Collaborateur</th><th scope="col" class="px-5 py-3">Action et document</th><th scope="col" class="px-5 py-3">Origine</th><th scope="col" class="px-5 py-3">Détail</th></tr></thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+            {% for event in ctc_supervision.page %}<tr>
+                <td class="px-5 py-4 whitespace-nowrap"><time datetime="{{ event.time|date:'c' }}">{{ event.time|date:"d/m/Y à H:i:s" }}</time><p class="text-[10px] text-slate-400 mt-1">{% if event.source == 'journal' %}Journal de suivi{% else %}Trace historique{% endif %}</p></td>
+                <td class="px-5 py-4 min-w-[180px]"><p class="font-bold">{{ event.user_name }}</p><p class="text-slate-500 mt-1">{{ event.role }}</p>{% if event.email %}<p class="text-[10px] text-slate-400 mt-1 break-all">{{ event.email }}</p>{% endif %}</td>
+                <td class="px-5 py-4 min-w-[240px]"><p class="font-bold text-[#0095c9]">{{ event.label }}</p><p class="mt-1 break-words">{{ event.document|default:event.object }}</p>{% if event.reference %}<p class="text-slate-500 mt-1">{{ event.reference }}</p>{% endif %}</td>
+                <td class="px-5 py-4 min-w-[200px]"><p class="font-semibold">{{ event.channel }}</p>{% if event.ip %}<p class="text-slate-500 mt-1">IP source : {{ event.ip }}</p>{% else %}<p class="text-slate-400 mt-1">Origine non enregistrée</p>{% endif %}{% if event.path %}<p class="text-[10px] text-slate-400 mt-1 break-all">{{ event.path }}</p>{% endif %}{% if event.device %}<p class="text-[10px] text-slate-500 mt-1">{{ event.device }}</p>{% endif %}</td>
+                <td class="px-5 py-4 min-w-[220px]">{% if event.history_url %}<a href="{{ event.history_url }}" class="inline-flex items-center gap-2 font-semibold text-[#0095c9] hover:underline"><i data-lucide="history" class="w-4 h-4"></i>Voir les changements</a>{% else %}<span class="text-slate-400">Historique non enregistré</span>{% endif %}<p class="mt-2 text-slate-500">{{ event.structure }}</p></td>
+            </tr>{% empty %}<tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">Aucune action ne correspond à cette période et à ces filtres.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+    {% if ctc_supervision.page.has_other_pages %}<nav aria-label="Pages du journal CTC" class="flex justify-between items-center px-5 py-4 border-t border-slate-200 dark:border-white/10 text-xs">
+        {% if ctc_supervision.page.has_previous %}<a class="text-[#0095c9] font-bold" href="{{ ctc_supervision.base_url }}?{{ ctc_supervision.query }}&amp;ctc_log_page={{ ctc_supervision.page.previous_page_number }}{{ ctc_supervision.anchor }}">Précédent</a>{% else %}<span></span>{% endif %}
+        <span class="text-slate-500">Page {{ ctc_supervision.page.number }} sur {{ ctc_supervision.page.paginator.num_pages }}</span>
+        {% if ctc_supervision.page.has_next %}<a class="text-[#0095c9] font-bold" href="{{ ctc_supervision.base_url }}?{{ ctc_supervision.query }}&amp;ctc_log_page={{ ctc_supervision.page.next_page_number }}{{ ctc_supervision.anchor }}">Suivant</a>{% else %}<span></span>{% endif %}
+    </nav>{% endif %}
+</section>

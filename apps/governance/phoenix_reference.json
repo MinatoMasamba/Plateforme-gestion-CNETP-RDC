@@ -1,0 +1,536 @@
+{
+  "source_document": "Cadrage_nouvelle_structure_CNE_ITP_Phoenix (4).docx",
+  "posts": [
+    {
+      "code": "COPIL-PRES-01",
+      "organe": "COPIL",
+      "category": "PRESIDENCY",
+      "title": "Président — Ministre des Infrastructures et Travaux Publics",
+      "origin_label": "Ministère des ITP"
+    },
+    {
+      "code": "COPIL-PRES-02",
+      "organe": "COPIL",
+      "category": "PRESIDENCY",
+      "title": "1er Vice-président — Secrétaire général aux ITP",
+      "origin_label": "Secrétariat général aux ITP"
+    },
+    {
+      "code": "COPIL-PRES-03",
+      "organe": "COPIL",
+      "category": "PRESIDENCY",
+      "title": "2e Vice-président — Directeur de cabinet du Ministre des ITP",
+      "origin_label": "Cabinet du Ministre des ITP"
+    },
+    {
+      "code": "COPIL-PRES-04",
+      "organe": "COPIL",
+      "category": "PRESIDENCY",
+      "title": "3e Vice-président — Secrétaire général à la Reconstruction",
+      "origin_label": "Secrétariat général à la Reconstruction"
+    },
+    {
+      "code": "COPIL-SEC-01",
+      "organe": "COPIL",
+      "category": "SECRETARIAT",
+      "title": "Secrétaire — Directeur DRN",
+      "origin_label": "DRN / Secrétariat général aux ITP"
+    },
+    {
+      "code": "COPIL-SEC-02",
+      "organe": "COPIL",
+      "category": "SECRETARIAT",
+      "title": "Secrétaire adjoint — Consultant",
+      "origin_label": "ECOSYS"
+    },
+    {
+      "code": "COPIL-MEM-01",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général ACGT",
+      "origin_label": "ACGT"
+    },
+    {
+      "code": "COPIL-MEM-02",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général OR",
+      "origin_label": "OR"
+    },
+    {
+      "code": "COPIL-MEM-03",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Coordonnateur CI",
+      "origin_label": "CI"
+    },
+    {
+      "code": "COPIL-MEM-04",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général OVD",
+      "origin_label": "OVD"
+    },
+    {
+      "code": "COPIL-MEM-05",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général FONER",
+      "origin_label": "FONER"
+    },
+    {
+      "code": "COPIL-MEM-06",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général BTC",
+      "origin_label": "BTC"
+    },
+    {
+      "code": "COPIL-MEM-07",
+      "organe": "COPIL",
+      "category": "MEMBER",
+      "title": "Directeur général BEAU",
+      "origin_label": "BEAU"
+    },
+    {
+      "code": "COPIL-INV-01",
+      "organe": "COPIL",
+      "category": "INVITED",
+      "title": "Représentant des ordres professionnels",
+      "origin_label": "Ordres professionnels ; structure précise non renseignée"
+    },
+    {
+      "code": "COPIL-INV-02",
+      "organe": "COPIL",
+      "category": "INVITED",
+      "title": "Représentant du syndicat des entreprises du Congo",
+      "origin_label": "Syndicat mentionné par la note ; dénomination juridique à confirmer"
+    },
+    {
+      "code": "COPIL-INV-03",
+      "organe": "COPIL",
+      "category": "INVITED",
+      "title": "Représentant des associations des consommateurs",
+      "origin_label": "Associations des consommateurs ; structure précise non renseignée"
+    },
+    {
+      "code": "COPIL-APP-01",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "Secrétariat général aux ITP / DRN"
+    },
+    {
+      "code": "COPIL-APP-02",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "Secrétariat général aux ITP / DRN"
+    },
+    {
+      "code": "COPIL-APP-03",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "Cabinet du Ministre des ITP"
+    },
+    {
+      "code": "COPIL-APP-04",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "Cabinet du Ministre des ITP"
+    },
+    {
+      "code": "COPIL-APP-05",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "Secrétariat général à la Reconstruction"
+    },
+    {
+      "code": "COPIL-APP-06",
+      "organe": "COPIL",
+      "category": "APPOINT",
+      "title": "",
+      "origin_label": "ECOSYS"
+    },
+    {
+      "code": "ST-COORD-01",
+      "organe": "ST",
+      "category": "COORDINATION",
+      "title": "Coordonnateur — Directeur DRN",
+      "origin_label": "DRN / Secrétariat général aux ITP"
+    },
+    {
+      "code": "ST-COORD-02",
+      "organe": "ST",
+      "category": "COORDINATION",
+      "title": "Coordonnateur adjoint",
+      "origin_label": "Cabinet du Ministre des ITP"
+    },
+    {
+      "code": "ST-COORD-03",
+      "organe": "ST",
+      "category": "COORDINATION",
+      "title": "Assistant exécutif",
+      "origin_label": "DRN / Secrétariat général aux ITP"
+    },
+    {
+      "code": "ST-COORD-04",
+      "organe": "ST",
+      "category": "COORDINATION",
+      "title": "Assistant exécutif",
+      "origin_label": "Secrétariat général à la Reconstruction"
+    },
+    {
+      "code": "ST-AD-01",
+      "organe": "ST-AD",
+      "category": "POLE_HEAD",
+      "title": "Chef de pôle",
+      "origin_label": "Secrétariat général aux ITP"
+    },
+    {
+      "code": "ST-AD-02",
+      "organe": "ST-AD",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-AD-03",
+      "organe": "ST-AD",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-AD-04",
+      "organe": "ST-AD",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-APP-01",
+      "organe": "ST-APP",
+      "category": "POLE_HEAD",
+      "title": "Chef de pôle",
+      "origin_label": "ECOSYS"
+    },
+    {
+      "code": "ST-APP-02",
+      "organe": "ST-APP",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-APP-03",
+      "organe": "ST-APP",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-APP-04",
+      "organe": "ST-APP",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-LC-01",
+      "organe": "ST-LC",
+      "category": "POLE_HEAD",
+      "title": "Chef de pôle",
+      "origin_label": "Cabinet du Ministre des ITP"
+    },
+    {
+      "code": "ST-LC-02",
+      "organe": "ST-LC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-LC-03",
+      "organe": "ST-LC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-LC-04",
+      "organe": "ST-LC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-RE-01",
+      "organe": "ST-RE",
+      "category": "POLE_HEAD",
+      "title": "Chef de pôle",
+      "origin_label": "Secrétariat général à la Reconstruction"
+    },
+    {
+      "code": "ST-RE-02",
+      "organe": "ST-RE",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-RE-03",
+      "organe": "ST-RE",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-RE-04",
+      "organe": "ST-RE",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-CSC-01",
+      "organe": "ST-CSC",
+      "category": "POLE_HEAD",
+      "title": "Chef de pôle",
+      "origin_label": "Secrétariat général aux ITP / DRN"
+    },
+    {
+      "code": "ST-CSC-02",
+      "organe": "ST-CSC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-CSC-03",
+      "organe": "ST-CSC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    },
+    {
+      "code": "ST-CSC-04",
+      "organe": "ST-CSC",
+      "category": "UNKNOWN",
+      "title": "",
+      "origin_label": ""
+    }
+  ],
+  "sc": [
+    {
+      "code": "SC-IT",
+      "name": "Infrastructures de transport",
+      "domain": "Infrastructures de transport"
+    },
+    {
+      "code": "SC-SOCLE",
+      "name": "Domaine technique transversal",
+      "domain": "Domaine technique transversal"
+    },
+    {
+      "code": "SC-GF",
+      "name": "Géotechnique et fondations",
+      "domain": "Géotechnique et fondations"
+    },
+    {
+      "code": "SC-OH",
+      "name": "Ouvrages hydrauliques",
+      "domain": "Ouvrages hydrauliques"
+    },
+    {
+      "code": "SC-ESS",
+      "name": "Environnement, santé et sécurité",
+      "domain": "Environnement, santé et sécurité"
+    },
+    {
+      "code": "SC-BAT",
+      "name": "Bâtiments courants et spéciaux",
+      "domain": "Bâtiments courants et spéciaux"
+    },
+    {
+      "code": "SC-SE·GEO·RS",
+      "name": "Signalisation-équipements, géomatique et réseaux secs",
+      "domain": "Signalisation-équipements, géomatique et réseaux secs"
+    }
+  ],
+  "ctm_mappings": [
+    {
+      "number": 1,
+      "sc": "SC-GF",
+      "domain": "SC-GF",
+      "justification": "Sols et stabilité vers GF ; risques/essais vers SOCLE ; interface ESS."
+    },
+    {
+      "number": 2,
+      "sc": null,
+      "domain": "Plusieurs SC",
+      "justification": "IT/BAT/OH pour les applications ; SOCLE pour calcul/sismicité. Aucun successeur unique à imposer."
+    },
+    {
+      "number": 3,
+      "sc": "SC-BAT",
+      "domain": "SC-BAT",
+      "justification": "BIM transversal vers SOCLE ; géomatique vers SE·GEO·RS si le contenu le justifie ; interfaces ESS ; urbanisme à arbitrer."
+    },
+    {
+      "number": 4,
+      "sc": "SC-IT",
+      "domain": "SC-IT",
+      "justification": "Veille issue de l’ancienne note à confirmer pour Phoenix ; équipements et éventuelle contribution SE·GEO·RS à préciser ; conserver la conformité OACI."
+    },
+    {
+      "number": 5,
+      "sc": "SC-IT",
+      "domain": "SC-IT",
+      "justification": "Activités de production/veille issues de l’ancienne note à confirmer ; contribution SE·GEO·RS candidate pour signalisation, géomatique et réseaux secs."
+    },
+    {
+      "number": 6,
+      "sc": "SC-OH",
+      "domain": "SC-OH",
+      "justification": "Réseaux, captage ; irrigation à arbitrer ; interfaces matériaux SOCLE."
+    },
+    {
+      "number": 7,
+      "sc": "SC-OH",
+      "domain": "SC-OH partiellement",
+      "justification": "Drainage et eaux usées ; déchets sans successeur explicite, interface ESS candidate."
+    },
+    {
+      "number": 8,
+      "sc": "SC-SOCLE",
+      "domain": "SC-SOCLE",
+      "justification": "Recherche/simulation à ventiler ; certification en attente d’arbitrage et d’Infrastructure qualité."
+    }
+  ],
+  "wg_mappings": [
+    {
+      "number": "1.1",
+      "domain": "GF sols/roches ; SOCLE essais",
+      "justification": "Périmètre différent de « Reconnaissance et essais » dans la note ; ventiler selon livrables."
+    },
+    {
+      "number": "1.2",
+      "domain": "SOCLE risques ; GF selon livrables",
+      "justification": "La note décrit 1.2 comme sols tropicaux : ne pas reprendre sa correspondance par numéro."
+    },
+    {
+      "number": "1.3",
+      "domain": "GF fondations/soutènements ; SOCLE risques",
+      "justification": "Contribution multiple à confirmer."
+    },
+    {
+      "number": "2.1",
+      "domain": "SOCLE bases de calcul ; IT/BAT applications",
+      "justification": "Scission fonctionnelle."
+    },
+    {
+      "number": "2.2",
+      "domain": "SOCLE sismicité ; IT/BAT applications",
+      "justification": "Scission fonctionnelle."
+    },
+    {
+      "number": "2.3",
+      "domain": "OH ouvrages/barrages",
+      "justification": "Transfert proposé."
+    },
+    {
+      "number": "3.1",
+      "domain": "BAT bâtiments ; ESS sécurité",
+      "justification": "Correspondance partielle."
+    },
+    {
+      "number": "3.2",
+      "domain": "SOCLE BIM transversal ; SE·GEO·RS pour géomatique si applicable",
+      "justification": "Correspondance multiple candidate ; contenu et rattachements à confirmer."
+    },
+    {
+      "number": "3.3",
+      "domain": "BAT ; ESS climat",
+      "justification": "Volet coûts absent de la correspondance documentaire : à préciser."
+    },
+    {
+      "number": "4.1",
+      "domain": "IT aéroports, veille",
+      "justification": "Ne pas convertir la veille en production par défaut."
+    },
+    {
+      "number": "4.2",
+      "domain": "IT aéroports ; SE·GEO·RS équipements si applicable",
+      "justification": "Diffère de l’ancienne note ; contribution Phoenix à confirmer."
+    },
+    {
+      "number": "4.3",
+      "domain": "IT aéroports ; conformité à préciser",
+      "justification": "Absent des 23 WG de la note : conserver, rattachement en attente."
+    },
+    {
+      "number": "5.1",
+      "domain": "IT routes/chaussées ; SE·GEO·RS pour signalisation/réseaux secs si applicable",
+      "justification": "Correspondance IT forte ; contribution complémentaire proposée."
+    },
+    {
+      "number": "5.2",
+      "domain": "IT ferroviaire, veille",
+      "justification": "Activité et mandat à confirmer."
+    },
+    {
+      "number": "5.3",
+      "domain": "IT ports, veille",
+      "justification": "Activité et mandat à confirmer."
+    },
+    {
+      "number": "6.1",
+      "domain": "OH réseaux hydrauliques",
+      "justification": "SOCLE matériaux si le contenu le justifie."
+    },
+    {
+      "number": "6.2",
+      "domain": "OH candidat ; drainage à préciser",
+      "justification": "À arbitrer ; correspond au volet agricole et non aux forages 6.2 de la note."
+    },
+    {
+      "number": "6.3",
+      "domain": "OH réseaux/captage",
+      "justification": "À préciser ; ne pas lui appliquer le volet agricole 6.3 de la note."
+    },
+    {
+      "number": "7.1",
+      "domain": "OH assainissement/drainage",
+      "justification": "Correspondance forte."
+    },
+    {
+      "number": "7.2",
+      "domain": "OH assainissement/drainage",
+      "justification": "Correspondance forte."
+    },
+    {
+      "number": "7.3",
+      "domain": "Aucun successeur confirmé ; ESS candidate",
+      "justification": "Conserver « à rattacher » avec propriétaire historique."
+    },
+    {
+      "number": "8.1",
+      "domain": "SOCLE matériaux locaux",
+      "justification": "La note parle de biosourcés : vérifier la portée exacte."
+    },
+    {
+      "number": "8.2",
+      "domain": "SOCLE essais/métrologie",
+      "justification": "Volet métrologie légale à confirmer."
+    },
+    {
+      "number": "8.3",
+      "domain": "SOCLE candidat pour recherche/simulation ; certification en attente",
+      "justification": "Périmètre plus large que la certification seule ; ne pas transférer l’ensemble vers qualité."
+    }
+  ]
+}

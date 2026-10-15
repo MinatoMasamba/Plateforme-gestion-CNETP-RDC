@@ -27,12 +27,13 @@
         window.tailwind.config = { darkMode: 'class' };
     </script>
     <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
     <!-- Tailwind CSS -->
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
 
     {% block extra_css %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col bg-white text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+<body class="cnetp-premium min-h-screen flex flex-col bg-white text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
 
     <!-- ═══════════════════════════════════════════════════════════════════
          NAVBAR — charte graphique gouvernementale (fond blanc, bouton jaune)
@@ -117,7 +118,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════
          FOOTER — fond bleu foncé, barre tricolore juste au-dessus
     ═══════════════════════════════════════════════════════════════════ -->
-    <div class="w-full h-[5px] flex shrink-0">
+    {% block footer %}<div class="w-full h-[5px] flex shrink-0">
         <div class="flex-1 bg-[#0095c9]"></div>
         <div class="flex-1 bg-[#fff24b]"></div>
         <div class="flex-1 bg-[#db3832]"></div>
@@ -180,7 +181,7 @@
         <div class="max-w-7xl mx-auto border-t border-white/10 mt-10 pt-6 text-xs text-slate-400 text-center">
             &copy; 2026 République Démocratique du Congo — CNE-ITP. Tous droits réservés.
         </div>
-    </footer>
+    </footer>{% endblock %}
 
     <!-- Global CSRF Token -->
     <script>
@@ -258,6 +259,7 @@
         })();
     </script>
 
+    {% if user.is_authenticated %}<script src="{% static 'js/activity-heartbeat.js' %}" defer></script>{% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

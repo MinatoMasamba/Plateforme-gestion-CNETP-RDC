@@ -123,10 +123,10 @@ class DeepSeekClientTests(SimpleTestCase):
         )
 
     def test_api_error_message_for_insufficient_balance(self):
-        self.assertIn('Solde DeepSeek', api_error_message(DeepSeekError('402 : insufficient balance')))
+        self.assertIn('limite de crédit', api_error_message(DeepSeekError('402 : insufficient balance')))
 
     def test_api_error_message_for_invalid_key(self):
-        self.assertIn('Clé API DeepSeek', api_error_message(DeepSeekError('401 : invalid_api_key')))
+        self.assertIn('mal configuré', api_error_message(DeepSeekError('401 : invalid_api_key')))
 
 
 class AgentRunnerFallbackTests(SimpleTestCase):
