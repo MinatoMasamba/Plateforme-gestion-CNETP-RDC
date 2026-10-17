@@ -89,3 +89,67 @@ class CommuniqueEnvoi(BaseModel):
 
     def __str__(self):
         return f"{self.communique_key} — {self.email} ({self.get_status_display()})"
+
+
+class CommuniqueSequence(models.Model):
+    """Compteur unique du numéro des communiqués officiels."""
+
+    last_number = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        verbose_name = "Séquence des communiqués"
+        verbose_name_plural = "Séquence des communiqués"
+
+    @classmethod
+    def peek_next_number(cls):
+        sequence = cls.objects.first()
+        return (sequence.last_number if sequence else 1) + 1
+
+    @classmethod
+    def next_number(cls):
+        from django.db import transaction
+
+        with transaction.atomic():
+            sequence, _ = cls.objects.select_for_update().get_or_create(
+                pk=1, defaults={'last_number': 1},
+            )
+            sequence.last_number += 1
+            sequence.save(update_fields=['last_number'])
+            return sequence.last_number
+
+
+class CommuniqueOfficiel(BaseModel):
+    """Communiqué officiel : numéro auto-incrémenté, date saisissable."""
+
+    STATUS_DRAFT = 'DRAFT'
+    STATUS_SENT = 'SENT'
+    STATUS_ARCHIVED = 'ARCHIVED'
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, 'Brouillon'),
+        (STATUS_SENT, 'Envoyé'),
+        (STATUS_ARCHIVED, 'Archivé'),
+    ]
+
+    numero = models.PositiveIntegerField(unique=True, editable=False, verbose_name="Numéro")
+    date_communique = models.DateField(verbose_name="Date du communiqué")
+    objet = models.CharField(max_length=300, verbose_name="Objet")
+    statut = models.CharField(max_length=12, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    notes = models.TextField(blank=True, verbose_name="Notes internes")
+
+    class Meta:
+        db_table = 'messaging_communique_officiel'
+        verbose_name = "Communiqué officiel"
+        verbose_name_plural = "Communiqués officiels"
+        ordering = ['-numero']
+
+    def save(self, *args, **kwargs):
+        if not self.numero:
+            self.numero = CommuniqueSequence.next_number()
+        return super().save(*args, **kwargs)
+
+    @property
+    def numero_label(self):
+        return f"{self.numero:03d}"
+
+    def __str__(self):
+        return f"Communiqué N° {self.numero_label} du {self.date_communique:%d/%m/%Y}"

@@ -47,7 +47,7 @@ def expert_email(expert):
     return email
 
 
-def build_context(version=None, numero=None, date_communique=None):
+def build_context(version=None, numero=None, date_communique=None, base_url=None):
     version = version or current_organisation_version()
     if not version:
         raise ValueError("Aucune version d'organisation n'est disponible.")
@@ -62,9 +62,10 @@ def build_context(version=None, numero=None, date_communique=None):
         organe__version=version,
         organe__type__in=[Organe.Type.COPIL, Organe.Type.ST, Organe.Type.ST_POLE],
     ).count()
-    site_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
-    numero = str(numero or getattr(settings, 'COMMUNIQUE_OFFICIEL_NUMERO', '002')).strip()
-    raw_date = date_communique or getattr(settings, 'COMMUNIQUE_OFFICIEL_DATE', '2026-10-16')
+    site_url = (base_url or getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+    raw_numero = numero if numero is not None else getattr(settings, 'COMMUNIQUE_OFFICIEL_NUMERO', '001')
+    numero = f"{int(raw_numero):03d}" if str(raw_numero).isdigit() else str(raw_numero).strip()
+    raw_date = date_communique or timezone.localdate()
     if isinstance(raw_date, str):
         parsed_date = parse_date(raw_date)
     elif isinstance(raw_date, date):
