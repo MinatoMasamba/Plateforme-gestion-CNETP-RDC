@@ -309,53 +309,31 @@ def build_exceptions(*, ctm=None, wg=None, target_group=None, limit=30):
 
 
 def historical_sc_rows(start, end):
-    # Correspondance de lecture pour cette base remaniée : les anciens CTM
-    # restent intacts et leurs mesures ne sont jamais imputées aux nouveaux GT.
-    legacy_scope = {
-        'SC-BAT': (1, 'Bâtiments courants et spéciaux'),
-        'SC-ENV': (2, 'Environnement, santé et sécurité'),
-        'SC-GF': (3, 'Géotechnique et fondations'),
-        'SC-IT': (4, 'Infrastructures de transport'),
-        'SC-OH': (5, 'Ouvrages hydrauliques'),
-        'SC-VRD': (6, 'Signalisation-équipements, géomatique et réseaux secs'),
-        'SC-SOCLE': (7, 'Domaine technique transversal'),
-    }
-    adopted_version = current_organisation_version()
-    adopted = list(Organe.objects.filter(
-        version=adopted_version, type='SC',
-    ).exclude(status='ARCHIVED').prefetch_related('groupes')) if adopted_version else []
-    if adopted:
-        ctms = {ctm.number: ctm for ctm in CTM.objects.all()}
-        rows = []
-        for sc in sorted(adopted, key=lambda item: item.composition.get('tome', 99)):
-            number, expected_name = legacy_scope.get(sc.code, (None, None))
-            candidate = ctms.get(number)
-            ctm = candidate if candidate and candidate.name.casefold() == expected_name.casefold() else None
-            metrics = calculate_scope_metrics(start=start, end=end, ctm=ctm) if ctm else {
+    """Retourne uniquement les SC de la version courante.
+
+    Les anciennes versions sont archivées dans les Communiqués et ne sont plus
+    lues par l'interface.
+    """
+    version = current_organisation_version()
+    if not version:
+        return []
+    rows = []
+    for sc in Organe.objects.filter(
+        version=version, type='SC',
+    ).exclude(status='ARCHIVED').prefetch_related('groupes').order_by('code'):
+        rows.append({
+            'kind': 'current',
+            'id': sc.pk,
+            'number': sc.composition.get('tome'),
+            'name': sc.official_name or sc.name,
+            'code': sc.code,
+            'badge': '',
+            'legacy_ctm_id': None,
+            'metrics': {
                 key: {'value': None, 'configured': False, 'sources': 0}
                 for key in ('advancement', 'production', 'quality', 'engagement', 'completeness')
-            }
-            rows.append({
-                'kind': 'current', 'id': sc.pk, 'number': sc.composition.get('tome'),
-                'name': sc.official_name or sc.name, 'code': sc.code,
-                'badge': f'Mesures historiques CTM {ctm.number}' if ctm else 'Mesures à relier',
-                'legacy_ctm_id': ctm.pk if ctm else None,
-                'metrics': metrics, 'group_count': sc.groupes.count(),
-            })
-        return rows
-    rows = []
-    for ctm in CTM.objects.order_by('number'):
-        metrics = calculate_scope_metrics(start=start, end=end, ctm=ctm)
-        rows.append({
-            'kind': 'historical', 'id': ctm.pk, 'number': ctm.number,
-            'name': ctm.name, 'code': f'SC {ctm.number}', 'badge': 'Historique',
-            'metrics': metrics, 'group_count': ctm.working_groups.count(),
-        })
-    for sc in Organe.objects.filter(type='SC', status__in=['VALIDATED', 'ACTIVE']).select_related('version').order_by('code'):
-        metrics = calculate_scope_metrics(start=start, end=end, target_group=None)
-        rows.append({
-            'kind': 'current', 'id': sc.pk, 'number': None, 'name': sc.official_name or sc.name,
-            'code': sc.code, 'badge': '', 'metrics': metrics, 'group_count': sc.groupes.count(),
+            },
+            'group_count': sc.groupes.count(),
         })
     return rows
 

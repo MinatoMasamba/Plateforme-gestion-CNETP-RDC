@@ -133,33 +133,6 @@ class ActivityDashboardView(View):
 
 
 @method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
-class ActivitySubcommissionView(View):
-    template_name = 'pilotage/activity/subcommission.html'
-
-    def get(self, request, number):
-        _require(request, 'can_view_aggregates')
-        ctm = get_object_or_404(CTM.objects.select_related('scientific_president__user'), number=number)
-        context = _base_context(request, f'Activité · Sous-commission {number}')
-        start, end = context['period_start'], context['period_end']
-        groups = []
-        for wg in ctm.working_groups.select_related('president__user').order_by('number'):
-            metrics = calculate_scope_metrics(start=start, end=end, wg=wg)
-            experts = [assignment.expert for assignment in wg.affectations.select_related('expert__user')]
-            groups.append({
-                'group': wg, 'metrics': metrics, 'historical': True,
-                'expert_activity': _group_expert_activity(experts, wg.tasks.all()),
-                'late': sum(1 for task in wg.tasks.all() if task_state(task) == 'LATE'),
-                'blocked': sum(1 for task in wg.tasks.all() if task_state(task) == 'BLOCKED'),
-            })
-        context.update({
-            'subcommission': ctm, 'historical': True, 'groups': groups,
-            'metrics': calculate_scope_metrics(start=start, end=end, ctm=ctm),
-            'exceptions': build_exceptions(ctm=ctm),
-            'recent_sessions': ctm.activity_sessions.select_related('user').order_by('-last_seen_at')[:20],
-        })
-        return render(request, self.template_name, context)
-
-
 @method_decorator(login_required(login_url='/se-connecter/'), name='dispatch')
 class ActivityCurrentSubcommissionView(View):
     template_name = 'pilotage/activity/subcommission.html'
@@ -566,25 +539,6 @@ def answer_activity_alert(request, pk):
     alert.responded_by, alert.responded_at = request.user, timezone.now()
     alert.save(update_fields=['status', 'response', 'responded_by', 'responded_at', 'updated_at'])
     return JsonResponse({'ok': True, 'status': alert.status})
-
-
-@login_required(login_url='/se-connecter/')
-@require_GET
-def export_subcommission_activity(request, number):
-    _require(request, 'can_view_aggregates')
-    ctm = get_object_or_404(CTM, number=number)
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = f'attachment; filename="activite-sous-commission-{number}.csv"'
-    response.write('\ufeff')
-    writer = csv.writer(response, delimiter=';')
-    writer.writerow(['Sous-commission', 'Groupe', 'Norme', 'Tâche', 'Responsable', 'Échéance', 'Statut', 'Avancement', 'Poids'])
-    for task in Tache.objects.filter(working_group__ctm=ctm).select_related('working_group', 'norme', 'assigned_to__user'):
-        writer.writerow([
-            ctm.name, task.working_group.name, task.norme.reference_number if task.norme else '', task.titre,
-            task.assigned_to.full_name if task.assigned_to else '', task.due_date.strftime('%d/%m/%Y') if task.due_date else '',
-            task.get_status_display(), task.progress, task.weight,
-        ])
-    return response
 
 
 @login_required(login_url='/se-connecter/')

@@ -47,11 +47,11 @@ from .ctc_views import (
 from .ctc_settings_views import CTCNotificationSettingsView, CTCBackupView, CTCDriveSettingsView
 from apps.ia_agent.views_web import PilotageIAConsoleView, RAGSourceDownloadView, RAGSourceView
 from .activity_views import (
-    ActivityDashboardView, ActivitySubcommissionView, ActivityCurrentSubcommissionView,
+    ActivityDashboardView, ActivityCurrentSubcommissionView,
     ActivityGroupView, ActivityCurrentGroupView, ActivityNormView, ActivityExpertView,
     MyActivityDataView, activity_heartbeat, activity_task_transition,
     activity_task_configure, declare_off_platform_work, declare_absence,
-    create_activity_dispute, answer_activity_alert, export_subcommission_activity,
+    create_activity_dispute, answer_activity_alert,
     activity_metric_sources,
     activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
 )
@@ -113,13 +113,11 @@ urlpatterns = [
     path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
     path('pilotage/ctm/<int:number>/', PilotageCTMDetailView.as_view(), name='pilotage_ctm_detail'),
     path('pilotage/activites/', ActivityDashboardView.as_view(), name='activity_dashboard'),
-    path('pilotage/sous-commissions/<int:number>/activite/', ActivitySubcommissionView.as_view(), name='activity_subcommission'),
     path('pilotage/sous-commissions/courantes/<int:pk>/activite/', ActivityCurrentSubcommissionView.as_view(), name='activity_current_subcommission'),
     path('pilotage/groupes-travail/<int:pk>/activite/', ActivityGroupView.as_view(), name='activity_group'),
     path('pilotage/groupes-travail/courants/<int:pk>/activite/', ActivityCurrentGroupView.as_view(), name='activity_current_group'),
     path('pilotage/normes/<int:pk>/activite/', ActivityNormView.as_view(), name='activity_norm'),
     path('pilotage/experts/<int:pk>/activite/', ActivityExpertView.as_view(), name='activity_expert'),
-    path('pilotage/sous-commissions/<int:number>/activite/export.csv', export_subcommission_activity, name='activity_subcommission_export'),
     path('pilotage/activite/taches/<int:pk>/transition/', activity_task_transition, name='activity_task_transition'),
     path('pilotage/activite/taches/<int:pk>/configuration/', activity_task_configure, name='activity_task_configure'),
     path('pilotage/activite/taches/configuration-groupee/', activity_tasks_bulk_configure, name='activity_tasks_bulk_configure'),

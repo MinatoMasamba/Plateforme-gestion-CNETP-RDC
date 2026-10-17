@@ -364,14 +364,14 @@
         <div class="max-w-7xl mx-auto px-4 pt-5">
             <div class="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-amber-700 dark:text-amber-200">
                 <i data-lucide="triangle-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
-                <p class="text-xs leading-relaxed"><strong>Référentiel incomplet :</strong> {{ pilotage_member_count }} adhésions sont enregistrées, mais aucun poste nominatif n'est encore initialisé.</p>
+                <p class="text-xs leading-relaxed"><strong>Référentiel incomplet :</strong> {{ pilotage_member_count }} mandat{{ pilotage_member_count|pluralize }} actif{{ pilotage_member_count|pluralize }} enregistré{{ pilotage_member_count|pluralize }}, mais aucun poste d'organisation n'est encore configuré.</p>
             </div>
         </div>
         {% elif pilotage_post_count < pilotage_member_count %}
         <div class="max-w-7xl mx-auto px-4 pt-5">
             <div class="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-amber-700 dark:text-amber-200">
                 <i data-lucide="triangle-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
-                <p class="text-xs leading-relaxed"><strong>Référentiel à compléter :</strong> {{ pilotage_post_count }} postes nominatifs pour {{ pilotage_member_count }} adhésions.</p>
+                <p class="text-xs leading-relaxed"><strong>Référentiel à compléter :</strong> {{ pilotage_post_count }} poste{{ pilotage_post_count|pluralize }} d'organisation pour {{ pilotage_member_count }} mandat{{ pilotage_member_count|pluralize }} actif{{ pilotage_member_count|pluralize }}.</p>
             </div>
         </div>
         {% endif %}

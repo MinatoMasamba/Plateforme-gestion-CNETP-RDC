@@ -32,7 +32,7 @@ from apps.governance.models import (
     ComitePilotage, PilotageMembreship, PosteNominatif,
     CTM, WG, Affectation, PermissionRequest, CTCProcessus, NormeCadrage,
     PlatformFreeze, OrganisationVersion, Organe, CorrespondanceStructure,
-    AffectationSousCommission,
+    AffectationSousCommission, PosteOrganisation, MandatOrganisation,
 )
 from apps.mobileapp.signals import create_notification_for_user
 from apps.norms.models import Norme
@@ -953,8 +953,25 @@ class PilotageDashboardView(View):
             .select_related('norme')
             .order_by('-created_at')
         )
-        pilotage_member_count = PilotageMembreship.objects.count()
-        pilotage_post_count = PosteNominatif.objects.count()
+        pilotage_member_count = (
+            MandatOrganisation.objects.filter(
+                poste__organe__version=organisation,
+                poste__organe__type__in=[
+                    Organe.Type.COPIL, Organe.Type.ST, Organe.Type.ST_POLE,
+                ],
+                status='ACTIVE', capacity='ORGANISATION',
+            ).values('expert_id').distinct().count()
+            if organisation else 0
+        )
+        pilotage_post_count = (
+            PosteOrganisation.objects.filter(
+                organe__version=organisation,
+                organe__type__in=[
+                    Organe.Type.COPIL, Organe.Type.ST, Organe.Type.ST_POLE,
+                ],
+            ).count()
+            if organisation else 0
+        )
         normes_travaillees_count = Norme.objects.exclude(status__in=['PUBLISHED', 'ARCHIVED']).count()
 
         ctc_activity_stages = []
