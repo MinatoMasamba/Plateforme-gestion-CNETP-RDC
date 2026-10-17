@@ -1,5 +1,8 @@
 """Envoie aux experts le communiqué HTML + texte + PDF de transition."""
 
+from pathlib import Path
+
+from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -9,6 +12,13 @@ from apps.messaging.communiques import build_context, expert_email, send_to_expe
 from apps.messaging.models import CommuniqueOfficiel, CommuniqueSequence
 
 OBJET = "Transition vers la nouvelle organisation de la CNE-ITP"
+
+
+def default_pdf_path(numero_label):
+    return (
+        Path(__file__).resolve().parents[2]
+        / 'data' / 'communiques' / f'communique_{numero_label}.pdf'
+    )
 
 
 class Command(BaseCommand):
@@ -37,6 +47,10 @@ class Command(BaseCommand):
         parser.add_argument(
             '--communique-id', type=int, default=0,
             help="Réutiliser un communiqué existant par son identifiant.",
+        )
+        parser.add_argument(
+            '--pdf', default='',
+            help="PDF original à joindre (défaut : apps/messaging/data/communiques/communique_<numéro>.pdf).",
         )
         parser.add_argument(
             '--base-url', default='',
@@ -104,6 +118,20 @@ class Command(BaseCommand):
         self.stdout.write(f"Clé de suivi : {key}")
         self.stdout.write(f"Destinataires : {len(experts)}")
 
+        pdf_bytes = None
+        pdf_filename = None
+        if options['dry_run']:
+            if communique.fichier_pdf:
+                self.stdout.write(f"PDF original : {communique.fichier_pdf.name}")
+            else:
+                candidate = Path(options['pdf']) if options['pdf'] else default_pdf_path(communique.numero_label)
+                if not candidate.is_file():
+                    raise CommandError(
+                        f"PDF original introuvable : {candidate}. "
+                        "Fournissez --pdf ou déposez le fichier dans apps/messaging/data/communiques/."
+                    )
+                self.stdout.write(f"PDF original : {candidate}")
+
         if options['dry_run']:
             for expert in experts:
                 self.stdout.write(
@@ -112,10 +140,34 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Dry-run : aucun email envoyé."))
             return
 
+        if options['pdf']:
+            source = Path(options['pdf'])
+            if not source.is_file():
+                raise CommandError(f"PDF original introuvable : {source}")
+            with source.open('rb') as handle:
+                communique.fichier_pdf.save(f'communique_{communique.numero_label}.pdf', File(handle), save=True)
+        elif not communique.fichier_pdf:
+            source = default_pdf_path(communique.numero_label)
+            if not source.is_file():
+                raise CommandError(
+                    f"PDF original introuvable : {source}. "
+                    "Fournissez --pdf ou déposez le fichier dans apps/messaging/data/communiques/."
+                )
+            with source.open('rb') as handle:
+                communique.fichier_pdf.save(source.name, File(handle), save=True)
+
+        with communique.fichier_pdf.open('rb') as handle:
+            pdf_bytes = handle.read()
+        pdf_filename = Path(communique.fichier_pdf.name).name
+        self.stdout.write(f"PDF joint : {pdf_filename} ({len(pdf_bytes)} octets)")
+
         sent = skipped = failed = 0
         for expert in experts:
             try:
-                result = send_to_expert(expert, key, context, force=options['force'])
+                result = send_to_expert(
+                    expert, key, context, force=options['force'],
+                    pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
+                )
             except Exception as exc:
                 failed += 1
                 self.stderr.write(self.style.ERROR(

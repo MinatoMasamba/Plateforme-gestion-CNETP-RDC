@@ -133,6 +133,12 @@ class CommuniqueOfficiel(BaseModel):
     numero = models.PositiveIntegerField(unique=True, editable=False, verbose_name="Numéro")
     date_communique = models.DateField(verbose_name="Date du communiqué")
     objet = models.CharField(max_length=300, verbose_name="Objet")
+    fichier_pdf = models.FileField(
+        upload_to='communiques/%Y/%m/',
+        blank=True, null=True,
+        verbose_name="PDF original du communiqué",
+        help_text="Fichier officiel à joindre tel quel à l'email ; aucun PDF n'est régénéré.",
+    )
     statut = models.CharField(max_length=12, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     notes = models.TextField(blank=True, verbose_name="Notes internes")
 

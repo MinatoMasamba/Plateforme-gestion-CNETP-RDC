@@ -11,7 +11,7 @@ class CommuniqueOfficielAdmin(admin.ModelAdmin):
     readonly_fields = ('numero', 'numero_label', 'created_at', 'updated_at')
     fieldsets = (
         ("Communiqué", {
-            'fields': ('numero', 'numero_label', 'date_communique', 'objet', 'statut'),
+            'fields': ('numero', 'numero_label', 'date_communique', 'objet', 'fichier_pdf', 'statut'),
         }),
         ("Notes", {'fields': ('notes',)}),
         ("Traçabilité", {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),

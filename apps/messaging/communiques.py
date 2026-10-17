@@ -185,7 +185,7 @@ def render_email(expert, context):
     return html, text
 
 
-def send_to_expert(expert, communique_key, context, force=False):
+def send_to_expert(expert, communique_key, context, force=False, pdf_bytes=None, pdf_filename=None):
     email = expert_email(expert)
     record = CommuniqueEnvoi.objects.filter(
         communique_key=communique_key, email=email,
@@ -203,9 +203,10 @@ def send_to_expert(expert, communique_key, context, force=False):
     if record and record.status == CommuniqueEnvoi.STATUS_SENT and not force:
         return {'status': 'skipped', 'reason': 'déjà envoyé'}
 
+    if not pdf_bytes:
+        raise ValueError("Le PDF original du communiqué est requis ; aucun PDF n'est régénéré.")
     html, text = render_email(expert, context)
-    pdf_bytes = build_pdf(context)
-    filename = f"communique_organisation_{context['version_code']}.pdf"
+    filename = pdf_filename or f"communique_{context['communique_numero']}.pdf"
 
     record = record or CommuniqueEnvoi(
         communique_key=communique_key, subject=context['subject'],
