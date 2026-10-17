@@ -24,7 +24,7 @@ from django.db.models import Q
 
 from apps.governance.models import CTM, WG, Affectation, Demande, Tache
 from apps.governance.phoenix_models import (
-    Organe, CorrespondanceStructure, CorrespondanceGroupe,
+    OrganisationVersion, Organe, CorrespondanceStructure, CorrespondanceGroupe,
     AffectationSousCommission, ChoixOrganisationExpert,
 )
 from apps.experts.models import Expert
@@ -43,7 +43,7 @@ SC_DESCRIPTIONS = {
         "Bâtiments courants et spéciaux : conception structurelle, habitabilité, "
         "sécurité incendie, performance énergétique, confort et urbanisme."
     ),
-    'SC-ESS': (
+    'SC-ENV': (
         "Environnement, santé et sécurité : gestion des déchets solides, "
         "assainissement, prévention des pollutions et protection des travailleurs."
     ),
@@ -59,9 +59,9 @@ SC_DESCRIPTIONS = {
         "Ouvrages hydrauliques : adduction d'eau, irrigation, drainage, barrages, "
         "assainissement et gestion des eaux pluviales."
     ),
-    'SC-SE·GEO·RS': (
-        "Signalisation, équipements, géomatique et réseaux secs : SIG, "
-        "cartographie et équipements d'infrastructures."
+    'SC-VRD': (
+        "Réseaux divers, équipements et fluides : signalisation, géomatique, "
+        "réseaux secs, télécommunications, cartographie et équipements d'infrastructures."
     ),
     'SC-SOCLE': (
         "Domaine technique transversal : calcul structural, matériaux locaux, "
@@ -80,9 +80,9 @@ SC_KEYWORDS = [
                'oaci', 'terminaux', 'portuaire', 'voie']),
     ('SC-BAT', ['batiment', 'habitabilite', 'securite', 'energetique', 'incendie',
                 'bim', 'urbanisme', 'structure', 'construction']),
-    ('SC-ESS', ['environnement', 'dechet', 'cet', 'sante', 'pollution']),
-    ('SC-SE·GEO·RS', ['signalisation', 'equipement', 'geomatique', 'reseaux secs',
-                      'telecommunication', 'cartographie', 'numerique']),
+    ('SC-ENV', ['environnement', 'dechet', 'cet', 'sante', 'pollution']),
+    ('SC-VRD', ['signalisation', 'equipement', 'geomatique', 'reseaux secs',
+                'telecommunication', 'cartographie', 'numerique', 'vrd', 'fluide']),
     ('SC-SOCLE', ['materiau', 'metrologie', 'essai', 'calcul', 'mecanique', 'eurocode',
                   'parasismique', 'simulation', 'recherche', 'certification',
                   'normalisation', 'cout', 'circuit', 'composant', 'transversal']),
@@ -133,13 +133,30 @@ class Command(BaseCommand):
             '--apply', action='store_true',
             help="Exécute réellement la migration (sans ce drapeau : dry-run)."
         )
+        parser.add_argument(
+            '--code', default=None,
+            help="Code de la version d'organisation (défaut : la plus récente).",
+        )
 
     def handle(self, *args, **options):
         apply = options['apply']
 
-        scs = list(Organe.objects.filter(type=Organe.Type.SC).order_by('code'))
-        if not scs:
-            raise SystemExit("Aucune SC (Organe type='SC') trouvée : impossible de reconstruire.")
+        if options.get('code'):
+            version = OrganisationVersion.objects.filter(code=options['code']).first()
+        else:
+            version = OrganisationVersion.objects.order_by('-created_at', '-id').first()
+        if not version:
+            raise SystemExit("Aucune version d'organisation trouvée : impossible de reconstruire.")
+
+        scs = list(Organe.objects.filter(
+            version=version, type=Organe.Type.SC,
+        ).order_by('code'))
+        if len(scs) != 7 or len({sc.code for sc in scs}) != 7:
+            raise SystemExit(
+                f"La version {version.code} doit contenir exactement 7 SC distinctes "
+                f"(trouvées : {len(scs)}). Utilisez --code pour choisir la bonne version."
+            )
+        scs_by_code = {sc.code: sc for sc in scs}
 
         old_ctms = list(CTM.objects.order_by('number'))
 
@@ -148,14 +165,19 @@ class Command(BaseCommand):
         ctm_to_sc = {
             cs.ctm_id: cs.sc.code
             for cs in CorrespondanceStructure.objects.filter(
-                sc__isnull=False, nature='PRIMARY', status='VALIDATED'
+                version=version, sc__isnull=False, nature='PRIMARY', status='VALIDATED'
             ).select_related('sc')
+            if cs.sc.code in scs_by_code
         }
         sc_iso = {}
         sc_arso = {}
         for ctm in old_ctms:
             code = ctm_to_sc.get(ctm.pk)
+            if not code:
+                candidate = match_sc(ctm.name)
+                code = candidate if candidate in scs_by_code else None
             if code:
+                ctm_to_sc[ctm.pk] = code
                 sc_iso.setdefault(code, ctm.iso_reference)
                 sc_arso.setdefault(code, ctm.arso_reference)
 
@@ -175,19 +197,24 @@ class Command(BaseCommand):
         for ctm in old_ctms:
             for wg in ctm.working_groups.order_by('number'):
                 cleaned = clean_wg_name(wg.name)
+                target_sc = match_sc(cleaned)
+                if target_sc not in scs_by_code:
+                    target_sc = 'SC-SOCLE'
                 wg_plan.append({
                     'id': wg.pk,
                     'old_ctm': ctm.number,
                     'old_number': wg.number,
                     'cleaned_name': cleaned,
-                    'target_sc': match_sc(cleaned),
+                    'target_sc': target_sc,
                     'description': wg.description,
                     'president_id': wg.president_id,
                     'rapporteur_id': wg.rapporteur_id,
                     'secretary_id': wg.secretary_id,
                 })
 
-        self.stdout.write(self.style.MIGRATE_HEADING("Plan de migration CTM/SC"))
+        self.stdout.write(self.style.MIGRATE_HEADING(
+            f"Plan de migration CTM/SC — version {version.code} ({version.get_status_display()})"
+        ))
         for ctm in new_ctms:
             self.stdout.write(
                 f"  CTM {ctm['number']} ({ctm['code']}) : {ctm['name']}"
