@@ -2,7 +2,7 @@ RÉPUBLIQUE DÉMOCRATIQUE DU CONGO
 MINISTÈRE DES INFRASTRUCTURES ET TRAVAUX PUBLICS
 COMMISSION NATIONALE D'ÉLABORATION DES NORMES DES INFRASTRUCTURES DE TRAVAUX PUBLICS (CNE-ITP)
 
-COMMUNIQUÉ OFFICIEL
+COMMUNIQUÉ OFFICIEL N° {{ communique_numero }} DU {{ communique_date_label|upper }}
 TRANSITION VERS LA NOUVELLE ORGANISATION
 
 Bonjour {{ greeting_name }},
@@ -11,6 +11,7 @@ Dans le cadre de la réorganisation de la CNE-ITP, la plateforme adopte une nouv
 structure organisationnelle. Les anciennes versions sont archivées et ne sont plus
 utilisées par les interfaces.
 
+Référence : N° {{ communique_numero }} du {{ communique_date_label }}
 Version organisationnelle : {{ version_name }} ({{ version_code }}) — {{ version_status }}
 Sous-commissions techniques : {{ sc_count }}
 Groupes de travail : {{ gt_count }}

@@ -286,6 +286,10 @@ LOGOUT_REDIRECT_URL = 'inscription-expert/'
 # URL publique de la plateforme — utilisée dans les liens d'activation/confirmation
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
+# Métadonnées du communiqué officiel de communication
+COMMUNIQUE_OFFICIEL_NUMERO = config('COMMUNIQUE_OFFICIEL_NUMERO', default='002')
+COMMUNIQUE_OFFICIEL_DATE = config('COMMUNIQUE_OFFICIEL_DATE', default='2026-10-16')
+
 # Celery Configuration — actif si CELERY_BROKER_URL est défini
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=CELERY_BROKER_URL)

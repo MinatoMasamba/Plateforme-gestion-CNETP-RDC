@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand, CommandError
 
 from apps.experts.models import Expert
 from apps.messaging.communiques import (
-    SUBJECT,
     build_context,
     expert_email,
     send_to_expert,
@@ -25,9 +24,14 @@ class Command(BaseCommand):
         parser.add_argument('--skip', type=int, default=0, help="Ignorer les N premiers destinataires.")
         parser.add_argument('--force', action='store_true', help="Renvoyer même si un envoi réussi existe.")
         parser.add_argument('--key', default='', help="Clé de suivi (défaut : organisation:<code version>).")
+        parser.add_argument('--numero', default='', help="Numéro du communiqué (défaut : settings.COMMUNIQUE_OFFICIEL_NUMERO).")
+        parser.add_argument('--date', default='', help="Date officielle AAAA-MM-JJ (défaut : settings.COMMUNIQUE_OFFICIEL_DATE).")
 
     def handle(self, *args, **options):
-        context = build_context()
+        context = build_context(
+            numero=options.get('numero') or None,
+            date_communique=options.get('date') or None,
+        )
         key = options['key'] or f"organisation:{context['version_code']}"
 
         experts = (
@@ -50,7 +54,7 @@ class Command(BaseCommand):
             f"Communiqué organisation — version {context['version_code']} "
             f"({context['sc_count']} SC, {context['gt_count']} GT)"
         ))
-        self.stdout.write(f"Sujet : {SUBJECT}")
+        self.stdout.write(f"Sujet : {context['subject']}")
         self.stdout.write(f"Clé de suivi : {key}")
         self.stdout.write(f"Destinataires : {len(experts)}")
 

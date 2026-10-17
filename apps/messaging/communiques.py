@@ -1,12 +1,14 @@
 """Construction et envoi du communiqué de transition organisationnelle."""
 
 import io
+from datetime import date
 from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer
@@ -23,7 +25,14 @@ from apps.governance.phoenix_runtime import current_organisation_version
 
 from .models import CommuniqueEnvoi
 
-SUBJECT = "CNE-ITP — Communiqué officiel : transition vers la nouvelle organisation"
+MOIS_FR = (
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+)
+
+
+def _french_date(value):
+    return f"{value.day} {MOIS_FR[value.month - 1]} {value.year}"
 
 
 def expert_email(expert):
@@ -38,7 +47,7 @@ def expert_email(expert):
     return email
 
 
-def build_context(version=None):
+def build_context(version=None, numero=None, date_communique=None):
     version = version or current_organisation_version()
     if not version:
         raise ValueError("Aucune version d'organisation n'est disponible.")
@@ -54,6 +63,17 @@ def build_context(version=None):
         organe__type__in=[Organe.Type.COPIL, Organe.Type.ST, Organe.Type.ST_POLE],
     ).count()
     site_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+    numero = str(numero or getattr(settings, 'COMMUNIQUE_OFFICIEL_NUMERO', '002')).strip()
+    raw_date = date_communique or getattr(settings, 'COMMUNIQUE_OFFICIEL_DATE', '2026-10-16')
+    if isinstance(raw_date, str):
+        parsed_date = parse_date(raw_date)
+    elif isinstance(raw_date, date):
+        parsed_date = raw_date
+    else:
+        parsed_date = None
+    parsed_date = parsed_date or timezone.localdate()
+    date_label = _french_date(parsed_date)
+    subject = f"CNE-ITP | Communiqué officiel N° {numero} du {date_label}."
     context = {
         'version': version,
         'version_code': version.code,
@@ -78,7 +98,10 @@ def build_context(version=None):
         'profile_url': f'{site_url}/profil/' if site_url else '/profil/',
         'logo_url': f'{site_url}/static/img/logo-cnetp.png' if site_url else '/static/img/logo-cnetp.png',
         'annee': timezone.localdate().year,
-        'date_communique': timezone.localdate(),
+        'date_communique': parsed_date,
+        'communique_numero': numero,
+        'communique_date_label': date_label,
+        'subject': subject,
     }
     return context
 
@@ -93,8 +116,8 @@ def build_pdf(context):
     styles = _base_styles()
     elements = _header_block(
         styles,
-        "COMMUNIQUÉ OFFICIEL",
-        "Transition vers la nouvelle organisation de la CNE-ITP",
+        f"COMMUNIQUÉ OFFICIEL N° {context['communique_numero']}",
+        f"Transition vers la nouvelle organisation de la CNE-ITP — {context['communique_date_label']}",
     )
     elements.append(Paragraph(
         f"<b>Version organisationnelle :</b> {xml_escape(context['version_name'])} "
@@ -170,7 +193,7 @@ def send_to_expert(expert, communique_key, context, force=False):
     if not email:
         if record is None:
             CommuniqueEnvoi.objects.create(
-                communique_key=communique_key, subject=SUBJECT,
+                communique_key=communique_key, subject=context['subject'],
                 recipient=expert.user, email='', status=CommuniqueEnvoi.STATUS_SKIPPED,
                 error="Aucune adresse email disponible.",
             )
@@ -184,17 +207,17 @@ def send_to_expert(expert, communique_key, context, force=False):
     filename = f"communique_organisation_{context['version_code']}.pdf"
 
     record = record or CommuniqueEnvoi(
-        communique_key=communique_key, subject=SUBJECT,
+        communique_key=communique_key, subject=context['subject'],
         recipient=expert.user, email=email,
     )
-    record.subject = SUBJECT
+    record.subject = context['subject']
     record.status = CommuniqueEnvoi.STATUS_PENDING
     record.error = ''
     record.save()
 
     try:
         message = EmailMultiAlternatives(
-            subject=SUBJECT,
+            subject=context['subject'],
             body=text,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[email],
