@@ -254,6 +254,7 @@ def generate_and_save(domain: str, draft_type: str, content: str = '', data: dic
     selected_wg = result.get('wg', '')
     selected_type = result.get('document_type') or draft_type
     draft_text = result.get('draft_text', '')
+    title = result.get('title', '')
     classification_reason = result.get('classification_reason', '')
     
     # Fallback si le CTM/WG n'ont pas été trouvés
@@ -269,6 +270,7 @@ def generate_and_save(domain: str, draft_type: str, content: str = '', data: dic
     
     # Créer l'enregistrement
     record = Draft.objects.create(
+        title=title,
         ctm=selected_ctm,
         wg=selected_wg,
         type=selected_type,
