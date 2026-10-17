@@ -263,6 +263,7 @@ class AffectationSousCommission(PhoenixValidatedModel, BaseModel):
             ('AFFECTATION_CTM', 'Affectation CTM'),
             ('PROFILE_CTM', 'CTM du profil'),
             ('NO_SOURCE', 'Aucune affectation source'),
+            ('REPORT_PROPOSAL', 'Proposition du rapport adopté'),
         ],
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.REVIEW)
