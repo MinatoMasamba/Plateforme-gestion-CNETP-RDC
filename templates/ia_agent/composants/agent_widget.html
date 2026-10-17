@@ -91,10 +91,16 @@ Paramètres d'inclusion :
     const IA_STORAGE_KEY = "ia_agent_session_" + IA_SCOPE;
     const IA_PROVIDER_KEY = IA_STORAGE_KEY + "_provider";
 
+    const IA_ALLOWED_PROVIDERS = ['deepseek'];
+    function iaNormalizeProvider(value) {
+        return IA_ALLOWED_PROVIDERS.includes(value) ? value : 'deepseek';
+    }
+
     let iaSessionId = null;
     let iaInitialized = false;
     let iaSending = false;
-    let iaSelectedProvider = localStorage.getItem(IA_PROVIDER_KEY) || 'deepseek';
+    let iaSelectedProvider = iaNormalizeProvider(localStorage.getItem(IA_PROVIDER_KEY));
+    localStorage.setItem(IA_PROVIDER_KEY, iaSelectedProvider);
 
     function iaCsrf() {
         const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
@@ -141,7 +147,8 @@ Paramètres d'inclusion :
 
     window.iaSetProvider = function(p) {
         const prev = iaSelectedProvider;
-        iaSelectedProvider = p;
+        iaSelectedProvider = iaNormalizeProvider(p);
+        p = iaSelectedProvider;
         localStorage.setItem(IA_PROVIDER_KEY, p);
         iaUpdateProviderUI(p);
 
@@ -201,6 +208,18 @@ Paramètres d'inclusion :
         }
     }
 
+    async function iaCreateSession() {
+        const session = await iaApi('/api/v1/ia-agent/sessions/', {
+            method: 'POST',
+            body: JSON.stringify({scope: IA_SCOPE, provider: iaNormalizeProvider(iaSelectedProvider)}),
+        });
+        iaSessionId = session.id;
+        localStorage.setItem(IA_STORAGE_KEY, session.id);
+        iaSelectedProvider = iaNormalizeProvider(session.provider || iaSelectedProvider);
+        localStorage.setItem(IA_PROVIDER_KEY, iaSelectedProvider);
+        return session;
+    }
+
     async function iaInit() {
         const savedId = localStorage.getItem(IA_STORAGE_KEY);
         try {
@@ -214,32 +233,29 @@ Paramètres d'inclusion :
                     await iaAutoGreet(savedId);
                 }
             } else {
-                const session = await iaApi('/api/v1/ia-agent/sessions/', {
-                    method: 'POST',
-                    body: JSON.stringify({scope: IA_SCOPE, provider: iaSelectedProvider}),
-                });
-                iaSessionId = session.id;
-                localStorage.setItem(IA_STORAGE_KEY, session.id);
-                localStorage.setItem(IA_PROVIDER_KEY, session.provider || iaSelectedProvider);
+                const session = await iaCreateSession();
                 await iaAutoGreet(session.id);
             }
         } catch (e) {
+            // Session locale devenue invalide (autre compte, suppression...) :
+            // on l'oublie et on démarre immédiatement une nouvelle session.
+            iaSessionId = null;
             localStorage.removeItem(IA_STORAGE_KEY);
+            if (savedId) {
+                try {
+                    const session = await iaCreateSession();
+                    await iaAutoGreet(session.id);
+                } catch (err) {
+                    iaRebuildEmptyHint(iaSelectedProvider);
+                }
+            }
         }
     }
 
     async function iaEnsureSession() {
         if (iaSessionId) return iaSessionId;
-        const savedId = localStorage.getItem(IA_STORAGE_KEY);
-        if (savedId) { iaSessionId = savedId; return iaSessionId; }
-        const session = await iaApi('/api/v1/ia-agent/sessions/', {
-            method: 'POST',
-            body: JSON.stringify({scope: IA_SCOPE, provider: iaSelectedProvider}),
-        });
-        iaSessionId = session.id;
-        localStorage.setItem(IA_STORAGE_KEY, session.id);
-        localStorage.setItem(IA_PROVIDER_KEY, session.provider || iaSelectedProvider);
-        return iaSessionId;
+        const session = await iaCreateSession();
+        return session.id;
     }
 
     function iaScrollToBottom() {

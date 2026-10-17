@@ -186,13 +186,18 @@
         let iaSessionId = null;
         let iaSending = false;
         let iaChartInstances = [];
-        let iaSelectedProvider = localStorage.getItem(IA_PROVIDER_KEY) || 'deepseek';
+        const IA_ALLOWED_PROVIDERS = ['deepseek'];
+        function iaNormalizeProvider(value) {
+            return IA_ALLOWED_PROVIDERS.includes(value) ? value : 'deepseek';
+        }
+        let iaSelectedProvider = iaNormalizeProvider(localStorage.getItem(IA_PROVIDER_KEY));
+        localStorage.setItem(IA_PROVIDER_KEY, iaSelectedProvider);
 
         Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#475569';
         Chart.defaults.borderColor = document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)';
 
         window.iaSetProvider = function iaSetProvider(p) {
-            iaSelectedProvider = p || 'deepseek';
+            iaSelectedProvider = iaNormalizeProvider(p);
             localStorage.setItem(IA_PROVIDER_KEY, iaSelectedProvider);
             iaIcons();
         }
@@ -637,14 +642,21 @@
             }
         }
 
+        async function iaCreateSession() {
+            return iaApi('/api/v1/ia-agent/sessions/', {
+                method: 'POST',
+                body: JSON.stringify({scope: 'pilotage', provider: iaNormalizeProvider(iaSelectedProvider)}),
+            });
+        }
+
         window.iaSwitchSession = async function(id) {
-            iaSessionId = id;
-            localStorage.setItem(IA_STORAGE_KEY, id);
             iaHighlightSession(id);
             iaClearConversation();
 
             try {
                 const msgs = await iaApi('/api/v1/ia-agent/sessions/' + id + '/messages/');
+                iaSessionId = id;
+                localStorage.setItem(IA_STORAGE_KEY, id);
                 if (msgs.length) {
                     document.getElementById('ia-empty-hint').remove();
                     msgs.forEach(iaRenderMessage);
@@ -652,7 +664,18 @@
                 } else {
                     await iaAutoGreet(id);
                 }
-            } catch (e) {}
+            } catch (e) {
+                // Session supprimée, obsolète ou appartenant à un autre compte :
+                // on nettoie la référence locale et on repart sur une session neuve.
+                iaSessionId = null;
+                localStorage.removeItem(IA_STORAGE_KEY);
+                const btn = document.querySelector('.ia-session-item[data-session-id="' + id + '"]');
+                if (btn) btn.remove();
+                if (String(e.message).indexOf('erreur 404') !== -1) {
+                    await iaNewSession();
+                }
+                return;
+            }
 
             try {
                 const artifacts = await iaApi('/api/v1/ia-agent/artifacts/');
@@ -665,10 +688,7 @@
 
         window.iaNewSession = async function() {
             try {
-                const session = await iaApi('/api/v1/ia-agent/sessions/', {
-                    method: 'POST',
-                    body: JSON.stringify({scope: 'pilotage', provider: iaSelectedProvider}),
-                });
+                const session = await iaCreateSession();
                 const emptyMsg = document.getElementById('ia-session-empty');
                 if (emptyMsg) emptyMsg.remove();
 
@@ -692,10 +712,7 @@
 
         async function iaEnsureSession() {
             if (iaSessionId) return iaSessionId;
-            const session = await iaApi('/api/v1/ia-agent/sessions/', {
-                method: 'POST',
-                body: JSON.stringify({scope: 'pilotage', provider: iaSelectedProvider}),
-            });
+            const session = await iaCreateSession();
             iaSessionId = session.id;
             localStorage.setItem(IA_STORAGE_KEY, session.id);
             return iaSessionId;
