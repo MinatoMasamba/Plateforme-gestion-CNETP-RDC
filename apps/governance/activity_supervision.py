@@ -16,6 +16,7 @@ from .models import (
     JustifiedAbsence, OffPlatformWork, Organe, PilotageMembreship, Tache, WG,
     WorkExpectation,
 )
+from .phoenix_runtime import current_organisation_version
 
 KINSHASA_TZ = timezone.get_fixed_timezone(60)
 LEAD_ACTIVITY_ROLES = {'COORDINATOR', 'VICE_COORDINATOR', 'PLANNER'}
@@ -319,9 +320,10 @@ def historical_sc_rows(start, end):
         'SC-VRD': (6, 'Signalisation-équipements, géomatique et réseaux secs'),
         'SC-SOCLE': (7, 'Domaine technique transversal'),
     }
+    adopted_version = current_organisation_version()
     adopted = list(Organe.objects.filter(
-        version__code='reorganisation-2026-10-15', type='SC',
-    ).exclude(status='ARCHIVED').prefetch_related('groupes'))
+        version=adopted_version, type='SC',
+    ).exclude(status='ARCHIVED').prefetch_related('groupes')) if adopted_version else []
     if adopted:
         ctms = {ctm.number: ctm for ctm in CTM.objects.all()}
         rows = []

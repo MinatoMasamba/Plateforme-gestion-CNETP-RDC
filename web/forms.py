@@ -183,7 +183,7 @@ class ExpertOrganisationChoiceForm(forms.Form):
     def __init__(self, *args, version, **kwargs):
         super().__init__(*args, **kwargs)
         self.version = version
-        self.uses_adopted_gt = version.code == 'reorganisation-2026-10-15'
+        self.uses_adopted_gt = GroupeCible.objects.filter(sc__version=version).exists()
         for field in self.fields.values():
             field.widget.attrs['class'] = (
                 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 '

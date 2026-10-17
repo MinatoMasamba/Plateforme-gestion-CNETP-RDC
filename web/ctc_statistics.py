@@ -54,15 +54,17 @@ def _donut_segments(items):
 
 def _coordination(sc):
     today = timezone.localdate()
-    posts = list(sc.postes.prefetch_related('mandates__expert__user'))
+    posts = list(sc.postes.prefetch_related('mandates__expert__user').order_by('code'))
     result = []
-    for title, prefix in [('Président', 'PRES'), ('Rapporteur', 'RAPP'), ('Secrétaire', 'SECR')]:
-        post = next((item for item in posts if prefix in item.code.upper() or prefix in item.title.upper()), None)
+    for post in posts:
         mandate = next((item for item in post.mandates.all()
                         if item.status == 'ACTIVE' and item.capacity == 'ORGANISATION'
                         and (not item.start_date or item.start_date <= today)
-                        and (not item.end_date or item.end_date >= today)), None) if post else None
-        result.append({'title': title, 'holder': mandate.expert.full_name if mandate else 'Titulaire à confirmer'})
+                        and (not item.end_date or item.end_date >= today)), None)
+        result.append({
+            'title': post.title or post.code,
+            'holder': mandate.expert.full_name if mandate else 'Titulaire à confirmer',
+        })
     return result
 
 

@@ -1,7 +1,9 @@
 """Interfaces web de supervision des sous-commissions et de transparence."""
 import csv
 import json
+import unicodedata
 from datetime import timedelta
+from types import SimpleNamespace
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -30,6 +32,21 @@ from apps.governance.models import (
 )
 from apps.norms.models import Norme
 from apps.governance.phoenix_models import MandatOrganisation, RattachementDocumentaire
+from apps.governance.phoenix_runtime import current_organisation_version
+
+
+def _fold(value):
+    normalized = unicodedata.normalize('NFKD', value or '')
+    return ''.join(char for char in normalized if not unicodedata.combining(char)).casefold()
+
+
+def _ctm_for_sc(sc):
+    """Retrouve le CTM courant correspondant à la SC, sans code figé."""
+    names = {_fold(sc.name), _fold(sc.official_name)}
+    for ctm in CTM.objects.all():
+        if _fold(ctm.name) in names:
+            return ctm
+    return None
 
 
 def _period(request):
@@ -150,6 +167,13 @@ class ActivityCurrentSubcommissionView(View):
     def get(self, request, pk):
         _require(request, 'can_view_aggregates')
         sc = get_object_or_404(Organe, pk=pk, type='SC')
+        current_version = current_organisation_version()
+        if current_version and sc.version_id != current_version.pk:
+            target = Organe.objects.filter(
+                version=current_version, type=Organe.Type.SC, code=sc.code,
+            ).first()
+            if target:
+                return redirect('web:activity_current_subcommission', target.pk)
         context = _base_context(request, f'Activité · {sc.official_name or sc.name}')
         start, end = context['period_start'], context['period_end']
         groups = []
@@ -161,13 +185,26 @@ class ActivityCurrentSubcommissionView(View):
                 Q(end_date__isnull=True) | Q(end_date__gte=today)
             ).select_related('expert__user'))
             groups.append({'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, target_group=group), 'historical': False, 'expert_activity': _group_expert_activity([mandate.expert for mandate in mandates], group.tasks.all())})
-        posts = list(sc.postes.prefetch_related('mandates__expert__user'))
+        posts = list(sc.postes.prefetch_related('mandates__expert__user').order_by('code'))
         coordination = []
-        for title in ('Président', 'Rapporteur', 'Secrétaire'):
-            post = next((item for item in posts if item.title.casefold() == title.casefold()), None)
-            holder = next((mandate for mandate in post.mandates.all() if mandate.status == 'ACTIVE' and mandate.capacity == 'ORGANISATION' and (not mandate.start_date or mandate.start_date <= today) and (not mandate.end_date or mandate.end_date >= today)), None) if post else None
-            coordination.append({'title': title, 'post': post, 'holder': holder})
+        for post in posts:
+            holder = next((mandate for mandate in post.mandates.all()
+                           if mandate.status == 'ACTIVE' and mandate.capacity == 'ORGANISATION'
+                           and (not mandate.start_date or mandate.start_date <= today)
+                           and (not mandate.end_date or mandate.end_date >= today)), None)
+            coordination.append({
+                'title': post.title or post.code,
+                'post': post,
+                'holder': holder,
+            })
         bindings = list(RattachementDocumentaire.objects.filter(sc=sc).select_related('norme', 'gt').order_by('norme__title'))
+        if not bindings:
+            ctm = _ctm_for_sc(sc)
+            if ctm:
+                bindings = [
+                    SimpleNamespace(norme=norme, gt=None, status='VALIDATED')
+                    for norme in Norme.objects.filter(ctm=ctm).select_related('wg').order_by('title')
+                ]
         norm_sections = {'waiting': [], 'working': [], 'produced': [], 'unconfirmed': []}
         seen = set()
         for binding in bindings:

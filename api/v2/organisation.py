@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from apps.governance.models import OrganisationVersion, Organe, GroupeCible, PiecePhoenix, MandatOrganisation, ParticipationPhoenix
 from apps.governance.phoenix_operations import CONFIG_MODELS, object_version, configure, activate, suspend, readiness, snapshot, CONFIG_FIELDS
+from apps.governance.phoenix_runtime import current_organisation_version
 from apps.governance.phoenix_workflow import (accessible_dossiers, mandates_for, permitted_transitions, selected_mandate,
     create_dossier, save_version, attach_piece, decide, save_inquiry, set_document_lock, plan_meeting, record_presence, PhoenixConflict)
 from apps.norms.models import NormeVersion
@@ -23,7 +24,10 @@ from web.organisation_views import preparation_context
 
 
 def version():
-    return get_object_or_404(OrganisationVersion, code='phoenix-2026-10')
+    organisation = current_organisation_version()
+    if not organisation:
+        raise Http404("Aucune version d'organisation n'est enregistrée.")
+    return organisation
 
 
 def error_response(error):

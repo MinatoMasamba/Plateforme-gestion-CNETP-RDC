@@ -13,14 +13,17 @@ from apps.governance.models import (
     CorrespondanceGroupe, WG, GroupeCible, AffectationSousCommission,
 )
 from apps.governance.phoenix_services import propose_mapping
+from apps.governance.phoenix_runtime import current_organisation_version
 from apps.governance.organisation_permissions import can_manage_organisation, can_prepare_organisation, can_activate_organisation
 from apps.governance.phoenix_operations import journal as record_journal
 from .supervision_views import supervisor_context
 
 
 def preferred_version():
-    return (OrganisationVersion.objects.filter(code='reorganisation-2026-10-15').first()
-            or get_object_or_404(OrganisationVersion, code='phoenix-2026-10'))
+    version = current_organisation_version()
+    if not version:
+        raise Http404("Aucune version d'organisation n'est enregistrée.")
+    return version
 
 
 def preparation_context(request):
@@ -34,8 +37,7 @@ def preparation_context(request):
 class PhoenixOrganisationView(View):
     def get(self, request):
         context = preparation_context(request)
-        version = (OrganisationVersion.objects.filter(code='reorganisation-2026-10-15').first()
-                   or OrganisationVersion.objects.filter(code='phoenix-2026-10').first())
+        version = current_organisation_version()
         if version:
             version.name = 'Organisation CNE-ITP'
             organes = list(version.organes.prefetch_related(

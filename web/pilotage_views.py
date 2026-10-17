@@ -39,6 +39,7 @@ from apps.norms.models import Norme
 from apps.norms.models import NormeComment
 from apps.validation.models import EconomicReview, IndustrialConsultation, LegisticReview, ScheduleReview
 from apps.governance.ctc_supervision import build_ctc_supervision
+from apps.governance.phoenix_runtime import current_organisation_version
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -719,10 +720,11 @@ def get_pilotage_context(expert: Expert) -> dict | None:
 
     # Les anciens numéros servent seulement à résoudre le périmètre SC.
     specialty_ctm_ids = _ATF_SPECIALTY_CTM.get(sub_role, [])
+    organisation_courante = current_organisation_version()
     specialty_sc_ids = list(CorrespondanceStructure.objects.filter(
-        version__code='phoenix-2026-10', status='VALIDATED',
+        version=organisation_courante, status='VALIDATED',
         ctm__number__in=specialty_ctm_ids, sc__isnull=False,
-    ).values_list('sc_id', flat=True).distinct())
+    ).values_list('sc_id', flat=True).distinct()) if organisation_courante else []
     specialty_scs = Organe.objects.filter(pk__in=specialty_sc_ids).order_by('code')
 
     # ── Demandes de permission en attente (Directoire seulement) ─────────────
@@ -882,17 +884,7 @@ class PilotageDashboardView(View):
 
         # La navigation Pilotage expose la version d'organisation la plus récente
         # (la version active si elle existe), sans dépendre d'un code figé.
-        organisation = (
-            OrganisationVersion.objects.filter(
-                status=OrganisationVersion.Status.ACTIVE,
-            ).order_by('-created_at', '-id').first()
-            or OrganisationVersion.objects.filter(
-                status__in=[
-                    OrganisationVersion.Status.PROPOSED,
-                    OrganisationVersion.Status.VALIDATED,
-                ],
-            ).order_by('-created_at', '-id').first()
-        )
+        organisation = current_organisation_version()
         sc_assignments = AffectationSousCommission.objects.filter(
             version=organisation,
             status__in=[
@@ -1710,6 +1702,7 @@ class PilotageExpertAccessView(View):
             )
             return redirect('web:pilotage_dashboard')
 
+        organisation = current_organisation_version()
         experts = (
             Expert.objects
             .select_related('user', 'structure')
@@ -1717,7 +1710,7 @@ class PilotageExpertAccessView(View):
                 Prefetch(
                     'subcommission_assignments',
                     queryset=AffectationSousCommission.objects.filter(
-                        version__code='phoenix-2026-10',
+                        version=organisation,
                         status__in=(AffectationSousCommission.Status.MIGRATED,
                                     AffectationSousCommission.Status.REVIEW),
                     ).select_related('sc').order_by('sc__code'),
