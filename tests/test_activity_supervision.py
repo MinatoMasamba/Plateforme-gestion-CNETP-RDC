@@ -125,3 +125,37 @@ def test_global_interface_and_legacy_public_route(client, expert_factory):
     assert reverse('web:phoenix_workspace') == '/pilotage/organisation/dossiers/'
     legacy = client.get('/phoenix/')
     assert legacy.status_code == 200
+
+
+def test_activity_dashboard_uses_pilotage_shell_and_report_sc(client, expert_factory):
+    from apps.governance.rapport_adopte_2026 import prepare_adopted_organisation
+    from apps.governance.models import Organe
+
+    lead = expert_factory()
+    coordinator(lead)
+    prepare_adopted_organisation()
+    client.force_login(lead.user)
+    response = client.get(reverse('web:activity_dashboard'))
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert 'id="activity-sidebar"' in body
+    assert 'id="activity-panel-tendance"' in body
+    assert 'SC-SOCLE' in body
+    assert 'SC-BAT' in body
+    assert 'Ministère des Infrastructures et Travaux Publics' in body
+    assert 'Comité de pilotage' in body
+    assert 'Fil d’Ariane' in body
+    assert 'premium-donut' in body
+    assert '0 sources' not in body
+    assert 'Accueil</a>' not in body
+    assert 'À Propos</a>' not in body
+    assert 'Contact</a>' not in body
+    for tab in ('commissions', 'tendance', 'charge', 'mes_donnees'):
+        selected = client.get(reverse('web:activity_dashboard'), {'vue': tab})
+        assert selected.status_code == 200
+        assert selected.context['active_tab'] == tab
+        assert f'data-activity-panel="{tab}" role="tabpanel"' in selected.content.decode()
+    sc_bat = Organe.objects.get(version__code='reorganisation-2026-10-15', code='SC-BAT')
+    detail = client.get(reverse('web:activity_current_subcommission', args=[sc_bat.pk]))
+    assert detail.status_code == 200
+    assert 'SC-BAT-GT1' in detail.content.decode()

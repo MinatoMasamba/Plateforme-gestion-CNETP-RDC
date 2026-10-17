@@ -40,7 +40,7 @@ SUJET_EMAIL = "CNE-ITP — Mise à jour de la plateforme : application désormai
 
 MESSAGE_TEMPLATE = """Honorable {nom},
 
-Nous avons l'honneur de vous informer, au nom de la Cellule Technique de Coordination (CTC) de la CNE-ITP, que la plateforme numérique de la Commission a fait l'objet d'une mise à jour.
+Nous avons l'honneur de vous informer, au nom de la Coordination du Secrétariat technique de la CNE-ITP, que la plateforme numérique de la Commission a fait l'objet d'une mise à jour.
 
 🔗 Lien vers la plateforme : {lien}
 
@@ -52,7 +52,7 @@ Le Service de Support Technique reste à votre entière disposition pour toute a
 
 Veuillez agréer, Honorable {nom}, l'expression de notre haute considération.
 
-La Cellule Technique de Coordination (CTC)
+La Coordination du Secrétariat technique
 CNE-ITP — Secrétariat Général aux ITP
 Kinshasa, RDC."""
 

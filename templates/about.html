@@ -90,7 +90,7 @@
             <h2 class="text-3xl font-bold text-slate-900 tracking-tight mb-4 dark:text-white">Gouvernance</h2>
             <p class="text-slate-500 max-w-2xl mx-auto text-sm dark:text-slate-300">
                 L'administration et la supervision stratégique de la CNE-ITP reposent sur deux organes
-                sommitaux, appuyés par 8 sous-commissions techniques de production.
+                centraux, appuyés par sept sous-commissions techniques et 35 groupes de travail.
             </p>
         </div>
 
@@ -99,16 +99,16 @@
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
                     <i data-lucide="shield-check" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-base font-bold mb-3 text-slate-900 dark:text-white">Comité de pilotage élargi (27 postes)</h3>
+                <h3 class="text-base font-bold mb-3 text-slate-900 dark:text-white">Comité de pilotage (22 postes)</h3>
                 <p class="text-slate-500 text-xs leading-relaxed mb-3 dark:text-slate-400">
-                    Formule les orientations stratégiques, assure le suivi rigoureux du chronogramme et valide
-                    le mandat opérationnel de chaque expert.
+                    Organe non permanent d'orientation stratégique, de supervision, d'arbitrage et de validation.
+                    Il se réunit deux fois par an ou lorsque les besoins l'exigent.
                 </p>
                 <ul class="text-xs text-slate-600 space-y-1.5 dark:text-slate-300">
-                    <li>• Bureau Directoire (5 postes)</li>
-                    <li>• Collège des Conseillers Institutionnels et Politiques (12 postes)</li>
-                    <li>• Collège des Administrateurs Techniques et Financiers (5 postes)</li>
-                    <li>• Collège des Partenaires Sectoriels et de la Société Civile (5 postes)</li>
+                    <li>• Présidence et vice-présidences (4 postes)</li>
+                    <li>• Secrétariat (2 postes)</li>
+                    <li>• Membres institutionnels (7 postes)</li>
+                    <li>• Invités (3 postes) et appoints (6 postes)</li>
                 </ul>
             </div>
 
@@ -116,21 +116,19 @@
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-blue-500/10 text-blue-600 border border-blue-500/20">
                     <i data-lucide="settings" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-base font-bold mb-3 text-slate-900 dark:text-white">Cellule technique de coordination (20 postes)</h3>
+                <h3 class="text-base font-bold mb-3 text-slate-900 dark:text-white">Coordination du Secrétariat technique (24 postes)</h3>
                 <p class="text-slate-500 text-xs leading-relaxed mb-3 dark:text-slate-400">
-                    Assure la gestion opérationnelle journalière, centralise les livrables techniques, pilote
-                    l'ingénierie documentaire et organise réglementairement l'enquête publique.
+                    Organe permanent chargé de la coordination quotidienne, du suivi des sous-commissions,
+                    du contrôle des travaux et de la préparation des dossiers destinés au Comité de pilotage.
                 </p>
                 <ul class="text-xs text-slate-600 space-y-1.5 dark:text-slate-300">
-                    <li>• Direction des Opérations (3 postes)</li>
-                    <li>• Pôle d'Analyse et d'Ingénierie Documentaire (7 postes)</li>
-                    <li>• Pôle Logistique, Communication et Relations Extérieures (4 postes)</li>
-                    <li>• Bureau d'Appui Technique et Numérique (6 postes)</li>
+                    <li>• Coordination centrale (4 postes)</li>
+                    <li>• Cinq pôles techniques de quatre postes chacun</li>
                 </ul>
             </div>
         </div>
 
-        <!-- 8 sous-commissions -->
+        <!-- Sept sous-commissions du rapport adopté -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {% for sc in sous_commissions %}
             <div class="rounded-xl p-4 bg-white border border-slate-200 hover:border-[#0095c9]/40 transition-all dark:bg-slate-900 dark:border-white/10">
@@ -148,30 +146,33 @@
         <div class="text-center mb-14">
             <h2 class="text-3xl font-bold text-slate-900 tracking-tight mb-4 dark:text-white">Processus de validation</h2>
             <p class="text-slate-500 max-w-2xl mx-auto text-sm dark:text-slate-300">
-                Toute norme suit obligatoirement un circuit de contrôle hiérarchisé destiné à lui conférer une
-                force exécutoire incontestable.
+                Les dossiers conservent leurs versions, observations et décisions à chaque étape du parcours institutionnel.
             </p>
         </div>
         <div class="space-y-4">
             <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
                 <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">1</div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Production de base</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">La sous-commission finalise la version corrigée après l'enquête publique et la transmet à la Cellule technique de coordination.</p></div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Orientation et mandat</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le Comité de pilotage fixe les priorités et le mandat des travaux.</p></div>
             </div>
             <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
                 <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">2</div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Vérification de forme</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">La cellule technique et ses juristes vérifient la structure, la rédaction et la conformité du projet.</p></div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Organisation des travaux</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">La Coordination du Secrétariat technique organise les activités des sous-commissions et des groupes de travail.</p></div>
             </div>
             <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
                 <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">3</div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Contrôle de conformité</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le comité de pilotage examine le projet au regard du calendrier, des priorités et des orientations publiques.</p></div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Élaboration</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Les groupes de travail et les sous-commissions rédigent les projets et traitent les observations.</p></div>
             </div>
             <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
                 <div class="w-8 h-8 rounded-full bg-[#0095c9] text-white text-xs font-bold flex items-center justify-center shrink-0">4</div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Adoption en séance plénière</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le projet est présenté à la commission pour adoption par consensus ou selon les règles de vote applicables.</p></div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Examen et consolidation</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le Secrétariat technique contrôle le dossier, demande les corrections utiles et prépare la transmission.</p></div>
             </div>
             <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
                 <div class="w-8 h-8 rounded-full bg-[#db3832] text-white text-xs font-bold flex items-center justify-center shrink-0">5</div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Homologation</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le dossier est transmis à l'autorité compétente pour validation et publication dans le référentiel national.</p></div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Soumission et validation</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Le Comité de pilotage examine le dossier, statue et peut le retourner pour correction.</p></div>
+            </div>
+            <div class="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 dark:bg-slate-950 dark:border-white/10">
+                <div class="w-8 h-8 rounded-full bg-[#db3832] text-white text-xs font-bold flex items-center justify-center shrink-0">6</div>
+                <div><p class="text-sm font-bold text-slate-900 dark:text-white">Suite institutionnelle</p><p class="text-xs text-slate-500 mt-1 dark:text-slate-400">Après validation, le dossier poursuit les procédures institutionnelles applicables avec ses décisions tracées.</p></div>
             </div>
         </div>
     </div>

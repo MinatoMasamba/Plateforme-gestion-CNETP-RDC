@@ -173,12 +173,17 @@ class ExpertOrganisationChoiceForm(forms.Form):
     )
     source_wg = forms.ModelChoiceField(
         label='Groupe de travail actuel à classer', queryset=WG.objects.all(),
-        empty_label='Choisir un groupe existant',
+        empty_label='Choisir un groupe existant', required=False,
+    )
+    groupe = forms.ModelChoiceField(
+        label='Groupe de travail souhaité', queryset=GroupeCible.objects.none(),
+        empty_label='Choisir un groupe de travail', required=False,
     )
 
     def __init__(self, *args, version, **kwargs):
         super().__init__(*args, **kwargs)
         self.version = version
+        self.uses_adopted_gt = version.code == 'reorganisation-2026-10-15'
         for field in self.fields.values():
             field.widget.attrs['class'] = (
                 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 '
@@ -188,10 +193,16 @@ class ExpertOrganisationChoiceForm(forms.Form):
             version=version, type=Organe.Type.SC,
         ).exclude(status='ARCHIVED').order_by('code')
         self.fields['source_wg'].queryset = WG.objects.select_related('ctm').order_by('ctm__number', 'number', 'name')
+        self.fields['source_wg'].required = not self.uses_adopted_gt
+        self.fields['groupe'].required = self.uses_adopted_gt
+        self.fields['groupe'].queryset = GroupeCible.objects.filter(sc__version=version).order_by('sc__code', 'code')
 
     def clean(self):
         cleaned = super().clean()
         sc = cleaned.get('sc')
+        groupe = cleaned.get('groupe')
+        if groupe and sc and groupe.sc_id != sc.pk:
+            self.add_error('groupe', 'Choisissez un groupe de cette sous-commission.')
         return cleaned
 
 
@@ -406,10 +417,10 @@ class ExpertRegistrationForm(forms.ModelForm):
         })
     )
     
-    # Cellule Technique de Coordination
+    # Champ de compatibilité historique ; aucune nomination à l'inscription.
     ctc_member = forms.BooleanField(
         required=False,
-        label="Membre de la Cellule Technique de Coordination",
+        label="Rattachement à la Coordination du Secrétariat technique",
         widget=forms.CheckboxInput(attrs={
             'class': 'h-4 w-4 rounded',
         })
@@ -533,49 +544,6 @@ class ExpertRegistrationForm(forms.ModelForm):
 
         if commit:
             expert.save()
-            
-            # Ajouter à CTM si sélectionné
-            ctm = self.cleaned_data.get('ctm')
-            if ctm:
-                expert.ctm = ctm
-                expert.save()
-            
-            # Ajouter au Comité de Pilotage si sélectionné
-            if self.cleaned_data.get('pilotage_member'):
-                from apps.governance.models import PilotageMembreship
-                comite = ComitePilotage.objects.first() or ComitePilotage.objects.create(
-                    name="Comité de Pilotage Stratégique CNETP"
-                )
-                PilotageMembreship.objects.get_or_create(
-                    comite=comite,
-                    expert=expert,
-                    defaults={'role': self.cleaned_data.get('pilotage_role', 'CONSEILLER')}
-                )
-            
-            # Ajouter à la Cellule Technique de Coordination si sélectionné
-            if self.cleaned_data.get('ctc_member'):
-                from apps.governance.models import CTCMembership
-                ctc = TechnicalCell.objects.first() or TechnicalCell.objects.create(
-                    name="Cellule Technique de Coordination"
-                )
-                CTCMembership.objects.get_or_create(
-                    ctc=ctc,
-                    expert=expert,
-                    defaults={'role': self.cleaned_data.get('ctc_role', 'ISO_EXPERT')}
-                )
-
-            # NEW: Ajouter une affectation WG si sélectionné
-            wg = self.cleaned_data.get('wg')
-            if wg:
-                # déterminer le CTM pour l'affectation
-                ctm_for_aff = ctm or getattr(wg, 'ctm', None) or getattr(expert, 'ctm', None)
-                if ctm_for_aff:
-                    Affectation.objects.get_or_create(
-                        expert=expert,
-                        ctm=ctm_for_aff,
-                        wg=wg,
-                        defaults={'is_primary_ctm': True, 'is_primary_wg': True}
-                    )
         
         return expert
 

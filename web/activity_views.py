@@ -71,39 +71,46 @@ class ActivityDashboardView(View):
     def get(self, request):
         _require(request, 'can_view_aggregates')
         context = _base_context(request, 'Supervision des sous-commissions')
+        tab_labels = {
+            'ensemble': 'Vue globale', 'commissions': 'Sous-commissions',
+            'tendance': 'Tendance hebdomadaire', 'charge': 'Charge planifiée',
+            'mes_donnees': 'Mes données',
+        }
+        active_tab = request.GET.get('vue', 'ensemble')
+        if active_tab not in tab_labels:
+            active_tab = 'ensemble'
         start, end = context['period_start'], context['period_end']
         rows = historical_sc_rows(start, end)
         for row in rows:
             if row['kind'] == 'current':
-                row['metrics'] = _unconfigured_metrics()
                 groups = GroupeCible.objects.filter(sc_id=row['id']).order_by('name')
                 row['group_rows'] = [{'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, target_group=group), 'historical': False} for group in groups]
             else:
                 groups = WG.objects.filter(ctm_id=row['id']).order_by('name')
                 row['group_rows'] = [{'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, wg=group), 'historical': True} for group in groups]
-        rows.sort(key=lambda row: row['name'].casefold())
         heatmap = weekly_heatmap(rows, end)
-        chart_payload = {
-            'heatmap': {
-                'weeks': [value.strftime('%d/%m') for value in heatmap['weeks']],
-                'rows': heatmap['rows'],
-            },
-            'load': [
-                {
-                    'label': row['code'],
-                    'tasks': row['metrics']['production'].get('sources', 0),
-                    'progress': row['metrics']['production'].get('value'),
-                }
-                for row in rows
-            ],
-        }
+        personal_expert = context['activity_access']['expert']
+        personal_tasks = (Tache.objects.filter(Q(assigned_to=personal_expert) | Q(backup_assignee=personal_expert))
+                          .select_related('norme').order_by('-updated_at')[:5]) if personal_expert else []
+        load_max = max((row['metrics']['production'].get('sources', 0) for row in rows), default=0)
+        for row in rows:
+            sources = row['metrics']['production'].get('sources', 0)
+            row['load_percent'] = round(sources * 100 / load_max) if load_max else 0
         context.update({
             'metrics': calculate_scope_metrics(start=start, end=end),
             'exceptions': build_exceptions(),
             'subcommissions': rows,
             'heatmap': heatmap,
-            'chart_payload_json': json.dumps(chart_payload),
             'recent_sessions': ActivitySession.objects.select_related('user').order_by('-last_seen_at')[:12],
+            'activity_dashboard': True,
+            'active_tab': active_tab,
+            'active_tab_label': tab_labels[active_tab],
+            'gt_count': sum(row['group_count'] for row in rows),
+            'load_max': load_max,
+            'personal_expert': personal_expert,
+            'personal_metrics': calculate_scope_metrics(start=start, end=end, expert=personal_expert) if personal_expert else None,
+            'personal_tasks': personal_tasks,
+            'personal_sessions_count': ActivitySession.objects.filter(user=request.user, started_at__date__range=(start, end)).count(),
         })
         return render(request, self.template_name, context)
 
@@ -156,8 +163,8 @@ class ActivityCurrentSubcommissionView(View):
             groups.append({'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, target_group=group), 'historical': False, 'expert_activity': _group_expert_activity([mandate.expert for mandate in mandates], group.tasks.all())})
         posts = list(sc.postes.prefetch_related('mandates__expert__user'))
         coordination = []
-        for title, key in [('Président', 'PRES'), ('Rapporteur', 'RAPP'), ('Secrétaire', 'SECR')]:
-            post = next((item for item in posts if key in item.code.upper() or key in item.title.upper()), None)
+        for title in ('Président', 'Rapporteur', 'Secrétaire'):
+            post = next((item for item in posts if item.title.casefold() == title.casefold()), None)
             holder = next((mandate for mandate in post.mandates.all() if mandate.status == 'ACTIVE' and mandate.capacity == 'ORGANISATION' and (not mandate.start_date or mandate.start_date <= today) and (not mandate.end_date or mandate.end_date >= today)), None) if post else None
             coordination.append({'title': title, 'post': post, 'holder': holder})
         bindings = list(RattachementDocumentaire.objects.filter(sc=sc).select_related('norme', 'gt').order_by('norme__title'))

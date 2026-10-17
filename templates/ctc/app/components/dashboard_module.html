@@ -1,12 +1,12 @@
 <section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8" aria-labelledby="ctc-dashboard-title">
   <div class="flex flex-wrap items-end justify-between gap-4">
-    <div><p class="premium-eyebrow">Cellule technique de coordination · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
+    <div><p class="premium-eyebrow">Secrétariat technique · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
     <button type="button" onclick="window.switchView('assignations')" class="institutional-primary rounded-lg px-4 py-2 text-sm font-semibold">Mes assignations</button>
   </div>
   <div class="institutional-card premium-hero p-5 sm:p-7">
     <p class="premium-eyebrow">Votre activité</p><h3 class="premium-section-title">Vue d'ensemble</h3>
     <div class="premium-kpi-grid mt-5">
-      <div class="premium-kpi"><p>Dossiers CTC</p><strong>{{ dashboard_dossiers_count }}</strong><span>Enregistrés dans le circuit</span></div>
+      <div class="premium-kpi"><p>Dossiers du Secrétariat technique</p><strong>{{ dashboard_dossiers_count }}</strong><span>Enregistrés dans le circuit</span></div>
       <div class="premium-kpi"><p>Mes assignations</p><strong>{{ dashboard_assignations_count }}</strong><span>Attribuées à votre poste</span></div>
       <div class="premium-kpi"><p>Normes suivies</p><strong>{{ ctc_statistics.norm_count }}</strong><span>Rattachement explicite</span></div>
       <div class="premium-kpi"><p>Tâches en retard</p><strong>{{ ctc_statistics.overdue_count }}</strong><span>Selon leur échéance</span></div>

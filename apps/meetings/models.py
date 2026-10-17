@@ -13,7 +13,7 @@ class Reunion(BaseModel):
         ('WG', 'Groupe de Travail'),
         ('PILOTAGE', 'Comité de Pilotage'),
         ('ASSEMBLEE', 'Assemblée Plénière'),
-        ('CTC', 'Cellule Technique de Coordination'),
+        ('CTC', 'Coordination du Secrétariat technique'),
     ]
     
     STATUS_CHOICES = [

@@ -11,7 +11,7 @@ class AgentSession(BaseModel):
 
     SCOPE_CHOICES = [
         ('expert', 'Expert'),
-        ('ctc', 'Cellule Technique de Coordination'),
+        ('ctc', 'Coordination du Secrétariat technique'),
         ('pilotage', 'Comité de Pilotage'),
     ]
     PROVIDER_CHOICES = [
@@ -225,7 +225,7 @@ class AgentPosteContext(BaseModel):
 
     ORGAN_CHOICES = [
         ('pilotage', 'Comité de Pilotage Stratégique'),
-        ('ctc', 'Cellule Technique de Coordination'),
+        ('ctc', 'Coordination du Secrétariat technique'),
         ('expert', 'Expert CTM/WG'),
     ]
 

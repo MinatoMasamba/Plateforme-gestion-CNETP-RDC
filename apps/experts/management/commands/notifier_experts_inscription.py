@@ -254,7 +254,7 @@ Le Service de Support Technique reste à votre entière disposition.
 
 Veuillez agréer, Honorables Experts, notre haute considération patriotique.
 
-La Cellule Technique de Coordination (CTC)
+La Coordination du Secrétariat technique
 Secrétariat Général aux ITP / Direction de la Réglementation et des Normes.
 📍 Kinshasa, RDC."""
 

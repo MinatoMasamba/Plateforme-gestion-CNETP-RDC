@@ -308,7 +308,7 @@ def build_ctc_supervision(request, ctm=None):
         'ctc_supervision': {
             'is_ctm': ctm is not None,
             'title': f'Supervision du CTM {ctm.number}' if ctm else 'Supervision de l’équipe CTC',
-            'dossier_label': 'Dossiers du CTM' if ctm else 'Dossiers CTC',
+            'dossier_label': 'Dossiers du CTM' if ctm else 'Dossiers du Secrétariat technique',
             'stage_title': 'État des dossiers du CTM' if ctm else 'État du circuit CTC',
             'stage_caption': f'Situation actuelle des dossiers du CTM {ctm.number}' if ctm else 'Situation actuelle de l’ensemble des dossiers CTC',
             'base_url': reverse('web:pilotage_ctm_detail', args=[ctm.number]) if ctm else reverse('web:pilotage_dashboard'),

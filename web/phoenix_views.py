@@ -27,11 +27,11 @@ from apps.governance.phoenix_workflow import (accessible_dossiers, mandates_for,
 from apps.norms.models import NormeVersion
 from apps.norms.diff_utils import build_inline_diff_segments
 from .phoenix_forms import configuration_form, DossierCreateForm, ActivationForm
-from .organisation_views import preparation_context
+from .organisation_views import preparation_context, preferred_version
 
 
 def version_context(request):
-    version = get_object_or_404(OrganisationVersion, code='phoenix-2026-10')
+    version = preferred_version()
     # Le code technique historique n'est jamais exposé comme nom de produit.
     version.name = 'Organisation CNE-ITP'
     return {'version': version, 'can_manage': can_manage_organisation(request.user),

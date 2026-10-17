@@ -125,6 +125,7 @@ class GroupeCible(PhoenixValidatedModel, BaseModel):
     sc = models.ForeignKey(Organe, on_delete=models.PROTECT, related_name='groupes')
     code = models.CharField(max_length=60)
     name = models.CharField(max_length=250)
+    mission = models.TextField(blank=True)
     activity = models.CharField(max_length=20, choices=[('PRODUCTION', 'Production'), ('WATCH', 'Veille')])
     source_reference = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=OrganisationVersion.Status.choices, default='PROPOSED')

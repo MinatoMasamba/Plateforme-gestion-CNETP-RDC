@@ -35,13 +35,13 @@ INSTRUCTIONS_PAR_ROLE = {
         """- Présider les sessions du Comité Technique Miroir et en valider l'ordre du jour scientifique ;
 - Coordonner les travaux des Groupes de Travail (WG) rattachés à votre CTM ;
 - Garantir la cohérence scientifique et technique des projets de normes soumis à validation ;
-- Représenter le CTM auprès de la Cellule Technique de Coordination (CTC) et du Comité de Pilotage ;
+- Représenter le CTM auprès de la Coordination du Secrétariat technique et du Comité de Pilotage ;
 - Arbitrer les divergences techniques entre membres et Groupes de Travail.""",
     ),
     "RAPPORTEUR": (
         "Rapporteur du CTM",
         """- Consolider et synthétiser les travaux techniques issus des Groupes de Travail (WG) du CTM ;
-- Rédiger les rapports d'avancement transmis à la Cellule Technique de Coordination (CTC) ;
+- Rédiger les rapports d'avancement transmis à la Coordination du Secrétariat technique ;
 - Présenter l'état d'avancement des projets de normes lors des sessions du CTM et du Comité de Pilotage ;
 - Assurer le suivi des recommandations et de leur mise en œuvre.""",
     ),
@@ -81,7 +81,7 @@ Pour toute question relative à votre rôle ou à l'utilisation de la plateforme
 
 Veuillez agréer, Honorable Expert, notre haute considération patriotique.
 
-La Cellule Technique de Coordination (CTC)
+La Coordination du Secrétariat technique
 Secrétariat Général aux ITP / Direction de la Réglementation et des Normes.
 📍 Kinshasa, RDC."""
 

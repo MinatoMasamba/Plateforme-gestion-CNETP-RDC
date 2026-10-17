@@ -308,6 +308,39 @@ def build_exceptions(*, ctm=None, wg=None, target_group=None, limit=30):
 
 
 def historical_sc_rows(start, end):
+    # Correspondance de lecture pour cette base remaniée : les anciens CTM
+    # restent intacts et leurs mesures ne sont jamais imputées aux nouveaux GT.
+    legacy_scope = {
+        'SC-BAT': (1, 'Bâtiments courants et spéciaux'),
+        'SC-ENV': (2, 'Environnement, santé et sécurité'),
+        'SC-GF': (3, 'Géotechnique et fondations'),
+        'SC-IT': (4, 'Infrastructures de transport'),
+        'SC-OH': (5, 'Ouvrages hydrauliques'),
+        'SC-VRD': (6, 'Signalisation-équipements, géomatique et réseaux secs'),
+        'SC-SOCLE': (7, 'Domaine technique transversal'),
+    }
+    adopted = list(Organe.objects.filter(
+        version__code='reorganisation-2026-10-15', type='SC',
+    ).exclude(status='ARCHIVED').prefetch_related('groupes'))
+    if adopted:
+        ctms = {ctm.number: ctm for ctm in CTM.objects.all()}
+        rows = []
+        for sc in sorted(adopted, key=lambda item: item.composition.get('tome', 99)):
+            number, expected_name = legacy_scope.get(sc.code, (None, None))
+            candidate = ctms.get(number)
+            ctm = candidate if candidate and candidate.name.casefold() == expected_name.casefold() else None
+            metrics = calculate_scope_metrics(start=start, end=end, ctm=ctm) if ctm else {
+                key: {'value': None, 'configured': False, 'sources': 0}
+                for key in ('advancement', 'production', 'quality', 'engagement', 'completeness')
+            }
+            rows.append({
+                'kind': 'current', 'id': sc.pk, 'number': sc.composition.get('tome'),
+                'name': sc.official_name or sc.name, 'code': sc.code,
+                'badge': f'Mesures historiques CTM {ctm.number}' if ctm else 'Mesures à relier',
+                'legacy_ctm_id': ctm.pk if ctm else None,
+                'metrics': metrics, 'group_count': sc.groupes.count(),
+            })
+        return rows
     rows = []
     for ctm in CTM.objects.order_by('number'):
         metrics = calculate_scope_metrics(start=start, end=end, ctm=ctm)
@@ -332,8 +365,8 @@ def weekly_heatmap(sc_rows, end, weeks=8):
         values = []
         for week_start in starts:
             week_end = min(end, week_start + timedelta(days=6))
-            if row['kind'] == 'historical':
-                scope = CTM.objects.get(pk=row['id'])
+            if row['kind'] == 'historical' or row.get('legacy_ctm_id'):
+                scope = CTM.objects.get(pk=row.get('legacy_ctm_id') or row['id'])
                 value = calculate_scope_metrics(start=week_start, end=week_end, ctm=scope)['production']['value']
             else:
                 value = None

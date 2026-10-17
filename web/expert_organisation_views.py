@@ -10,9 +10,10 @@ from django.views import View
 
 from apps.experts.models import Expert
 from apps.governance.models import (
-    ChoixOrganisationExpert, CorrespondanceGroupe, Organe, OrganisationVersion, WG,
+    ChoixOrganisationExpert, CorrespondanceGroupe, GroupeCible, Organe, WG,
 )
 from web.forms import ExpertCVUserForm, ExpertOrganisationChoiceForm, ExpertProfileForm
+from web.organisation_views import preferred_version
 
 
 class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
@@ -23,10 +24,7 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
         expert = Expert.objects.filter(user=request.user).select_related('structure').first()
         if not expert:
             raise Http404('Profil expert introuvable.')
-        version = (
-            OrganisationVersion.objects.exclude(status='ARCHIVED')
-            .order_by('-activated_at', '-id').first()
-        )
+        version = preferred_version()
         if not version:
             raise Http404('Aucune organisation disponible.')
         latest = (
@@ -40,31 +38,36 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
             initial = {
                 'sc': latest.sc_id,
                 'source_wg': latest.source_wg_id,
+                'groupe': latest.groupe_id,
             }
         choice_form = ExpertOrganisationChoiceForm(data, version=version, initial=initial)
         scs = list(Organe.objects.filter(version=version, type='SC').exclude(status='ARCHIVED'))
-        mappings = {}
-        for item in CorrespondanceGroupe.objects.filter(version=version).exclude(status='REJECTED').select_related('sc'):
-            mappings.setdefault(item.wg_id, []).append(item)
-        own_groups = set(expert.governance_affectations.exclude(wg__isnull=True).values_list('wg_id', flat=True))
         groups = []
-        for wg in WG.objects.select_related('ctm').order_by('ctm__number', 'number', 'name'):
-            suggested = set()
-            for mapping in mappings.get(wg.pk, []):
-                if mapping.sc_id:
-                    suggested.add(mapping.sc_id)
-                else:
-                    domain = mapping.domain.upper()
-                    for sc in scs:
-                        token = sc.code.removeprefix('SC-').upper()
-                        if re.search(r'(?<!\w)' + re.escape(token) + r'(?!\w)', domain):
-                            suggested.add(sc.pk)
-            groups.append({
-                'id': wg.pk,
-                'label': f'CTM {wg.ctm.number} · WG {wg.ctm.number}.{wg.number} — {wg.name}',
-                'suggested_sc_ids': sorted(suggested),
-                'own': wg.pk in own_groups,
-            })
+        if choice_form.uses_adopted_gt:
+            for gt in GroupeCible.objects.filter(sc__version=version).select_related('sc').order_by('sc__code', 'code'):
+                groups.append({'id': gt.pk, 'label': gt.name, 'sc_id': gt.sc_id})
+        else:
+            mappings = {}
+            for item in CorrespondanceGroupe.objects.filter(version=version).exclude(status='REJECTED').select_related('sc'):
+                mappings.setdefault(item.wg_id, []).append(item)
+            own_groups = set(expert.governance_affectations.exclude(wg__isnull=True).values_list('wg_id', flat=True))
+            for wg in WG.objects.select_related('ctm').order_by('ctm__number', 'number', 'name'):
+                suggested = set()
+                for mapping in mappings.get(wg.pk, []):
+                    if mapping.sc_id:
+                        suggested.add(mapping.sc_id)
+                    else:
+                        domain = mapping.domain.upper()
+                        for sc in scs:
+                            token = sc.code.removeprefix('SC-').upper()
+                            if re.search(r'(?<!\w)' + re.escape(token) + r'(?!\w)', domain):
+                                suggested.add(sc.pk)
+                groups.append({
+                    'id': wg.pk,
+                    'label': f'CTM {wg.ctm.number} · WG {wg.ctm.number}.{wg.number} — {wg.name}',
+                    'suggested_sc_ids': sorted(suggested),
+                    'own': wg.pk in own_groups,
+                })
         return {
             'expert': expert,
             'version': version,
@@ -74,6 +77,7 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
             'choice_form': choice_form,
             'groups_json': json.dumps(groups),
             'has_groups': bool(groups),
+            'uses_adopted_gt': choice_form.uses_adopted_gt,
         }
 
     def get(self, request):
@@ -94,6 +98,7 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
                     version=context['version'],
                     sc=choice_form.cleaned_data['sc'],
                     source_wg=choice_form.cleaned_data['source_wg'],
+                    groupe=choice_form.cleaned_data['groupe'],
                     created_by=request.user,
                 )
             messages.success(request, 'Profil mis à jour et choix transmis pour examen.')

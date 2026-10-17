@@ -1,0 +1,1047 @@
+{
+  "source_document": "RAPPORT DES RAVAUX DE RÉORGANISATION DE LA CNE-ITP 15-10-2026 VERSION ADOPTEE.docx",
+  "source_sha256": "8e38cb2e68dd147650999b4072d782cf90227556f0f57c7e8aee7d8269d25ec6",
+  "version_code": "reorganisation-2026-10-15",
+  "sc": [
+    {
+      "code": "SC-SOCLE",
+      "tome": 0,
+      "name": "Matériaux & Essais / Socle Commun (SC-SOCLE)",
+      "domain": "Établir le socle métrologique, terminologique et spécifier les exigences physiques, chimiques et mécaniques applicables à l'ensemble des matériaux de construction, en valorisant les ressources locales.",
+      "mission": "Établir le socle métrologique, terminologique et spécifier les exigences physiques, chimiques et mécaniques applicables à l'ensemble des matériaux de construction, en valorisant les ressources locales.",
+      "groups": [
+        {
+          "code": "SC-SOCLE-GT1",
+          "number": 1,
+          "name": "Terminologie, symboles et métrologie normative",
+          "mission": "Unifier le vocabulaire technique du BTP et les unités de mesure."
+        },
+        {
+          "code": "SC-SOCLE-GT2",
+          "number": 2,
+          "name": "Caractérisation physique et mécanique des matériaux",
+          "mission": "Définir les protocoles d'essai des sols, roches, granulats et bois."
+        },
+        {
+          "code": "SC-SOCLE-GT3",
+          "number": 3,
+          "name": "Liants hydrauliques, bétons et produits manufacturés",
+          "mission": "Normaliser les ciments, adjuvants, bétons et blocs manufacturés."
+        },
+        {
+          "code": "SC-SOCLE-GT4",
+          "number": 4,
+          "name": "Évaluation de la conformité et assurance qualité des laboratoires",
+          "mission": "Garantir la compétence des laboratoires d'essais et de contrôle."
+        },
+        {
+          "code": "SC-SOCLE-GT5",
+          "number": 5,
+          "name": "Valorisation des matériaux locaux et éco-matériaux",
+          "mission": "Promouvoir les matériaux alternatifs écologiques et économiques."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "MICHEL UYUMBU",
+          "origin": "INBTP"
+        },
+        {
+          "role": "1e Vice-Président",
+          "name": "Jean Marie BENA DIAKIESE",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Christian ACIZA",
+          "origin": "Structure non précisée / Plateforme"
+        },
+        {
+          "role": "Membre",
+          "name": "BASUNGA NGELESI CHRISTIAN",
+          "origin": "BAEKA CONSTRUCT(RDC)"
+        },
+        {
+          "role": "Membre",
+          "name": "Max SEKE VANGU",
+          "origin": "UNIKIN"
+        },
+        {
+          "role": "Membre",
+          "name": "Charles PONGO-PONGO LIWANDA LUTE",
+          "origin": "AR Solution/PPC Barnet"
+        },
+        {
+          "role": "Membre",
+          "name": "NDOMBELE DANI",
+          "origin": "UK/Mbanza-Ngungu"
+        },
+        {
+          "role": "Membre",
+          "name": "Judith BWALELO WABENIA",
+          "origin": "Fonds National d'Entretien Routier (FONER)"
+        },
+        {
+          "role": "Membre",
+          "name": "Patrick ILHO KITUBA",
+          "origin": "Secrétariat Général à la Reconstruction"
+        },
+        {
+          "role": "Membre",
+          "name": "Papy KANGUDI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Daniel KIBIKONDA LUIZI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Dimitri KINDUNDU MUKOMBO",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Doris KAYAMBA KILUNGU",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Pires LISINGO TOFOFA",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Guy Laroche NGWAMA PERO",
+          "origin": "Structure non précisée / Autre"
+        },
+        {
+          "role": "Membre",
+          "name": "Annie NTUMBA LUSAMBA",
+          "origin": "Cabinet du Ministre des ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Jeancy TSHIAMALA KUMWAMBA",
+          "origin": "Secrétariat Général à la Reconstruction"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "MICHEL UYUMBU",
+          "origin": "INBTP"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": "Jean Marie BENA DIAKIESE",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Christian ACIZA",
+          "origin": "Structure non précisée / Plateforme"
+        }
+      ]
+    },
+    {
+      "code": "SC-IT",
+      "tome": 1,
+      "name": "Infrastructures de Transport (SC-IT)",
+      "domain": "Élaborer et actualiser les normes de conception, de construction, d'exploitation et de maintenance des réseaux de transport multimodal (routes, ouvrages d'art, fer, aéroports, ports).",
+      "mission": "Élaborer et actualiser les normes de conception, de construction, d'exploitation et de maintenance des réseaux de transport multimodal (routes, ouvrages d'art, fer, aéroports, ports).",
+      "groups": [
+        {
+          "code": "SC-IT-GT1",
+          "number": 1,
+          "name": "Routes, Conception géométrique & dimensionnement",
+          "mission": "Fixer les règles de tracé routier et de dimensionnement des structures de chaussées (souples, rigides)."
+        },
+        {
+          "code": "SC-IT-GT2",
+          "number": 2,
+          "name": "Ponts et ouvrages d'art",
+          "mission": "Réglementer le calcul, l'inspection et la maintenance des ponts et portiques."
+        },
+        {
+          "code": "SC-IT-GT3",
+          "number": 3,
+          "name": "Infrastructures ferroviaires",
+          "mission": "Normaliser la voie ferrée, les gabarits, la signalisation et les équipements de ligne."
+        },
+        {
+          "code": "SC-IT-GT4",
+          "number": 4,
+          "name": "Infrastructures aéroportuaires",
+          "mission": "Définir les normes techniques des pistes, aires de trafic et balisages aéroportuaires."
+        },
+        {
+          "code": "SC-IT-GT5",
+          "number": 5,
+          "name": "Infrastructures portuaires et fluviales",
+          "mission": "Normaliser les ouvrages d'accostage, quais, digues et signalisation navigable."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "Estimé MAMBULA WA KANYINDA MUKANDILA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "1e Vice-Président",
+          "name": "Jean-Paul NYEMBO TAMPAKANYA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "2e Vice-Président",
+          "name": "Leroi KANGULUMBA ZOLA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Jean Bosco BIFULU MALELE",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "André TAYEYE NTELA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Yves UTUBULA NZUNDU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Jean de Dieu BOBO KOEBONI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Chadrack NGOIE",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Serge BANZA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Enock SANGANA MALONDA WASOLUA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Emmanuel MWILA KIBWE",
+          "origin": "Fonds National d'Entretien Routier (FONER)"
+        },
+        {
+          "role": "Membre",
+          "name": "Tshise TSHISEKEDI KALADI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Simon Barnabas PAKU MATONDO",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Ambroise LUKOKI LUA MBOZI",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Freddy KAZADI KAMUANGA",
+          "origin": "Société civile ou organisme technique"
+        },
+        {
+          "role": "Membre",
+          "name": "Michel MISEKA MUBAKE",
+          "origin": "Office des Routes (OR)"
+        },
+        {
+          "role": "Membre",
+          "name": "Anatol MPUNGU MPUNGU",
+          "origin": "Société civile ou organisme technique"
+        },
+        {
+          "role": "Membre",
+          "name": "Roger VIBILA KANDU MAYI",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Christian ESIKI YOLO",
+          "origin": "Secrétariat Général à la Reconstruction"
+        },
+        {
+          "role": "Membre",
+          "name": "Vital MUSUNGAIE TSHITUNDU",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Flory MAMPIA NSANGA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Charles MIKWARI NGAL",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Papy FATAKI LUKUMU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Winner MAPANDA BALINGA",
+          "origin": "Fonds National d'Entretien Routier (FONER)"
+        },
+        {
+          "role": "Membre",
+          "name": "Lucien BATULI NKASANGALI",
+          "origin": "Cellule Infrastructure (CI)"
+        },
+        {
+          "role": "Membre",
+          "name": "Christian MUNIAMPALA LESUYA",
+          "origin": "Office des Routes (OR)"
+        },
+        {
+          "role": "Membre",
+          "name": "Christ NSIMBULU MASSAMBA",
+          "origin": "Office des Voiries et Drainage (OVD)"
+        },
+        {
+          "role": "Membre",
+          "name": "Fabien LASANGA NDASA",
+          "origin": "Office des Routes (OR)"
+        },
+        {
+          "role": "Membre",
+          "name": "Théoneste Ruviri KANANI",
+          "origin": "ACGT"
+        },
+        {
+          "role": "Membre",
+          "name": "Josué WANDJE OWAMBA",
+          "origin": "Secrétariat Général à la Reconstruction"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "Estimé MAMBULA WA KANYINDA MUKANDILA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": "Jean-Paul NYEMBO TAMPAKANYA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": "Leroi KANGULUMBA ZOLA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Jean Bosco BIFULU MALELE",
+          "origin": "Secrétariat Général ITP"
+        }
+      ]
+    },
+    {
+      "code": "SC-GF",
+      "tome": 2,
+      "name": "Géotechnique & Fondations (SC-GF)",
+      "domain": "Encadrer les investigations de sols, la mécanique des roches, les techniques de fondations et la maîtrise des risques géologiques et naturels.",
+      "mission": "Encadrer les investigations de sols, la mécanique des roches, les techniques de fondations et la maîtrise des risques géologiques et naturels.",
+      "groups": [
+        {
+          "code": "SC-GF-GT1",
+          "number": 1,
+          "name": "Reconnaissance des sols et investigations in situ",
+          "mission": "Fixer les règles de sondage, d'essais in situ et de cartographie géotechnique."
+        },
+        {
+          "code": "SC-GF-GT2",
+          "number": 2,
+          "name": "Mécanique des roches et risques naturels",
+          "mission": "Traiter de la stabilité des talus, des versants et de la lutte anti-érosive."
+        },
+        {
+          "code": "SC-GF-GT3",
+          "number": 3,
+          "name": "Fondations superficielles et profondes",
+          "mission": "Définir les méthodes de calcul et d'exécution des semelles, radiers et pieux."
+        },
+        {
+          "code": "SC-GF-GT4",
+          "number": 4,
+          "name": "Ouvrages de soutènement et amélioration des sols",
+          "mission": "Normaliser les murs de soutènement, terres armées, parois et techniques d'amélioration des sols."
+        },
+        {
+          "code": "SC-GF-GT5",
+          "number": 5,
+          "name": "Auscultation, diagnostic et pathologie géotechnique",
+          "mission": "Assurer le suivi instrumenté des ouvrages et le diagnostic des désordres de sol."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "Richardo VALLI NGANGU",
+          "origin": "UNIKIN"
+        },
+        {
+          "role": "1e Vice-Président",
+          "name": "MUZYUMBA PIERRE",
+          "origin": "INBTP"
+        },
+        {
+          "role": "Rapporteur",
+          "name": "Willy NONGA TONA",
+          "origin": "À confirmer / Base de données"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Christian MAFOLO MFUMU",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Exaucer TEFALA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Ed MASAMBA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Chadrack NGOIE",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Alpha Memidra EGBANGO MAPOKO ISONGO",
+          "origin": "Cellule Infrastructure (CI)"
+        },
+        {
+          "role": "Membre",
+          "name": "Gabain MULOWAYI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Michel WANGU BOFOTOLA",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Chico MWADI",
+          "origin": "Secrétariat Général à la Reconstruction"
+        },
+        {
+          "role": "Membre",
+          "name": "Dieudonné BAMBU NDOMBASI",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Gabain MULOWAYI KANKOLONGO",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Rudy ALONDA KYATANGALWA",
+          "origin": "Office des Routes (OR)"
+        },
+        {
+          "role": "Membre",
+          "name": "Samuel NDENGANI MONZELE",
+          "origin": "Office des Routes (OR)"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "Richardo VALLI NGANGU",
+          "origin": "UNIKIN"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": "MUZYUMBA PIERRE",
+          "origin": "INBTP"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "Rapporteur",
+          "holder_name": "Willy NONGA TONA",
+          "origin": "À confirmer / Base de données"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Christian MAFOLO MFUMU",
+          "origin": "Secrétariat Général ITP"
+        }
+      ]
+    },
+    {
+      "code": "SC-OH",
+      "tome": 3,
+      "name": "Ouvrages Hydrauliques (SC-OH)",
+      "domain": "Normaliser les études hydrologiques, les barrages, les digues, le drainage urbain et les aménagements d'accès à l'eau.",
+      "mission": "Normaliser les études hydrologiques, les barrages, les digues, le drainage urbain et les aménagements d'accès à l'eau.",
+      "groups": [
+        {
+          "code": "SC-OH-GT1",
+          "number": 1,
+          "name": "Hydrologie et modélisation des bassins versants",
+          "mission": "Encadrer l'estimation des débits de crue, la pluviométrie et l'analyse statistique hydrologique."
+        },
+        {
+          "code": "SC-OH-GT2",
+          "number": 2,
+          "name": "Barrages, digues et réservoirs",
+          "mission": "Garantir la sécurité, la conception et l'exploitation des barrages et retenues d'eau."
+        },
+        {
+          "code": "SC-OH-GT3",
+          "number": 3,
+          "name": "Drainage et assainissement routier/urbain",
+          "mission": "Normaliser le dimensionnement des caniveaux, ouvrages de traversée, bassins de rétention et réseaux d'eau pluviale."
+        },
+        {
+          "code": "SC-OH-GT4",
+          "number": 4,
+          "name": "Aménagements hydro-agricoles et irrigation",
+          "mission": "Définir les normes des canaux d'irrigation, de drainage agricole et de maîtrise de l'eau dans l'agriculture."
+        },
+        {
+          "code": "SC-OH-GT5",
+          "number": 5,
+          "name": "Adduction d'eau potable et ouvrages de captage",
+          "mission": "Normaliser les réseaux de distribution d'eau, stations de pompage, réservoirs et captages d'eau souterraine."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "René MPURU MAZEMBE",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "1e Vice-Président",
+          "name": "MUKENDI PIERRE",
+          "origin": "PLM Consulting"
+        },
+        {
+          "role": "Rapporteur",
+          "name": "Gabriel Zaatcha KAZADI MUHOLA LASER",
+          "origin": "Ministère des ITP / Anat.gouv.cd"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Parfait MUTAMBAY MUABA",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Pierre ASABI KWAGBA",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Glody BAANG’OSEMA BASELE",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Papy KABADI LELO ODIMBA",
+          "origin": "Institution académique ou recherche"
+        },
+        {
+          "role": "Membre",
+          "name": "Meschack MUKENDI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Yves NGOMA MUZOLA",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Joseph NKAYILU LUMBANZU",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Pierrot ILUNGA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Josaphat MUKALA MULUMBA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Luc MWAMBA MITEO",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Azarias Fiston MWATOIKE LIGBAKELO",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Olivier ROGHO PASHO-LAWATA",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "Membre",
+          "name": "Xavier SAKA-SAKA NGALA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Steve TSHITENDE WA TSHITENDE",
+          "origin": "Université de Kinshasa (Unikin)"
+        },
+        {
+          "role": "Membre",
+          "name": "Flory MBUYI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Désiré LOOLE BABONGOLA",
+          "origin": "Secrétariat Général à la Reconstruction"
+        },
+        {
+          "role": "Membre",
+          "name": "Daniel KAZADI CIBUMBU",
+          "origin": "Société civile ou organisme technique"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "René MPURU MAZEMBE",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": "MUKENDI PIERRE",
+          "origin": "PLM Consulting"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "Rapporteur",
+          "holder_name": "Gabriel Zaatcha KAZADI MUHOLA LASER",
+          "origin": "Ministère des ITP / Anat.gouv.cd"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Parfait MUTAMBAY MUABA",
+          "origin": "Secrétariat Général ITP"
+        }
+      ]
+    },
+    {
+      "code": "SC-VRD",
+      "tome": 4,
+      "name": "Réseaux Divers (VRD), Équipements & Fluides (Proposition d'expert)",
+      "domain": "Réglementer la conception et l'exécution des voiries secondaires, des réseaux enterrés (secs et humides) et des équipements techniques intégrés aux bâtiments.",
+      "mission": "Réglementer la conception et l'exécution des voiries secondaires, des réseaux enterrés (secs et humides) et des équipements techniques intégrés aux bâtiments.",
+      "groups": [
+        {
+          "code": "SC-VRD-GT1",
+          "number": 1,
+          "name": "Voiries et Réseaux Divers (VRD) et assainissement secondaire",
+          "mission": "Organiser l'espace de la rue, l'alignement des réseaux et l'assainissement parcellaires."
+        },
+        {
+          "code": "SC-VRD-GT2",
+          "number": 2,
+          "name": "Installations électriques, courants forts et éclairage public",
+          "mission": "Normaliser le câblage basse tension, les tableaux, la protection contre la foudre et l'éclairage."
+        },
+        {
+          "code": "SC-VRD-GT3",
+          "number": 3,
+          "name": "Courants faibles, sécurité électronique et automatismes",
+          "mission": "Encadrer les réseaux de communication, la sécurité incendie active, le contrôle d'accès et la gestion technique."
+        },
+        {
+          "code": "SC-VRD-GT4",
+          "number": 4,
+          "name": "Chauffage, Ventilation, Climatisation (CVC) et traitement d'air",
+          "mission": "Normaliser les systèmes de conditionnement d'air, de ventilation et d'efficacité énergétique thermique."
+        },
+        {
+          "code": "SC-VRD-GT5",
+          "number": 5,
+          "name": "Plomberie, sanitaires, gaz et fluides spéciaux",
+          "mission": "Réglementer les installations intérieures d'eau, d'évacuation, de gaz et de fluides médicaux."
+        }
+      ],
+      "expert_proposals": [],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": null,
+          "origin": "—"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": null,
+          "origin": "—"
+        }
+      ]
+    },
+    {
+      "code": "SC-ENV",
+      "tome": 5,
+      "name": "Environnement, Santé & Sécurité (SC-ENV)",
+      "domain": "Intégrer les exigences d'évaluation environnementale et sociale, de gestion des déchets du BTP, d'hygiène, de sécurité au travail (SST) et de résilience climatique.",
+      "mission": "Intégrer les exigences d'évaluation environnementale et sociale, de gestion des déchets du BTP, d'hygiène, de sécurité au travail (SST) et de résilience climatique.",
+      "groups": [
+        {
+          "code": "SC-ENV-GT1",
+          "number": 1,
+          "name": "Évaluations environnementales et sociales (EES)",
+          "mission": "Définir les directives d'intégration des études d'impacts environnementaux dans les projets d'infrastructure."
+        },
+        {
+          "code": "SC-ENV-GT2",
+          "number": 2,
+          "name": "Gestion et valorisation des déchets de construction",
+          "mission": "Normaliser le tri, le transport, le recyclage et l'élimination des déblais, gravats et déchets du BTP."
+        },
+        {
+          "code": "SC-ENV-GT3",
+          "number": 3,
+          "name": "Hygiène, santé et sécurité au travail (SST)",
+          "mission": "Fixer les règles de prévention des risques professionnels sur les chantiers de construction."
+        },
+        {
+          "code": "SC-ENV-GT4",
+          "number": 4,
+          "name": "Protection des ressources en eau et prévention des pollutions",
+          "mission": "Encadrer la lutte contre les pollutions de chantier (eaux boueuses, rejets d'hydrocarbures, nuisances sonores)."
+        },
+        {
+          "code": "SC-ENV-GT5",
+          "number": 5,
+          "name": "Résilience climatique et développement durable",
+          "mission": "Intégrer l'adaptation au changement climatique dans l'élaboration des normes d'infrastructure."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "Willy VALE MANGA",
+          "origin": "Structure non précisée / Base de données"
+        },
+        {
+          "role": "Rapporteur",
+          "name": "Chris Bardol NGINDU WA NGINDU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Olivier ROGHO PASHO-LAWATA",
+          "origin": "Université de Kinshasa / Base de données"
+        },
+        {
+          "role": "Membre",
+          "name": "KADIMA MBUYI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Guycele MALABI MPIOKO",
+          "origin": "Ordre professionnel ou association"
+        },
+        {
+          "role": "Membre",
+          "name": "Péguy MALU NGALAMULUME",
+          "origin": "Structure non précisée"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "Willy VALE MANGA",
+          "origin": "Structure non précisée / Base de données"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "Rapporteur",
+          "holder_name": "Chris Bardol NGINDU WA NGINDU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Olivier ROGHO PASHO-LAWATA",
+          "origin": "Université de Kinshasa / Base de données"
+        }
+      ]
+    },
+    {
+      "code": "SC-BAT",
+      "tome": 6,
+      "name": "Bâtiments Courants & Spéciaux (SC-BAT)",
+      "domain": "Normaliser la conception architecturale et structurelle des bâtiments, la sécurité incendie, l'accessibilité universelle et l'intégration de la transition numérique (BIM).",
+      "mission": "Normaliser la conception architecturale et structurelle des bâtiments, la sécurité incendie, l'accessibilité universelle et l'intégration de la transition numérique (BIM).",
+      "groups": [
+        {
+          "code": "SC-BAT-GT1",
+          "number": 1,
+          "name": "Conception architecturale et structurelle",
+          "mission": "Encadrer les règles de calcul des structures de bâtiments (béton armé, charpente métallique, maçonnerie porteuse)."
+        },
+        {
+          "code": "SC-BAT-GT2",
+          "number": 2,
+          "name": "Sécurité incendie et accessibilité",
+          "mission": "Normaliser la résistance au feu des matériaux, les issues de secours et l'accessibilité des personnes à mobilité réduite (PMR)."
+        },
+        {
+          "code": "SC-BAT-GT3",
+          "number": 3,
+          "name": "Efficacité énergétique, thermique et acoustique",
+          "mission": "Réglementer l'isolation thermique, la ventilation naturelle, l'éclairage et le confort acoustique des bâtiments."
+        },
+        {
+          "code": "SC-BAT-GT4",
+          "number": 4,
+          "name": "Urbanisme et aménagement urbain",
+          "mission": "Encadrer les règles d'urbanisme, les plans d'occupation des sols et l'intégration paysagère."
+        },
+        {
+          "code": "SC-BAT-GT5",
+          "number": 5,
+          "name": "Transition numérique et BIM (Building Information Modeling)",
+          "mission": "Normaliser les processus de numérisation, la maquette numérique et le management de l'information pour la construction."
+        }
+      ],
+      "expert_proposals": [
+        {
+          "role": "Président",
+          "name": "Joseph BAMENIKIO",
+          "origin": "ISAU"
+        },
+        {
+          "role": "1e Vice-Président",
+          "name": "AZAMA NILAS",
+          "origin": "INBTP"
+        },
+        {
+          "role": "Rapporteur",
+          "name": "Felly ILUNGA BANZA",
+          "origin": "À confirmer /"
+        },
+        {
+          "role": "Secrétaire",
+          "name": "Rosine NGALULA KALANDA",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Eddie MASAMBA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "John MUTUMBI",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Jérôme KAZAMBU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Patrick KIBANGU MAMPUYA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Chrispin ZIGABE",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Frederic BAWILU MAFUTA",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Kizito MATABARO KIZITO",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Zatus KIAKU",
+          "origin": "Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Alexandre TSHIAMALA WA TSHIAMALA",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "Membre",
+          "name": "Belinda BETUKU NKOY",
+          "origin": "Secrétariat Général à la Reconstruction"
+        },
+        {
+          "role": "Membre",
+          "name": "Christian KYALUMBA MAKINDU",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Corneille MUNTENGE IBOY",
+          "origin": "Secrétariat Général ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Gisele NSIANGANI MIEZI",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Jules NKOMBWA KABOFI",
+          "origin": "Ordre professionnel ou association"
+        },
+        {
+          "role": "Membre",
+          "name": "Gradi BANINGIME KEBWIJINA",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Jean Marie N'SAPU KUMWAMBA",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Israël-Tshany BENDERA MUSANGANI",
+          "origin": "Bureau d'Études d'Aménagement Urbain (BEAU)"
+        },
+        {
+          "role": "Membre",
+          "name": "Leon Levo NAKANZA",
+          "origin": "Autre Ministère partenaire"
+        },
+        {
+          "role": "Membre",
+          "name": "Joseph Nono NKIERE NANA",
+          "origin": "Institution académique ou recherche"
+        },
+        {
+          "role": "Membre",
+          "name": "Deborah OMOYI PONGOMBO",
+          "origin": "Cabinet du Ministre des ITP"
+        },
+        {
+          "role": "Membre",
+          "name": "Mymmon KILUNGA NSENGA",
+          "origin": "Autre Ministère partenaire"
+        },
+        {
+          "role": "Membre",
+          "name": "Richard VIBILA MBIVANGA",
+          "origin": "Expert indépendant / consultant"
+        },
+        {
+          "role": "Membre",
+          "name": "Romain BUSSA MBULE",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Nkashamba KAZADI N'AS",
+          "origin": "Autre / Structure non précisée"
+        },
+        {
+          "role": "Membre",
+          "name": "Wiren MONDU KITSHIAKA",
+          "origin": "Cellule Infrastructure (CI)"
+        },
+        {
+          "role": "Membre",
+          "name": "Yannick KINDIMBU MATONDO",
+          "origin": "Secrétariat Général à la Reconstruction"
+        }
+      ],
+      "bureau_posts": [
+        {
+          "role": "Président",
+          "holder_name": "Joseph BAMENIKIO",
+          "origin": "ISAU"
+        },
+        {
+          "role": "1e Vice-Président",
+          "holder_name": "AZAMA NILAS",
+          "origin": "INBTP"
+        },
+        {
+          "role": "2e Vice-Président",
+          "holder_name": null,
+          "origin": "À confirmer"
+        },
+        {
+          "role": "Rapporteur",
+          "holder_name": "Felly ILUNGA BANZA",
+          "origin": "À confirmer /"
+        },
+        {
+          "role": "Secrétaire",
+          "holder_name": "Rosine NGALULA KALANDA",
+          "origin": "Secrétariat Général ITP"
+        }
+      ]
+    }
+  ]
+}

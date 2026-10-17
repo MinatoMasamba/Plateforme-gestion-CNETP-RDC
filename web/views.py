@@ -1,5 +1,6 @@
 import json
 import logging
+from pathlib import Path
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.decorators import login_required
@@ -144,18 +145,12 @@ class AboutView(View):
     template_name = 'about.html'
     
     def get(self, request):
+        catalogue = json.loads(
+            (Path(settings.BASE_DIR) / 'apps/governance/rapport_adopte_2026_reference.json').read_text(encoding='utf-8')
+        )
         context = {
-            'siteName': 'CNETP - Plateforme Normative',
-            'sous_commissions': [
-                "Géotechnique",
-                "Ouvrages d'art — Barrages, ponts, portiques",
-                "Bâtiments — Habitation, administratifs, industriels",
-                "Aéroports",
-                "Routes, Chemins de fer et Ports",
-                "Ressources en eau et Ingénierie hydraulique",
-                "Assainissement",
-                "Recherche, Simulation et Sciences des matériaux",
-            ],
+            'siteName': 'CNE-ITP',
+            'sous_commissions': [item['name'] for item in sorted(catalogue['sc'], key=lambda item: item['tome'])],
         }
         return render(request, self.template_name, context)
 

@@ -3,6 +3,33 @@
   if (!root) return;
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || window.DJANGO_CSRF_TOKEN || '';
 
+  const activityTabs = [...document.querySelectorAll('[data-activity-tab]')];
+  const activityPanels = [...document.querySelectorAll('[data-activity-panel]')];
+  const showActivityTab = (name, updateUrl = true) => {
+    const selected = activityTabs.find((tab) => tab.dataset.activityTab === name);
+    if (!selected) return;
+    activityTabs.forEach((tab) => {
+      const active = tab === selected;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+    activityPanels.forEach((panel) => { panel.hidden = panel.dataset.activityPanel !== name; });
+    const breadcrumb = document.getElementById('activity-current-view-name');
+    if (breadcrumb) breadcrumb.textContent = selected.dataset.tabLabel;
+    const filterView = document.getElementById('activity-filter-view');
+    if (filterView) filterView.value = name;
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (name === 'ensemble') url.searchParams.delete('vue');
+      else url.searchParams.set('vue', name);
+      window.history.replaceState(null, '', url);
+    }
+    document.querySelector('.activity-shell main')?.scrollTo({top: 0, behavior: 'smooth'});
+    if (window.innerWidth < 1024 && typeof window.toggleActivitySidebar === 'function') window.toggleActivitySidebar(false);
+  };
+  activityTabs.forEach((tab) => tab.addEventListener('click', () => showActivityTab(tab.dataset.activityTab)));
+  document.querySelectorAll('[data-activity-open-tab]').forEach((button) => button.addEventListener('click', () => showActivityTab(button.dataset.activityOpenTab)));
+
   // Les deux jeux d'onglets gardent tout le contenu dans le DOM pour les lecteurs d'écran.
   document.querySelectorAll('[data-view-tab]').forEach((button) => button.addEventListener('click', () => {
     const name = button.dataset.viewTab;
@@ -83,34 +110,4 @@
   }));
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
-  const chartDataNode = document.getElementById('activity-chart-data');
-  if (!chartDataNode || root.dataset.lightMode === 'true') return;
-  const loadCharts = () => new Promise((resolve, reject) => {
-    if (window.echarts) return resolve(window.echarts);
-    const script = document.createElement('script'); script.src = '/static/vendor/echarts.min.js'; script.defer = true;
-    script.onload = () => resolve(window.echarts); script.onerror = () => reject(new Error('Bibliothèque graphique indisponible'));
-    document.head.appendChild(script);
-  });
-  const renderCharts = async () => {
-    try {
-      const echarts = await loadCharts(); const data = JSON.parse(chartDataNode.textContent);
-      const heat = document.getElementById('activity-heatmap');
-      if (heat) {
-        const points = []; data.heatmap.rows.forEach((row,y) => row.values.forEach((value,x) => points.push([x,y,value == null ? -1 : value])));
-        const chart = echarts.init(heat); chart.setOption({animation:true,tooltip:{formatter:(p)=>`${data.heatmap.rows[p.value[1]].label}<br>${data.heatmap.weeks[p.value[0]]} : ${p.value[2] < 0 ? 'Données insuffisantes' : `${p.value[2]} %`}`},grid:{left:72,right:20,top:20,bottom:42},xAxis:{type:'category',data:data.heatmap.weeks},yAxis:{type:'category',data:data.heatmap.rows.map(r=>r.label)},visualMap:{min:0,max:100,calculable:false,orient:'horizontal',left:'center',bottom:0,inRange:{color:['#fed7aa','#7dd3fc','#0369a1']},outOfRange:{color:'#e2e8f0'}},series:[{type:'heatmap',data:points,label:{show:true,formatter:(p)=>p.value[2] < 0 ? '—' : `${Math.round(p.value[2])}%`},emphasis:{itemStyle:{shadowBlur:8,shadowColor:'rgba(0,0,0,.2)'}}}]});
-        window.addEventListener('resize',()=>chart.resize(),{passive:true});
-      }
-      const load = document.getElementById('activity-load-chart');
-      if (load) {
-        const chart = echarts.init(load); chart.setOption({animation:true,tooltip:{trigger:'axis'},grid:{left:70,right:30,top:18,bottom:35},xAxis:{type:'value',name:'Tâches'},yAxis:{type:'category',data:data.load.map(r=>r.label)},series:[{type:'bar',data:data.load.map(r=>r.tasks),itemStyle:{color:'#0284c7',borderRadius:[0,5,5,0]},label:{show:true,position:'right'}}]});
-        window.addEventListener('resize',()=>chart.resize(),{passive:true});
-      }
-    } catch (error) {
-      document.querySelectorAll('.chart-box').forEach((box) => { box.innerHTML = `<p class="rounded-lg bg-slate-50 p-5 text-center text-sm text-slate-500">${escapeHtml(error.message)}. Le tableau accessible reste disponible.</p>`; });
-    }
-  };
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => { if (entries.some(e=>e.isIntersecting)) { observer.disconnect(); renderCharts(); } }, {rootMargin:'200px'});
-    observer.observe(chartDataNode.parentElement);
-  } else renderCharts();
 })();

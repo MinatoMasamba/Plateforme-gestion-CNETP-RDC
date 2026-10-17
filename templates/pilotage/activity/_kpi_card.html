@@ -1,6 +1,14 @@
-<button type="button" class="activity-card activity-kpi w-full p-5 text-left" data-metric="{{ key }}" data-label="{{ label }}" data-value="{% if metric.configured %}{{ metric.value }} %{% else %}Non configuré{% endif %}" data-sources="{{ metric.sources|default:0 }}">
-  <div class="flex items-start justify-between gap-3"><span class="activity-label">{{ label }}</span><span class="h-2.5 w-2.5 rounded-full bg-{{ accent }}-500" aria-hidden="true"></span></div>
-  <div class="mt-4 activity-value">{% if metric.configured %}{{ metric.value|floatformat:1 }} %{% else %}<span class="text-xl">Non configuré</span>{% endif %}</div>
-  <p class="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ help }}</p>
-  <div class="mt-3 flex items-center justify-between gap-2 text-[11px] text-slate-500"><span>{{ metric.sources|default:0 }} source{{ metric.sources|default:0|pluralize }}</span><span>Mis à jour {{ metrics.updated_at|default:kinshasa_now|date:'H:i' }}</span></div>
+{% load l10n %}
+<button type="button" class="activity-card activity-kpi w-full p-5 text-left" data-metric="{{ key }}" data-label="{{ label }}" data-value="{% if metric.configured %}{{ metric.value }} %{% else %}Non configuré{% endif %}" aria-label="{{ label }} : {% if metric.configured %}{{ metric.value|floatformat:1 }} pour cent{% else %}non configuré{% endif %}. Consulter les données de calcul">
+  <span class="activity-label">{{ label }}</span>
+  <span class="mt-4 flex items-center justify-between gap-3">
+    <span class="min-w-0">
+      <span class="activity-value block">{% if metric.configured %}{{ metric.value|floatformat:1 }} %{% else %}<span class="text-lg leading-6">Non configuré</span>{% endif %}</span>
+      <span class="mt-2 block text-xs leading-5 text-slate-500 dark:text-slate-400">{{ help }}</span>
+    </span>
+    <span class="premium-donut {% if metric.configured %}premium-donut--value{% else %}premium-donut--empty{% endif %}" style="--donut-size:76px;--donut-thickness:16%;--donut-value:{% if metric.configured %}{{ metric.value|unlocalize }}{% else %}0{% endif %};--donut-color:{% if accent == 'green' %}#0d9488{% elif accent == 'orange' %}#ea580c{% elif accent == 'gray' %}#64748b{% else %}#0284c7{% endif %}" role="img" aria-label="{% if metric.configured %}Anneau de progression : {{ metric.value|floatformat:1 }} pour cent{% else %}Anneau sans valeur configurée{% endif %}">
+      <span class="premium-donut__ring"></span>
+      <span class="premium-donut__center"><span class="text-[11px] font-black text-slate-700 dark:text-slate-200">{% if metric.configured %}{{ metric.value|floatformat:0 }}%{% else %}—{% endif %}</span></span>
+    </span>
+  </span>
 </button>

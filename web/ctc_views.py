@@ -1,5 +1,5 @@
 """
-Vues dynamiques de la Cellule Technique de Coordination / Secrétariat Technique (20 postes).
+Vues de compatibilité de l'ancien circuit CTC et de la Coordination du Secrétariat technique.
 
 Logique : chaque expert CTC se voit attribuer un `ctc_sub_role` dérivé de son rôle
 CTCMembership ET de l'acronyme de sa structure d'origine. Ce sous-rôle alimente des
@@ -332,7 +332,7 @@ def get_ctc_context(expert: Expert) -> dict | None:
     sidebar_nav_config = {
         'principal': [
             {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
-            {'view': 'dossiers', 'label': 'Dossiers Normatifs', 'icon': 'folders'},
+            {'view': 'dossiers', 'label': 'Dossiers normatifs', 'icon': 'folders'},
             {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
             {'view': 'ctc_requests', 'label': 'Demandes à Traiter', 'icon': 'send'},
         ],
@@ -358,7 +358,7 @@ def get_ctc_context(expert: Expert) -> dict | None:
     elif sub_role in {'it_btc', 'it_sg_itp'}:
         sidebar_nav_config['principal'] = [
             {'view': 'dashboard', 'label': 'Tableau de bord', 'icon': 'layout-dashboard'},
-            {'view': 'dossiers', 'label': 'Dossiers Normatifs', 'icon': 'folders'},
+            {'view': 'dossiers', 'label': 'Dossiers normatifs', 'icon': 'folders'},
             {'view': 'assignations', 'label': 'Mes Assignations', 'icon': 'file-check'},
             {'view': 'ctc_requests', 'label': 'Demandes à Traiter', 'icon': 'send'},
             {'view': 'drive', 'label': 'Espace Drive', 'icon': 'hard-drive'},
@@ -695,7 +695,7 @@ class CTCDashboardView(View):
         if context is None:
             messages.info(
                 request,
-                "Vous n'êtes pas membre de la Cellule Technique de Coordination. "
+                "Vous ne faites pas partie de la Coordination du Secrétariat technique. "
                 "Accédez à votre espace de travail habituel."
             )
             return redirect('web:app')

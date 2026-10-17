@@ -18,6 +18,11 @@ from apps.governance.phoenix_operations import journal as record_journal
 from .supervision_views import supervisor_context
 
 
+def preferred_version():
+    return (OrganisationVersion.objects.filter(code='reorganisation-2026-10-15').first()
+            or get_object_or_404(OrganisationVersion, code='phoenix-2026-10'))
+
+
 def preparation_context(request):
     can_prepare = can_prepare_organisation(request.user)
     context = {} if can_prepare or can_activate_organisation(request.user) else supervisor_context(request)
@@ -29,7 +34,8 @@ def preparation_context(request):
 class PhoenixOrganisationView(View):
     def get(self, request):
         context = preparation_context(request)
-        version = OrganisationVersion.objects.filter(code='phoenix-2026-10').first()
+        version = (OrganisationVersion.objects.filter(code='reorganisation-2026-10-15').first()
+                   or OrganisationVersion.objects.filter(code='phoenix-2026-10').first())
         if version:
             version.name = 'Organisation CNE-ITP'
             organes = list(version.organes.prefetch_related(
@@ -45,10 +51,13 @@ class PhoenixOrganisationView(View):
                         and mandate.start_date and mandate.start_date <= today
                         and (not mandate.end_date or mandate.end_date >= today)
                         and mandate.expert.status == 'ACTIVE' and mandate.expert.user.is_active]
+                    poste.proposed_holders = [mandate for mandate in poste.mandates.all()
+                        if mandate.status == 'PROPOSED']
             copil = next((organe for organe in organes if organe.type == 'COPIL'), None)
             st = next((organe for organe in organes if organe.type == 'ST'), None)
             poles = [organe for organe in organes if organe.type == 'ST_POLE']
             sc_list = [organe for organe in organes if organe.type == 'SC']
+            sc_list.sort(key=lambda organe: organe.composition.get('tome', 99))
             for sc in sc_list:
                 sc.migrated_experts = [
                     assignment for assignment in sc.expert_assignments.all()
@@ -67,7 +76,11 @@ class PhoenixOrganisationView(View):
                 else:
                     assignment.ui_reason = 'Choisir la sous-commission correspondante.'
             entries = list(version.journal.select_related('actor')[:50])
-            operation_labels = {'PREPARE_REFERENCE': 'Préparation du référentiel', 'PROPOSE_MAPPING': 'Modification d’une correspondance',
+            operation_labels = {'PREPARE_REFERENCE': 'Préparation du référentiel',
+                'PREPARE_ADOPTED_REPORT': 'Préparation du rapport adopté',
+                'PREPARE_SC_BUREAUX': 'Préparation des bureaux de sous-commission',
+                'PREPARE_ANNEXE_ROLES': 'Fonctions nominatives proposées',
+                'PROPOSE_MAPPING': 'Modification d’une correspondance',
                 'VALIDATE_MAPPING': 'Validation d’une correspondance', 'PREPARATION_NOTE': 'Note de préparation',
                 'CONFIGURE_VERSION': 'Référentiel', 'CONFIGURE_ORGANE': 'Organe', 'CONFIGURE_POSTE': 'Poste',
                 'CONFIGURE_GT': 'Groupe de travail', 'CONFIGURE_MANDAT': 'Nomination', 'CONFIGURE_HABILITATION': 'Habilitation',
@@ -96,7 +109,7 @@ class PhoenixOrganisationView(View):
     def post(self, request):
         if not can_manage_organisation(request.user):
             raise PermissionDenied('La gestion de l’organisation CNE-ITP exige une habilitation.')
-        version = get_object_or_404(OrganisationVersion, code='phoenix-2026-10')
+        version = preferred_version()
         reason = request.POST.get('reason', '').strip()
         if request.POST.get('operation') != 'note' or not reason or len(reason) > 5000:
             messages.error(request, 'Renseigner une note de préparation de 1 à 5 000 caractères.')
@@ -117,7 +130,7 @@ class PhoenixMappingView(View):
         if kind not in ('ctm', 'wg'):
             raise Http404
         model = CorrespondanceStructure if kind == 'ctm' else CorrespondanceGroupe
-        return get_object_or_404(model.objects.select_related('version', 'sc'), pk=pk, version__code='phoenix-2026-10')
+        return get_object_or_404(model.objects.select_related('version', 'sc'), pk=pk, version=preferred_version())
 
     def context(self, request, mapping, kind, error=''):
         return {'mapping': mapping, 'kind': kind, 'error': error,

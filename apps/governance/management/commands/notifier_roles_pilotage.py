@@ -107,7 +107,7 @@ Pour toute question relative à votre poste ou à l'utilisation de la plateforme
 
 Veuillez agréer, Honorable Expert, notre haute considération patriotique.
 
-La Cellule Technique de Coordination (CTC)
+La Coordination du Secrétariat technique
 Secrétariat Général aux ITP / Direction de la Réglementation et des Normes.
 📍 Kinshasa, RDC."""
 

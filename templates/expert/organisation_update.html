@@ -54,7 +54,7 @@
         <div class="mb-6 max-w-3xl">
             <p class="mb-2 text-[11px] font-extrabold uppercase tracking-[.2em] text-[#0095c9]">Actualisation du dossier expert</p>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Mon profil, mon CV et mon rattachement</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">Vérifiez vos informations, actualisez vos compétences, puis indiquez où classer votre groupe de travail dans la nouvelle organisation.</p>
+            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">Vérifiez vos informations, actualisez vos compétences, puis choisissez votre sous-commission et votre groupe de travail.</p>
         </div>
 
         {% if messages %}{% for message in messages %}<div role="status" class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">{{ message }}</div>{% endfor %}{% endif %}
@@ -109,10 +109,11 @@
                     </section>
 
                     <section class="step-pane space-y-6" data-step="3" aria-label="Nouvelle organisation">
-                        <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-sm leading-6 text-slate-700 dark:text-slate-300"><p class="font-semibold">{{ version.name }}</p><p class="mt-1 text-xs leading-5">Choisissez une sous-commission et classez-y un groupe de travail existant. Les correspondances suggérées servent de repère ; votre déclaration sera examinée.</p></div>
+                        <div class="rounded-xl border border-[#0095c9]/20 bg-[#0095c9]/5 p-4 text-sm leading-6 text-slate-700 dark:text-slate-300"><p class="font-semibold">{{ version.name }}</p><p class="mt-1 text-xs leading-5">{% if uses_adopted_gt %}Choisissez le groupe de travail correspondant à vos compétences dans le rapport adopté. Votre choix sera examiné avant tout rattachement ou droit nouveau.{% else %}Choisissez une sous-commission et classez-y un groupe de travail existant. Les correspondances suggérées servent de repère ; votre déclaration sera examinée.{% endif %}</p></div>
                         <div class="grid min-w-0 gap-5 sm:grid-cols-2">
                             <div><label for="{{ choice_form.sc.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nouvelle sous-commission <span class="text-red-600">*</span></label>{{ choice_form.sc }}{% for error in choice_form.sc.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
-                            <div><label for="{{ choice_form.source_wg.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Groupe de travail existant <span class="text-red-600">*</span></label>{{ choice_form.source_wg }}{% for error in choice_form.source_wg.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            {% if uses_adopted_gt %}<div><label for="{{ choice_form.groupe.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Groupe de travail <span class="text-red-600">*</span></label>{{ choice_form.groupe }}{% for error in choice_form.groupe.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>
+                            {% else %}<div><label for="{{ choice_form.source_wg.id_for_label }}" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Groupe de travail existant <span class="text-red-600">*</span></label>{{ choice_form.source_wg }}{% for error in choice_form.source_wg.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}</div>{% endif %}
                         </div>
                         {% if not has_groups %}<p class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">Aucun groupe de travail existant n’est disponible.</p>{% endif %}
                         <div class="border-t border-slate-100 pt-5 dark:border-white/10">
@@ -137,11 +138,16 @@
     <script>
         const groups = JSON.parse('{{ groups_json|escapejs }}');
         const sc = document.getElementById('id_sc');
-        const group = document.getElementById('id_source_wg');
+        const group = document.getElementById('{% if uses_adopted_gt %}id_groupe{% else %}id_source_wg{% endif %}');
         const selectedGroup = group.value;
         function refreshGroups() {
             const selected = group.value || selectedGroup;
-            group.replaceChildren(new Option('Choisir un groupe existant', ''));
+            group.replaceChildren(new Option('{% if uses_adopted_gt %}Choisir un groupe de travail{% else %}Choisir un groupe existant{% endif %}', ''));
+            {% if uses_adopted_gt %}
+            groups.filter(item => item.sc_id === Number(sc.value)).forEach(item => {
+                group.appendChild(new Option(item.label, item.id));
+            });
+            {% else %}
             const preferred = document.createElement('optgroup'); preferred.label = 'Groupes correspondant à cette sous-commission';
             const others = document.createElement('optgroup'); others.label = 'Autres groupes à classer';
             groups.forEach(item => {
@@ -150,6 +156,7 @@
             });
             if (preferred.children.length) group.appendChild(preferred);
             if (others.children.length) group.appendChild(others);
+            {% endif %}
             if ([...group.options].some(option => option.value === selected)) group.value = selected;
         }
         sc.addEventListener('change', refreshGroups);

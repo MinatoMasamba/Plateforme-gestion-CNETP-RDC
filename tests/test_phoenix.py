@@ -137,7 +137,7 @@ def test_portal_is_visible_to_supervisor_but_edits_need_specific_permission(clie
     client.force_login(expert.user)
     response = client.get('/pilotage/organisation/')
     assert response.status_code == 200
-    assert 'Les 24 groupes existants' in response.content.decode()
+    assert response.context['legacy_group_count'] == 24
     mapping = CorrespondanceStructure.objects.first()
     assert client.post(f'/pilotage/organisation/correspondance/ctm/{mapping.pk}/', {'domain': 'Pirate'}).status_code == 403
     membership.role = 'PARTENAIRE_SOC_CIV'
