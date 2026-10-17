@@ -1,0 +1,43 @@
+RÉPUBLIQUE DÉMOCRATIQUE DU CONGO
+MINISTÈRE DES INFRASTRUCTURES ET TRAVAUX PUBLICS
+COMMISSION NATIONALE D'ÉLABORATION DES NORMES DES INFRASTRUCTURES DE TRAVAUX PUBLICS (CNE-ITP)
+
+COMMUNIQUÉ OFFICIEL
+TRANSITION VERS LA NOUVELLE ORGANISATION
+
+Bonjour {{ greeting_name }},
+
+Dans le cadre de la réorganisation de la CNE-ITP, la plateforme adopte une nouvelle
+structure organisationnelle. Les anciennes versions sont archivées et ne sont plus
+utilisées par les interfaces.
+
+Version organisationnelle : {{ version_name }} ({{ version_code }}) — {{ version_status }}
+Sous-commissions techniques : {{ sc_count }}
+Groupes de travail : {{ gt_count }}
+Postes d'organisation : {{ post_count }}
+
+CE QUI CHANGE
+- Les sous-commissions techniques et leurs groupes de travail deviennent le cadre
+  unique de travail.
+- Vos affectations et les postes de coordination sont lus depuis la version
+  organisationnelle courante.
+- Les données historiques sont conservées dans les archives de la plateforme.
+
+VOS ÉTAPES SUR LA PLATEFORME
+1. Connectez-vous à la plateforme avec votre compte habituel.
+2. Vérifiez et actualisez vos informations professionnelles et votre CV.
+3. Consultez votre sous-commission et votre groupe de travail.
+4. Suivez l'état de vos dossiers et de vos contributions.
+5. Contactez la coordination du Secrétariat technique en cas de difficulté.
+
+SOUS-COMMISSIONS TECHNIQUES
+{% for sc in sous_commissions %}- {{ sc.code }} — {{ sc.name }} ({{ sc.groupes|length }} GT)
+{% endfor %}
+Accéder à la plateforme : {{ platform_url }}
+
+Le communiqué officiel en PDF est joint à cet email. Cette version texte est fournie
+pour les clients de messagerie qui n'affichent pas le HTML.
+
+--
+CNE-ITP — Commission nationale d'élaboration des normes des infrastructures de travaux publics
+© {{ annee }} CNE-ITP. Cet email a été envoyé automatiquement, merci de ne pas y répondre.

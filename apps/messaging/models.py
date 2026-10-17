@@ -43,3 +43,49 @@ class Message(BaseModel):
         elif self.recipient:
             return f"Message from {self.sender.get_full_name()} to {self.recipient.get_full_name()} at {self.timestamp.strftime('%H:%M')}"
         return f"Message from {self.sender.get_full_name()} at {self.timestamp.strftime('%H:%M')}"
+
+
+class CommuniqueEnvoi(BaseModel):
+    """Suivi nominatif des envois d'un communiqué (HTML, texte et PDF)."""
+
+    STATUS_PENDING = 'PENDING'
+    STATUS_SENT = 'SENT'
+    STATUS_FAILED = 'FAILED'
+    STATUS_SKIPPED = 'SKIPPED'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'En attente'),
+        (STATUS_SENT, 'Envoyé'),
+        (STATUS_FAILED, 'Échec'),
+        (STATUS_SKIPPED, 'Ignoré'),
+    ]
+
+    communique_key = models.CharField(max_length=120, db_index=True)
+    subject = models.CharField(max_length=300)
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='communique_envois',
+    )
+    email = models.EmailField()
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    error = models.TextField(blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'messaging_communique_envoi'
+        verbose_name = "Envoi de communiqué"
+        verbose_name_plural = "Envois de communiqués"
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['communique_key', 'email'],
+                name='unique_communique_envoi_par_email',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['communique_key', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.communique_key} — {self.email} ({self.get_status_display()})"
