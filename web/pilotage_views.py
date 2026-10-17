@@ -880,22 +880,42 @@ class PilotageDashboardView(View):
             )
             return redirect('web:app')
 
-        # La navigation Pilotage expose uniquement la structure Phoenix validée.
-        organisation = OrganisationVersion.objects.filter(code='phoenix-2026-10').first()
-        active_sc_assignments = AffectationSousCommission.objects.filter(
-            status=AffectationSousCommission.Status.MIGRATED,
+        # La navigation Pilotage expose la version d'organisation la plus récente
+        # (la version active si elle existe), sans dépendre d'un code figé.
+        organisation = (
+            OrganisationVersion.objects.filter(
+                status=OrganisationVersion.Status.ACTIVE,
+            ).order_by('-created_at', '-id').first()
+            or OrganisationVersion.objects.filter(
+                status__in=[
+                    OrganisationVersion.Status.PROPOSED,
+                    OrganisationVersion.Status.VALIDATED,
+                ],
+            ).order_by('-created_at', '-id').first()
+        )
+        sc_assignments = AffectationSousCommission.objects.filter(
+            version=organisation,
+            status__in=[
+                AffectationSousCommission.Status.MIGRATED,
+                AffectationSousCommission.Status.REVIEW,
+            ],
         ).select_related('expert__user', 'expert__structure')
         scs_with_stats = []
         direct_sc_by_ctm = {}
         if organisation:
             scs = organisation.organes.filter(
-                type=Organe.Type.SC, status=OrganisationVersion.Status.VALIDATED,
+                type=Organe.Type.SC,
+                status__in=[
+                    OrganisationVersion.Status.PROPOSED,
+                    OrganisationVersion.Status.VALIDATED,
+                    OrganisationVersion.Status.ACTIVE,
+                ],
             ).prefetch_related(Prefetch(
-                'expert_assignments', queryset=active_sc_assignments,
-                to_attr='active_expert_assignments',
+                'expert_assignments', queryset=sc_assignments,
+                to_attr='current_expert_assignments',
             )).order_by('code')
             for sc in scs:
-                assignments = list(sc.active_expert_assignments)
+                assignments = list(sc.current_expert_assignments)
                 scs_with_stats.append({
                     'sc': sc,
                     'member_count': len(assignments),
@@ -906,7 +926,7 @@ class PilotageDashboardView(View):
                     version=organisation, status='VALIDATED', sc__isnull=False,
                 ).values_list('ctm_id', 'sc__code')
             )
-        migrated_expert_count = sum(item['member_count'] for item in scs_with_stats)
+        migrated_expert_count = len({item.expert_id for item in sc_assignments})
         pending_sc_expert_count = AffectationSousCommission.objects.filter(
             version=organisation, status=AffectationSousCommission.Status.REVIEW,
         ).count() if organisation else 0
