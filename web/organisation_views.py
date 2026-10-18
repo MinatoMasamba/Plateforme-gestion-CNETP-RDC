@@ -65,6 +65,9 @@ class PhoenixOrganisationView(View):
                     assignment for assignment in sc.expert_assignments.all()
                     if assignment.status == AffectationSousCommission.Status.MIGRATED
                 ]
+                sc.proposed_bureau_count = sum(
+                    len(poste.proposed_holders) for poste in sc.postes.all()
+                )
             pending_experts = list(version.expert_assignments.filter(
                 status=AffectationSousCommission.Status.REVIEW,
             ).select_related('expert__user', 'source_ctm', 'source_wg').order_by(

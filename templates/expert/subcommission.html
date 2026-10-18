@@ -1,0 +1,64 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ sc.code }} · Ma sous-commission | CNE-ITP</title>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script>tailwind.config = {darkMode: 'class'};</script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#06060c] dark:text-slate-100">
+    <div class="flex h-1.5" aria-hidden="true"><div class="flex-1 bg-[#0095c9]"></div><div class="flex-1 bg-[#fff24b]"></div><div class="flex-1 bg-[#db3832]"></div></div>
+    <header class="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-[#0a0b10]">
+        <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+            <a href="{% url 'web:expert_profile' %}" class="flex items-center gap-3" aria-label="Retour à mon profil expert">
+                <img src="{% static 'img/logo-cnetp.png' %}" alt="CNE-ITP" class="h-10 w-10 rounded-full border border-slate-200 bg-white object-cover">
+                <span class="text-sm font-extrabold tracking-wide">CNE-ITP <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Espace expert</span></span>
+            </a>
+            {% include "pilotage/composants/theme_toggle.html" %}
+        </div>
+    </header>
+    <main class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+        <nav aria-label="Fil d’Ariane" class="text-sm text-slate-500 dark:text-slate-400">
+            <a href="{% url 'web:expert_profile' %}" class="hover:text-[#0095c9]">Mon profil</a> <span aria-hidden="true">›</span> <span aria-current="page">{{ sc.code }}</span>
+        </nav>
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+            <div class="h-2 bg-[#0095c9]"></div>
+            <div class="space-y-4 p-6 sm:p-8">
+                <p class="text-xs font-extrabold uppercase tracking-[.18em] text-[#007da9] dark:text-cyan-300">Ma sous-commission · {{ sc.code }}</p>
+                <h1 class="text-2xl font-extrabold leading-tight sm:text-3xl">{{ sc.official_name|default:sc.name }}</h1>
+                {% if sc.domain %}<p class="max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">{{ sc.domain }}</p>{% endif %}
+                <p class="text-xs text-slate-500 dark:text-slate-400">Référence de l’organisation : {{ sc.source_reference }}</p>
+            </div>
+        </section>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,.75fr)]">
+            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.04] sm:p-8">
+                <h2 class="text-lg font-bold">Mon affectation</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Les propositions du rapport restent soumises à la confirmation officielle des nominations individuelles.</p>
+                <div class="mt-5 space-y-3">
+                    {% for mandate in mandates %}
+                    <article class="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <h3 class="font-semibold">{{ mandate.function|default:mandate.poste.title|default:"Fonction à confirmer" }}</h3>
+                            <span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-200">{{ mandate.get_status_display }}</span>
+                        </div>
+                        {% if mandate.groupe %}<p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Groupe de travail : {{ mandate.groupe.name }}</p>{% endif %}
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Prise d’effet : {% if mandate.start_date %}{{ mandate.start_date|date:"d/m/Y" }}{% else %}À confirmer{% endif %}</p>
+                        {% if mandate.appointment_reference %}<p class="mt-2 break-words text-xs text-slate-500 dark:text-slate-400">Référence enregistrée : {{ mandate.appointment_reference }}</p>{% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'web:expert_organisation_update' %}" class="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#007da9] px-4 py-2 text-sm font-semibold text-white hover:bg-[#00688d]">Vérifier et actualiser mon profil</a>
+            </section>
+            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.04] sm:p-8">
+                <h2 class="text-lg font-bold">Groupes de travail</h2>
+                <ul class="mt-4 space-y-3">
+                    {% for group in groups %}<li class="rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/5"><span class="block text-xs font-bold text-[#007da9] dark:text-cyan-300">{{ group.code }}</span><span class="mt-1 block text-sm">{{ group.name }}</span></li>{% empty %}<li class="text-sm text-slate-500">Aucun groupe de travail enregistré.</li>{% endfor %}
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

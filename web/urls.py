@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from .supervision_views import PilotageNormeHistoryView, PilotageActivityHistoryView
 from .organisation_views import PhoenixOrganisationView, PhoenixMappingView
-from .expert_organisation_views import ExpertOrganisationUpdateView
+from .expert_organisation_views import ExpertOrganisationUpdateView, ExpertSubcommissionView
 from .profile_update_views import ExpertProfileUpdateNoticeView, ExpertProfileUpdateView
 from .phoenix_views import (PhoenixManagementView, PhoenixConfigurationView, PhoenixActivationView,
     PhoenixWorkspaceView, PhoenixDossierCreateView, PhoenixDossierView, PhoenixPieceDownloadView,
@@ -166,6 +166,7 @@ urlpatterns = [
     path('mise-a-jour-profil/', ExpertProfileUpdateNoticeView.as_view(), name='expert_profile_update_notice'),
     path('mise-a-jour-profil/formulaire/', ExpertProfileUpdateView.as_view(), name='expert_profile_update'),
     path('profil/actualiser-cv/', ExpertOrganisationUpdateView.as_view(), name='expert_organisation_update'),
+    path('profil/sous-commissions/<int:pk>/', ExpertSubcommissionView.as_view(), name='expert_subcommission'),
     path('profil/mes-donnees-activite/', MyActivityDataView.as_view(), name='my_activity_data'),
     path('profil/mes-donnees-activite/travail-declare/', declare_off_platform_work, name='declare_off_platform_work'),
     path('profil/mes-donnees-activite/absence/', declare_absence, name='declare_activity_absence'),

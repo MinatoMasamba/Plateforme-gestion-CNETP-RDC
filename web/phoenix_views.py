@@ -55,6 +55,7 @@ FORM_SECTIONS = {
         ('Identification', 'Code, catégorie et fonction confirmée.', ['code', 'category', 'title']),
         ('Origine institutionnelle', 'Provenance de la proposition et structure requise.', ['origin_label', 'required_structure']),
         ('Statut et traçabilité', 'État de préparation et source officielle.', ['status', 'source_reference']),
+        ('Dates affichées', 'Corriger l’affichage sans changer les horodatages d’audit enregistrés par le système.', ['display_created_at', 'display_updated_at', 'audit_date_reason']),
     ],
     'gt': [
         ('Rattachement', 'Sous-commission de rattachement du groupe de travail.', ['sc']),
@@ -106,7 +107,11 @@ def configuration_summary(instance, kind):
     if kind == 'organe':
         summary.update({'poste_count': instance.postes.count(), 'groupe_count': instance.groupes.count()})
     elif kind == 'poste':
-        summary.update({'mandate_count': instance.mandates.count()})
+        summary.update({'mandate_count': instance.mandates.count(),
+                        'display_created_at': instance.display_created_at or instance.created_at,
+                        'display_updated_at': instance.display_updated_at or instance.updated_at,
+                        'created_date_corrected': bool(instance.display_created_at),
+                        'updated_date_corrected': bool(instance.display_updated_at)})
     return summary
 
 
@@ -162,11 +167,35 @@ class PhoenixConfigurationView(PhoenixView):
         if instance and object_version(instance).pk != context['version'].pk:
             raise Http404
         form = configuration_form(kind, context['version'], data=data, instance=instance)
+        renewal_id = request.POST.get('renew_from') if data is not None else request.GET.get('renouveler')
+        renewal_source = None
+        if kind == 'mandat' and not instance and renewal_id and renewal_id.isdecimal():
+            candidate = MandatOrganisation.objects.select_related('expert__user', 'poste__organe', 'groupe__sc').filter(pk=int(renewal_id)).first()
+            if candidate and candidate.organisation_version.pk == context['version'].pk:
+                renewal_source = candidate
+                form.initial['status'] = 'PROPOSED'
+                form.fields['status'].choices = [('PROPOSED', 'Proposé')]
+                form.fields['status'].disabled = True
+                form.fields['start_date'].required = True
+                form.fields['start_date'].help_text = (
+                    f'Date prévue du renouvellement, après la fin du mandat actuel ({candidate.end_date:%d/%m/%Y}).'
+                    if candidate.end_date else
+                    'Date prévue du renouvellement. Le mandat actuel doit être terminé avant son activation.'
+                )
+                form.fields['appointment_reference'].help_text = 'À compléter lorsque l’acte officiel sera disponible ; obligatoire pour passer au statut « En cours ».'
+                if data is None:
+                    form.initial.update({
+                        'expert': candidate.expert_id, 'poste': candidate.poste_id,
+                        'groupe': candidate.groupe_id, 'function': candidate.function,
+                        'capacity': candidate.capacity,
+                    })
         context.update({'kind': kind, 'instance': instance, 'form': form,
                         'sections': configuration_sections(form, kind) if kind in CONFIG_MODELS else [],
                         'summary': configuration_summary(instance, kind),
                         'is_new': instance is None,
                         'return_url': configuration_return(kind, instance),
+                        'renewal_source': renewal_source,
+                        'post_mandates': list(instance.mandates.select_related('expert__user').order_by('-created_at')) if kind == 'poste' and instance else [],
                         'page_title': {'version': 'Référentiel CNE-ITP', 'organe': 'Organe et périmètre', 'poste': 'Fonction et origine du poste', 'gt': 'Catalogue des GT', 'mandat': 'Nomination et mandat', 'habilitation': 'Pouvoirs et délégations', 'circuit': 'Règles du circuit', 'rattachement': 'Rattachement documentaire'}[kind]})
         if not data and not instance:
             for name in ('organe', 'sc', 'poste', 'groupe'):
@@ -183,7 +212,43 @@ class PhoenixConfigurationView(PhoenixView):
         context = self.context(request, kind, pk, request.POST)
         if context['form'].is_valid():
             try:
-                obj = configure(request.user, context['version'], kind, context['form'].cleaned_data, pk=pk)
+                source = context['renewal_source']
+                if request.POST.get('renew_from') and not source:
+                    raise ValidationError('Le mandat à renouveler est introuvable dans cette édition.')
+                if source:
+                    cleaned = context['form'].cleaned_data
+                    if (pk or cleaned['expert'].pk != source.expert_id or
+                            getattr(cleaned.get('poste'), 'pk', None) != source.poste_id or
+                            getattr(cleaned.get('groupe'), 'pk', None) != source.groupe_id or
+                            cleaned['capacity'] != source.capacity or cleaned['status'] != 'PROPOSED'):
+                        raise ValidationError('Le renouvellement conserve le titulaire, la cible et la qualité du mandat précédent ; il démarre comme proposition.')
+                    if not cleaned['start_date']:
+                        raise ValidationError('Indiquer la date prévue du renouvellement.')
+                    if source.end_date and cleaned['start_date'] <= source.end_date:
+                        context['form'].add_error(
+                            'start_date',
+                            f'La date prévue doit être postérieure à la fin du mandat actuel ({source.end_date:%d/%m/%Y}).',
+                        )
+                        return render(request, 'pilotage/phoenix/form.html', context, status=400)
+                correction_reason = ''
+                if kind == 'poste' and context['instance']:
+                    cleaned = context['form'].cleaned_data
+                    original_post = PosteOrganisation.objects.get(pk=pk)
+                    corrected = any(cleaned[name] != getattr(original_post, name)
+                                    for name in ('display_created_at', 'display_updated_at'))
+                    if corrected:
+                        motive = cleaned['audit_date_reason'].strip()
+                        if not motive:
+                            raise ValidationError('Préciser le motif de correction des dates affichées.')
+                        shown_creation = cleaned['display_created_at'] or original_post.created_at
+                        shown_update = cleaned['display_updated_at'] or timezone.now()
+                        if shown_update < shown_creation:
+                            raise ValidationError('La date de modification affichée ne peut pas précéder la date de création affichée.')
+                        correction_reason = f'Correction des dates affichées du poste. Motif : {motive}'
+                obj = configure(request.user, context['version'], kind, context['form'].cleaned_data, pk=pk,
+                                reason=f'Renouvellement proposé du mandat {source.pk} ; mandat précédent conservé.' if source else correction_reason or 'Modification du référentiel CNE-ITP.')
+                if source:
+                    return redirect('web:phoenix_config_edit', kind='mandat', pk=obj.pk)
                 return redirect(configuration_return(kind, obj))
             except (ValidationError, IntegrityError) as error:
                 context['form'].add_error(None, error_message(error))

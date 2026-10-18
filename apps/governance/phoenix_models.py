@@ -112,6 +112,8 @@ class PosteOrganisation(PhoenixValidatedModel, BaseModel):
     required_structure = models.ForeignKey(Structure, on_delete=models.PROTECT, null=True, blank=True)
     source_reference = models.CharField(max_length=250)
     status = models.CharField(max_length=20, choices=OrganisationVersion.Status.choices, default='PROPOSED')
+    display_created_at = models.DateTimeField(null=True, blank=True, verbose_name='Date de création affichée')
+    display_updated_at = models.DateTimeField(null=True, blank=True, verbose_name='Date de modification affichée')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['organe', 'code'], name='unique_phoenix_poste_code')]
@@ -360,8 +362,15 @@ class MandatOrganisation(PhoenixValidatedModel, BaseModel):
             if old.status in ('ACTIVE', 'ENDED') and (old.expert_id != self.expert_id or old.poste_id != self.poste_id or old.groupe_id != self.groupe_id or old.capacity != self.capacity):
                 raise ValidationError('Le titulaire et la cible d’un mandat nommé sont conservés ; enregistrer une nouvelle nomination.')
         if self.status == 'ACTIVE':
-            if not self.appointment_reference or not self.start_date or not self.function:
-                raise ValidationError('Une nomination, une date et une fonction confirmées sont nécessaires.')
+            missing = {}
+            if not self.appointment_reference:
+                missing['appointment_reference'] = 'Indiquer la référence de l’acte officiel de nomination.'
+            if not self.start_date:
+                missing['start_date'] = 'Indiquer la date de début du mandat.'
+            if not self.function:
+                missing['function'] = 'Indiquer la fonction confirmée du mandat.'
+            if missing:
+                raise ValidationError(missing)
             if self.poste_id and not self.poste.title:
                 raise ValidationError('La fonction de ce poste n’est pas encore confirmée.')
         if self.capacity != 'ORGANISATION' and not self.poste_id:

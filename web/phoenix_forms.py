@@ -56,6 +56,21 @@ class CompositionField(forms.Field):
 def configuration_form(kind, version, data=None, instance=None):
     form_class = forms.modelform_factory(CONFIG_MODELS[kind], fields=CONFIG_FIELDS[kind])
     form = form_class(data, instance=instance)
+    if kind == 'poste':
+        if not instance:
+            form.fields.pop('display_created_at')
+            form.fields.pop('display_updated_at')
+        else:
+            for name in ('display_created_at', 'display_updated_at'):
+                field = form.fields[name]
+                field.widget = forms.DateTimeInput(format='%Y-%m-%dT%H:%M', attrs={'type': 'datetime-local', 'class': 'phoenix-input'})
+                field.input_formats = ['%Y-%m-%dT%H:%M']
+                field.help_text = 'L’horodatage système d’origine reste conservé. Laisser vide pour l’afficher.'
+            form.fields['audit_date_reason'] = forms.CharField(
+                required=False, max_length=500, label='Motif de correction des dates',
+                help_text='Obligatoire si une date affichée change ; la correction est enregistrée au journal.',
+                widget=forms.Textarea(attrs={'rows': 2, 'class': 'phoenix-input'}),
+            )
     if kind == 'organe':
         form.fields['composition'] = CompositionField(
             label='Fonctions et effectifs', required=False, current=instance.composition if instance else {},
@@ -81,7 +96,7 @@ def configuration_form(kind, version, data=None, instance=None):
         field.widget.attrs['class'] = 'phoenix-input'
         if hasattr(field, 'empty_label') and name in empty_labels:
             field.empty_label = empty_labels[name]
-        if isinstance(field, forms.DateField):
+        if isinstance(field, forms.DateField) and not isinstance(field, forms.DateTimeField):
             field.widget = forms.DateInput(attrs={'type': 'date', 'class': 'phoenix-input'})
             field.input_formats = ['%Y-%m-%d']
     if 'action' in form.fields:
@@ -98,6 +113,7 @@ def configuration_form(kind, version, data=None, instance=None):
               'composition': 'Fonctions et effectifs', 'source_document': 'Document de référence',
               'source_reference': 'Source et référence de décision', 'origin_label': 'Origine institutionnelle',
               'title': 'Fonction confirmée', 'category': 'Catégorie', 'required_structure': 'Structure requise',
+              'display_created_at': 'Date de création affichée', 'display_updated_at': 'Date de modification affichée',
               'appointment_reference': 'Acte de nomination', 'start_date': 'Début', 'end_date': 'Fin',
               'decision_reference': 'Référence de décision', 'enabled': 'Habilitation en vigueur', 'perimeter': 'Périmètre',
               'delegated_from': 'Habilitation source de la délégation', 'configuration': 'États, transitions et conditions approuvés',

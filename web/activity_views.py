@@ -31,7 +31,7 @@ from apps.governance.models import (
     JustifiedAbsence, OffPlatformWork, Organe, SavedActivityView, Tache, WG,
 )
 from apps.norms.models import Norme
-from apps.governance.phoenix_models import MandatOrganisation, RattachementDocumentaire
+from apps.governance.phoenix_models import MandatOrganisation, PosteOrganisation, RattachementDocumentaire
 from apps.governance.phoenix_runtime import current_organisation_version
 
 
@@ -98,14 +98,31 @@ class ActivityDashboardView(View):
             active_tab = 'ensemble'
         start, end = context['period_start'], context['period_end']
         rows = historical_sc_rows(start, end)
+        sc_ids = [row['id'] for row in rows if row['kind'] == 'current']
+        posts = list(PosteOrganisation.objects.filter(organe_id__in=sc_ids).values_list('id', 'organe_id'))
+        today = timezone.localdate()
+        filled_post_ids = set(MandatOrganisation.objects.filter(
+            poste_id__in=[post_id for post_id, _ in posts], status='ACTIVE', capacity='ORGANISATION',
+        ).filter(Q(start_date__isnull=True) | Q(start_date__lte=today)).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
+        ).values_list('poste_id', flat=True))
+        total_filled_posts = len(filled_post_ids)
+        for row in rows:
+            row_post_ids = [post_id for post_id, sc_id in posts if sc_id == row['id']]
+            row['post_count'] = len(row_post_ids)
+            row['filled_post_count'] = sum(post_id in filled_post_ids for post_id in row_post_ids)
+            row['post_coverage'] = round(row['filled_post_count'] * 100 / row['post_count']) if row['post_count'] else None
         for row in rows:
             if row['kind'] == 'current':
-                groups = GroupeCible.objects.filter(sc_id=row['id']).order_by('name')
+                groups = list(GroupeCible.objects.filter(sc_id=row['id']).order_by('name'))
                 row['group_rows'] = [{'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, target_group=group), 'historical': False} for group in groups]
+                row['metrics'] = calculate_scope_metrics(start=start, end=end, target_group_ids=[group.pk for group in groups])
             else:
                 groups = WG.objects.filter(ctm_id=row['id']).order_by('name')
                 row['group_rows'] = [{'group': group, 'metrics': calculate_scope_metrics(start=start, end=end, wg=group), 'historical': True} for group in groups]
-        heatmap = weekly_heatmap(rows, end)
+        current_group_ids = [item['group'].pk for row in rows if row['kind'] == 'current' for item in row['group_rows']]
+        current_metrics = calculate_scope_metrics(start=start, end=end, target_group_ids=current_group_ids)
+        heatmap = weekly_heatmap(rows, start, end)
         personal_expert = context['activity_access']['expert']
         personal_tasks = (Tache.objects.filter(Q(assigned_to=personal_expert) | Q(backup_assignee=personal_expert))
                           .select_related('norme').order_by('-updated_at')[:5]) if personal_expert else []
@@ -114,8 +131,9 @@ class ActivityDashboardView(View):
             sources = row['metrics']['production'].get('sources', 0)
             row['load_percent'] = round(sources * 100 / load_max) if load_max else 0
         context.update({
-            'metrics': calculate_scope_metrics(start=start, end=end),
-            'exceptions': build_exceptions(),
+            'metrics': current_metrics,
+            'exceptions': build_exceptions(target_group_ids=current_group_ids, start=start, end=end),
+            'current_task_count': current_metrics['production']['sources'],
             'subcommissions': rows,
             'heatmap': heatmap,
             'recent_sessions': ActivitySession.objects.select_related('user').order_by('-last_seen_at')[:12],
@@ -123,6 +141,10 @@ class ActivityDashboardView(View):
             'active_tab': active_tab,
             'active_tab_label': tab_labels[active_tab],
             'gt_count': sum(row['group_count'] for row in rows),
+            'coordination_post_count': len(posts),
+            'coordination_filled_count': total_filled_posts,
+            'coordination_vacant_count': len(posts) - total_filled_posts,
+            'coordination_coverage': round(total_filled_posts * 100 / len(posts)) if posts else None,
             'load_max': load_max,
             'personal_expert': personal_expert,
             'personal_metrics': calculate_scope_metrics(start=start, end=end, expert=personal_expert) if personal_expert else None,
@@ -194,10 +216,16 @@ class ActivityCurrentSubcommissionView(View):
                 norm_sections['waiting'].append(binding)
             else:
                 norm_sections['working'].append(binding)
+        weekly_activity = weekly_heatmap([{'kind': 'current', 'id': sc.pk, 'code': sc.code}], start, end)
+        weekly_activity['points'] = [
+            {'week': week, 'count': count}
+            for week, count in zip(weekly_activity['weeks'], weekly_activity['rows'][0]['values'])
+        ]
         context.update({
             'subcommission': sc, 'historical': False, 'groups': groups,
             'metrics': _unconfigured_metrics(), 'coordination': coordination,
             'norm_sections': norm_sections,
+            'weekly_activity': weekly_activity,
             'exceptions': [], 'recent_sessions': ActivitySession.objects.filter(target_group__sc=sc).select_related('user').order_by('-last_seen_at')[:20],
         })
         return render(request, self.template_name, context)
@@ -561,8 +589,13 @@ def activity_metric_sources(request):
     if request.GET.get('norme'):
         tasks = tasks.filter(norme_id=request.GET['norme'])
         sessions = sessions.filter(norme_id=request.GET['norme'])
+    if not any(request.GET.get(key) for key in ('ctm', 'wg', 'target_group', 'norme')):
+        version = current_organisation_version()
+        current_groups = GroupeCible.objects.filter(sc__version=version, sc__type='SC').exclude(sc__status='ARCHIVED') if version else GroupeCible.objects.none()
+        tasks = tasks.filter(target_group__in=current_groups)
+        sessions = sessions.filter(target_group__in=current_groups)
     start, end = _period(request)
-    tasks = tasks.filter(created_at__date__lte=end).prefetch_related('blocked_by')
+    tasks = tasks.filter(Q(created_at__date__lte=end), Q(due_date__isnull=True) | Q(due_date__gte=start)).prefetch_related('blocked_by')
     items = []
     if metric == 'engagement':
         for session in sessions.filter(last_seen_at__date__gte=start, started_at__date__lte=end).order_by('-last_seen_at')[:100]:

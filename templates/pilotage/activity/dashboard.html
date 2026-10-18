@@ -1,21 +1,56 @@
 {% extends "pilotage/activity/base.html" %}
 
+{% block subtitle %}<p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Consultez l’organisation courante et les activités réellement enregistrées.</p>{% endblock %}
+
 {% block activity_content %}
 <section id="activity-panel-ensemble" class="activity-panel space-y-6" data-activity-panel="ensemble" role="tabpanel" {% if active_tab != 'ensemble' %}hidden{% endif %}>
   <div class="flex flex-wrap items-end justify-between gap-4">
-    <div><p class="activity-label">Tableau de bord</p><h2 class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">Vue globale</h2><p class="mt-1 text-sm text-slate-500">Situation du {{ period_start|date:'d/m/Y' }} au {{ period_end|date:'d/m/Y' }}</p></div>
-    <p class="text-xs text-slate-500">Actualisé à {{ metrics.updated_at|default:kinshasa_now|date:'H:i' }}</p>
+    <div><p class="activity-label">Tableau de bord</p><h2 class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">Vue globale</h2><p class="mt-1 text-sm text-slate-500">Activités du {{ period_start|date:'d/m/Y' }} au {{ period_end|date:'d/m/Y' }} · organisation courante à ce jour</p></div>
+    <p class="text-xs text-slate-500">Calculé à {{ metrics.updated_at|date:'H:i' }}</p>
   </div>
   <div class="grid gap-3 sm:grid-cols-3">
     <div class="activity-card border-l-4 border-l-[#0095c9] p-4"><p class="activity-label">Organisation</p><p class="mt-2 text-2xl font-black">{{ subcommissions|length }}</p><p class="text-xs text-slate-500">Sous-commissions</p></div>
     <div class="activity-card border-l-4 border-l-teal-600 p-4"><p class="activity-label">Travaux</p><p class="mt-2 text-2xl font-black">{{ gt_count }}</p><p class="text-xs text-slate-500">Groupes de travail du rapport</p></div>
-    <div class="activity-card border-l-4 {% if exceptions %}border-l-orange-500{% else %}border-l-slate-300{% endif %} p-4"><p class="activity-label">Suivi</p><p class="mt-2 text-2xl font-black">{{ exceptions|length }}</p><p class="text-xs text-slate-500">Situation{{ exceptions|length|pluralize }} à examiner</p></div>
+    <div class="activity-card border-l-4 {% if exceptions %}border-l-orange-500{% else %}border-l-slate-300{% endif %} p-4"><p class="activity-label">Suivi</p><p class="mt-2 text-2xl font-black">{% if current_task_count %}{{ exceptions|length }}{% else %}—{% endif %}</p><p class="text-xs text-slate-500">{% if current_task_count %}Situation{{ exceptions|length|pluralize }} à examiner{% else %}Aucune tâche suivie sur la période{% endif %}</p></div>
+  </div>
+  <div class="activity-chart-grid" aria-label="Graphiques de l’organisation courante">
+    <section class="activity-card min-w-0 p-5" aria-labelledby="activity-post-coverage-title">
+      <p class="activity-label">Composition des sous-commissions</p>
+      <h3 id="activity-post-coverage-title" class="mt-1 text-lg font-bold text-slate-950 dark:text-white">Postes de coordination</h3>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mandats actifs confirmés dans la version courante, à la date du jour.</p>
+      {% if coordination_post_count %}
+      <div class="activity-donut-layout">
+        <div class="premium-donut premium-donut--value" style="--donut-size:168px;--donut-thickness:22%;--donut-value:{{ coordination_coverage }};--donut-color:#74b9ff" role="img" aria-label="{{ coordination_filled_count }} postes pourvus sur {{ coordination_post_count }}, soit {{ coordination_coverage }} pour cent">
+          <span class="premium-donut__ring"></span>
+          <span class="premium-donut__center"><strong class="premium-donut__value">{{ coordination_coverage }} %</strong><span class="premium-donut__label">pourvus</span></span>
+        </div>
+        <div class="activity-donut-legend text-sm text-slate-700 dark:text-slate-200">
+          <span><i style="background:#74b9ff" aria-hidden="true"></i><strong>{{ coordination_filled_count }}</strong> pourvus</span>
+          <span><i style="background:#dce7ef" aria-hidden="true"></i><strong>{{ coordination_vacant_count }}</strong> à confirmer</span>
+        </div>
+      </div>
+      {% else %}<p class="mt-6 text-sm text-slate-500">Aucun poste de coordination enregistré.</p>{% endif %}
+    </section>
+    <section class="activity-card min-w-0 p-5" aria-labelledby="activity-post-sc-title">
+      <p class="activity-label">Répartition par sous-commission</p>
+      <h3 id="activity-post-sc-title" class="mt-1 text-lg font-bold text-slate-950 dark:text-white">Postes pourvus par structure</h3>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Nombre de postes pourvus sur les postes prévus. Ouvrez une barre pour voir la fiche.</p>
+      <div class="activity-bar-plot" aria-label="Postes de coordination pourvus par sous-commission">
+        {% for sc in subcommissions %}
+        <a href="{% url 'web:activity_current_subcommission' sc.id %}?debut={{ period_start|date:'Y-m-d' }}&fin={{ period_end|date:'Y-m-d' }}" class="activity-bar-column rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-600" aria-label="{{ sc.code }} : {{ sc.filled_post_count }} postes pourvus sur {{ sc.post_count }}. Ouvrir la sous-commission">
+          <strong class="text-xs tabular-nums text-slate-700 dark:text-slate-200">{{ sc.filled_post_count }}/{{ sc.post_count }}</strong>
+          <span class="activity-bar-track" aria-hidden="true"><span class="activity-bar-fill" style="height:{{ sc.post_coverage|default:0 }}%"></span></span>
+          <span class="w-full break-words text-[11px] font-bold text-slate-600 dark:text-slate-300">{{ sc.code }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
   </div>
   {% include "pilotage/activity/_kpis.html" %}
   <div class="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
     <section class="activity-card overflow-hidden" aria-labelledby="activity-exceptions-title">
-      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700"><div><p class="activity-label">Priorités</p><h3 id="activity-exceptions-title" class="mt-1 text-lg font-extrabold">À traiter</h3></div><span class="status-badge {% if exceptions %}status-red{% else %}status-green{% endif %}">{{ exceptions|length }} situation{{ exceptions|length|pluralize }}</span></div>
-      {% for item in exceptions %}<article class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 last:border-0 dark:border-slate-800"><div class="min-w-0"><span class="status-badge {% if item.severity == 'ACTION' %}status-red{% else %}status-orange{% endif %}">{% if item.severity == 'ACTION' %}Action requise{% else %}À surveiller{% endif %}</span><h4 class="mt-2 font-bold">{{ item.label }}</h4><p class="mt-1 text-xs text-slate-500">{{ item.detail }}</p></div>{% if item.task.norme_id %}<a href="{% url 'web:activity_norm' item.task.norme_id %}" class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold hover:border-sky-500">Ouvrir</a>{% endif %}</article>{% empty %}<div class="px-6 py-10 text-center"><i data-lucide="circle-check" class="mx-auto h-8 w-8 text-emerald-600"></i><p class="mt-3 font-bold">Aucune situation signalée</p><p class="mt-1 text-sm text-slate-500">Les tâches configurées ne présentent pas d’écart à traiter sur cette période.</p></div>{% endfor %}
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700"><div><p class="activity-label">Priorités</p><h3 id="activity-exceptions-title" class="mt-1 text-lg font-extrabold">À traiter</h3></div><span class="status-badge {% if exceptions %}status-red{% elif current_task_count %}status-green{% else %}status-gray{% endif %}">{% if current_task_count %}{{ exceptions|length }} situation{{ exceptions|length|pluralize }}{% else %}Non configuré{% endif %}</span></div>
+      {% for item in exceptions %}<article class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 last:border-0 dark:border-slate-800"><div class="min-w-0"><span class="status-badge {% if item.severity == 'ACTION' %}status-red{% else %}status-orange{% endif %}">{% if item.severity == 'ACTION' %}Action requise{% else %}À surveiller{% endif %}</span><h4 class="mt-2 font-bold">{{ item.label }}</h4><p class="mt-1 text-xs text-slate-500">{{ item.detail }}</p></div>{% if item.task.norme_id %}<a href="{% url 'web:activity_norm' item.task.norme_id %}" class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold hover:border-sky-500">Ouvrir</a>{% endif %}</article>{% empty %}<div class="px-6 py-10 text-center">{% if current_task_count %}<i data-lucide="circle-check" class="mx-auto h-8 w-8 text-emerald-600"></i><p class="mt-3 font-bold">Aucune situation signalée</p><p class="mt-1 text-sm text-slate-500">Les tâches configurées ne présentent pas d’écart à traiter.</p>{% else %}<i data-lucide="circle-dashed" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold">Suivi non configuré</p><p class="mt-1 text-sm text-slate-500">Aucune tâche des groupes courants n’est suivie sur la période sélectionnée.</p>{% endif %}</div>{% endfor %}
     </section>
     <section class="activity-card overflow-hidden" aria-labelledby="activity-overview-sc-title">
       <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700"><div><p class="activity-label">Périmètres</p><h3 id="activity-overview-sc-title" class="mt-1 text-lg font-extrabold">Sous-commissions</h3></div><button type="button" class="text-xs font-bold text-[#007da8] hover:underline" data-activity-open-tab="commissions">Voir toutes</button></div>
@@ -25,7 +60,7 @@
 </section>
 
 <section id="activity-panel-commissions" class="activity-panel space-y-5" data-activity-panel="commissions" role="tabpanel" {% if active_tab != 'commissions' %}hidden{% endif %}>
-  <div><p class="activity-label">Organisation des travaux</p><h2 class="mt-1 text-xl font-extrabold">Sous-commissions</h2><p class="mt-1 text-sm text-slate-500">Sous-commissions et groupes de travail configurés en base. Les mesures CTM historiques sont identifiées séparément.</p></div>
+  <div><p class="activity-label">Organisation des travaux</p><h2 class="mt-1 text-xl font-extrabold">Sous-commissions</h2><p class="mt-1 text-sm text-slate-500">Sous-commissions et groupes de travail de la version courante, avec leurs activités enregistrées.</p></div>
   <div class="grid gap-4 xl:grid-cols-2">
     {% for sc in subcommissions %}<article class="activity-card overflow-hidden">
       <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800"><div class="min-w-0"><p class="activity-label text-[#007da8]">Tome {{ sc.number }} · {{ sc.code }}</p><h3 class="mt-1 text-base font-extrabold">{{ sc.name }}</h3><span class="status-badge status-gray mt-2">{{ sc.badge }}</span></div><a href="{% url 'web:activity_current_subcommission' sc.id %}?debut={{ period_start|date:'Y-m-d' }}&fin={{ period_end|date:'Y-m-d' }}" class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold hover:border-sky-500 dark:border-slate-700">Ouvrir</a></div>
@@ -35,12 +70,16 @@
 </section>
 
 <section id="activity-panel-tendance" class="activity-panel space-y-5" data-activity-panel="tendance" role="tabpanel" {% if active_tab != 'tendance' %}hidden{% endif %}>
-  <div><p class="activity-label">Suivi dans le temps</p><h2 class="mt-1 text-xl font-extrabold">Avancement pondéré par semaine</h2><p class="mt-1 text-sm text-slate-500">Les mesures historiques restent attribuées à leur CTM. Un tiret indique qu’aucune tâche pondérée n’est configurée.</p></div>
-  <div class="activity-card overflow-hidden p-4 sm:p-5"><div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700"><table class="activity-table w-full min-w-[750px] border-collapse text-sm"><thead class="bg-slate-100 dark:bg-slate-900"><tr><th class="sticky left-0 z-10 min-w-44 border-r border-slate-200 bg-slate-100 p-3 text-left dark:border-slate-700 dark:bg-slate-900">Sous-commission</th>{% for week in heatmap.weeks %}<th class="min-w-16 p-3 text-center">{{ week|date:'d/m' }}</th>{% endfor %}</tr></thead><tbody>{% for row in heatmap.rows %}<tr class="border-t border-slate-100 dark:border-slate-800"><th scope="row" class="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 text-left font-bold dark:border-slate-700 dark:bg-slate-950">{{ row.label }}</th>{% for value in row.values %}<td class="p-2 text-center"><span class="block rounded-lg px-2 py-2 font-bold {% if value == None %}bg-slate-100 text-slate-500 dark:bg-slate-800{% elif value >= 75 %}bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-200{% elif value >= 40 %}bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200{% else %}bg-orange-100 text-orange-900 dark:bg-orange-900/40 dark:text-orange-200{% endif %}">{% if value != None %}{{ value|floatformat:0 }} %{% else %}—{% endif %}</span></td>{% endfor %}</tr>{% endfor %}</tbody></table></div><p class="mt-3 text-xs text-slate-500">Les nouveaux GT ne reçoivent pas automatiquement les tâches des anciens CTM.</p></div>
+  <div><p class="activity-label">Suivi dans le temps</p><h2 class="mt-1 text-xl font-extrabold">Tâches clôturées par semaine</h2><p class="mt-1 text-sm text-slate-500">Jusqu’à huit semaines de la période sélectionnée. Les progrès passés non enregistrés ne sont pas reconstitués.</p></div>
+  {% if heatmap.has_data %}
+  <div class="activity-card overflow-hidden p-4 sm:p-5"><div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700"><table class="activity-table w-full min-w-[750px] border-collapse text-sm"><thead class="bg-slate-100 dark:bg-slate-900"><tr><th class="sticky left-0 z-10 min-w-44 border-r border-slate-200 bg-slate-100 p-3 text-left dark:border-slate-700 dark:bg-slate-900">Sous-commission</th>{% for week in heatmap.weeks %}<th class="min-w-16 p-3 text-center">{{ week|date:'d/m' }}</th>{% endfor %}</tr></thead><tbody>{% for row in heatmap.rows %}<tr class="border-t border-slate-100 dark:border-slate-800"><th scope="row" class="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 text-left font-bold dark:border-slate-700 dark:bg-slate-950">{{ row.label }}</th>{% for value in row.values %}<td class="p-2 text-center"><span class="block rounded-lg px-2 py-2 font-bold {% if value == None %}bg-slate-100 text-slate-500 dark:bg-slate-800{% elif value > 0 %}bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-200{% else %}bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">{% if value != None %}{{ value }}{% else %}—{% endif %}</span></td>{% endfor %}</tr>{% endfor %}</tbody></table></div><p class="mt-3 text-xs text-slate-500">Un tiret indique qu’aucune tâche n’est suivie dans cette sous-commission.</p></div>
+  {% else %}
+  <div class="activity-card p-6 text-sm text-slate-600 dark:text-slate-300">Aucune tâche n’est encore rattachée aux groupes des sous-commissions courantes. La tendance sera visible après les premières clôtures enregistrées.</div>
+  {% endif %}
 </section>
 
 <section id="activity-panel-charge" class="activity-panel space-y-5" data-activity-panel="charge" role="tabpanel" {% if active_tab != 'charge' %}hidden{% endif %}>
-  <div><p class="activity-label">Répartition du travail</p><h2 class="mt-1 text-xl font-extrabold">Charge planifiée</h2><p class="mt-1 text-sm text-slate-500">Nombre de tâches configurées par périmètre historique associé. Les cinq GT de chaque SC restent visibles dans leur fiche.</p></div>
+  <div><p class="activity-label">Répartition du travail</p><h2 class="mt-1 text-xl font-extrabold">Charge planifiée</h2><p class="mt-1 text-sm text-slate-500">Nombre de tâches enregistrées dans les groupes de chaque sous-commission courante pour la période.</p></div>
   <div class="activity-card space-y-5 p-5">{% for sc in subcommissions %}<div><div class="flex items-baseline justify-between gap-3 text-sm"><span class="min-w-0 font-bold">{{ sc.code }} <span class="font-medium text-slate-500">· {{ sc.name }}</span></span><span class="shrink-0 font-extrabold">{{ sc.metrics.production.sources|default:0 }} tâche{{ sc.metrics.production.sources|default:0|pluralize }}</span></div><div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full bg-[#0095c9]" style="width:{{ sc.load_percent }}%"></div></div></div>{% endfor %}{% if not load_max %}<p class="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800">Aucune tâche pondérée configurée pour cette période.</p>{% endif %}</div>
 </section>
 

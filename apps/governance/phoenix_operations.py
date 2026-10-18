@@ -16,7 +16,7 @@ CONFIG_MODELS = {'version': OrganisationVersion, 'organe': Organe, 'poste': Post
 CONFIG_FIELDS = {
     'version': ['name', 'source_document'],
     'organe': ['code', 'name', 'official_name', 'type', 'parent', 'domain', 'composition', 'status', 'source_reference'],
-    'poste': ['organe', 'code', 'category', 'title', 'origin_label', 'required_structure', 'source_reference', 'status'],
+    'poste': ['organe', 'code', 'category', 'title', 'origin_label', 'required_structure', 'source_reference', 'status', 'display_created_at', 'display_updated_at'],
     'gt': ['sc', 'code', 'name', 'activity', 'source_reference', 'status'],
     'mandat': ['expert', 'poste', 'groupe', 'function', 'capacity', 'appointment_reference', 'start_date', 'end_date', 'status'],
     'habilitation': ['mandat', 'action', 'perimeter', 'decision_reference', 'start_date', 'end_date', 'enabled', 'delegated_from'],
@@ -62,7 +62,7 @@ def journal(user, version, operation, target, before=None, after=None, reason=''
 
 
 @transaction.atomic
-def configure(user, version, kind, data, pk=None):
+def configure(user, version, kind, data, pk=None, reason='Modification du référentiel CNE-ITP.'):
     if not can_manage_organisation(user):
         raise PermissionDenied('La gestion de l’organisation CNE-ITP est réservée au Président ou à un gestionnaire habilité.')
     version = OrganisationVersion.objects.select_for_update().get(pk=version.pk)
@@ -109,7 +109,7 @@ def configure(user, version, kind, data, pk=None):
     if not pk:
         obj.created_by = user
     obj.save()
-    journal(user, version, 'CONFIGURE_' + kind.upper(), f'{kind}:{obj.pk}', before, snapshot(obj, CONFIG_FIELDS[kind]), 'Modification du référentiel CNE-ITP.')
+    journal(user, version, 'CONFIGURE_' + kind.upper(), f'{kind}:{obj.pk}', before, snapshot(obj, CONFIG_FIELDS[kind]), reason)
     return obj
 
 

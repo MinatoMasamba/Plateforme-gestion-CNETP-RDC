@@ -214,6 +214,72 @@ def test_management_forms_api_and_exports_work_without_moving_old_groups(operati
 
 
 @pytest.mark.django_db
+def test_renew_mandate_creates_dated_proposal_and_keeps_previous(client, expert_factory, user_factory):
+    admin = user_factory(username='renew-admin', is_staff=True, is_superuser=True)
+    expert = expert_factory()
+    version = OrganisationVersion.objects.create(code='renew-test', name='Organisation de recette', source_document='Rapport de recette')
+    sc = Organe.objects.create(version=version, type='SC', code='SC-R', name='SC de recette', source_reference='Rapport de recette')
+    poste = PosteOrganisation.objects.create(organe=sc, code='SC-R-PRES', category='PRESIDENCY', title='Président', source_reference='Rapport de recette')
+    previous = MandatOrganisation.objects.create(expert=expert, poste=poste, function='Président', status='PROPOSED')
+    client.force_login(admin)
+
+    post_page = client.get(f'/pilotage/organisation/configuration/poste/{poste.pk}/')
+    assert post_page.status_code == 200
+    assert b'Renouveler le mandat' in post_page.content
+    renewal = client.get('/pilotage/organisation/configuration/mandat/', {'renouveler': previous.pk})
+    assert renewal.status_code == 200
+    assert renewal.context['form']['expert'].value() == expert.pk
+    assert renewal.context['form']['poste'].value() == poste.pk
+    assert renewal.context['form']['start_date'].value() is None
+
+    payload = {'renew_from': previous.pk, 'expert': expert.pk, 'poste': poste.pk,
+               'groupe': '', 'function': 'Président', 'capacity': 'ORGANISATION',
+               'appointment_reference': '',
+               'start_date': '2026-11-01', 'end_date': '2027-10-31', 'status': 'ACTIVE'}
+    response = client.post('/pilotage/organisation/configuration/mandat/', payload)
+    assert response.status_code == 302
+    renewed = MandatOrganisation.objects.exclude(pk=previous.pk).get()
+    assert response.url.endswith(f'/configuration/mandat/{renewed.pk}/')
+    assert renewed.start_date.isoformat() == '2026-11-01'
+    assert renewed.end_date.isoformat() == '2027-10-31'
+    assert renewed.status == 'PROPOSED'
+    previous.refresh_from_db()
+    assert previous.start_date is None and previous.status == 'PROPOSED'
+    assert JournalMigration.objects.filter(target=f'mandat:{renewed.pk}', reason__contains=f'mandat {previous.pk}').exists()
+
+
+@pytest.mark.django_db
+def test_post_display_dates_are_corrected_without_rewriting_audit_timestamps(client, user_factory):
+    admin = user_factory(username='post-date-admin', is_staff=True, is_superuser=True)
+    version = OrganisationVersion.objects.create(code='post-date-test', name='Organisation de recette', source_document='Rapport de recette')
+    sc = Organe.objects.create(version=version, type='SC', code='SC-D', name='SC de recette', source_reference='Rapport de recette')
+    poste = PosteOrganisation.objects.create(organe=sc, code='SC-D-PRES', category='PRESIDENCY', title='Président', source_reference='Rapport de recette')
+    created_at = poste.created_at
+    client.force_login(admin)
+    url = f'/pilotage/organisation/configuration/poste/{poste.pk}/'
+    payload = {'organe': sc.pk, 'code': poste.code, 'category': poste.category, 'title': poste.title,
+               'origin_label': '', 'required_structure': '', 'source_reference': poste.source_reference,
+               'status': 'PROPOSED', 'display_created_at': '2026-10-15T10:30',
+               'display_updated_at': '2026-10-16T11:45'}
+    response = client.post(url, payload)
+    assert response.status_code == 400
+    assert 'motif de correction' in response.content.decode().lower()
+    poste.refresh_from_db()
+    assert poste.display_created_at is None
+
+    response = client.post(url, {**payload, 'audit_date_reason': 'Reprise de la date figurant dans le rapport'})
+    assert response.status_code == 302
+    poste.refresh_from_db()
+    assert poste.created_at == created_at
+    assert timezone.localtime(poste.display_created_at).strftime('%Y-%m-%dT%H:%M') == '2026-10-15T10:30'
+    assert timezone.localtime(poste.display_updated_at).strftime('%Y-%m-%dT%H:%M') == '2026-10-16T11:45'
+    assert JournalMigration.objects.filter(target=f'poste:{poste.pk}', reason__contains='Reprise de la date').exists()
+    response = client.get(url)
+    assert b'Date de cr\xc3\xa9ation affich\xc3\xa9e' in response.content
+    assert b'Horodatage syst\xc3\xa8me' in response.content
+
+
+@pytest.mark.django_db
 def test_delegation_revocation_and_suspended_expert_remove_action(operational):
     s = operational
     today = timezone.localdate()

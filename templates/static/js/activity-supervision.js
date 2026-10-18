@@ -24,7 +24,7 @@
       else url.searchParams.set('vue', name);
       window.history.replaceState(null, '', url);
     }
-    document.querySelector('.activity-shell main')?.scrollTo({top: 0, behavior: 'smooth'});
+    document.querySelector('.activity-shell main')?.scrollTo({top: 0, behavior: 'auto'});
     if (window.innerWidth < 1024 && typeof window.toggleActivitySidebar === 'function') window.toggleActivitySidebar(false);
   };
   activityTabs.forEach((tab) => tab.addEventListener('click', () => showActivityTab(tab.dataset.activityTab)));

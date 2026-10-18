@@ -4,16 +4,39 @@ import re
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from apps.experts.models import Expert
 from apps.governance.models import (
-    ChoixOrganisationExpert, CorrespondanceGroupe, GroupeCible, Organe, WG,
+    ChoixOrganisationExpert, CorrespondanceGroupe, GroupeCible, MandatOrganisation, Organe, WG,
 )
 from web.forms import ExpertCVUserForm, ExpertOrganisationChoiceForm, ExpertProfileForm
 from web.organisation_views import preferred_version
+
+
+class ExpertSubcommissionView(LoginRequiredMixin, View):
+    login_url = '/se-connecter/'
+    template_name = 'expert/subcommission.html'
+
+    def get(self, request, pk):
+        expert = Expert.objects.filter(user=request.user).first()
+        if not expert:
+            raise Http404('Profil expert introuvable.')
+        sc = get_object_or_404(Organe, pk=pk, type=Organe.Type.SC)
+        mandates = list(MandatOrganisation.objects.filter(expert=expert).filter(
+            Q(poste__organe=sc) | Q(groupe__sc=sc)
+        ).select_related('poste', 'groupe').order_by('-created_at'))
+        if not mandates:
+            raise Http404('Aucune affectation à cette sous-commission.')
+        return render(request, self.template_name, {
+            'expert': expert,
+            'sc': sc,
+            'mandates': mandates,
+            'groups': sc.groupes.order_by('code'),
+        })
 
 
 class ExpertOrganisationUpdateView(LoginRequiredMixin, View):

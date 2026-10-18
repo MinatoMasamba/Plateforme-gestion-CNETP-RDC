@@ -86,26 +86,31 @@
 <form method="post" class="pf-form">
 {% csrf_token %}
 {% if kind == 'circuit' %}<div class="pf-alert" role="status" style="background:rgba(0,149,201,.1);color:#0278a3"><span aria-hidden="true">ℹ</span><p>Le canevas proposé doit être adapté aux décisions officielles : quorums, pouvoirs, pièces, retours, consultations et signatures. Le statut « Validé » atteste ces règles et fige cette édition.</p></div>{% endif %}
+{% if kind == 'mandat' %}<div class="pf-alert" role="status" style="background:rgba(0,149,201,.1);color:#0278a3"><span aria-hidden="true">ℹ</span><p>Un mandat « Proposé » ne déclenche aucun courriel de nomination. Le courriel est envoyé au titulaire lorsque le mandat est validé et passe au statut « En cours ».</p></div>{% endif %}
+{% if renewal_source %}<div class="pf-alert" role="status" style="background:rgba(0,149,201,.1);color:#0278a3"><span aria-hidden="true">ℹ</span><p>Renouvellement du mandat de {{ renewal_source.expert.full_name|default:renewal_source.expert.user.username }}. L’ancien mandat est conservé. Indiquez la date prévue ; le nouveau mandat reste « Proposé » jusqu’à l’enregistrement d’un acte officiel.</p></div>{% endif %}
 <div class="pf-grid">
 <div class="pf-main">
 {% if sections %}{% for section in sections %}<section class="pf-card"><header><h2>{{ section.title }}</h2>{% if section.description %}<p>{{ section.description }}</p>{% endif %}</header><div class="pf-fields">{% for field in section.fields %}<div class="pf-field{% if field.name == 'domain' or field.name == 'composition' or field.name == 'configuration' or field.name == 'description' or field.name == 'content' %} pf-wide{% endif %}"><label class="pf-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="pf-req">obligatoire</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p class="pf-help">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p class="pf-error"><span aria-hidden="true">⚠</span>{{ error }}</p>{% endfor %}</div>{% endfor %}</div></section>{% endfor %}{% else %}<section class="pf-card"><header><h2>Informations</h2></header><div class="pf-fields">{% for field in form %}<div class="pf-field{% if field.name == 'domain' or field.name == 'composition' or field.name == 'configuration' or field.name == 'description' or field.name == 'content' %} pf-wide{% endif %}"><label class="pf-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="pf-req">obligatoire</span>{% endif %}</label>{{ field }}{% if field.help_text %}<p class="pf-help">{{ field.help_text }}</p>{% endif %}{% for error in field.errors %}<p class="pf-error"><span aria-hidden="true">⚠</span>{{ error }}</p>{% endfor %}</div>{% endfor %}</div></section>{% endif %}
 </div>
 <aside class="pf-side">
+{% if post_mandates %}<div class="pf-card"><header><h2>Mandats de ce poste</h2><p>Les dates se modifient dans la fiche du mandat.</p></header><div class="pf-fields" style="grid-template-columns:1fr">{% for mandate in post_mandates %}<div class="pf-field"><p class="pf-label">{{ mandate.expert.full_name|default:mandate.expert.user.username }} · {{ mandate.get_status_display }}</p><p class="pf-help">{{ mandate.start_date|date:"d/m/Y"|default:"Début à renseigner" }} — {{ mandate.end_date|date:"d/m/Y"|default:"Sans date de fin" }}</p><div class="pf-actions-left" style="margin-top:.7rem"><a class="pf-btn pf-btn-secondary" href="{% url 'web:phoenix_config_edit' 'mandat' mandate.pk %}">Modifier les dates</a><a class="pf-btn pf-btn-secondary" href="{% url 'web:phoenix_config_create' 'mandat' %}?renouveler={{ mandate.pk }}">Renouveler le mandat</a></div></div>{% endfor %}</div></div>{% endif %}
 <div class="pf-card pf-summary"><header><h2>Résumé</h2></header>
 {% if instance %}<dl>
 {% if kind == 'organe' %}<div><dt>Type d’organe</dt><dd>{{ instance.get_type_display }}</dd></div>{% endif %}
 <div><dt>Statut</dt><dd><span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span></dd></div>
 {% if kind == 'organe' %}<div><dt>Postes</dt><dd>{{ summary.poste_count }}</dd></div><div><dt>Groupes de travail</dt><dd>{{ summary.groupe_count }}</dd></div>{% endif %}
 {% if kind == 'poste' %}<div><dt>Mandats</dt><dd>{{ summary.mandate_count }}</dd></div>{% endif %}
-<div><dt>Créé le</dt><dd>{{ summary.created_at|date:"d/m/Y à H:i" }}</dd></div>
-<div><dt>Dernière modification</dt><dd>{{ summary.updated_at|date:"d/m/Y à H:i" }}</dd></div>
+<div><dt>Créé le{% if summary.created_date_corrected %} · date corrigée{% endif %}</dt><dd>{% if kind == 'poste' %}{{ summary.display_created_at|date:"d/m/Y à H:i" }}{% else %}{{ summary.created_at|date:"d/m/Y à H:i" }}{% endif %}</dd>{% if summary.created_date_corrected %}<p class="pf-help">Horodatage système : {{ summary.created_at|date:"d/m/Y à H:i" }}</p>{% endif %}</div>
+<div><dt>Dernière modification{% if summary.updated_date_corrected %} · date corrigée{% endif %}</dt><dd>{% if kind == 'poste' %}{{ summary.display_updated_at|date:"d/m/Y à H:i" }}{% else %}{{ summary.updated_at|date:"d/m/Y à H:i" }}{% endif %}</dd>{% if summary.updated_date_corrected %}<p class="pf-help">Horodatage système : {{ summary.updated_at|date:"d/m/Y à H:i" }}</p>{% endif %}</div>
 {% if summary.updated_by %}<div><dt>Modifié par</dt><dd>{{ summary.updated_by.get_full_name|default:summary.updated_by.username }}</dd></div>{% endif %}
 </dl>{% else %}<p class="pf-note">Cette fiche n’est pas encore enregistrée. Le résumé s’affichera après la première sauvegarde.</p>{% endif %}
 </div>
+{% if kind == 'mandat' and instance %}<a class="pf-btn pf-btn-secondary" href="{% url 'web:phoenix_config_create' 'mandat' %}?renouveler={{ instance.pk }}">Renouveler le mandat</a>{% endif %}
 <p class="pf-note">Cette opération est attribuée et inscrite au journal de préparation. L’historique n’est jamais écrasé : une nouvelle décision clôt le mandat précédent.</p>
 </aside>
 </div>
 <div class="pf-actions"><div class="pf-actions-left"><a href="{% if return_url %}{{ return_url }}{% else %}{% url 'web:phoenix_workspace' %}{% endif %}" class="pf-btn pf-btn-secondary">Annuler</a><span class="pf-unsaved" data-unsaved hidden>Modifications non enregistrées</span></div><button type="submit" class="pf-btn pf-btn-primary">{% if is_new %}Créer la fiche{% else %}Enregistrer{% endif %}</button></div>
+{% if renewal_source %}<input type="hidden" name="renew_from" value="{{ renewal_source.pk }}">{% endif %}
 </form>
 {% endif %}
 <script src="{% static 'js/phoenix-form.js' %}"></script>

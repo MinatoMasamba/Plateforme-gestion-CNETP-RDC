@@ -167,8 +167,10 @@ def business_days(start, end):
     return days
 
 
-def _scope_task_queryset(ctm=None, wg=None, target_group=None, norme=None):
+def _scope_task_queryset(ctm=None, wg=None, target_group=None, norme=None, target_group_ids=None):
     qs = Tache.objects.select_related('assigned_to__user', 'backup_assignee__user', 'norme', 'working_group', 'target_group').prefetch_related('blocked_by')
+    if target_group_ids is not None:
+        qs = qs.filter(target_group_id__in=target_group_ids)
     if norme:
         qs = qs.filter(norme=norme)
     elif target_group:
@@ -180,7 +182,7 @@ def _scope_task_queryset(ctm=None, wg=None, target_group=None, norme=None):
     return qs
 
 
-def _scope_sessions(start_dt, end_dt, ctm=None, wg=None, target_group=None, expert=None):
+def _scope_sessions(start_dt, end_dt, ctm=None, wg=None, target_group=None, expert=None, target_group_ids=None):
     qs = ActivitySession.objects.filter(started_at__lt=end_dt, last_seen_at__gte=start_dt)
     if ctm:
         qs = qs.filter(ctm=ctm)
@@ -188,6 +190,8 @@ def _scope_sessions(start_dt, end_dt, ctm=None, wg=None, target_group=None, expe
         qs = qs.filter(working_group=wg)
     if target_group:
         qs = qs.filter(target_group=target_group)
+    if target_group_ids is not None:
+        qs = qs.filter(target_group_id__in=target_group_ids)
     if expert:
         qs = qs.filter(user=expert.user)
     return qs
@@ -215,9 +219,9 @@ def _percent(numerator, denominator):
     return round(float(numerator) * 100 / float(denominator), 1)
 
 
-def calculate_scope_metrics(*, start, end, ctm=None, wg=None, target_group=None, norme=None, expert=None):
+def calculate_scope_metrics(*, start, end, ctm=None, wg=None, target_group=None, norme=None, expert=None, target_group_ids=None):
     """Calcule chaque indicateur séparément et conserve l'état non configuré."""
-    tasks = list(_scope_task_queryset(ctm, wg, target_group, norme).filter(
+    tasks = list(_scope_task_queryset(ctm, wg, target_group, norme, target_group_ids).filter(
         Q(created_at__date__lte=end), Q(due_date__isnull=True) | Q(due_date__gte=start)
     ))
     if expert:
@@ -254,7 +258,7 @@ def calculate_scope_metrics(*, start, end, ctm=None, wg=None, target_group=None,
 
     start_dt = timezone.make_aware(datetime.combine(start, time.min))
     end_dt = timezone.make_aware(datetime.combine(end + timedelta(days=1), time.min))
-    sessions = _scope_sessions(start_dt, end_dt, ctm, wg, target_group, expert)
+    sessions = _scope_sessions(start_dt, end_dt, ctm, wg, target_group, expert, target_group_ids)
     observed_seconds = sessions.aggregate(total=Sum('active_seconds'))['total'] or 0
     declared_qs = OffPlatformWork.objects.filter(status='APPROVED', work_date__range=(start, end))
     if ctm:
@@ -263,6 +267,8 @@ def calculate_scope_metrics(*, start, end, ctm=None, wg=None, target_group=None,
         declared_qs = declared_qs.filter(working_group=wg)
     if target_group:
         declared_qs = declared_qs.filter(target_group=target_group)
+    if target_group_ids is not None:
+        declared_qs = declared_qs.filter(target_group_id__in=target_group_ids)
     if norme:
         declared_qs = declared_qs.filter(norme=norme)
     if expert:
@@ -294,9 +300,12 @@ def task_state(task, today=None):
     return task.status
 
 
-def build_exceptions(*, ctm=None, wg=None, target_group=None, limit=30):
+def build_exceptions(*, ctm=None, wg=None, target_group=None, target_group_ids=None, start=None, end=None, limit=30):
     rows = []
-    for task in _scope_task_queryset(ctm=ctm, wg=wg, target_group=target_group):
+    tasks = _scope_task_queryset(ctm=ctm, wg=wg, target_group=target_group, target_group_ids=target_group_ids)
+    if start is not None and end is not None:
+        tasks = tasks.filter(Q(created_at__date__lte=end), Q(due_date__isnull=True) | Q(due_date__gte=start))
+    for task in tasks:
         state = task_state(task)
         if state in {'BLOCKED', 'LATE'}:
             rows.append({'severity': 'ACTION', 'kind': state, 'label': task.titre, 'detail': task.norme.reference_number if task.norme else 'Rattachement documentaire à confirmer', 'task': task})
@@ -338,21 +347,36 @@ def historical_sc_rows(start, end):
     return rows
 
 
-def weekly_heatmap(sc_rows, end, weeks=8):
-    starts = [end - timedelta(days=end.weekday(), weeks=i) for i in reversed(range(weeks))]
+def weekly_heatmap(sc_rows, start, end, weeks=8):
+    """Comptage hebdomadaire des tâches clôturées, sans reconstruire leur progression passée."""
+    first_week = start - timedelta(days=start.weekday())
+    last_week = end - timedelta(days=end.weekday())
+    starts = []
+    cursor = max(first_week, last_week - timedelta(weeks=weeks - 1))
+    while cursor <= last_week:
+        starts.append(cursor)
+        cursor += timedelta(weeks=1)
     result = []
+    has_data = False
     for row in sc_rows:
-        values = []
-        for week_start in starts:
-            week_end = min(end, week_start + timedelta(days=6))
-            if row['kind'] == 'historical' or row.get('legacy_ctm_id'):
-                scope = CTM.objects.get(pk=row.get('legacy_ctm_id') or row['id'])
-                value = calculate_scope_metrics(start=week_start, end=week_end, ctm=scope)['production']['value']
-            else:
-                value = None
-            values.append(value)
+        if row['kind'] == 'historical':
+            tasks = Tache.objects.filter(working_group__ctm_id=row['id'])
+        else:
+            tasks = Tache.objects.filter(target_group__sc_id=row['id'])
+        configured = tasks.exists()
+        has_data = has_data or configured
+        completed = list(tasks.filter(
+            completed_at__date__gte=max(start, starts[0]), completed_at__date__lte=end,
+        ).values_list('completed_at', flat=True))
+        counts = {week: 0 for week in starts}
+        for completed_at in completed:
+            day = timezone.localtime(completed_at).date()
+            week = day - timedelta(days=day.weekday())
+            if week in counts:
+                counts[week] += 1
+        values = [counts[week] if configured else None for week in starts]
         result.append({'label': row['code'], 'values': values})
-    return {'weeks': starts, 'rows': result}
+    return {'weeks': starts, 'rows': result, 'has_data': has_data}
 
 
 def expert_activity_context(expert, start, end, include_technical=False):

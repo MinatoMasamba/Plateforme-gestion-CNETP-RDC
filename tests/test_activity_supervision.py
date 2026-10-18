@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.governance.activity_supervision import calculate_scope_metrics, record_heartbeat
+from apps.governance.activity_supervision import calculate_scope_metrics, record_heartbeat, weekly_heatmap
 from apps.governance.models import (
     ActivityAccessLog, ActivitySession, CTCMembership, JustifiedAbsence,
     OffPlatformWork, Tache, TechnicalCell, WorkExpectation,
@@ -44,6 +44,26 @@ def test_indicators_keep_missing_values_distinct_from_zero(expert_factory, norme
     assert metrics['quality']['value'] == 100.0
     assert metrics['quality']['not_reviewed'] == 1
     assert metrics['completeness']['value'] == 100.0
+
+
+def test_weekly_trend_counts_current_sc_closures_without_inventing_history():
+    from apps.governance.rapport_adopte_2026 import prepare_adopted_organisation
+    from apps.governance.models import Organe
+
+    prepare_adopted_organisation()
+    sc = Organe.objects.filter(type='SC', code='SC-BAT').order_by('-pk').first()
+    today = timezone.localdate()
+    row = {'kind': 'current', 'id': sc.pk, 'code': sc.code}
+    empty = weekly_heatmap([row], today - timedelta(days=7), today)
+    assert empty['has_data'] is False
+    assert empty['rows'][0]['values'] == [None, None]
+
+    group = sc.groupes.first()
+    Tache.objects.create(target_group=group, titre='Tâche clôturée', status='COMPLETED',
+                         progress=100, completed_at=timezone.now())
+    result = weekly_heatmap([row], today - timedelta(days=7), today)
+    assert result['has_data'] is True
+    assert result['rows'][0]['values'] == [0, 1]
 
 
 def test_heartbeat_deduplicates_tabs_and_caps_network_gap(user_factory):
@@ -159,3 +179,30 @@ def test_activity_dashboard_uses_pilotage_shell_and_report_sc(client, expert_fac
     detail = client.get(reverse('web:activity_current_subcommission', args=[sc_bat.pk]))
     assert detail.status_code == 200
     assert 'SC-BAT-GT1' in detail.content.decode()
+
+
+def test_activity_dashboard_metrics_only_include_current_groups(client, expert_factory, wg_factory):
+    from apps.governance.rapport_adopte_2026 import prepare_adopted_organisation
+    from apps.governance.models import GroupeCible
+
+    lead = expert_factory()
+    coordinator(lead)
+    prepare_adopted_organisation()
+    current_group = GroupeCible.objects.get(code='SC-BAT-GT1')
+    Tache.objects.create(working_group=wg_factory(), titre='Ancienne tâche sans responsable')
+    client.force_login(lead.user)
+
+    empty = client.get(reverse('web:activity_dashboard'))
+    assert empty.context['current_task_count'] == 0
+    assert empty.context['metrics']['production']['configured'] is False
+    assert empty.context['exceptions'] == []
+    assert 'Suivi non configuré' in empty.content.decode()
+    assert client.get(reverse('web:activity_metric_sources'), {'metric': 'production'}).json()['count'] == 0
+
+    Tache.objects.create(target_group=current_group, titre='Tâche courante sans responsable')
+    current = client.get(reverse('web:activity_dashboard'))
+    assert current.context['current_task_count'] == 1
+    assert current.context['metrics']['production']['sources'] == 1
+    assert [item['label'] for item in current.context['exceptions']] == ['Tâche courante sans responsable']
+    sources = client.get(reverse('web:activity_metric_sources'), {'metric': 'production'}).json()['items']
+    assert [item['title'] for item in sources] == ['Tâche courante sans responsable']
