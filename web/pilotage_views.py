@@ -26,6 +26,11 @@ from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
+from django.conf import settings
+from django.core.mail import send_mail
+from django.urls import reverse
+from apps.mobileapp.models import Notification
+import logging
 
 from apps.experts.models import Expert
 from apps.governance.models import (
@@ -65,6 +70,7 @@ _STRUCTURE_ACRONYM_TO_SUB = {
 
 # Rôles du Bureau Directoire
 _DIRECTOIRE_ROLES = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
+logger = logging.getLogger(__name__)
 
 
 def _vp_sub_role_from_title(poste_title_lower: str) -> str:
@@ -735,6 +741,13 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         .order_by('-created_at')
         if is_directoire else []
     )
+    reviewed_requests = (
+        PermissionRequest.objects
+        .exclude(status='PENDING')
+        .select_related('requester__user', 'reviewed_by__user')
+        .order_by('-reviewed_at')[:10]
+        if is_directoire else []
+    )
 
     # ── Demandes d'adhésion en attente (experts à activer) ───────────────────
     pending_experts = (
@@ -834,6 +847,7 @@ def get_pilotage_context(expert: Expert) -> dict | None:
         # ── Données pour le Directoire ────────────────────────────────────────
         'pending_requests':       pending_requests,
         'pending_requests_count': len(pending_requests) if is_directoire else 0,
+        'reviewed_requests': reviewed_requests,
         'pending_experts':        pending_experts,
         'pending_experts_count':  len(pending_experts) if is_directoire else 0,
 
@@ -927,6 +941,7 @@ class PilotageDashboardView(View):
         my_requests = (
             PermissionRequest.objects
             .filter(requester=expert)
+            .select_related('reviewed_by__user')
             .order_by('-created_at')[:10]
         )
 
@@ -1124,36 +1139,67 @@ class PilotageApproveRequestView(View):
                 status=403
             )
 
-        perm_req = get_object_or_404(PermissionRequest, pk=pk, status='PENDING')
         decision = (request.POST.get('decision') or '').strip().upper()
-        comment  = (request.POST.get('comment') or '').strip()
+        comment = (request.POST.get('comment') or '').strip()
 
         if decision not in ('APPROVED', 'REJECTED'):
             return JsonResponse({'ok': False, 'error': 'Décision invalide.'}, status=400)
+        if not comment:
+            return JsonResponse({'ok': False, 'error': 'Veuillez rédiger une réponse au demandeur.'}, status=400)
 
         with transaction.atomic():
+            perm_req = get_object_or_404(
+                PermissionRequest.objects.select_for_update().select_related('requester__user'), pk=pk,
+            )
+            if perm_req.status != 'PENDING':
+                return JsonResponse({'ok': False, 'error': 'Cette demande a déjà reçu une réponse.'}, status=409)
             perm_req.status = decision
             perm_req.reviewed_by = expert
             perm_req.reviewed_at = timezone.now()
             perm_req.review_comment = comment
             perm_req.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
-            perm_req.refresh_from_db(fields=['status', 'reviewed_by', 'reviewed_at', 'review_comment'])
-
-        create_notification_for_user(
-            perm_req.requester.user,
-            "Décision sur demande",
-            f"Votre demande d'accès à « {perm_req.restricted_resource} » a été {('approuvée' if decision == 'APPROVED' else 'refusée')}.",
-            "SYSTEM",
-            priority="HIGH" if decision == "APPROVED" else "NORMAL",
-            data={"request_id": str(perm_req.id), "resource": perm_req.restricted_resource, "status": decision},
-        )
-
         action = 'approuvée' if decision == 'APPROVED' else 'refusée'
+        dashboard_path = reverse('web:pilotage_dashboard')
+        dashboard_url = request.build_absolute_uri(dashboard_path)
+        body = (
+            f"Votre demande de dérogation pour « {perm_req.restricted_resource} » a été {action}.\n"
+            f"Réponse de {expert.full_name} :\n{comment}\n\n"
+            f"Retrouvez votre demande et cette réponse dans Pilotage : {dashboard_url}"
+        )
+        Notification.objects.create(
+            user=perm_req.requester.user,
+            title='Réponse à votre demande de dérogation',
+            body=body,
+            notification_type='SYSTEM',
+            priority='HIGH' if decision == 'APPROVED' else 'NORMAL',
+            data={
+                'request_id': str(perm_req.pk), 'resource': perm_req.restricted_resource,
+                'status': decision, 'reviewer': expert.full_name,
+                'url': dashboard_path,
+            },
+        )
+        email_sent = False
+        if perm_req.requester.user.email:
+            try:
+                email_sent = bool(send_mail(
+                    subject='[CNETP] Réponse à votre demande de dérogation',
+                    message=body,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[perm_req.requester.user.email],
+                    fail_silently=False,
+                ))
+            except Exception:
+                logger.exception('Envoi du courriel de réponse à la demande %s impossible', perm_req.pk)
+
         return JsonResponse({
             'ok': True,
-            'message': f'La demande de {perm_req.requester.full_name} a été {action}.',
+            'message': (
+                f'La demande de {perm_req.requester.full_name} a été {action}. '
+                + ('Réponse envoyée par mail.' if email_sent else 'Réponse enregistrée dans la plateforme ; mail non envoyé.')
+            ),
             'new_status': decision,
             'saved_status': perm_req.status,
+            'email_sent': email_sent,
         })
 
 

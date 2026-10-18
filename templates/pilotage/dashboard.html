@@ -534,8 +534,9 @@
             </div>
             <div class="space-y-2">
                 {% for req in my_permission_requests %}
-                <div class="flex items-center gap-3 p-3 rounded-xl border
+                <div class="p-3 rounded-xl border
                             bg-white dark:bg-white/[3%] border-slate-200 dark:border-white/[8%] text-sm">
+                  <div class="flex items-center gap-3">
                     <span class="w-2 h-2 rounded-full shrink-0
                         {% if req.status == 'PENDING' %}bg-[#0095c9]
                         {% elif req.status == 'APPROVED' %}bg-emerald-400
@@ -548,6 +549,14 @@
                         {{ req.get_status_display }}
                     </span>
                     <span class="text-[10px] text-slate-500">{{ req.created_at|date:"d/m/Y" }}</span>
+                  </div>
+                  <p class="mt-2 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-line"><span class="font-semibold">Votre demande :</span> {{ req.reason }}</p>
+                  {% if req.status != 'PENDING' %}
+                  <div class="mt-3 p-3 rounded-lg bg-slate-50 dark:bg-white/[4%] text-xs text-slate-700 dark:text-slate-200">
+                    <p class="font-semibold">Réponse de {% if req.reviewed_by %}{{ req.reviewed_by.full_name }}{% else %}Bureau Directoire{% endif %}{% if req.reviewed_at %} · {{ req.reviewed_at|date:"d/m/Y à H:i" }}{% endif %}</p>
+                    <p class="mt-1 whitespace-pre-line">{{ req.review_comment|default:"Aucun message enregistré." }}</p>
+                  </div>
+                  {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -608,6 +617,18 @@
                 {% endif %}
             </div>
             {% include "pilotage/composants/pending_requests_panel.html" %}
+            {% if reviewed_requests %}
+            <h3 class="mt-8 mb-3 text-xs font-extrabold uppercase tracking-widest text-slate-500">Réponses récentes</h3>
+            <div class="space-y-3">
+                {% for req in reviewed_requests %}
+                <div class="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] p-4 text-xs text-slate-700 dark:text-slate-300">
+                    <p class="font-semibold">{{ req.requester.full_name }} · {{ req.restricted_resource }} · {{ req.get_status_display }}</p>
+                    <p class="mt-1">Réponse de {% if req.reviewed_by %}{{ req.reviewed_by.full_name }}{% else %}Bureau Directoire{% endif %}{% if req.reviewed_at %} · {{ req.reviewed_at|date:"d/m/Y à H:i" }}{% endif %}</p>
+                    <p class="mt-2 whitespace-pre-line">{{ req.review_comment|default:"Aucun message enregistré." }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </section>
         {% endif %}
 
@@ -759,7 +780,13 @@
 
         // ── Approbation / Rejet (Directoire) ─────────────────────────────────
         async function handleDecision(requestId, decision) {
-            const comment = document.getElementById(`comment-${requestId}`)?.value || '';
+            const commentField = document.getElementById(`comment-${requestId}`);
+            const comment = commentField?.value.trim() || '';
+            if (!comment) {
+                commentField?.focus();
+                showToast('Veuillez rédiger une réponse au demandeur.', 'warning');
+                return;
+            }
             const btn = document.getElementById(`btn-${decision.toLowerCase()}-${requestId}`);
 
             await window.withButtonLoading(btn, async () => {
@@ -770,10 +797,10 @@
                 });
                 const data = await resp.json();
                 if (data.ok) {
-                    showToast(data.message, decision === 'APPROVED' ? 'success' : 'warning');
+                    showToast(data.message, data.email_sent ? 'success' : 'warning');
                     const row = document.getElementById(`request-row-${requestId}`);
                     if (row) row.remove();
-                    setTimeout(() => location.reload(), 600);
+                    setTimeout(() => location.reload(), data.email_sent ? 1200 : 3000);
                 } else {
                     throw new Error(data.error || 'Erreur.');
                 }

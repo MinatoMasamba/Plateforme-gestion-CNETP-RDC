@@ -32,8 +32,8 @@
                             {{ req.restricted_resource }}
                         </p>
                         <p class="text-[10px] font-semibold text-slate-400 mt-1.5 mb-0.5">Motif :</p>
-                        <p class="text-[10.5px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                            {{ req.reason|truncatechars:200 }}
+                        <p class="text-[10.5px] text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
+                            {{ req.reason }}
                         </p>
                     </div>
                 </div>
@@ -43,14 +43,14 @@
             <div class="flex flex-col gap-2 sm:items-end shrink-0 min-w-[180px]">
                 <div>
                     <label class="block text-[9.5px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                        Commentaire (optionnel)
+                        Réponse au demandeur
                     </label>
-                    <input type="text" id="comment-{{ req.id }}"
-                           placeholder="Note du Directoire…"
+                    <textarea id="comment-{{ req.id }}" required rows="3"
+                           placeholder="Expliquez votre décision…"
                            class="w-full text-[10.5px] rounded-lg border px-2.5 py-1.5
                                   border-slate-200 dark:border-white/10 bg-transparent
                                   text-slate-600 dark:text-slate-400 placeholder-slate-400
-                                  focus:outline-none focus:ring-1 focus:ring-[#0095c9]/50">
+                                  focus:outline-none focus:ring-1 focus:ring-[#0095c9]/50"></textarea>
                 </div>
                 <div class="flex gap-2 w-full">
                     <button id="btn-approved-{{ req.id }}"
