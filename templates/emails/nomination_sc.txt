@@ -1,0 +1,28 @@
+Bonjour {{ expert_name }},
+
+Nous avons l’honneur de vous informer que votre affectation en qualité de {{ fonction }} de la Sous-commission {{ sc_name }} ({{ sc_code }}) a été enregistrée sur la plateforme numérique de la Commission nationale d’élaboration des normes ITP (CNE-ITP), dans le cadre de la mise en œuvre de sa nouvelle organisation institutionnelle.
+
+Cette mise à jour s’inscrit dans le processus de réorganisation des instances techniques de la Commission, visant à renforcer la coordination des experts, le suivi des travaux et l’élaboration des normes techniques applicables au secteur des Infrastructures et Travaux Publics en République démocratique du Congo.
+
+Informations relatives à votre affectation :
+- Nom et prénom : {{ expert_name }}
+- Fonction : {{ fonction }}
+- Instance : Sous-commission {{ sc_name }}
+- Code de la sous-commission : {{ sc_code }} (Tome {{ tome }})
+- Référence : {{ reference }}
+- Statut : Affectation enregistrée sur la plateforme, sous réserve de confirmation officielle de la nomination individuelle.
+- Date de prise d’effet : {{ date_effet }}
+
+Dans le cadre de vos responsabilités, vous serez notamment appelé à contribuer à l’organisation et à la coordination des activités de votre sous-commission, à accompagner les groupes de travail spécialisés et à veiller au bon déroulement des travaux d’élaboration des normes relevant de votre domaine de compétence, conformément aux orientations institutionnelles de la CNE-ITP.
+
+Nous vous invitons à vous connecter à votre espace personnel sur la plateforme afin de vérifier les informations relatives à votre profil, de compléter les renseignements nécessaires et de prendre connaissance de la nouvelle organisation des travaux :
+
+{{ sc_url }}
+
+Nous tenons à vous remercier pour votre disponibilité et votre engagement au service du développement et de la normalisation du secteur des Infrastructures et Travaux Publics.
+
+Veuillez agréer, Madame, Monsieur, l’expression de notre haute considération.
+
+Le Secrétariat technique
+Commission nationale d’élaboration des normes ITP (CNE-ITP)
+Plateforme numérique de gestion et de suivi des travaux de normalisation
