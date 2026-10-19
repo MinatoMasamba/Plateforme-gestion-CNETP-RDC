@@ -20,6 +20,7 @@ from .forms import (
     UserProfileForm, ExpertProfileForm,
 )
 from django.contrib.auth import login as auth_login, get_user_model
+from django.utils.http import url_has_allowed_host_and_scheme
 
 logger = logging.getLogger(__name__)
 
@@ -290,6 +291,30 @@ class UserLoginView(View):
         return render(request, self.template_name, {'form': form})
 
 
+def expert_workspace_url_name(user):
+    """Nom d'URL de l'espace de travail correspondant au poste de l'expert.
+
+    Directoire / conseillers / ATF pour le pilotage, tableau de bord CTC pour la
+    cellule technique, sinon l'espace de travail expert générique.
+    """
+    _DIRECTOIRE = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
+    expert = Expert.objects.filter(user=user).first()
+    if expert:
+        membership = PilotageMembreship.objects.filter(expert=expert).first()
+        if membership:
+            role = membership.role
+            if role in _DIRECTOIRE:
+                return 'web:pilotage_directoire_app'
+            if role == 'CONSEILLER_POLITIQUE':
+                return 'web:pilotage_conseillers_app'
+            if role == 'ADMIN_TECH_FIN':
+                return 'web:pilotage_atf_app'
+            return 'web:pilotage_dashboard'
+        if CTCMembership.objects.filter(expert=expert).exists():
+            return 'web:ctc_dashboard'
+    return 'web:app'
+
+
 class ExpertLoginView(View):
     """Vue de connexion pour les experts"""
     template_name = 'expert/expert_auth/expert_login.html'
@@ -305,27 +330,14 @@ class ExpertLoginView(View):
             user = form.cleaned_data.get('user')
             auth_login(request, user)
             messages.success(request, f"Bienvenue expert {user.get_full_name()}")
-            return redirect(self._get_redirect_url(user))
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+            return redirect(expert_workspace_url_name(user))
         return render(request, self.template_name, {'form': form})
-
-    @staticmethod
-    def _get_redirect_url(user):
-        _DIRECTOIRE = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
-        expert = Expert.objects.filter(user=user).first()
-        if expert:
-            membership = PilotageMembreship.objects.filter(expert=expert).first()
-            if membership:
-                role = membership.role
-                if role in _DIRECTOIRE:
-                    return 'web:pilotage_directoire_app'
-                if role == 'CONSEILLER_POLITIQUE':
-                    return 'web:pilotage_conseillers_app'
-                if role == 'ADMIN_TECH_FIN':
-                    return 'web:pilotage_atf_app'
-                return 'web:pilotage_dashboard'
-            if CTCMembership.objects.filter(expert=expert).exists():
-                return 'web:ctc_dashboard'
-        return 'web:app'
 
 
 

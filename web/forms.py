@@ -6,10 +6,17 @@ from apps.governance.models import Organe, GroupeCible
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
+from apps.core.constants import province_choices
+
 User = get_user_model()
 
 
 class UserProfileForm(forms.ModelForm):
+    province = forms.ChoiceField(
+        required=False, label='Province',
+        widget=forms.Select(attrs={'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
+    )
+
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'phone', 'province', 'bio', 'profile_picture']
@@ -17,10 +24,14 @@ class UserProfileForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'placeholder': 'Prénom', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
             'last_name': forms.TextInput(attrs={'placeholder': 'Nom', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Téléphone', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
-            'province': forms.TextInput(attrs={'placeholder': 'Province', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
             'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Biographie', 'class': 'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10'}),
             'profile_picture': forms.ClearableFileInput(attrs={'class': 'w-full text-sm'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        current = self.instance.province if self.instance and self.instance.pk else None
+        self.fields['province'].choices = province_choices(current)
 
 
 class ExpertCVUserForm(UserProfileForm):
@@ -58,7 +69,7 @@ class ExpertProfileUpdateForm(forms.Form):
     first_name = forms.CharField(max_length=150, label="Prénom")
     last_name = forms.CharField(max_length=150, label="Nom et post-nom")
     phone = forms.CharField(max_length=20, required=False, label="Téléphone")
-    province = forms.CharField(max_length=100, required=False, label="Province")
+    province = forms.ChoiceField(required=False, label="Province")
     whatsapp_number = forms.CharField(max_length=20, required=False, label="Numéro WhatsApp")
     specialties = forms.CharField(max_length=500, label="Domaines de compétence")
     bio = forms.CharField(required=False, label="Biographie professionnelle")
@@ -80,7 +91,9 @@ class ExpertProfileUpdateForm(forms.Form):
 
         ctm_id = None
         if self.is_bound:
-            ctm_id = self.data.get('ctm')
+            raw_ctm_id = str(self.data.get('ctm') or '').strip()
+            if raw_ctm_id.isdigit():
+                ctm_id = int(raw_ctm_id)
         elif expert is not None:
             ctm_id = getattr(expert, 'ctm_id', None)
 
@@ -93,7 +106,10 @@ class ExpertProfileUpdateForm(forms.Form):
 
         if self.fields['ctm'].queryset.exists():
             self.fields['ctm'].required = True
-            self.fields['wg'].required = True
+            self.fields['wg'].required = self.fields['wg'].queryset.exists()
+
+        current_province = user.province if user else None
+        self.fields['province'].choices = province_choices(current_province)
 
         if not self.is_bound:
             if user:
@@ -156,13 +172,24 @@ class ExpertProfileUpdateForm(forms.Form):
 
         affectation = None
         if ctm and wg:
+            from django.db import transaction
+
             from apps.governance.models import Affectation
-            affectation, _ = Affectation.objects.get_or_create(
-                expert=expert,
-                ctm=ctm,
-                wg=wg,
-                defaults={'is_primary_ctm': True, 'is_primary_wg': True},
-            )
+
+            with transaction.atomic():
+                affectation, _ = Affectation.objects.get_or_create(
+                    expert=expert,
+                    ctm=ctm,
+                    wg=wg,
+                    defaults={'is_primary_ctm': True, 'is_primary_wg': True},
+                )
+                expert.governance_affectations.exclude(pk=affectation.pk).update(
+                    is_primary_ctm=False, is_primary_wg=False,
+                )
+                if not (affectation.is_primary_ctm and affectation.is_primary_wg):
+                    affectation.is_primary_ctm = True
+                    affectation.is_primary_wg = True
+                    affectation.save(update_fields=['is_primary_ctm', 'is_primary_wg'])
         return affectation
 
 

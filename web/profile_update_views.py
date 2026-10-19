@@ -8,6 +8,7 @@ from django.views import View
 from apps.experts.models import Expert
 from apps.governance.models import OrganisationVersion
 from web.forms import ExpertProfileUpdateForm
+from web.views import expert_workspace_url_name
 
 
 class ExpertProfileUpdateNoticeView(View):
@@ -73,9 +74,9 @@ class ExpertProfileUpdateView(LoginRequiredMixin, View):
             form.save()
             messages.success(
                 request,
-                "Votre profil a été mis à jour et votre affectation transmise pour examen.",
+                "Votre profil a été mis à jour. Vous êtes redirigé vers votre espace de travail.",
             )
-            return redirect('web:expert_profile_update')
+            return redirect(expert_workspace_url_name(request.user))
 
         steps = (
             (1, ('first_name', 'last_name', 'phone', 'province', 'whatsapp_number')),
