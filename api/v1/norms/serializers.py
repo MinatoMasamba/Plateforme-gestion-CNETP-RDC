@@ -82,15 +82,22 @@ class NormeBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les normes"""
     ctm_name = serializers.CharField(source='ctm.name', read_only=True)
     wg_name = serializers.CharField(source='wg.name', read_only=True)
+    updated_by_name = serializers.SerializerMethodField()
     votes_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description', 'status', 'standard_family', 'norm_type', 'target_count',
-            'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at', 'votes_summary'
+            'source_reference',
+            'ctm', 'ctm_name', 'wg', 'wg_name', 'is_public', 'created_at', 'updated_by_name', 'votes_summary'
         ]
-        read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at', 'votes_summary']
+        read_only_fields = ['id', 'ctm_name', 'wg_name', 'created_at', 'updated_by_name', 'votes_summary']
+
+    def get_updated_by_name(self, obj):
+        if obj.updated_by:
+            return obj.updated_by.get_full_name() or obj.updated_by.username
+        return None
 
     def get_votes_summary(self, obj):
         votes = list(obj.votes.all())
@@ -121,6 +128,7 @@ class NormeDetailSerializer(serializers.ModelSerializer):
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description', 'status',
+            'source_reference',
             'standard_family',
             'norm_type', 'target_count',
             'ctm', 'ctm_name', 'wg', 'wg_name',
@@ -156,6 +164,7 @@ class NormeCreateUpdateSerializer(serializers.ModelSerializer):
         model = Norme
         fields = [
             'id', 'reference_number', 'title', 'description',
+            'source_reference',
             'standard_family', 'category',
             'norm_type', 'target_count',
             'ctm', 'wg', 'iso_reference', 'arso_reference',
@@ -175,6 +184,17 @@ class NormeCreateUpdateSerializer(serializers.ModelSerializer):
                 "Le groupe de travail doit appartenir au comité technique sélectionné."
             )
         return data
+
+    def validate_reference_number(self, value):
+        """Prévenir les doublons de référence (clé d'idempotence)."""
+        if not value:
+            return value
+        qs = Norme.all_objects.filter(reference_number=value)
+        if self.instance is not None:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Une norme avec cette référence existe déjà.")
+        return value
 
 
 class NormeStatusUpdateSerializer(serializers.ModelSerializer):

@@ -23,6 +23,11 @@ class Norme(BaseModel):
     reference_number = models.CharField(max_length=50, unique=True, help_text="Ex: CNETP-001-2024")
     
     description = models.TextField()
+    source_reference = models.CharField(
+        max_length=250,
+        blank=True,
+        help_text="Origine documentaire/institutionnelle du projet (ex: rapport adopté du 15 octobre 2026)."
+    )
     ctm = models.ForeignKey(CTM, on_delete=models.PROTECT, related_name='normes', null=True, blank=True)
     wg = models.ForeignKey(WG, on_delete=models.PROTECT, related_name='normes', null=True, blank=True)
     circuit_version = models.CharField(max_length=10, choices=[('LEGACY', 'Circuit historique'), ('PHOENIX', 'Circuit Phoenix')], default='LEGACY', editable=False)
