@@ -68,9 +68,8 @@ def _jwt_session():
 
 def _session_auth():
     session = requests.Session()
-    # Récupère le cookie CSRF posé par le site, requis pour les écritures.
+    # Obtient un cookie CSRF (le site en pose un sur toute page).
     session.get(SITE_URL, timeout=30)
-    csrf = session.cookies.get("csrftoken", "")
     response = session.post(
         LOGIN_URL,
         json={"username": USERNAME, "password": PASSWORD},
@@ -78,6 +77,8 @@ def _session_auth():
     )
     if response.status_code != 200:
         raise SystemExit(f"Connexion impossible ({response.status_code}): {response.text[:200]}")
+    # Django fait tourner le jeton CSRF à la connexion : on le relit après login.
+    csrf = session.cookies.get("csrftoken", "")
     if csrf:
         session.headers.update({"X-CSRFToken": csrf, "Referer": SITE_URL})
     return session
@@ -158,9 +159,13 @@ def cmd_get(session, args):
         print((latest.get('content') or '')[:1500])
 
 
+def _norm_detail(session, nid):
+    return session.get(f"{NORMS_URL}{nid}/", timeout=30).json()
+
+
 def cmd_sync(session, args):
     ctm_by_number, wg_by_key = build_reference_index(session)
-    report = {"created": [], "skipped": [], "errors": []}
+    report = {"created": [], "updated": [], "skipped": [], "errors": []}
     for entry in CATALOGUE:
         code = entry["code"]
         ctm_id = ctm_by_number.get(entry["sc_number"])
@@ -168,9 +173,21 @@ def cmd_sync(session, args):
         if ctm_id is None or wg_id is None:
             report["errors"].append((code, f"SC {entry['sc_number']} ou WG « {entry['wg_name']} » introuvable."))
             continue
-        if find_norm(session, code):
-            report["skipped"].append((code, "existe"))
+
+        existing = find_norm(session, code)
+        if existing:
+            # Rétro-complète l'origine documentaire si elle manque (après déploiement).
+            detail = _norm_detail(session, existing["id"])
+            if not detail.get("source_reference"):
+                resp = session.patch(f"{NORMS_URL}{existing['id']}/", json={"source_reference": SOURCE}, timeout=30)
+                if resp.status_code in (200, 201):
+                    report["updated"].append((code, existing["id"]))
+                else:
+                    report["skipped"].append((code, "existe (source_reference non complété)"))
+            else:
+                report["skipped"].append((code, "existe"))
             continue
+
         payload = {
             "reference_number": code, "title": entry["title"],
             "description": entry["description"], "source_reference": SOURCE,
@@ -196,6 +213,9 @@ def cmd_sync(session, args):
     print(f"Créés : {len(report['created'])}")
     for code, nid, v in report["created"]:
         print(f"  + {code} -> norme {nid} v{v}")
+    print(f"Complétés : {len(report['updated'])}")
+    for code, nid in report["updated"]:
+        print(f"  ~ {code} -> source_reference renseignée (norme {nid})")
     print(f"Ignorés : {len(report['skipped'])}")
     for code, why in report["skipped"]:
         print(f"  = {code} ({why})")
