@@ -54,6 +54,7 @@ class ExpertProfileUpdateView(LoginRequiredMixin, View):
             'expert': expert,
             'version': version,
             'form': form,
+            'mon_profil_url': reverse(expert_workspace_url_name(request.user)),
         }
 
     def get(self, request):

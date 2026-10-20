@@ -78,6 +78,21 @@ def test_ctc_member_redirected_to_ctc_dashboard(client, expert_factory):
 
 
 @pytest.mark.django_db
+def test_mon_profil_link_follows_expert_interface(client, expert_factory):
+    expert = expert_factory()
+    client.force_login(expert.user)
+    url = reverse('web:expert_profile_update')
+
+    response = client.get(url)
+    assert response.context['mon_profil_url'] == reverse('web:app')
+
+    ctc = TechnicalCell.objects.create(name='CTC test')
+    CTCMembership.objects.create(ctc=ctc, expert=expert, role='COORDINATOR')
+    response = client.get(url)
+    assert response.context['mon_profil_url'] == reverse('web:ctc_dashboard')
+
+
+@pytest.mark.django_db
 def test_ctm_without_wg_is_accepted(client, expert_factory, ctm_factory):
     ctm = ctm_factory(number=7, name='CTM sans WG')
     expert = expert_factory()
