@@ -14,7 +14,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -27,7 +27,7 @@ from .serializers import (
     NormeFullHistorySerializer, ChangementVersionSerializer, NormeVoteSerializer,
     NormeCommentSerializer
 )
-from ..permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC
+from ..permissions import IsCTCCoordinator, IsExpert, IsExpertOrCTC, IsExpertOfCTM, user_ctm_scope
 from ..pdf_utils import generate_norm_pdf
 from ..validation.views import promote_norme_to_ctc_if_vote_passes
 
@@ -53,6 +53,21 @@ class NormeViewSet(viewsets.ModelViewSet):
     TEXT_EXTENSIONS = {'.txt', '.md', '.json'}
     WORD_XML_NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
     LOCK_DURATION_MINUTES = 30
+
+    def get_queryset(self):
+        """Restreindre les normes au périmètre CTM/SC de l'expert connecté.
+
+        Un expert ne voit que les normes de sa ou ses sous-commissions. Les
+        coordinateurs CTC, le staff, les superusers et la direction conservent
+        une vue transverse (``user_ctm_scope`` renvoie ``None``).
+        """
+        qs = super().get_queryset()
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(ctm_id__in=scope)
 
     def _is_lock_active(self, norme):
         if not norme.locked_by or not norme.lock_timeout:
@@ -86,7 +101,14 @@ class NormeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Associer l'utilisateur actuel à la création et générer un code de classification basé sur les métadonnées"""
-        
+
+        scope = user_ctm_scope(self.request.user)
+        ctm_obj = serializer.validated_data.get('ctm')
+        if scope is not None and (ctm_obj is None or ctm_obj.id not in scope):
+            raise PermissionDenied(
+                "Vous ne pouvez créer une norme que dans votre sous-commission."
+            )
+
         # Génération du code de classification unique si non fourni
         reference_number = serializer.validated_data.get('reference_number')
         if not reference_number:
@@ -143,9 +165,11 @@ class NormeViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Permissions granulaires"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsExpertOrCTC()]
+            return [IsExpertOrCTC(), IsExpertOfCTM()]
         elif self.action in ['update_status']:
             return [IsCTCCoordinator()]
+        elif self.action in ['create_version', 'lock_norme', 'unlock_norme', 'comments', 'delete_comment', 'vote']:
+            return [IsAuthenticated(), IsExpertOrCTC(), IsExpertOfCTM()]
         return [IsAuthenticated()]
 
     def _decode_text_bytes(self, raw):
@@ -688,6 +712,15 @@ class NormeVersionViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['version_number', 'created_at']
     ordering = ['-version_number']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(norme__ctm_id__in=scope)
+
     @action(detail=True, methods=['get'])
     def changes(self, request, pk=None):
         """Récupérer les changements d'une version"""
@@ -709,3 +742,12 @@ class ChangementVersionViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['section', 'new_text', 'change_reason']
     ordering_fields = ['section', 'created_at']
     ordering = ['section']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(version__norme__ctm_id__in=scope)

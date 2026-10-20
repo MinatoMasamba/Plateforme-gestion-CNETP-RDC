@@ -36,6 +36,7 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
     ctm_name         = serializers.SerializerMethodField()
     accepted_by_name = serializers.SerializerMethodField()
     rejected_by_name = serializers.SerializerMethodField()
+    role_id          = serializers.SerializerMethodField()
 
     class Meta:
         model = Expert
@@ -44,15 +45,23 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
             'appointment_decree_number', 'appointment_date',
             'cv', 'bank_account', 'bank_name', 'mobile_money_number',
             'inscription_date', 'activation_date', 'affectations',
-            'ctm', 'ctm_name',
+            'ctm', 'ctm_name', 'role_id',
             'accepted_by_name', 'accepted_at',
             'rejected_by_name', 'rejected_at', 'rejection_reason',
         ]
         read_only_fields = [
             'id', 'inscription_date', 'activation_date',
             'accepted_by_name', 'accepted_at',
-            'rejected_by_name', 'rejected_at',
+            'rejected_by_name', 'rejected_at', 'role_id',
         ]
+
+    def get_role_id(self, obj):
+        user = obj.user
+        if getattr(user, 'is_superuser', False):
+            return 'ADMIN'
+        if getattr(user, 'is_ctc_staff', False):
+            return 'COORD_CTC'
+        return 'EXPERT'
 
     def get_user(self, obj):
         return {
@@ -77,6 +86,43 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
 
     def get_rejected_by_name(self, obj):
         return obj.rejected_by.user.get_full_name() if obj.rejected_by else None
+
+
+class ExpertListSerializer(serializers.ModelSerializer):
+    """Serializer d'annuaire : identité + rattachement, sans données bancaires.
+
+    Utilisé pour les listes afin de ne pas exposer ``bank_account``,
+    ``bank_name`` ou ``mobile_money_number`` à l'ensemble des experts.
+    """
+    user            = serializers.SerializerMethodField()
+    user_name       = serializers.CharField(source='user.get_full_name', read_only=True)
+    structure_name  = serializers.CharField(source='structure.name', read_only=True)
+    affectations    = serializers.SerializerMethodField()
+    ctm_name        = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Expert
+        fields = [
+            'id', 'user', 'user_name', 'structure', 'structure_name', 'status',
+            'specialties', 'ctm', 'ctm_name', 'affectations', 'inscription_date',
+        ]
+        read_only_fields = ['id', 'inscription_date']
+
+    def get_user(self, obj):
+        return {
+            'id':         obj.user.id,
+            'username':   obj.user.username,
+            'email':      obj.user.email,
+            'first_name': obj.user.first_name,
+            'last_name':  obj.user.last_name,
+        }
+
+    def get_affectations(self, obj):
+        from ..governance.serializers import AffectationSerializer
+        return AffectationSerializer(obj.governance_affectations.all(), many=True).data
+
+    def get_ctm_name(self, obj):
+        return str(obj.ctm) if obj.ctm else None
 
 
 class ExpertCreateUpdateSerializer(serializers.ModelSerializer):

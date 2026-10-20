@@ -11,9 +11,9 @@ from django.utils import timezone
 from apps.experts.models import Expert, Structure
 from .serializers import (
     ExpertDetailSerializer, ExpertBasicSerializer, ExpertCreateUpdateSerializer,
-    ExpertInscriptionSerializer, StructureSerializer
+    ExpertInscriptionSerializer, ExpertListSerializer, StructureSerializer
 )
-from ..permissions import IsExpert, IsCTCCoordinator
+from ..permissions import IsCTCCoordinator, IsOwnerOrCTC
 from ..filters import ExpertFilter, StructureFilter
 
 
@@ -75,7 +75,7 @@ class ExpertViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return ExpertDetailSerializer
         elif self.action == 'list':
-            return ExpertDetailSerializer
+            return ExpertListSerializer
         elif self.action == 'create':
             return ExpertCreateUpdateSerializer
         elif self.action == 'update' or self.action == 'partial_update':
@@ -86,16 +86,39 @@ class ExpertViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Permissions granulaires"""
-        if self.action in ['create', 'inscription']:
-            # N'importe qui peut s'inscrire
+        if self.action == 'inscription':
+            # L'inscription publique passe par cet endpoint
             return []
-        elif self.action in ['update', 'partial_update', 'destroy']:
-            # Seul l'expert lui-même ou CTC peut modifier
-            return [IsAuthenticated()]
+        elif self.action == 'create':
+            # Création directe réservée au secrétariat technique
+            return [IsCTCCoordinator()]
+        elif self.action in ['update', 'partial_update']:
+            # Seul l'expert lui-même ou le CTC peut modifier sa fiche
+            return [IsAuthenticated(), IsOwnerOrCTC()]
+        elif self.action == 'destroy':
+            # Suppression réservée au secrétariat technique
+            return [IsCTCCoordinator()]
         elif self.action == 'activate':
             # Seul CTC peut activer
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
+
+    def retrieve(self, request, *args, **kwargs):
+        """Détail d'un expert.
+
+        Les données sensibles (coordonnées bancaires) ne sont renvoyées qu'à
+        l'intéressé, au secrétariat technique ou au staff. Les autres experts
+        voient la fiche d'annuaire publique.
+        """
+        instance = self.get_object()
+        privileged = (
+            getattr(request.user, 'is_superuser', False)
+            or getattr(request.user, 'is_staff', False)
+            or getattr(request.user, 'is_ctc_staff', False)
+            or instance.user_id == request.user.id
+        )
+        serializer = ExpertDetailSerializer(instance) if privileged else ExpertListSerializer(instance)
+        return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
         expert = self.get_object()

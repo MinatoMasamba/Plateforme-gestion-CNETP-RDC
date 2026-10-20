@@ -46,12 +46,12 @@ class CTMViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def experts(self, request, pk=None):
         """Récupérer tous les experts du CTM"""
-        from ..experts.serializers import ExpertDetailSerializer
+        from ..experts.serializers import ExpertListSerializer
         ctm = self.get_object()
         experts = set(
             affectation.expert for affectation in ctm.affectations.all()
         )
-        serializer = ExpertDetailSerializer(experts, many=True)
+        serializer = ExpertListSerializer(experts, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
@@ -99,12 +99,12 @@ class WGViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def experts(self, request, pk=None):
         """Récupérer tous les experts du WG"""
-        from ..experts.serializers import ExpertDetailSerializer
+        from ..experts.serializers import ExpertListSerializer
         wg = self.get_object()
         experts = set(
             affectation.expert for affectation in wg.affectations.all()
         )
-        serializer = ExpertDetailSerializer(experts, many=True)
+        serializer = ExpertListSerializer(experts, many=True)
         return Response(serializer.data)
 
 
