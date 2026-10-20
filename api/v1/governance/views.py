@@ -77,7 +77,7 @@ class WGViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = WGFilter
-    search_fields = ['name', 'description', 'scope']
+    search_fields = ['name', 'description']
     ordering_fields = ['ctm__number', 'number', 'name']
     ordering = ['ctm__number', 'number']
 

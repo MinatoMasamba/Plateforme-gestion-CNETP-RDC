@@ -202,7 +202,7 @@ class WGCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour créer/mettre à jour un WG"""
     class Meta:
         model = WG
-        fields = ['ctm', 'number', 'name', 'description', 'scope']
+        fields = ['ctm', 'number', 'name', 'description']
 
     def validate_number(self, value):
         """Vérifier l'unicité du numéro par CTM"""
