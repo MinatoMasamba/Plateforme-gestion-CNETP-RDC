@@ -197,7 +197,7 @@ class ActivityCurrentSubcommissionView(View):
             ctm = _ctm_for_sc(sc)
             if ctm:
                 bindings = [
-                    SimpleNamespace(norme=norme, gt=None, status='VALIDATED')
+                    SimpleNamespace(norme=norme, norme_id=norme.pk, gt=None, gt_id=None, status='VALIDATED')
                     for norme in Norme.objects.filter(ctm=ctm).select_related('wg').order_by('title')
                 ]
         norm_sections = {'waiting': [], 'working': [], 'produced': [], 'unconfirmed': []}
