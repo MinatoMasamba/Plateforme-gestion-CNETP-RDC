@@ -56,10 +56,10 @@ class IsOwnerOrCTC(permissions.BasePermission):
     """Permission : Propriétaire de l'objet OU Coordinateur CTC"""
     
     def has_object_permission(self, request, view, obj):
-        # Les coordinateurs CTC peuvent tout modifier
-        if request.user.is_ctc_staff:
+        # Les coordinateurs CTC / staff peuvent tout modifier
+        if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_staff', False) or getattr(request.user, 'is_ctc_staff', False):
             return True
-        
+
         # L'utilisateur ne peut modifier ses propres données
         if hasattr(obj, 'user') and obj.user == request.user:
             return True
@@ -82,22 +82,58 @@ class IsMeetingOrganizerOrCTC(permissions.BasePermission):
         return obj.reunion.organisateur_id == expert.id
 
 
+def user_ctm_scope(user):
+    """Périmètre CTM/SC (sous-commissions) visible par l'utilisateur.
+
+    Retourne ``None`` lorsque l'accès n'est pas restreint (superuser, staff,
+    coordinateur CTC, ou membre de la direction/pilotage), sinon un ``set``
+    d'IDs de CTM auxquels l'expert est rattaché.
+    """
+    if not (user and user.is_authenticated):
+        return set()
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_ctc_staff', False):
+        return None
+    if not getattr(user, 'is_expert', False):
+        return None
+    expert = getattr(user, 'expert_profile', None)
+    if expert is None:
+        return None
+    # La direction / le pilotage garde une vue transverse.
+    try:
+        from apps.governance.models import PilotageMembreship
+        if PilotageMembreship.objects.filter(expert=expert).exists():
+            return None
+    except Exception:
+        pass
+    scope = set()
+    if expert.ctm_id:
+        scope.add(expert.ctm_id)
+    scope.update(expert.governance_affectations.values_list('ctm_id', flat=True))
+    scope.discard(None)
+    return scope
+
+
 class IsExpertOfCTM(permissions.BasePermission):
-    """Permission : Expert doit être du CTM"""
-    
+    """Permission : l'objet doit appartenir au CTM/SC de l'expert.
+
+    Les coordinateurs CTC, le staff et les superusers ne sont pas restreints.
+    """
+
     def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated and request.user.is_expert):
-            return False
-        return True
-    
+        return bool(request.user and request.user.is_authenticated)
+
     def has_object_permission(self, request, view, obj):
-        # Vérifier si l'expert fait partie du CTM
-        if hasattr(request.user, 'expert_profile'):
-            expert = request.user.expert_profile
-            # Vérifier si l'expert a une affectation au CTM
-            if hasattr(obj, 'ctm'):
-                return expert.governance_affectations.filter(ctm=obj.ctm).exists()
-        return False
+        if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_ctc_staff', False) or getattr(request.user, 'is_staff', False):
+            return True
+        scope = user_ctm_scope(request.user)
+        if scope is None:
+            return True
+        target_ctm_id = getattr(obj, 'ctm_id', None)
+        if target_ctm_id is None and hasattr(obj, 'ctm'):
+            target_ctm_id = getattr(obj.ctm, 'id', None)
+        if target_ctm_id is None:
+            return True
+        return target_ctm_id in scope
 
 
 class ReadOnly(permissions.BasePermission):

@@ -6,19 +6,22 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Q, F, Case, When, Value, FloatField
+from django.db.models import Count, Q, F, Case, When, Value, FloatField, Sum
 from django.db.models.functions import Coalesce
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
 
 from apps.experts.models import Expert
 from apps.governance.models import CTM, WG, Affectation, Tache
+from apps.governance.activity_models import ActivityPulse, ActivitySession
 from apps.norms.models import Norme, NormeVersion
 from apps.meetings.models import Reunion
 from apps.payments.models import Cotisation
 from apps.amendments.models import Amendement
 
 from ..experts.serializers import ExpertBasicSerializer
+from ..permissions import user_ctm_scope
 from .serializers import (
     WorkingGroupSidebarSerializer, ExpertSidebarSerializer, TaskSerializer,
     DocumentSidebarSerializer, MeetingSidebarSerializer, BudgetSidebarSerializer
@@ -96,11 +99,17 @@ class WorkingGroupSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['name', 'description', 'ctm__name']
 
     def get_queryset(self):
-        return WG.objects.select_related('ctm').prefetch_related(
+        qs = WG.objects.select_related('ctm').prefetch_related(
             'normes', 'affectations__expert'
         ).annotate(
             expert_count=Count('affectations__expert', distinct=True)
         )
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(ctm_id__in=scope)
 
     def get_serializer_class(self):
         return WorkingGroupSidebarSerializer
@@ -154,9 +163,17 @@ class ExpertSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ['user__last_name']
 
     def get_queryset(self):
-        return Expert.objects.select_related(
+        qs = Expert.objects.select_related(
             'user', 'structure', 'ctm'
         ).prefetch_related('governance_affectations')
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(
+            Q(ctm_id__in=scope) | Q(governance_affectations__ctm_id__in=scope)
+        ).distinct()
 
     def get_serializer_class(self):
         return ExpertSidebarSerializer
@@ -191,7 +208,15 @@ class TaskDetailViewSet(viewsets.ViewSet):
     def update_task(self, request, task_id=None):
         """PATCH /api/v1/tasks/{id}/ - Mettre à jour le statut d'une tâche"""
         try:
-            task = Tache.objects.get(id=task_id)
+            task = Tache.objects.select_related('working_group').get(id=task_id)
+            scope = user_ctm_scope(request.user)
+            if scope is not None:
+                task_ctm_id = task.working_group.ctm_id if task.working_group_id else None
+                if task_ctm_id not in scope:
+                    return Response(
+                        {"detail": "Cette tâche n'est pas dans votre sous-commission."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
             if 'status' in request.data:
                 task.status = request.data['status']
                 task.progress = request.data.get('progress', task.progress)
@@ -219,7 +244,13 @@ class DocumentSidebarViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['reference_number', 'title', 'description']
 
     def get_queryset(self):
-        return Norme.objects.select_related('created_by').order_by('-created_at')
+        qs = Norme.objects.select_related('created_by').order_by('-created_at')
+        scope = user_ctm_scope(self.request.user)
+        if scope is None:
+            return qs
+        if not scope:
+            return qs.none()
+        return qs.filter(ctm_id__in=scope)
 
     def get_serializer_class(self):
         return DocumentSidebarSerializer
@@ -404,3 +435,43 @@ class ExpertActionsViewSet(viewsets.ViewSet):
                 {"detail": "Expert not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+# =========================================================================
+# 11. COMPTEUR D'ACTIVITÉ (Temps & éditions) — espace expert
+# =========================================================================
+class ActivityCounterViewSet(viewsets.ViewSet):
+    """GET /api/v1/activity/my-counter/
+
+    Compteur personnel de l'expert connecté :
+      - temps observé (``active_seconds``) via les sessions/battements ;
+      - nombre d'éditions (versions de normes créées par l'expert).
+    """
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path='my-counter')
+    def my_counter(self, request):
+        user = request.user
+        start_today = timezone.localtime(timezone.now()).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        sessions = ActivitySession.objects.filter(user=user)
+        active_seconds_total = sessions.aggregate(total=Sum('active_seconds')).get('total') or 0
+        active_seconds_today = ActivityPulse.objects.filter(
+            session__user=user, bucket__gte=start_today
+        ).aggregate(total=Sum('credited_seconds')).get('total') or 0
+
+        versions = NormeVersion.all_objects.filter(version_author=user)
+        editions_total = versions.count()
+        editions_today = versions.filter(created_at__gte=start_today).count()
+
+        last_session = sessions.order_by('-last_seen_at').first()
+
+        return Response({
+            'active_seconds_total': int(active_seconds_total),
+            'active_seconds_today': int(active_seconds_today),
+            'editions_total': editions_total,
+            'editions_today': editions_today,
+            'last_activity': last_session.last_seen_at.isoformat() if last_session else None,
+        })

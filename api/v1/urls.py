@@ -26,7 +26,7 @@ from .sidebar.views import (
     UserProfileViewSet, WorkingGroupSidebarViewSet, ExpertSidebarViewSet,
     TaskDetailViewSet, DocumentSidebarViewSet, MeetingSidebarViewSet,
     BudgetSidebarViewSet, DocumentHistoryViewSet, DashboardKPIsViewSet,
-    ExpertActionsViewSet
+    ExpertActionsViewSet, ActivityCounterViewSet
 )
 from .ia_agent.views import AgentSessionViewSet, AgentArtifactViewSet
 
@@ -103,6 +103,7 @@ router.register(r'sidebar/documents', DocumentSidebarViewSet, basename='document
 router.register(r'sidebar/meetings', MeetingSidebarViewSet, basename='meetings-sidebar')
 router.register(r'sidebar/budgets', BudgetSidebarViewSet, basename='budgets-sidebar')
 router.register(r'dashboard/kpis', DashboardKPIsViewSet, basename='dashboard-kpis')
+router.register(r'activity', ActivityCounterViewSet, basename='activity')
 router.register(r'tasks', TaskDetailViewSet, basename='tasks-sidebar')
 router.register(r'document-history', DocumentHistoryViewSet, basename='document-history')
 router.register(r'expert-actions', ExpertActionsViewSet, basename='expert-actions')
