@@ -1,28 +1,52 @@
 Bonjour {{ expert_name }},
 
-Nous avons l’honneur de vous informer que votre affectation en qualité de {{ fonction }} de la Sous-commission {{ sc_name }} ({{ sc_code }}) a été enregistrée sur la plateforme numérique de la Commission nationale d’élaboration des normes ITP (CNE-ITP), dans le cadre de la mise en œuvre de sa nouvelle organisation institutionnelle.
+Nous avons l’honneur de vous informer de votre désignation en qualité de {{ fonction }} au sein de la Sous-commission {{ sc_name }} ({{ sc_code }}), relevant de la Commission nationale d’élaboration des normes ITP (CNE-ITP).
 
-Cette mise à jour s’inscrit dans le processus de réorganisation des instances techniques de la Commission, visant à renforcer la coordination des experts, le suivi des travaux et l’élaboration des normes techniques applicables au secteur des Infrastructures et Travaux Publics en République démocratique du Congo.
+Date de désignation : {{ date_designation }}.
 
-Informations relatives à votre affectation :
+Cette désignation est enregistrée dans la plateforme et vous permet d’exercer les responsabilités correspondant à votre fonction.
+
+Informations relatives à votre désignation :
 - Nom et prénom : {{ expert_name }}
 - Fonction : {{ fonction }}
 - Instance : Sous-commission {{ sc_name }}
 - Code de la sous-commission : {{ sc_code }} (Tome {{ tome }})
 - Référence : {{ reference }}
-- Statut : Affectation enregistrée sur la plateforme, sous réserve de confirmation officielle de la nomination individuelle.
 - Date de prise d’effet : {{ date_effet }}
 
-Dans le cadre de vos responsabilités, vous serez notamment appelé à contribuer à l’organisation et à la coordination des activités de votre sous-commission, à accompagner les groupes de travail spécialisés et à veiller au bon déroulement des travaux d’élaboration des normes relevant de votre domaine de compétence, conformément aux orientations institutionnelles de la CNE-ITP.
+Mise à jour obligatoire de votre profil
 
-Nous vous invitons à vous connecter à votre espace personnel sur la plateforme afin de vérifier les informations relatives à votre profil, de compléter les renseignements nécessaires et de prendre connaissance de la nouvelle organisation des travaux :
+Dans le cadre de la mise en œuvre de la nouvelle organisation de la CNE-ITP, tous les membres sont tenus de mettre à jour leur profil au plus tard le {{ date_limite }}.
 
+À cet effet, vous devez vous connecter à la plateforme afin de :
+- vérifier et compléter vos informations personnelles et professionnelles ;
+- renseigner votre domaine de compétence ;
+- joindre votre curriculum vitae (CV) ;
+- confirmer les informations relatives à votre sous-commission et à votre groupe de travail ;
+- enregistrer les informations mises à jour.
+
+En cas d’oubli de votre mot de passe, utilisez la fonction « Mot de passe oublié » disponible sur la page de connexion. Vous recevrez les instructions de récupération par courrier électronique.
+
+Conséquences du non-respect du délai
+
+Nous attirons particulièrement votre attention sur le caractère obligatoire de cette opération. Passé le {{ date_limite }}, tout membre n’ayant pas satisfait à cette exigence s’expose à une suspension de son accès à la plateforme, jusqu’à la régularisation de sa situation auprès des services compétents.
+
+Toute demande de justification ou de réactivation devra être adressée au bureau du Directeur de la réglementation des normes du ministère des Infrastructures et Travaux publics, au secrétariat compétent ou à la Coordination du Secrétariat technique.
+
+Démarrage des activités normatives
+
+Les travaux préparatoires ont déjà commencé dans certaines sous-commissions. Il est donc indispensable que chaque membre régularise rapidement son profil afin de participer aux travaux, consulter les documents et contribuer à l’élaboration des projets de normes.
+
+Les présidents et responsables des sous-commissions sont également invités à informer et sensibiliser personnellement leurs membres, notamment par téléphone ou par les autres moyens de communication professionnels disponibles.
+
+Connectez-vous à votre espace personnel :
 {{ sc_url }}
 
-Nous tenons à vous remercier pour votre disponibilité et votre engagement au service du développement et de la normalisation du secteur des Infrastructures et Travaux Publics.
+Nous comptons sur votre diligence et votre engagement pour assurer le bon fonctionnement de la CNE-ITP.
 
-Veuillez agréer, Madame, Monsieur, l’expression de notre haute considération.
+Cordialement,
 
-Le Secrétariat technique
+Coordination du Secrétariat technique
 Commission nationale d’élaboration des normes ITP (CNE-ITP)
-Plateforme numérique de gestion et de suivi des travaux de normalisation
+Ministère des Infrastructures et Travaux publics
+République démocratique du Congo

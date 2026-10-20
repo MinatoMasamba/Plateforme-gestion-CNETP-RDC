@@ -137,6 +137,56 @@ class MobileAuthViewSet(viewsets.ViewSet):
             'session_id': str(session.id)
         }, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated],
+            url_path='bootstrap')
+    def bootstrap(self, request):
+        """Contexte de démarrage : type d'utilisateur + espace de travail cible.
+
+        Reproduit la logique de redirection du web (web/views.py `_get_redirect_url`)
+        afin que Flutter route vers le bon espace : copil (directoire/conseillers/atf),
+        ctc ou expert.
+        """
+        from apps.governance.models import CTCMembership, PilotageMembreship
+
+        user = request.user
+        space = 'public'
+        is_ctc = False
+        is_pilotage = False
+        ctc_role = None
+        pilotage_role = None
+
+        expert = Expert.objects.filter(user=user).first()
+        if expert:
+            membership = PilotageMembreship.objects.filter(expert=expert).first()
+            if membership:
+                is_pilotage = True
+                pilotage_role = membership.role
+                _DIRECTOIRE = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
+                if membership.role in _DIRECTOIRE:
+                    space = 'pilotage_directoire'
+                elif membership.role == 'CONSEILLER_POLITIQUE':
+                    space = 'pilotage_conseillers'
+                elif membership.role == 'ADMIN_TECH_FIN':
+                    space = 'pilotage_atf'
+                else:
+                    space = 'pilotage'
+            elif CTCMembership.objects.filter(expert=expert).exists():
+                ctc_membership = CTCMembership.objects.filter(expert=expert).first()
+                is_ctc = True
+                ctc_role = ctc_membership.role
+                space = 'ctc'
+            else:
+                space = 'expert'
+
+        return Response({
+            'user': MobileUserDetailSerializer(user).data,
+            'space': space,
+            'is_ctc': is_ctc,
+            'is_pilotage': is_pilotage,
+            'ctc_role': ctc_role,
+            'pilotage_role': pilotage_role,
+        })
+
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def logout(self, request):
         """Logout mobile — blackliste le refresh token et ferme la session."""

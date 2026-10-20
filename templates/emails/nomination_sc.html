@@ -18,49 +18,72 @@
           <tr>
             <td colspan="3" style="background:#0095c9;padding:26px 32px;">
               <p style="margin:0;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#fff24b;font-weight:bold;">CNE-ITP · Notification officielle</p>
-              <h1 style="margin:8px 0 0;font-size:24px;line-height:1.3;color:#ffffff;">Enregistrement de votre fonction au sein de la {{ sc_code }}</h1>
-              <p style="margin:8px 0 0;font-size:13px;color:#e7f8ff;">{{ sc_name }}</p>
+              <h1 style="margin:8px 0 0;font-size:24px;line-height:1.3;color:#ffffff;">Notification de désignation</h1>
+              <p style="margin:8px 0 0;font-size:13px;color:#e7f8ff;">{{ sc_name }} ({{ sc_code }})</p>
             </td>
           </tr>
           <tr>
             <td colspan="3" style="padding:32px;">
               <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Bonjour <strong>{{ expert_name }}</strong>,</p>
               <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#334155;">
-                Nous avons l’honneur de vous informer que votre affectation en qualité de
-                <strong>{{ fonction }}</strong> de la <strong>Sous-commission {{ sc_name }} ({{ sc_code }})</strong>
-                a été enregistrée sur la plateforme numérique de la Commission nationale d’élaboration
-                des normes ITP (CNE-ITP), dans le cadre de la mise en œuvre de sa nouvelle organisation
-                institutionnelle.
+                Nous avons l’honneur de vous informer de votre désignation en qualité de
+                <strong>{{ fonction }}</strong> au sein de la <strong>Sous-commission {{ sc_name }} ({{ sc_code }})</strong>,
+                relevant de la Commission nationale d’élaboration des normes ITP (CNE-ITP).
               </p>
               <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#334155;">
-                Cette mise à jour s’inscrit dans le processus de réorganisation des instances techniques
-                de la Commission, visant à renforcer la coordination des experts, le suivi des travaux et
-                l’élaboration des normes techniques applicables au secteur des Infrastructures et Travaux
-                Publics en République démocratique du Congo.
+                <strong>Date de désignation : {{ date_designation }}.</strong>
               </p>
 
-              <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Informations relatives à votre affectation</h2>
+              <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Informations relatives à votre désignation</h2>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;border:1px solid #dbe4ea;border-radius:12px;overflow:hidden;">
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;width:38%;">Nom et prénom</td><td style="padding:10px 14px;font-size:13px;color:#334155;">{{ expert_name }}</td></tr>
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Fonction</td><td style="padding:10px 14px;font-size:13px;color:#334155;">{{ fonction }}</td></tr>
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Instance</td><td style="padding:10px 14px;font-size:13px;color:#334155;">Sous-commission {{ sc_name }}</td></tr>
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Code</td><td style="padding:10px 14px;font-size:13px;color:#334155;">{{ sc_code }} (Tome {{ tome }})</td></tr>
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Référence</td><td style="padding:10px 14px;font-size:13px;color:#334155;">{{ reference }}</td></tr>
-                <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Statut</td><td style="padding:10px 14px;font-size:13px;color:#334155;">Affectation enregistrée sur la plateforme, sous réserve de confirmation officielle de la nomination individuelle.</td></tr>
                 <tr><td style="padding:10px 14px;background:#f8fafc;font-size:12px;font-weight:bold;color:#475569;">Date de prise d’effet</td><td style="padding:10px 14px;font-size:13px;color:#334155;">{{ date_effet }}</td></tr>
               </table>
 
+              <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Mise à jour obligatoire de votre profil</h2>
               <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#334155;">
-                Dans le cadre de vos responsabilités, vous serez notamment appelé à contribuer à
-                l’organisation et à la coordination des activités de votre sous-commission, à accompagner
-                les groupes de travail spécialisés et à veiller au bon déroulement des travaux d’élaboration
-                des normes relevant de votre domaine de compétence, conformément aux orientations
-                institutionnelles de la CNE-ITP.
+                Dans le cadre de la mise en œuvre de la nouvelle organisation de la CNE-ITP,
+                <strong>tous les membres sont tenus de mettre à jour leur profil au plus tard le {{ date_limite }}</strong>.
+              </p>
+              <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#334155;">
+                À cet effet, vous devez vous connecter à la plateforme afin de :
+              </p>
+              <ul style="margin:0 0 16px;padding-left:22px;font-size:14px;line-height:1.7;color:#334155;">
+                <li>vérifier et compléter vos informations personnelles et professionnelles ;</li>
+                <li>renseigner votre domaine de compétence ;</li>
+                <li>joindre votre curriculum vitae (CV) ;</li>
+                <li>confirmer les informations relatives à votre sous-commission et à votre groupe de travail ;</li>
+                <li>enregistrer les informations mises à jour.</li>
+              </ul>
+              <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#334155;">
+                En cas d’oubli de votre mot de passe, utilisez la fonction
+                <strong>« Mot de passe oublié »</strong> disponible sur la page de connexion. Vous recevrez les
+                instructions de récupération par courrier électronique.
+              </p>
+
+              <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Conséquences du non-respect du délai</h2>
+              <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#334155;">
+                Nous attirons particulièrement votre attention sur le caractère <strong>obligatoire</strong> de cette
+                opération. Passé le {{ date_limite }}, tout membre n’ayant pas satisfait à cette exigence s’expose à une
+                <strong>suspension de son accès à la plateforme</strong>, jusqu’à la régularisation de sa situation auprès
+                des services compétents.
               </p>
               <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#334155;">
-                Nous vous invitons à vous connecter à votre espace personnel sur la plateforme afin de
-                vérifier les informations relatives à votre profil, de compléter les renseignements
-                nécessaires et de prendre connaissance de la nouvelle organisation des travaux.
+                Toute demande de justification ou de réactivation devra être adressée au bureau du Directeur de la
+                réglementation des normes du ministère des Infrastructures et Travaux publics, au secrétariat compétent
+                ou à la Coordination du Secrétariat technique.
+              </p>
+
+              <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Démarrage des activités normatives</h2>
+              <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#334155;">
+                Les travaux préparatoires ont déjà commencé dans certaines sous-commissions. Il est donc indispensable
+                que chaque membre régularise rapidement son profil afin de participer aux travaux, consulter les
+                documents et contribuer à l’élaboration des projets de normes. Les présidents et responsables des
+                sous-commissions sont également invités à informer et sensibiliser personnellement leurs membres.
               </p>
 
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 22px;">
@@ -71,15 +94,12 @@
                 </tr>
               </table>
 
-              <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#334155;">
-                Nous tenons à vous remercier pour votre disponibilité et votre engagement au service du
-                développement et de la normalisation du secteur des Infrastructures et Travaux Publics.
-              </p>
-              <p style="margin:0 0 4px;font-size:14px;line-height:1.7;color:#334155;">Veuillez agréer, Madame, Monsieur, l’expression de notre haute considération.</p>
+              <p style="margin:0 0 4px;font-size:14px;line-height:1.7;color:#334155;">Cordialement,</p>
               <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#334155;">
-                <strong>Le Secrétariat technique</strong><br>
+                <strong>Coordination du Secrétariat technique</strong><br>
                 Commission nationale d’élaboration des normes ITP (CNE-ITP)<br>
-                Plateforme numérique de gestion et de suivi des travaux de normalisation
+                Ministère des Infrastructures et Travaux publics<br>
+                République démocratique du Congo
               </p>
             </td>
           </tr>

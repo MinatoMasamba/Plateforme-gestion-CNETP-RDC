@@ -177,19 +177,24 @@ class ExpertProfileUpdateForm(forms.Form):
             from apps.governance.models import Affectation
 
             with transaction.atomic():
-                affectation, _ = Affectation.objects.get_or_create(
-                    expert=expert,
-                    ctm=ctm,
-                    wg=wg,
-                    defaults={'is_primary_ctm': True, 'is_primary_wg': True},
-                )
-                expert.governance_affectations.exclude(pk=affectation.pk).update(
-                    is_primary_ctm=False, is_primary_wg=False,
-                )
-                if not (affectation.is_primary_ctm and affectation.is_primary_wg):
+                affectation = (
+                    expert.governance_affectations
+                    .filter(is_primary_ctm=True)
+                    .order_by('pk')
+                    .first()
+                ) or expert.governance_affectations.order_by('pk').first()
+                if affectation is None:
+                    affectation = Affectation.objects.create(
+                        expert=expert, ctm=ctm, wg=wg,
+                        is_primary_ctm=True, is_primary_wg=True,
+                    )
+                else:
+                    expert.governance_affectations.exclude(pk=affectation.pk).delete()
+                    affectation.ctm = ctm
+                    affectation.wg = wg
                     affectation.is_primary_ctm = True
                     affectation.is_primary_wg = True
-                    affectation.save(update_fields=['is_primary_ctm', 'is_primary_wg'])
+                    affectation.save()
         return affectation
 
 
