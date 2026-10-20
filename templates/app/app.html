@@ -402,7 +402,7 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-6">
+        <div class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 space-y-6">
             <div id="sidebar-top-section">
                 <div class="flex justify-center py-4"><i data-lucide="loader-2" class="w-5 h-5 text-blue-500 animate-spin"></i></div>
             </div>
@@ -422,6 +422,23 @@
                 <span id="footer-active-role" class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase text-blue-600 bg-blue-50 border border-blue-200 dark:text-amber-400 dark:bg-amber-400/10 dark:border-amber-400/25">
                     Rapporteur CTM
                 </span>
+            </div>
+            <div id="activity-counter" class="pt-2 border-t border-slate-200 dark:border-white/5">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[9px] uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1"><i data-lucide="activity" class="h-3 w-3"></i> Mon activité</span>
+                    <span id="activity-counter-state" class="text-[8px] text-slate-400">…</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-lg border px-2 py-1.5 bg-white border-slate-200 dark:bg-white/[0.03] dark:border-white/10">
+                        <span class="text-[8px] uppercase text-slate-500 dark:text-slate-400 block">Temps</span>
+                        <span id="activity-counter-time" class="text-[11px] font-bold text-slate-800 dark:text-slate-100">—</span>
+                    </div>
+                    <div class="rounded-lg border px-2 py-1.5 bg-white border-slate-200 dark:bg-white/[0.03] dark:border-white/10">
+                        <span class="text-[8px] uppercase text-slate-500 dark:text-slate-400 block">Éditions</span>
+                        <span id="activity-counter-editions" class="text-[11px] font-bold text-slate-800 dark:text-slate-100">—</span>
+                    </div>
+                </div>
+                <p id="activity-counter-today" class="text-[8px] text-slate-400 mt-1.5 text-center"></p>
             </div>
             <div class="pt-1.5">
                 <button onclick="loadModule('profil')" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-[9.5px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm focus:outline-none border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:border-blue-400 dark:border-amber-500/20 dark:bg-amber-500/5 dark:hover:bg-amber-500/15 dark:text-amber-400 dark:hover:border-amber-400" title="Configurer Profil Test">
@@ -7394,8 +7411,21 @@
             if (!normeId) return;
             const shareUrl = buildNormeShareUrl(normeId);
             const selectedDoc = sidebarState.documents.find(doc => String(doc.id) === String(normeId));
-            const title = selectedDoc?.title || selectedDoc?.code || 'Norme';
+            const title = selectedDoc?.title || selectedDoc?.code || 'Norme CNE-ITP';
 
+            // 1) Partage natif (iOS / Android) : feuille de partage système.
+            //    Appelé en premier pour rester dans le geste utilisateur.
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title, text: `Norme CNE-ITP : ${title}`, url: shareUrl });
+                    return;
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.warn('Web Share indisponible, repli sur la copie', error);
+                }
+            }
+
+            // 2) Presse-papiers moderne (contexte sécurisé).
             try {
                 if (navigator.clipboard?.writeText) {
                     await navigator.clipboard.writeText(shareUrl);
@@ -7406,25 +7436,34 @@
                 console.warn('Clipboard unavailable, falling back to execCommand', error);
             }
 
+            // 3) Repli historique, avec un textarea réellement sélectionné.
             const temp = document.createElement('textarea');
             temp.value = shareUrl;
             temp.setAttribute('readonly', '');
             temp.style.position = 'fixed';
-            temp.style.left = '-9999px';
+            temp.style.top = '50%';
+            temp.style.left = '50%';
+            temp.style.transform = 'translate(-50%, -50%)';
+            temp.style.opacity = '0';
+            temp.style.pointerEvents = 'none';
+            const previousActive = document.activeElement;
             document.body.appendChild(temp);
+            temp.focus();
             temp.select();
+            temp.setSelectionRange(0, shareUrl.length);
             try {
                 const copied = document.execCommand('copy');
                 if (copied) {
                     window.showAppToast?.('Lien de partage copié.', 'success');
                 } else {
-                    window.showAppToast?.(`Impossible de copier automatiquement. Lien : ${shareUrl}`, 'warning');
+                    window.showAppToast?.('Copie impossible : sélectionnez le lien dans la barre d’adresse.', 'warning');
                 }
             } catch (error) {
                 console.error('Copy failed', error);
-                window.showAppToast?.(`Impossible de copier automatiquement. Lien : ${shareUrl}`, 'warning');
+                window.showAppToast?.('Copie impossible : sélectionnez le lien dans la barre d’adresse.', 'warning');
             } finally {
                 document.body.removeChild(temp);
+                if (previousActive && typeof previousActive.focus === 'function') previousActive.focus();
             }
         };
 
@@ -7460,14 +7499,13 @@
                         code: n.reference_number,
                         title: n.title,
                         category: n.status,
-                        updatedBy: n.ctm_name || "Admin",
+                        updatedBy: n.updated_by_name || n.ctm_name || "CNE-ITP",
                         ctm: n.ctm,
                         wg: n.wg
                     }));
-                    const scopedDocs = sidebarState.currentCtmId
+                    sidebarState.documents = sidebarState.currentCtmId
                         ? mappedDocs.filter(doc => String(doc.ctm) === String(sidebarState.currentCtmId))
                         : mappedDocs;
-                    sidebarState.documents = scopedDocs.length ? scopedDocs : mappedDocs;
                 }
 
                 const sharedNormeId = getSharedNormeIdFromUrl();
@@ -7650,16 +7688,16 @@
                     </div>
                     <div class="space-y-1">
                         ${sidebarState.documents.length ? sidebarState.documents.map(doc => {
-                            const isSel = doc.id === sidebarState.selectedDocId;
+                            const isSel = String(doc.id) === String(sidebarState.selectedDocId);
                             const bgClass = isSel ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 font-bold' : 'bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400';
                             const isMyWg = doc.wg != null && sidebarState.currentWgId != null && String(doc.wg) === String(sidebarState.currentWgId);
-                            return `<div class="relative group">
-                                <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-3.5 pr-11 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="font-semibold ${isMobile ? 'text-[11px]' : 'text-xs'} truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                            return `<div class="relative group min-w-0">
+                                <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full min-w-0 overflow-hidden text-left p-3.5 pr-11 rounded-lg border transition-all duration-200 flex flex-col gap-1.5 leading-tight ${bgClass}">
+                                    <div class="flex items-center justify-between gap-2 min-w-0">
+                                        <span class="block min-w-0 flex-1 font-semibold ${isMobile ? 'text-[11px]' : 'text-xs'} truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
                                         ${isMyWg ? '<span class="text-[8.5px] px-1 rounded font-extrabold uppercase border shrink-0 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20">Mon WG</span>' : ''}
                                     </div>
-                                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded">${doc.code}</span><span class="truncate max-w-[42%]">${doc.updatedBy}</span></div>
+                                    <div class="flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-500 mt-1"><span class="font-mono px-1.5 rounded truncate min-w-0">${doc.code}</span><span class="truncate max-w-[42%] min-w-0 shrink-0">${doc.updatedBy}</span></div>
                                 </button>
                                 <button type="button" onclick="event.stopPropagation(); window.shareNormeLink('${doc.id}');" class="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 transition-opacity rounded-full p-1.5 border border-slate-200 bg-white/90 text-slate-600 shadow-sm hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-black/70 dark:text-slate-300 dark:hover:bg-blue-500/15 dark:hover:text-blue-400" title="Partager cette norme">
                                     <i data-lucide="share-2" class="h-3.5 w-3.5"></i>
@@ -7720,12 +7758,12 @@
                 : sidebarState.documents;
 
             container.innerHTML = docs.length ? docs.map(doc => {
-                const isSel = doc.id === sidebarState.selectedDocId;
+                const isSel = String(doc.id) === String(sidebarState.selectedDocId);
                 const bgClass = isSel ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-600/15 dark:border-blue-500/30 dark:text-blue-300 font-bold' : 'bg-transparent border-transparent hover:bg-slate-100 text-slate-600 dark:hover:bg-white/5 dark:text-slate-400';
-                return `<div class="relative group">
-                    <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full text-left p-2.5 pr-10 rounded-lg border transition-all duration-200 flex flex-col gap-1 leading-tight ${bgClass}">
-                        <span class="font-semibold ${window.matchMedia('(max-width: 767px)').matches ? 'text-[11px]' : 'text-xs'} truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
-                        <div class="flex items-center justify-between text-[9.5px] text-slate-500 mt-0.5"><span class="font-mono px-1.5 rounded">${doc.code}</span><span class="truncate max-w-[42%]">${doc.updatedBy}</span></div>
+                return `<div class="relative group min-w-0">
+                    <button onclick="sidebarSelect('doc', '${doc.id}')" class="w-full min-w-0 overflow-hidden text-left p-2.5 pr-10 rounded-lg border transition-all duration-200 flex flex-col gap-1 leading-tight ${bgClass}">
+                        <span class="block min-w-0 font-semibold ${window.matchMedia('(max-width: 767px)').matches ? 'text-[11px]' : 'text-xs'} truncate ${isSel ? 'text-slate-900 dark:text-white' : ''}">${doc.title}</span>
+                        <div class="flex items-center justify-between gap-2 min-w-0 text-[9.5px] text-slate-500 mt-0.5"><span class="font-mono px-1.5 rounded truncate min-w-0">${doc.code}</span><span class="truncate max-w-[42%] min-w-0 shrink-0">${doc.updatedBy}</span></div>
                     </button>
                     <button type="button" onclick="event.stopPropagation(); window.shareNormeLink('${doc.id}');" class="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 transition-opacity rounded-full p-1 border border-slate-200 bg-white/90 text-slate-600 shadow-sm hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-black/70 dark:text-slate-300 dark:hover:bg-blue-500/15 dark:hover:text-blue-400" title="Partager cette norme">
                         <i data-lucide="share-2" class="h-3 w-3"></i>
@@ -8115,6 +8153,35 @@
             if (typeof updateThemeButtons === 'function') updateThemeButtons();
         }
 
+        function formatActivityDuration(totalSeconds) {
+            const seconds = Math.max(0, Number(totalSeconds) || 0);
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            if (hours > 0) return `${hours}h ${String(minutes).padStart(2, '0')}min`;
+            return `${minutes} min`;
+        }
+
+        async function refreshActivityCounter() {
+            try {
+                const data = await apiFetch('/api/v1/activity/my-counter/');
+                const timeEl = document.getElementById('activity-counter-time');
+                const editionsEl = document.getElementById('activity-counter-editions');
+                const todayEl = document.getElementById('activity-counter-today');
+                const stateEl = document.getElementById('activity-counter-state');
+                if (timeEl) timeEl.textContent = formatActivityDuration(data.active_seconds_total);
+                if (editionsEl) editionsEl.textContent = data.editions_total ?? 0;
+                if (todayEl) {
+                    todayEl.textContent = `Aujourd'hui : ${formatActivityDuration(data.active_seconds_today)} · ${data.editions_today ?? 0} édition(s)`;
+                }
+                if (stateEl) stateEl.textContent = 'Sync';
+            } catch (error) {
+                const stateEl = document.getElementById('activity-counter-state');
+                if (stateEl) stateEl.textContent = 'indispo';
+                console.warn('Activity counter unavailable:', error);
+            }
+        }
+        window.refreshActivityCounter = refreshActivityCounter;
+
         function bootstrapApp() {
             try {
                 safeCreateIcons();
@@ -8122,6 +8189,8 @@
                 const userDisplay = document.getElementById('user-display-name');
                 if (userDisplay) userDisplay.textContent = "Expert Connecté";
                 fetchSidebarData();
+                refreshActivityCounter();
+                setInterval(refreshActivityCounter, 60000);
                 loadModule('editor');
                 if (typeof updateNotifBadge === 'function') updateNotifBadge();
 
