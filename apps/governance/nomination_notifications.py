@@ -112,7 +112,7 @@ def _send_sc_nomination_mail(expert_id, mandat, organ, title):
         ),
         'date_effet': mandat.start_date.strftime('%d/%m/%Y') if mandat.start_date else 'À confirmer',
         'date_designation': '19 octobre 2026',
-        'date_limite': 'jeudi 22 octobre 2026',
+        'date_limite': 'jeudi 22 octobre 2026 à 20h30',
         'sc_url': settings.SITE_URL.rstrip('/') + path,
     }
     subject = (

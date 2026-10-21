@@ -64,7 +64,7 @@ Comment procéder ?
 Accéder au communiqué et au formulaire :
 {url}
 
-Date limite : lundi 19 octobre 2026.
+Date limite : jeudi 22 octobre 2026 à 20h30.
 
 Les anciens groupes de travail et les travaux déjà réalisés sont conservés. Tout
 expert n'ayant pas effectué cette mise à jour dans le délai imparti pourra voir son
