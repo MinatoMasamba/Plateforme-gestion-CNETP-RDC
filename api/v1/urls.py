@@ -18,6 +18,7 @@ from .mobile.views import (
     MobileAuthViewSet, PushTokenViewSet, NotificationPreferenceViewSet,
     NotificationViewSet, MobileProfileViewSet, MobilePublicViewSet
 )
+from .mobile.ctc_views import MobileCTCViewSet
 from .validation.views import LegisticReviewViewSet
 from .documents.views import DocumentFileViewSet
 from .public.views import PublicAmendementViewSet
@@ -115,6 +116,7 @@ router.register(r'mobile/notification-preferences', NotificationPreferenceViewSe
 router.register(r'mobile/notifications', NotificationViewSet, basename='notifications')
 router.register(r'mobile/profile', MobileProfileViewSet, basename='mobile-profile')
 router.register(r'mobile/public', MobilePublicViewSet, basename='mobile-public')
+router.register(r'mobile/ctc', MobileCTCViewSet, basename='mobile-ctc')
 
 urlpatterns = [
     # Routes principales

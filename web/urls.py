@@ -56,6 +56,7 @@ from .activity_views import (
     activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
 )
 from .production_views import InstructionDashboardView, instruction_create, demande_transition
+from .president_sc_views import president_sc_page, president_sc_data
 
 app_name = 'web'
 
@@ -113,6 +114,8 @@ urlpatterns = [
     path('pilotage/atf/', PilotageATFAppView.as_view(), name='pilotage_atf_app'),
     path('pilotage/ctm/<int:number>/', PilotageCTMDetailView.as_view(), name='pilotage_ctm_detail'),
     path('pilotage/activites/', ActivityDashboardView.as_view(), name='activity_dashboard'),
+    path('pilotage/presidence-sc/', president_sc_page, name='president_sc'),
+    path('pilotage/presidence-sc/donnees/', president_sc_data, name='president_sc_data'),
     path('pilotage/sous-commissions/courantes/<int:pk>/activite/', ActivityCurrentSubcommissionView.as_view(), name='activity_current_subcommission'),
     path('pilotage/groupes-travail/<int:pk>/activite/', ActivityGroupView.as_view(), name='activity_group'),
     path('pilotage/groupes-travail/courants/<int:pk>/activite/', ActivityCurrentGroupView.as_view(), name='activity_current_group'),

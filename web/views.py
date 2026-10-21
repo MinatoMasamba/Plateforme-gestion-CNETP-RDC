@@ -20,6 +20,7 @@ from .forms import (
     UserProfileForm, ExpertProfileForm,
 )
 from django.contrib.auth import login as auth_login, get_user_model
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,11 @@ class App(View):
             messages.warning(request, "Votre compte n'est pas encore validé en tant qu'expert. Veuillez patienter ou contacter l'administrateur.")
             return redirect('web:home')
 
-        return render(request, self.template_name)
+        from .president_sc_views import _sc_bureau_ids
+        expert = Expert.objects.filter(user=request.user).first()
+        return render(request, self.template_name, {
+            'sc_bureau_access': bool(_sc_bureau_ids(expert, timezone.localdate())),
+        })
 
 class AboutView(View):
     """

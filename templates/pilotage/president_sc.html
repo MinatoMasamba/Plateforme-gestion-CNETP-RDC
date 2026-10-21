@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suivi des normes de ma SC · CNE-ITP</title>
+  <meta name="theme-color" content="#020204">
+  <script>document.documentElement.classList.toggle('dark', (localStorage.getItem('theme-preference') || 'dark') !== 'light');</script>
+  <link rel="stylesheet" href="{% static 'css/president-sc.css' %}">
+  <link rel="stylesheet" href="{% static 'css/president-sc-app-theme.css' %}">
+  <script defer src="{% static 'js/president-sc.js' %}"></script>
+</head>
+<body class="plan-layout" data-source="{% url 'web:president_sc_data' %}">
+  <div class="shell">
+    <header class="plan-header">
+      <div class="header-main">
+        <div class="brand"><img src="{% static 'img/logo-cnetp.png' %}" alt="" class="president-logo"><span class="president-flag" aria-hidden="true"></span><span class="president-brand-text"><b>CNE-ITP</b><small>Suivi des normes de ma SC</small></span></div>
+        <div class="header-commission"><b>{{ selected.code }} — {{ selected.name }}</b><span>Commission nationale d’élaboration des normes ITP</span></div>
+      </div>
+      <div class="header-right"><button type="button" id="theme-toggle" aria-label="Changer le thème" aria-pressed="false">Thème clair</button><span class="header-separator">|</span><a href="{% url 'web:app' %}">Espace de travail</a></div>
+    </header>
+    <main>
+      <nav class="president-breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'web:app' %}">Espace de travail</a><span>›</span><span aria-current="page">Suivi des normes de ma SC</span></nav>
+      <form class="scope-controls" method="get" aria-label="Périmètre autorisé">
+        <label>Périmètre
+          <select id="scope-select" aria-label="Choisir un périmètre">
+            {% for scope in scopes %}<option value="{{ scope.id }}" {% if scope.id == selected.id %}selected{% endif %}>{{ scope.code }} — {{ scope.name }}</option>{% endfor %}
+          </select>
+        </label>
+        {% if historical_ctms %}<label>CTM historique
+          <select name="ctm" id="ctm-select" aria-label="Filtrer par CTM historique">
+            <option value="">Tous les CTM</option>
+            {% for item in historical_ctms %}<option value="{{ item.pk }}" {% if ctm.pk == item.pk %}selected{% endif %}>CTM {{ item.number }} — {{ item.name }}</option>{% endfor %}
+          </select>
+        </label>{% endif %}
+        {% if working_groups %}<label>WG historique
+          <select name="wg" id="wg-select" aria-label="Filtrer par groupe historique">
+            <option value="">Tous les groupes</option>
+            {% for group in working_groups %}<option value="{{ group.pk }}" {% if wg.pk == group.pk %}selected{% endif %}>WG {{ group.number }} — {{ group.name }}</option>{% endfor %}
+          </select>
+        </label>{% endif %}
+        <p>Seules les sous-commissions liées à votre mandat actif sont proposées.</p>
+      </form>
+      <div id="page-error" class="president-error" role="alert" hidden></div>
+      <nav id="norm-list" class="president-norm-list" aria-label="Normes du périmètre"></nav>
+      <div class="workspace" id="workspace" hidden>
+        <div class="left-pane">
+          <section class="panel performance" aria-labelledby="performance-title">
+            <div class="panel-heading"><div><h2 id="performance-title">Performance des experts</h2><p><span id="performance-code" class="blue"></span> · Tâches affectées à la norme sélectionnée</p></div><div class="toggle" role="group" aria-label="Type de graphique"><button type="button" id="chart-pie" class="active" aria-pressed="true">Circulaire</button><button type="button" id="chart-bar" aria-pressed="false">Barres</button></div></div>
+            <div id="chart" class="chart-row"></div>
+            <div class="chart-footer"><span id="chart-summary"></span><button type="button" id="method-button">Méthode de calcul ⓘ</button></div>
+          </section>
+          <section class="panel experts" aria-labelledby="experts-title">
+            <div class="panel-heading"><div><h2 id="experts-title">Tableau des experts <span id="expert-count" class="count"></span></h2><p>Activité liée à la norme sélectionnée</p></div></div>
+            <div class="table-scroll"><table><thead><tr><th>Nom de l’expert</th><th>Tâches</th><th>Performance</th><th>Normes du périmètre</th><th>Code</th></tr></thead><tbody id="expert-rows"></tbody></table><div id="expert-empty" class="empty" hidden>Aucune tâche affectée à un expert pour cette norme.</div></div>
+            <div class="table-tools"><label class="search"><span aria-hidden="true">⌕</span><input id="expert-search" type="search" placeholder="Rechercher un expert…" aria-label="Rechercher un expert"></label><label class="filter"><select id="expert-filter" aria-label="Filtrer les experts"><option value="Tous">Tous</option><option>En cours</option><option>Terminé</option><option>En retard</option></select></label></div>
+            <div class="table-footer"><span id="visible-count"></span><span>Performance = tâches terminées / tâches affectées</span></div>
+          </section>
+        </div>
+        <section id="reader" class="panel reader" aria-labelledby="reader-title">
+          <div class="reader-head"><div class="reader-label"><span>NORME OUVERTE</span><span class="live-dot">{{ selected.code }}</span></div><div class="reader-title"><div><span id="reader-code" class="code"></span><h2 id="reader-title"></h2></div><a id="dossier-link" class="primary" hidden>Ouvrir le dossier</a></div><div class="reader-meta"><span id="reader-status" class="status"></span><span id="reader-version"></span><span id="reader-date"></span></div></div>
+          <div class="reader-tabs"><button type="button" id="document-tab" class="tab-active">Document</button><button type="button" id="history-tab">Historique <span id="version-count"></span></button><span class="reader-lock">Lecture des versions enregistrées</span></div>
+          <div id="document-panel" class="document-wrap"><article class="paper"><div class="paper-top"><span>CNE-ITP / {{ selected.code }}</span><span id="paper-code"></span></div><div class="doc-tag">PROJET DE NORME</div><h3 id="paper-title"></h3><div class="document-rule"></div><div id="paper-content"></div><div class="paper-bottom">Document issu des données CNE-ITP</div></article></div>
+          <div id="history-panel" class="history-content" hidden><h3>Historique des versions</h3><p>Sélectionnez une version pour lire son contenu conservé en base.</p><div id="history-list"></div></div>
+          <div class="reader-footer"><span id="reader-experts"></span><span id="reader-tasks"></span></div>
+        </section>
+      </div>
+      <footer><span>Espace de supervision · CNE-ITP</span><span>Données de l’application Django</span></footer>
+    </main>
+  </div>
+  <dialog id="method-dialog" class="modal"><form method="dialog"><button class="close" aria-label="Fermer">×</button><div class="eyebrow">TRANSPARENCE DES INDICATEURS</div><h2>Méthode de calcul</h2><p>La performance indique la part des tâches terminées parmi les tâches affectées à chaque expert sur la norme sélectionnée. Une tâche sans expert n’entre pas dans le tableau.</p><p>Les barres représentent le nombre de tâches affectées. Le graphique circulaire répartit les experts selon leurs tâches : en retard, terminées ou en cours. En l’absence de tâche, l’indicateur est « Non configuré ».</p><p>Ces chiffres ne mesurent ni la qualité scientifique ni le temps d’édition d’un document.</p></form></dialog>
+</body>
+</html>
