@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Expert, Structure
+from .models import Expert, Structure, ProfileUpdate, ProfileUpdateEvent
 from apps.governance.models import Affectation, PilotageMembreship, CTCMembership, ExecutiveLevel
 
 
@@ -164,3 +164,29 @@ class ExpertAdmin(admin.ModelAdmin):
             return mark_safe("<em>Aucun comité assigné</em>")
         return mark_safe("<br/>".join(details))
     get_committees_detail.short_description = "Affectations aux comités"
+
+
+class ProfileUpdateEventInline(admin.TabularInline):
+    model = ProfileUpdateEvent
+    extra = 0
+    can_delete = False
+    readonly_fields = ('from_status', 'to_status', 'actor', 'comment', 'created_at')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ProfileUpdate)
+class ProfileUpdateAdmin(admin.ModelAdmin):
+    list_display = ('expert', 'status', 'version', 'submitted_at', 'completed_at', 'validated_by')
+    list_filter = ('status', 'version', 'expert__structure')
+    search_fields = ('expert__user__first_name', 'expert__user__last_name', 'expert__user__email')
+    readonly_fields = ('expert', 'status', 'version', 'started_at', 'submitted_at', 'reviewed_at',
+                       'completed_at', 'validated_by', 'review_comment', 'created_at', 'updated_at')
+    inlines = (ProfileUpdateEventInline,)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

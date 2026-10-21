@@ -4,12 +4,14 @@ import re
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from apps.experts.models import Expert
+from apps.experts.profile_updates import missing_requirements, transition
 from apps.governance.models import (
     ChoixOrganisationExpert, CorrespondanceGroupe, GroupeCible, MandatOrganisation, Organe, WG,
 )
@@ -101,6 +103,8 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
             'groups_json': json.dumps(groups),
             'has_groups': bool(groups),
             'uses_adopted_gt': choice_form.uses_adopted_gt,
+            'profile_status': getattr(getattr(expert, 'profile_update', None), 'status', 'NOT_STARTED'),
+            'missing_requirements': missing_requirements(expert, version),
         }
 
     def get(self, request):
@@ -124,7 +128,20 @@ class ExpertOrganisationUpdateView(LoginRequiredMixin, View):
                     groupe=choice_form.cleaned_data['groupe'],
                     created_by=request.user,
                 )
-            messages.success(request, 'Profil mis à jour et choix transmis pour examen.')
+                state = getattr(context['expert'], 'profile_update', None)
+                if state is None or state.status == 'NOT_STARTED':
+                    transition(context['expert'], 'IN_PROGRESS', request.user, version=context['version'])
+                elif state.status == 'COMPLETE':
+                    transition(context['expert'], 'EXPIRED', request.user, version=context['version'], comment='Nouvelle modification du profil')
+                if request.POST.get('submit_profile') == '1':
+                    try:
+                        transition(context['expert'], 'SUBMITTED', request.user, version=context['version'])
+                    except ValidationError as exc:
+                        messages.warning(request, f'Choix enregistré, mais profil non soumis : {exc}')
+                    else:
+                        messages.success(request, 'Profil soumis pour vérification administrative.')
+                else:
+                    messages.success(request, 'Informations enregistrées et choix transmis. Soumettez votre profil pour vérification lorsque tous les critères sont remplis.')
             return redirect('web:expert_organisation_update')
         if any(name in user_form.errors for name in ('first_name', 'last_name', 'phone', 'province', 'profile_picture')):
             context['wizard_start_step'] = 1

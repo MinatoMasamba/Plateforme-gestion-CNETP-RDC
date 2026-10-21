@@ -4,8 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
+from django.db import transaction
 
 from apps.experts.models import Expert
+from apps.experts.profile_updates import transition
 from apps.governance.models import OrganisationVersion
 from web.forms import ExpertProfileUpdateForm
 from web.views import expert_workspace_url_name
@@ -72,10 +74,16 @@ class ExpertProfileUpdateView(LoginRequiredMixin, View):
         form = context['form']
 
         if form.is_valid():
-            form.save()
+            with transaction.atomic():
+                form.save()
+                state = getattr(context['expert'], 'profile_update', None)
+                if state is None or state.status == 'NOT_STARTED':
+                    transition(context['expert'], 'IN_PROGRESS', request.user, version=context['version'])
+                elif state.status == 'COMPLETE':
+                    transition(context['expert'], 'EXPIRED', request.user, version=context['version'], comment='Modification du profil')
             messages.success(
                 request,
-                "Votre profil a été mis à jour. Vous êtes redirigé vers votre espace de travail.",
+                "Vos informations ont été enregistrées. La conformité du profil reste à vérifier séparément.",
             )
             return redirect(expert_workspace_url_name(request.user))
 

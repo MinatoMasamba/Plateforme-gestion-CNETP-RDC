@@ -189,7 +189,6 @@ class ExpertProfileUpdateForm(forms.Form):
                         is_primary_ctm=True, is_primary_wg=True,
                     )
                 else:
-                    expert.governance_affectations.exclude(pk=affectation.pk).delete()
                     affectation.ctm = ctm
                     affectation.wg = wg
                     affectation.is_primary_ctm = True

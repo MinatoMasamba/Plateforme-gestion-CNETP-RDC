@@ -128,3 +128,36 @@ class Expert(BaseModel):
     @property
     def full_name(self):
         return self.user.get_full_name()
+
+
+class ProfileUpdate(BaseModel):
+    """Suivi de la procédure de réorganisation, indépendant du compte et du mandat."""
+
+    class Status(models.TextChoices):
+        NOT_STARTED = 'NOT_STARTED', 'Non commencé'
+        IN_PROGRESS = 'IN_PROGRESS', 'En cours'
+        SUBMITTED = 'SUBMITTED', 'Soumis'
+        UNDER_REVIEW = 'UNDER_REVIEW', 'En examen'
+        COMPLETE = 'COMPLETE', 'Conforme et vérifié'
+        NEEDS_CORRECTION = 'NEEDS_CORRECTION', 'À corriger'
+        REJECTED = 'REJECTED', 'Rejeté'
+        EXPIRED = 'EXPIRED', 'À renouveler'
+
+    expert = models.OneToOneField(Expert, on_delete=models.CASCADE, related_name='profile_update')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_STARTED)
+    version = models.ForeignKey('governance.OrganisationVersion', on_delete=models.PROTECT, null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_profiles')
+    review_comment = models.TextField(blank=True)
+
+
+class ProfileUpdateEvent(models.Model):
+    profile_update = models.ForeignKey(ProfileUpdate, on_delete=models.CASCADE, related_name='events')
+    from_status = models.CharField(max_length=20)
+    to_status = models.CharField(max_length=20)
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

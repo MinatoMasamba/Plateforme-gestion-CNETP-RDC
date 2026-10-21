@@ -37,6 +37,8 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
     accepted_by_name = serializers.SerializerMethodField()
     rejected_by_name = serializers.SerializerMethodField()
     role_id          = serializers.SerializerMethodField()
+    profile_update_status = serializers.SerializerMethodField()
+    profile_update_submitted_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Expert
@@ -48,6 +50,7 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
             'ctm', 'ctm_name', 'role_id',
             'accepted_by_name', 'accepted_at',
             'rejected_by_name', 'rejected_at', 'rejection_reason',
+            'profile_update_status', 'profile_update_submitted_at',
         ]
         read_only_fields = [
             'id', 'inscription_date', 'activation_date',
@@ -62,6 +65,14 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
         if getattr(user, 'is_ctc_staff', False):
             return 'COORD_CTC'
         return 'EXPERT'
+
+    def get_profile_update_status(self, obj):
+        state = getattr(obj, 'profile_update', None)
+        return state.status if state else 'NOT_STARTED'
+
+    def get_profile_update_submitted_at(self, obj):
+        state = getattr(obj, 'profile_update', None)
+        return state.submitted_at if state else None
 
     def get_user(self, obj):
         return {

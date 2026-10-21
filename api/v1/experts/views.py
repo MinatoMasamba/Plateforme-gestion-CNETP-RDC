@@ -6,9 +6,12 @@ from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db import models
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.experts.models import Expert, Structure
+from apps.experts.profile_updates import missing_requirements, transition
 from .serializers import (
     ExpertDetailSerializer, ExpertBasicSerializer, ExpertCreateUpdateSerializer,
     ExpertInscriptionSerializer, ExpertListSerializer, StructureSerializer
@@ -46,6 +49,37 @@ class ExpertViewSet(viewsets.ModelViewSet):
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
     ordering_fields = ['inscription_date', 'status', 'user__last_name']
     ordering = ['-inscription_date']
+
+    @action(detail=True, methods=['get', 'post'], url_path='profile-update')
+    def profile_update(self, request, pk=None):
+        """État documentaire privé ; transitions avec contrôle serveur et historique."""
+        from apps.governance.models import OrganisationVersion
+
+        expert = self.get_object()
+        staff = request.user.is_superuser or request.user.is_staff or getattr(request.user, 'is_ctc_staff', False)
+        if request.user.pk != expert.user_id and not staff:
+            raise PermissionDenied('Accès réservé à l’expert et au secrétariat.')
+        state = getattr(expert, 'profile_update', None)
+        if request.method == 'POST':
+            version = None
+            if request.data.get('version_id'):
+                version = OrganisationVersion.objects.filter(pk=request.data['version_id']).first()
+                if not version:
+                    raise ValidationError({'version_id': 'Version inconnue.'})
+            try:
+                state = transition(expert, request.data.get('status'), request.user,
+                                   version=version, comment=request.data.get('comment', ''))
+            except DjangoValidationError as exc:
+                raise ValidationError(getattr(exc, 'message_dict', None) or exc.messages) from exc
+        version = state.version if state else None
+        return Response({
+            'status': state.status if state else 'NOT_STARTED',
+            'version_id': version.pk if version else None,
+            'submitted_at': state.submitted_at if state else None,
+            'completed_at': state.completed_at if state else None,
+            'missing_requirements': missing_requirements(expert, version) if version else [],
+            'review_comment': state.review_comment if state else '',
+        })
 
     def _user_has_ctm_role(self, user, ctm_id):
         """Vérifie si l'utilisateur est Président, Rapporteur ou Secrétaire du CTM."""
