@@ -3,9 +3,22 @@ import '../../../theme/app_colors.dart';
 
 /// Tableau de bord CTC — reproduit `dashboard_module.html` (design "premium").
 class CtcDashboardView extends StatelessWidget {
-  const CtcDashboardView({super.key, required this.poleLabel});
+  const CtcDashboardView({
+    super.key,
+    required this.poleLabel,
+    required this.counts,
+    required this.dossiers,
+    required this.assignations,
+    this.onOpenAssignations,
+  });
 
   final String poleLabel;
+  final Map<String, int> counts;
+  final List<Map<String, dynamic>> dossiers;
+  final List<Map<String, dynamic>> assignations;
+  final VoidCallback? onOpenAssignations;
+
+  int _c(String k) => counts[k] ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -55,17 +68,8 @@ class CtcDashboardView extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: const Text(
-                  'Mes assignations',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-                ),
-              ),
+              if (onOpenAssignations != null)
+                _AccentButton(label: 'Mes assignations', onTap: onOpenAssignations!),
             ],
           ),
           const SizedBox(height: 20),
@@ -84,14 +88,14 @@ class CtcDashboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Row(
-                  children: const [
-                    Expanded(child: _Kpi(label: 'Dossiers du Secrétariat technique', value: '0', note: 'Enregistrés dans le circuit')),
-                    _KpiDivider(),
-                    Expanded(child: _Kpi(label: 'Mes assignations', value: '0', note: 'Attribuées à votre poste')),
-                    _KpiDivider(),
-                    Expanded(child: _Kpi(label: 'Normes suivies', value: '0', note: 'Rattachement explicite')),
-                    _KpiDivider(),
-                    Expanded(child: _Kpi(label: 'Tâches en retard', value: '0', note: 'Selon leur échéance')),
+                  children: [
+                    Expanded(child: _Kpi(label: 'Dossiers du Secrétariat technique', value: '${_c('dossiers')}', note: 'Enregistrés dans le circuit')),
+                    const _KpiDivider(),
+                    Expanded(child: _Kpi(label: 'Mes assignations', value: '${_c('assignations')}', note: 'Attribuées à votre poste')),
+                    const _KpiDivider(),
+                    Expanded(child: _Kpi(label: 'Normes suivies', value: '${_c('normes_suivies')}', note: 'Rattachement explicite')),
+                    const _KpiDivider(),
+                    Expanded(child: _Kpi(label: 'Tâches en retard', value: '${_c('taches_en_retard')}', note: 'Selon leur échéance')),
                   ],
                 ),
               ],
@@ -108,7 +112,10 @@ class CtcDashboardView extends StatelessWidget {
                     children: [
                       const _CardHeader(title: 'Travail attribué'),
                       const SizedBox(height: 10),
-                      _EmptyLine(title: 'Aucun dossier à réceptionner', subtitle: "Aucune assignation explicite n'attend ce poste."),
+                      if (assignations.isEmpty)
+                        const _EmptyLine(title: 'Aucun dossier à réceptionner', subtitle: "Aucune assignation explicite n'attend ce poste.")
+                      else
+                        for (final a in assignations.take(5)) _TaskLine(a),
                     ],
                   ),
                 ),
@@ -121,7 +128,10 @@ class CtcDashboardView extends StatelessWidget {
                     children: [
                       const _CardHeader(title: 'Dossiers normatifs'),
                       const SizedBox(height: 10),
-                      _EmptyLine(title: 'Aucun dossier dans le circuit CTC.', subtitle: ''),
+                      if (dossiers.isEmpty)
+                        const _EmptyLine(title: 'Aucun dossier dans le circuit CTC.', subtitle: '')
+                      else
+                        for (final d in dossiers.take(5)) _DossierLine(d),
                     ],
                   ),
                 ),
@@ -135,10 +145,11 @@ class CtcDashboardView extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Suivi statistique', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.text)),
-                      SizedBox(height: 4),
-                      Text('0 sous-commissions et CTM · 0 groupes suivis.', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                    children: [
+                      const Text('Suivi statistique', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.text)),
+                      const SizedBox(height: 4),
+                      Text('${_c('normes_suivies')} normes suivies.',
+                          style: const TextStyle(fontSize: 12, color: AppColors.muted)),
                     ],
                   ),
                 ),
@@ -146,6 +157,68 @@ class CtcDashboardView extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccentButton extends StatelessWidget {
+  const _AccentButton({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.accent,
+      borderRadius: BorderRadius.circular(11),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(11),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+        ),
+      ),
+    );
+  }
+}
+
+class _TaskLine extends StatelessWidget {
+  const _TaskLine(this.a);
+  final Map<String, dynamic> a;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${a['type_label'] ?? 'Traitement CTC'} · ${a['status_display'] ?? ''}',
+              style: const TextStyle(fontSize: 11, color: AppColors.muted)),
+          const SizedBox(height: 2),
+          Text(a['title'] as String? ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text)),
+        ],
+      ),
+    );
+  }
+}
+
+class _DossierLine extends StatelessWidget {
+  const _DossierLine(this.d);
+  final Map<String, dynamic> d;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${d['reference'] ?? ''} · ${d['stage_label'] ?? ''}',
+              style: const TextStyle(fontSize: 11, color: AppColors.muted)),
+          const SizedBox(height: 2),
+          Text(d['title'] as String? ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text)),
         ],
       ),
     );

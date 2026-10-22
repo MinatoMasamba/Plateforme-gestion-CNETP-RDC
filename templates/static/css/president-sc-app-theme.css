@@ -1,0 +1,142 @@
+/* Palette partagée avec l'espace de travail expert (/app/). */
+:root {
+  --surface: #f3f4f6;
+  --surface-2: #fff;
+  --surface-3: #f8fafc;
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --border: #e2e8f0;
+  --blue-primary: #1e40af;
+  --blue-accent: #1b3b8a;
+  --shadow: 0 10px 30px rgba(2, 6, 23, .06);
+}
+html.dark {
+  --surface: #020204;
+  --surface-2: #06060c;
+  --surface-3: #0b0b10;
+  --text-primary: #e5eef8;
+  --text-muted: #94a3b8;
+  --border: rgba(255, 255, 255, .1);
+  --blue-primary: #60a5fa;
+  --blue-accent: #3b82f6;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+  color-scheme: dark;
+}
+html { color-scheme: light; }
+html body.plan-layout {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.plan-layout p, .plan-layout footer, .plan-layout .scope-controls p,
+.plan-layout .panel-heading p, .plan-layout .reader-meta,
+.plan-layout .chart-footer, .plan-layout .table-footer,
+.plan-layout .reader-footer { color: var(--text-muted); }
+.plan-layout h2, .plan-layout .reader-title h2,
+.plan-layout .header-commission b, .plan-layout .paper h3,
+.plan-layout .person b { color: var(--text-primary); }
+.plan-layout .plan-header {
+  min-height: 84px;
+  padding: 12px 28px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.plan-layout .plan-header a, .plan-layout .plan-header button,
+.president-breadcrumb a, .plan-layout .code, .plan-layout .blue,
+.plan-layout .reader-tabs .tab-active,
+.plan-layout .table-norm-list .norm-link.is-selected { color: var(--blue-primary); }
+.plan-layout .plan-header button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--surface-3);
+  font-size: 11px;
+  font-weight: 600;
+}
+.plan-layout .plan-header button:hover { background: var(--surface); }
+.plan-layout .brand { flex-direction: row; align-items: center; gap: 10px; }
+.plan-layout .president-logo {
+  width: 40px; height: 40px; object-fit: cover; border-radius: 50%;
+  border: 1px solid #d4af37; background: white;
+}
+.plan-layout .president-flag {
+  width: 4px; height: 30px; border-radius: 3px;
+  background: linear-gradient(to bottom, #0095c9 0 43%, #fff24b 43% 56%, #db3832 56%);
+}
+.plan-layout .plan-header .brand > .president-brand-text { display: flex; flex-direction: column; gap: 4px; padding: 0; border: 0; }
+.plan-layout .president-brand-text b { font-size: 17px; color: var(--text-primary); letter-spacing: -.02em; }
+.plan-layout .president-brand-text small { font-size: 10px; color: var(--blue-primary); font-weight: 700; }
+.plan-layout .header-main { gap: 32px; }
+.plan-layout .header-commission b { font-size: 11px; }
+.plan-layout .header-commission span { color: var(--text-muted); }
+.plan-layout .header-separator { color: var(--border); }
+.plan-layout main { max-width: 1720px; }
+.president-breadcrumb { color: var(--text-muted); }
+.plan-layout .scope-controls label { color: var(--text-muted); font-weight: 600; }
+.plan-layout .scope-controls select,
+.plan-layout .search, .plan-layout .filter,
+.plan-layout .search input, .plan-layout .filter select {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.plan-layout .panel, .plan-layout .left-pane > .panel {
+  background: var(--surface-2);
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+.plan-layout .panel-heading, .plan-layout .reader-head { background: var(--surface-2); }
+.plan-layout .toggle, .plan-layout .toggle .active,
+.plan-layout .count, .plan-layout .status,
+.plan-layout .president-norm-link, .plan-layout .president-legend button:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+.plan-layout .toggle .active, .plan-layout .president-norm-link.is-selected {
+  color: var(--blue-primary);
+  border-color: var(--blue-primary);
+}
+.plan-layout .president-norm-link:hover { color: var(--blue-primary); border-color: var(--blue-primary); }
+.plan-layout .chart-footer, .plan-layout .table-footer,
+.plan-layout .reader-footer, .plan-layout th, .plan-layout .reader-tabs {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+.plan-layout th, .plan-layout td { border-color: var(--border); }
+.plan-layout th, .plan-layout .legend button,
+.plan-layout .president-legend button,
+.plan-layout .person small, .plan-layout .time,
+.plan-layout .reader-label, .plan-layout .paper-top,
+.plan-layout .paper-bottom { color: var(--text-muted); }
+.plan-layout .donut-label strong, .plan-layout .president-donut-center strong { color: var(--text-primary); }
+.plan-layout .president-donut-center { background: var(--surface-2); }
+.plan-layout .president-donut-center small { color: var(--text-muted); }
+.plan-layout .document-wrap { background: var(--surface-3); }
+.plan-layout .paper {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.plan-layout .paper .president-paragraph { color: var(--text-primary); }
+.plan-layout .reader-tabs button { color: var(--text-muted); }
+.plan-layout .reader-tabs .tab-active { border-color: var(--blue-primary); }
+.plan-layout .history-content, .plan-layout .history-content .version-card,
+.plan-layout .modal { background: var(--surface-2); color: var(--text-primary); border-color: var(--border); }
+.plan-layout .history-content .version-card:hover { background: var(--surface-3); color: var(--blue-primary); }
+.plan-layout .modal p { color: var(--text-muted); }
+.plan-layout .primary { background: var(--blue-accent); border-color: var(--blue-accent); }
+.plan-layout .progress { background: var(--border); }
+.plan-layout .progress i, .plan-layout .president-bar { background: var(--blue-accent); }
+.plan-layout .avatar { background: var(--surface-3); border-color: var(--border); color: var(--blue-primary); }
+.plan-layout .chart-footer button, .plan-layout .president-document-link { color: var(--blue-primary); }
+.plan-layout :focus-visible { outline: 2px solid var(--blue-primary); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .plan-layout .plan-header { padding: 12px 16px; }
+  .plan-layout .header-main { gap: 12px; }
+  .plan-layout .president-logo { width: 34px; height: 34px; }
+  .plan-layout .header-commission b { font-size: 9px; }
+}

@@ -1,0 +1,487 @@
+Oui, je me rappelle précisément du problème. Et cette fois, j'ai retrouvé les deux bases SQLite que tu avais transmises, notamment `db (1).sqlite3`, ainsi que ton nouveau fichier `PLAN_SIMPLIFICATION_BASE_DE_DONNEES.md`.
+
+J'ai repris les tables réelles de la base. Le problème est confirmé : la plateforme possède plusieurs informations sur les experts, mais aucune ne permet, à elle seule, de certifier qu'un expert a terminé la mise à jour de son profil conformément à la nouvelle organisation des sous-commissions.
+
+## 1. Ce que révèle réellement la base
+
+ANALYSE DE LA COPIE SQLITE TRANSMISE
+
+# 150
+
+Fiches d'experts
+
+# 50
+
+CV enregistrés
+
+# 13
+
+Experts ayant soumis un choix SC
+
+# 0
+
+Choix SC validés dans la table des demandes
+
+J'ai également vérifié les autres champs :
+
+| Donnée                                          | Résultat   |
+| ----------------------------------------------- | ---------- |
+| Comptes utilisateurs                            | 151        |
+| Experts ayant déjà eu une connexion enregistrée | 50         |
+| Experts avec spécialité renseignée              | 130        |
+| Experts avec entité de provenance renseignée    | 150        |
+| Experts avec affectation historique CTM         | 25         |
+| Experts ayant soumis un choix de nouvelle SC    | 13         |
+| Soumissions de choix                            | 26         |
+| Affectations proposées par le rapport           | 98 experts |
+| Profils experts modifiés depuis le 15 octobre   | 28         |
+
+Ces chiffres correspondent à la copie analysée, pas nécessairement à l'état actuel du serveur.
+
+Le problème des 44 profils prétendument mis à jour est donc réel : je ne retrouve pas, dans cette copie, un indicateur suffisamment fiable pour certifier cette catégorie. Le chiffre de 44 peut provenir d'une autre version de la base ou d'une règle de comptage utilisée par l'application.
+
+## 2. Les anomalies que j'ai identifiées
+
+### Anomalie A : le statut `ACTIVE` ne prouve pas que le profil est complet
+
+Dans `experts_expert`, on trouve :
+
+- 149 experts avec `status = ACTIVE`.
+- 1 expert avec `status = PENDING`.
+
+Pourtant, 99 experts actifs n'ont aucun CV enregistré.
+
+Cela signifie que `ACTIVE` décrit l'état administratif du profil expert, pas sa conformité aux nouvelles exigences de mise à jour.
+
+Il serait donc incorrect de compter 149 profils mis à jour.
+
+### Anomalie B : la présence d'un CV ne prouve pas une mise à jour récente
+
+La base contient 50 experts avec un CV.
+
+Mais parmi eux, 37 n'ont soumis aucun choix explicite de nouvelle sous-commission.
+
+Un CV peut avoir été enregistré bien avant la réorganisation. Sa présence ne permet donc pas de conclure que l'expert a terminé la nouvelle procédure.
+
+### Anomalie C : les 13 choix sont réels, mais pas validés
+
+Les 26 enregistrements de `governance_choixorganisationexpert` correspondent à 13 personnes distinctes.
+
+J'ai vérifié que ces 13 experts possèdent tous :
+
+- Un CV enregistré.
+- Une spécialité renseignée.
+- Une connexion enregistrée.
+- Un choix de sous-commission.
+
+C'est un groupe identifiable d'experts ayant accompli plusieurs démarches. Mais leurs 26 demandes portent encore le statut `REVIEW`.
+
+Il faut distinguer la déclaration de l'expert et sa validation par l'administration.
+
+### Anomalie D : les affectations administratives sont mélangées avec les choix individuels
+
+Il existe également 99 lignes dans `governance_affectationsouscommission`, concernant 98 experts, au statut `REVIEW` et provenant de propositions du rapport.
+
+Ce sont des propositions d'affectation, pas des déclarations de mise à jour de profil.
+
+Si l'interface utilise ces 98 affectations pour compter les personnes ayant actualisé leur profil, les statistiques deviennent fausses.
+
+### Anomalie E : `updated_at` est un indicateur trompeur
+
+Le champ `updated_at` existe déjà dans le modèle `Expert`.
+
+Dans cette copie, 28 fiches ont été modifiées depuis le 15 octobre 2026, dont 26 possèdent un CV.
+
+Mais une modification peut être réalisée par un administrateur, une migration ou une opération technique.
+
+Une date de modification ne signifie pas automatiquement que l'expert a personnellement complété son profil.
+
+C'est exactement la difficulté que tu avais rencontrée lors de notre précédente analyse.
+
+## 3. Pourquoi le plan de simplification doit être amélioré
+
+Ton document propose de masquer ou supprimer certains champs jugés superflus. C'est raisonnable pour alléger les écrans, mais supprimer des statuts ne résoudra pas le problème des mises à jour.
+
+Il faut plutôt séparer quatre réalités :
+
+| Information         | Question à laquelle elle répond                            |
+| ------------------- | ---------------------------------------------------------- |
+| État du compte      | L'utilisateur peut-il accéder à la plateforme ?            |
+| État de nomination  | Quelle fonction lui a été officiellement attribuée ?       |
+| État de mise à jour | A-t-il complété les informations obligatoires ?            |
+| État d'affectation  | Sa nouvelle sous-commission et son GT sont-ils confirmés ? |
+
+Ces quatre informations doivent être indépendantes.
+
+Par exemple, un expert peut être officiellement nommé président, avoir un compte actif, mais ne pas encore avoir déposé son CV. Cela ne doit pas transformer sa nomination en « en attente ».
+
+## 4. La correction que je recommande pour Django
+
+Je recommande de conserver les champs historiques et d'ajouter un suivi spécifique de la mise à jour du profil, sans perturber les nominations, les CTM, les WG ou les normes.
+
+### A. Un état de mise à jour indépendant
+
+Créer un suivi de conformité du profil avec les états suivants :
+
+| État               | Signification                                           |
+| ------------------ | ------------------------------------------------------- |
+| `NOT_STARTED`      | Aucune mise à jour confirmée dans la nouvelle procédure |
+| `IN_PROGRESS`      | L'expert a commencé à compléter son profil              |
+| `SUBMITTED`        | L'expert a soumis les informations obligatoires         |
+| `COMPLETE`         | Les informations requises sont complètes et vérifiées   |
+| `NEEDS_CORRECTION` | Certaines informations doivent être corrigées           |
+
+Le statut `COMPLETE` ne doit pas être attribué uniquement parce qu'un CV existe ou qu'un compte est actif.
+
+### B. Des champs précis pour identifier les vraies mises à jour
+
+Je propose d'enregistrer séparément :
+
+```
+profile_update_statusprofile_update_started_atprofile_update_submitted_atprofile_update_completed_atprofile_update_versionprofile_update_validated_by
+```
+
+Il faut également conserver l'historique des modifications, notamment l'auteur, les valeurs modifiées et la date.
+
+Les champs existants `cv`, `specialties`, `ctm`, `wg`, `status` et les relations institutionnelles restent inchangés.
+
+### C. Une règle claire de complétude
+
+Exemple de contrôle de complétude
+
+Identité et coordonnées obligatoires renseignées
+
+Entité de provenance renseignée
+
+Spécialité professionnelle renseignée
+
+CV enregistré
+
+Nouvelle sous-commission sélectionnée
+
+Groupe de travail sélectionné
+
+Mise à jour soumise dans la nouvelle procédure
+
+Critères remplis
+
+0 / 7
+
+Simulation de la règle proposée, pas un formulaire connecté au serveur. La validation administrative de l'affectation reste distincte de la complétude.
+
+Avec cette règle, on pourra enfin distinguer les profils complets, les dossiers soumis et les affectations administrativement confirmées.
+
+## 5. Ce que doit afficher le tableau de bord
+
+EXEMPLE DE TABLEAU DE SUIVI
+
+# 150
+
+Experts enregistrés
+
+# 13
+
+Choix SC soumis
+
+# 50
+
+CV présents
+
+# —
+
+Profils complets certifiés
+
+Le tiret signifie que l'indicateur ne peut pas encore être calculé de façon fiable, et non qu'il y a zéro profil complet.
+
+Le tableau doit aussi permettre de filtrer les experts selon leur sous-commission, leur groupe de travail, la présence du CV, la date de soumission et l'état de validation.
+
+## 6. Mon verdict sur ton plan
+
+Je recommande de procéder en trois étapes :
+
+1. Corriger le suivi des profils, en créant un état de mise à jour indépendant des autres statuts.
+2. Réconcilier les anciennes affectations CTM/WG avec les sept nouvelles sous-commissions et leurs 35 GT, sans supprimer les travaux ni les rattachements historiques.
+3. Simplifier ensuite les écrans, en masquant les champs techniques inutiles pour les utilisateurs, tout en les conservant pour la traçabilité.
+
+Il ne faut pas supprimer immédiatement `Expert.status`, `MandatOrganisation.status` ou `updated_at` : ils remplissent des fonctions différentes et peuvent être utilisés par les permissions, les notifications et les validations.
+
+La conclusion importante : dans ta base, nous pouvons identifier 13 experts ayant soumis leur choix, 50 experts possédant un CV et 28 fiches modifiées depuis le 15 octobre. Mais nous ne pouvons pas encore affirmer que 44 experts ont intégralement mis leur profil à jour.
+
+C'est la preuve qu'il manque surtout une définition métier unique de « profil mis à jour » et un enregistrement explicite de sa validation, plutôt qu'une simple suppression de colonnes.
+
+Cette analyse est fondée sur la copie SQLite transmise et sur ton plan de simplification. Aucune modification n'a été apportée à la base ni au serveur.Envoie ce message directement à ton agent OpenCode ou Codex. Il doit analyser le code Django existant, corriger le suivi des profils et simplifier la base sans perdre les données.
+
+# MISSION : AUDIT ET CORRECTION DU SUIVI DES PROFILS CNE-ITP
+
+Tu es chargé d'analyser et d'améliorer la gestion des experts dans mon application Django CNE-ITP.
+
+Lis d'abord le fichier `PLAN_SIMPLIFICATION_BASE_DE_DONNEES.md`, puis examine les modèles, les API, les formulaires et les migrations existantes.
+
+## 1. Problème à résoudre
+
+Actuellement, plusieurs champs ne permettent pas de savoir avec certitude quels experts ont réellement mis leur profil à jour après la réorganisation des sous-commissions.
+
+Lors d'une précédente analyse d'une copie SQLite, nous avons constaté :
+
+- 150 fiches d'experts.
+- 50 experts avec CV enregistré.
+- 13 experts ayant soumis un choix de nouvelle sous-commission.
+- 26 soumissions correspondant à ces 13 experts.
+- 98 experts concernés par des propositions administratives d'affectation.
+- Un chiffre annoncé de 44 profils mis à jour, impossible à confirmer avec les indicateurs existants.
+
+Ces chiffres sont historiques. **Vérifie les données actuelles avant toute conclusion.**
+
+## 2. Audit obligatoire
+
+Analyse particulièrement :
+
+- `apps/experts/models.py`
+- `apps/governance/models.py`
+- `apps/governance/phoenix_models.py`
+- `apps/core/models.py`
+- Les API et serializers des experts.
+- Les formulaires de mise à jour du profil.
+- Les affectations aux sous-commissions et groupes de travail.
+- Les procédures de nomination et d'activation des comptes.
+
+Identifie tous les champs redondants, les statuts ambigus et les dépendances entre modèles.
+
+## 3. Correction principale
+
+Je veux pouvoir distinguer clairement :
+
+1. Le compte utilisateur actif ou suspendu.
+2. La nomination officielle de l'expert.
+3. La sous-commission et le groupe de travail attribués.
+4. Le choix de sous-commission soumis par l'expert.
+5. La mise à jour effective de son profil.
+6. La validation administrative de son affectation.
+
+Ne mélange plus ces informations.
+
+Ajoute, si nécessaire, un suivi explicite de mise à jour avec les états :
+
+- `NOT_STARTED`
+- `IN_PROGRESS`
+- `SUBMITTED`
+- `COMPLETE`
+- \`NE
+
+Complète tous les états de suiviAjoute les critères de profil complet
+
+Voici la partie complète à transmettre à ton agent Codex ou OpenCode. Elle remplace la section incomplète concernant les états de suivi.
+
+# MISSION : AUDIT ET CORRECTION DU SUIVI DES PROFILS CNE-ITP
+
+Tu es chargé d'analyser et d'améliorer la gestion des experts dans mon application Django CNE-ITP.
+
+Lis d'abord le fichier `PLAN_SIMPLIFICATION_BASE_DE_DONNEES.md`, puis examine les modèles, les API, les formulaires et les migrations existantes.
+
+## 1. Problème à résoudre
+
+Actuellement, plusieurs champs ne permettent pas de savoir avec certitude quels experts ont réellement mis leur profil à jour après la réorganisation des sous-commissions.
+
+Lors d'une précédente analyse d'une copie SQLite, nous avons constaté :
+
+- 150 fiches d'experts.
+- 50 experts avec CV enregistré.
+- 13 experts ayant soumis un choix de nouvelle sous-commission.
+- 26 soumissions correspondant à ces 13 experts.
+- 98 experts concernés par des propositions administratives d'affectation.
+- Un chiffre annoncé de 44 profils mis à jour, impossible à confirmer avec les indicateurs existants.
+
+Ces chiffres sont historiques. **Vérifie les données actuelles avant toute conclusion.**
+
+## 2. Audit obligatoire
+
+Analyse particulièrement :
+
+- `apps/experts/models.py`
+- `apps/governance/models.py`
+- `apps/governance/phoenix_models.py`
+- `apps/core/models.py`
+- Les API et serializers des experts.
+- Les formulaires de mise à jour du profil.
+- Les affectations aux sous-commissions et groupes de travail.
+- Les procédures de nomination et d'activation des comptes.
+
+Identifie tous les champs redondants, les statuts ambigus et les dépendances entre modèles.
+
+## 3. Correction principale
+
+Je veux pouvoir distinguer clairement :
+
+1. Le compte utilisateur actif ou suspendu.
+2. La nomination officielle de l'expert.
+3. La sous-commission et le groupe de travail attribués.
+4. Le choix de sous-commission soumis par l'expert.
+5. La mise à jour effective de son profil.
+6. La validation administrative de son affectation.
+
+Ne mélange plus ces informations.
+
+## 4. Tous les états de suivi du profil
+
+Créer, si nécessaire, un suivi indépendant avec les états suivants :
+
+| État technique     | Signification                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `NOT_STARTED`      | L'expert n'a pas commencé la nouvelle procédure de mise à jour.                           |
+| `IN_PROGRESS`      | L'expert a commencé à compléter ses informations, mais n'a pas encore soumis son dossier. |
+| `SUBMITTED`        | L'expert a soumis son profil avec les informations obligatoires.                          |
+| `UNDER_REVIEW`     | Le dossier est en cours de vérification administrative.                                   |
+| `COMPLETE`         | Toutes les informations obligatoires ont été vérifiées et le profil est conforme.         |
+| `NEEDS_CORRECTION` | Le dossier comporte des informations manquantes ou incorrectes.                           |
+| `REJECTED`         | La soumission a été rejetée avec un motif explicite.                                      |
+| `EXPIRED`          | La conformité doit être renouvelée à la suite d'une modification des exigences.           |
+
+Ne pas utiliser `ACTIVE` comme synonyme de profil complet.
+
+### Règles de transition
+
+- `NOT_STARTED` → `IN_PROGRESS` : première modification dans la nouvelle procédure.
+- `IN_PROGRESS` → `SUBMITTED` : soumission explicite par l'expert.
+- `SUBMITTED` → `UNDER_REVIEW` : ouverture du contrôle administratif.
+- `UNDER_REVIEW` → `COMPLETE` : validation des critères obligatoires.
+- `UNDER_REVIEW` → `NEEDS_CORRECTION` : correction demandée.
+- `UNDER_REVIEW` → `REJECTED` : rejet motivé.
+- `NEEDS_CORRECTION` → `SUBMITTED` : nouvelle soumission.
+- `REJECTED` → `IN_PROGRESS` : réouverture autorisée.
+- `COMPLETE` → `EXPIRED` : changement des exigences nécessitant une nouvelle vérification.
+- `EXPIRED` → `IN_PROGRESS` : reprise de la mise à jour.
+
+Les transitions doivent être contrôlées côté serveur, historisées et soumises aux permissions appropriées.
+
+### Champs de traçabilité proposés
+
+```
+profile_update_status
+profile_update_started_at
+profile_update_submitted_at
+profile_update_reviewed_at
+profile_update_completed_at
+profile_update_version
+profile_update_validated_by
+profile_update_review_comment
+```
+
+N'ajoute pas aveuglément ces champs s'ils existent déjà sous d'autres noms. Recherche d'abord les équivalents.
+
+## 5. Critères de complétude
+
+Un profil est considéré comme complet uniquement si les informations obligatoires sont présentes et vérifiées :
+
+- Identité.
+- Coordonnées obligatoires.
+- Entité de provenance.
+- Spécialité professionnelle.
+- CV enregistré.
+- Choix de nouvelle sous-commission.
+- Choix du groupe de travail correspondant.
+- Soumission explicite du dossier.
+
+La validation administrative du choix de sous-commission doit rester distincte de la complétude documentaire du profil.
+
+Un expert peut donc avoir un profil complet tout en ayant une affectation en attente de validation.
+
+## 6. États distincts à préserver
+
+### Compte utilisateur
+
+Conserver les états de compte déjà utilisés par Django et le projet. Ne pas les remplacer par les états de mise à jour du profil.
+
+### Nomination institutionnelle
+
+Distinguer les états suivants lorsque le modèle métier le nécessite :
+
+- `PROPOSED` : nomination proposée.
+- `ACTIVE` : nomination en vigueur.
+- `SUSPENDED` : nomination temporairement suspendue.
+- `ENDED` : nomination terminée.
+- `CANCELLED` : nomination annulée.
+
+Ne pas modifier automatiquement une nomination lorsqu'un profil devient incomplet.
+
+### Affectation à la sous-commission
+
+Distinguer :
+
+- `PROPOSED` : affectation proposée par l'administration.
+- `SUBMITTED` : choix soumis par l'expert.
+- `REVIEW` : choix en cours d'examen.
+- `APPROVED` : affectation approuvée.
+- `REJECTED` : affectation refusée.
+- `ENDED` : affectation terminée.
+
+Respecter les valeurs déjà présentes dans la base. Ne pas créer de doublons sémantiques sans migration contrôlée.
+
+## 7. Préserver les données et les paramètres existants
+
+Obligations :
+
+- Ne pas supprimer les experts.
+- Ne pas supprimer les CV.
+- Ne pas supprimer les normes ni leurs versions.
+- Ne pas supprimer les nominations.
+- Ne pas modifier arbitrairement les relations `ctm` et `wg`.
+- Conserver l'historique des anciennes sous-commissions.
+- Conserver les contributions et les groupes de travail.
+- Ne pas attribuer automatiquement `COMPLETE` aux anciens profils simplement parce qu'ils possèdent un CV.
+
+Pour les anciennes données, prévoir une migration prudente. Lorsqu'un état ne peut pas être déterminé, utiliser une valeur explicitement non vérifiée ou prévoir une vérification administrative.
+
+## 8. Tableau de bord administratif
+
+Créer un suivi permettant d'afficher :
+
+- Nombre total d'experts.
+- Nombre de comptes actifs.
+- Nombre de profils non commencés.
+- Nombre de profils en cours.
+- Nombre de profils soumis.
+- Nombre de profils en examen.
+- Nombre de profils complets.
+- Nombre de profils à corriger.
+- Nombre de dossiers rejetés.
+- Nombre de profils à renouveler.
+- Nombre de CV présents et absents.
+- Nombre de choix de sous-commission soumis.
+- Nombre d'affectations approuvées.
+
+Prévoir des filtres par sous-commission, groupe de travail, entité de provenance, état du profil et date de mise à jour.
+
+Chaque statistique doit avoir une définition précise et être calculée à partir des données réelles.
+
+## 9. Tests et migrations
+
+Avant toute modification :
+
+1. Examiner les modèles existants et leurs dépendances.
+2. Sauvegarder la base.
+3. Établir une correspondance entre les anciens et les nouveaux champs.
+4. Préparer des migrations Django non destructives.
+5. Tester sur une copie de la base.
+6. Vérifier les API, les permissions, les nominations et les formulaires.
+7. Contrôler que les statistiques sont cohérentes.
+8. Prévoir une procédure de retour arrière.
+
+Ne déploie pas directement sur le serveur de production sans validation.
+
+## 10. Résultat attendu
+
+Je veux recevoir :
+
+1. Un diagnostic des anomalies actuelles.
+2. La liste des champs réellement redondants.
+3. Une proposition de structure simplifiée.
+4. Les migrations nécessaires.
+5. Les corrections des API et formulaires.
+6. Les tests automatisés.
+7. Un rapport avant/après avec les nombres réels d'experts dans chaque état.
+
+**Objectif final : savoir exactement qui a mis son profil à jour, qui a seulement déposé un CV, qui a choisi une nouvelle sous-commission et qui a été administrativement validé, sans mélanger ces différentes situations.**
+
+Commence par auditer l'existant. Ne supprime aucune donnée pour simplifier artificiellement le système.
+
+Point essentiel : le statut `COMPLETE` doit signifier « profil conforme et vérifié », pas « expert connecté » ni « CV présent ». C'est cette distinction qui permettra enfin d'obtenir des statistiques fiables sur les mises à jour.

@@ -7,12 +7,14 @@ class CopilTopbar extends StatelessWidget {
     required this.onToggleSidebar,
     required this.memberCount,
     this.onThemeToggle,
+    this.onLogout,
     this.isDark = false,
   });
 
   final VoidCallback onToggleSidebar;
   final int memberCount;
   final VoidCallback? onThemeToggle;
+  final VoidCallback? onLogout;
   final bool isDark;
 
   @override
@@ -109,6 +111,13 @@ class CopilTopbar extends StatelessWidget {
                   color: AppColors.muted,
                   onTap: onThemeToggle,
                 ),
+                const SizedBox(width: 8),
+                if (onLogout != null)
+                  _RoundIconButton(
+                    icon: Icons.logout,
+                    color: AppColors.danger,
+                    onTap: onLogout,
+                  ),
               ],
             ),
           ),

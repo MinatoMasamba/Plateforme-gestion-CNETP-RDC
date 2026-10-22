@@ -120,9 +120,10 @@ class HomeView(View):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class App(View):
     """
-    Vue pour l'application principale (SPA statique cnetp-app.html) — toutes les
+    Vue pour l'application principale (SPA statique cnetp-app.html) — les
     données (profil, normes, experts, réunions...) sont chargées côté client via
-    fetch vers /api/v1/..., ce gabarit ne reçoit donc aucun contexte serveur.
+    fetch vers /api/v1/... ; le contexte serveur ne fournit que les droits
+    d'accès (bureau SC/CTM) nécessaires au formulaire de profil.
     Template: templates/app/app.html
     URL: /app/
     """
@@ -137,9 +138,11 @@ class App(View):
             return redirect('web:home')
 
         from .president_sc_views import _sc_bureau_ids
+        from .profile_update_views import ctm_bureau_ids
         expert = Expert.objects.filter(user=request.user).first()
         return render(request, self.template_name, {
             'sc_bureau_access': bool(_sc_bureau_ids(expert, timezone.localdate())),
+            'bureau_ctm_ids': sorted(ctm_bureau_ids(expert)),
         })
 
 class AboutView(View):

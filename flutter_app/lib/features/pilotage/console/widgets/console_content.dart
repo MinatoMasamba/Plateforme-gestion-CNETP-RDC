@@ -170,10 +170,16 @@ const demoScGroups = <ScGroup>[
 ];
 
 class ConsoleContent extends StatelessWidget {
-  const ConsoleContent({super.key});
+  const ConsoleContent({super.key, this.scs = const [], this.counts = const {}});
+
+  final List<ScGroup> scs;
+  final Map<String, int> counts;
+
+  List<ScGroup> get _groups => scs.isNotEmpty ? scs : demoScGroups;
 
   @override
   Widget build(BuildContext context) {
+    final groups = _groups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -185,14 +191,14 @@ class ConsoleContent extends StatelessWidget {
             children: [
               const _ConsoleHeading(),
               const SizedBox(height: 16),
-              const _KpiRow(),
+              _KpiRow(counts: counts),
               const SizedBox(height: 26),
               Row(
                 children: [
                   const Icon(Icons.hub_outlined, size: 15, color: AppColors.subtle),
                   const SizedBox(width: 8),
                   Text(
-                    'LES ${demoScGroups.length} SOUS-COMMISSIONS TECHNIQUES',
+                    'LES ${groups.length} SOUS-COMMISSIONS TECHNIQUES',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -219,7 +225,7 @@ class ConsoleContent extends StatelessWidget {
                     spacing: gap,
                     runSpacing: gap,
                     children: [
-                      for (final group in demoScGroups)
+                      for (final group in groups)
                         SizedBox(
                           width: width,
                           child: _ScCard(group: group),
@@ -314,15 +320,16 @@ class _Hero extends StatelessWidget {
 }
 
 class _KpiRow extends StatelessWidget {
-  const _KpiRow();
+  const _KpiRow({required this.counts});
+  final Map<String, int> counts;
 
   @override
   Widget build(BuildContext context) {
-    const items = [
-      _KpiData('7', 'SOUS-COMMISSIONS', AppColors.rdcBlue),
-      _KpiData('100', 'EXPERTS', AppColors.success),
-      _KpiData('101', 'À EXAMINER', AppColors.warning),
-      _KpiData('5', 'NORMES TRAVAILLÉES', AppColors.danger),
+    final items = [
+      _KpiData('${counts['sous_commissions'] ?? 0}', 'SOUS-COMMISSIONS', AppColors.rdcBlue),
+      _KpiData('${counts['experts'] ?? 0}', 'EXPERTS', AppColors.success),
+      _KpiData('${counts['a_examiner'] ?? 0}', 'À EXAMINER', AppColors.warning),
+      _KpiData('${counts['normes_travaillees'] ?? 0}', 'NORMES TRAVAILLÉES', AppColors.danger),
     ];
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -35,8 +35,10 @@ void main() {
 
   testWidgets('Copil console renders', (tester) async {
     await _setSize(tester);
-    await tester.pumpWidget(_wrap(const CopilConsoleScreen()));
-    await tester.pump();
+    await tester.runAsync(() async {
+      await tester.pumpWidget(_wrap(const CopilConsoleScreen()));
+      await tester.pump();
+    });
     expect(find.text('PILOTAGE CNE-ITP'), findsWidgets);
     expect(find.text('Tableau de bord'), findsOneWidget);
   });
@@ -57,8 +59,10 @@ void main() {
 
   testWidgets('CTC renders', (tester) async {
     await _setSize(tester);
-    await tester.pumpWidget(_wrap(const CtcScreen()));
-    await tester.pump();
+    await tester.runAsync(() async {
+      await tester.pumpWidget(_wrap(const CtcScreen()));
+      await tester.pump();
+    });
     expect(find.text('Coordination du Secrétariat technique'), findsOneWidget);
     expect(find.text('Tableau de bord'), findsWidgets);
   });

@@ -1,25 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/api/api_client.dart';
+import '../../../core/auth/auth_controller.dart';
 import '../../../theme/app_colors.dart';
 import 'widgets/console_content.dart';
 import 'widgets/copil_panels.dart';
 import 'widgets/copil_sidebar.dart';
 import 'widgets/copil_topbar.dart';
 
-class CopilConsoleScreen extends StatefulWidget {
+class CopilConsoleScreen extends ConsumerStatefulWidget {
   const CopilConsoleScreen({super.key});
 
   @override
-  State<CopilConsoleScreen> createState() => _CopilConsoleScreenState();
+  ConsumerState<CopilConsoleScreen> createState() => _CopilConsoleScreenState();
 }
 
-class _CopilConsoleScreenState extends State<CopilConsoleScreen> {
+class _CopilConsoleScreenState extends ConsumerState<CopilConsoleScreen> {
   String _activePanel = 'panel-sc';
   bool _sidebarVisible = true;
+
+  List<ScGroup> _scs = [];
+  Map<String, int> _counts = const {};
+  Map<String, int> _pending = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final resp = await ApiClient.dio.get('/api/v1/mobile/pilotage/dashboard/');
+      final data = resp.data as Map<String, dynamic>;
+      final counts = (data['counts'] as Map<String, dynamic>? ?? {});
+      final pending = (data['pending'] as Map<String, dynamic>? ?? {});
+      final scs = (data['scs'] as List? ?? [])
+          .map((e) => ScGroup(
+                code: (e as Map)['code'] as String? ?? '',
+                title: e['name'] as String? ?? '',
+                memberCount: (e['member_count'] as num?)?.toInt() ?? 0,
+                experts: (e['experts'] as List? ?? []).map((x) => x.toString()).toList(),
+              ))
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _counts = counts.map((k, v) => MapEntry(k, (v as num).toInt()));
+        _pending = pending.map((k, v) => MapEntry(k, (v as num).toInt()));
+        _scs = scs;
+      });
+    } catch (_) {
+      // fallback : données de démo
+    }
+  }
 
   Widget _panelContent(String panel) {
     switch (panel) {
       case 'panel-sc':
-        return const ConsoleContent();
+        return ConsoleContent(scs: _scs, counts: _counts);
       case 'panel-cadrage':
         return const _PanelSection(
           header: PanelHeader(
@@ -30,41 +69,34 @@ class _CopilConsoleScreenState extends State<CopilConsoleScreen> {
           child: CadragePanel(),
         );
       case 'panel-reception':
-        return const _PanelSection(
+        return _PanelSection(
           header: PanelHeader(
             icon: Icons.verified_outlined,
             title: 'Réception technique',
             color: AppColors.success,
+            count: _pending['reception'],
           ),
-          child: ReceptionPanel(),
+          child: const ReceptionPanel(),
         );
       case 'panel-adhesions':
-        return const _PanelSection(
+        return _PanelSection(
           header: PanelHeader(
             icon: Icons.person_add_alt_1_outlined,
             title: "Demandes d'adhésion",
             color: AppColors.success,
-            count: 1,
+            count: _pending['adhesions'],
           ),
-          child: AdhesionsPanel(
-            items: [
-              AdhesionItem(
-                name: 'MASAMBA .',
-                email: 'eded@gmail.com',
-                structure: 'DS',
-                date: '—',
-              ),
-            ],
-          ),
+          child: const AdhesionsPanel(),
         );
       case 'panel-requests':
-        return const _PanelSection(
+        return _PanelSection(
           header: PanelHeader(
             icon: Icons.inbox_outlined,
             title: 'Demandes de dérogation',
             color: AppColors.rdcBlue,
+            count: _pending['derogations'],
           ),
-          child: DerogationPanel(),
+          child: const DerogationPanel(),
         );
       default:
         return _PanelSection(
@@ -93,6 +125,7 @@ class _CopilConsoleScreenState extends State<CopilConsoleScreen> {
             CopilTopbar(
               memberCount: 0,
               onToggleSidebar: () => setState(() => _sidebarVisible = !_sidebarVisible),
+              onLogout: () => ref.read(authControllerProvider.notifier).logout(),
             ),
             Expanded(
               child: Row(
@@ -101,6 +134,7 @@ class _CopilConsoleScreenState extends State<CopilConsoleScreen> {
                     CopilSidebar(
                       activePanel: _activePanel,
                       onSelect: (panel) => setState(() => _activePanel = panel),
+                      pendingAdhesions: _pending['adhesions'] ?? 0,
                     ),
                   Expanded(
                     child: ColoredBox(

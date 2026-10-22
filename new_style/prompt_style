@@ -1,0 +1,242 @@
+/home/minato/project/new_style
+ne laisse pas la sidebare inchanger ,et le graphe circulaire ne le oubile pas n je veux de meme statique aue dans le deux images que je te donner. et je remarque ici tout le barre de definelement son visible .
+le cart de CTM en bas a droit une petit graphe circulaire de state de performance du sc ; le autre element de la sidebare ne suivent pas le style
+
+je veux de statistique comme ça et de graphe comme ça , 
+4. Comment reproduire ce style 
+Tu peux utiliser Material 3, mais avec un thème personnalisé. Pas besoin d'une énorme bibliothèque d'effets.
+Voici les paramètres que je recommande :
+
+
+
+Élément
+
+
+
+Valeur conseillée
+
+
+
+Fond général
+
+
+
+#F4F8FC
+
+
+
+Cartes
+
+
+
+#FFFFFF
+
+
+
+Arrondi des cartes
+
+
+
+20 à 24 px
+
+
+
+Arrondi des boutons
+
+
+
+12 à 16 px
+
+
+
+Ombres
+
+
+
+Noir à 4–6 % d'opacité
+
+
+
+Espacement
+
+
+
+16 à 32 px
+
+
+
+Police
+
+
+
+Inter ou Plus Jakarta Sans
+
+
+
+Animations
+
+
+
+Douces, 180 à 250 ms
+Refonte visuelle de CNE-ITP
+Modernise l'interface de la plateforme CNE-ITP (Commission nationale d'élaboration des normes ITP) en adoptant un design institutionnel haut de gamme inspiré de ChatGPT Sites.
+Style recherché : Government Premium UI + Airy Minimalism + Soft Glassmorphism.
+Je veux une interface très légère, fraîche, fluide, presque aquatique, donnant l'impression de surfaces flottantes sur un fond clair.
+Identité visuelle
+- Fond blanc glacier #F4F8FC.
+- Dégradés bleu ciel et cyan très doux.
+- Surfaces blanches et translucides avec effets de verre dépoli discrets.
+- Coins arrondis de 16 à 24 px.
+- Ombres légères, diffuses et naturelles.
+- Typographie moderne : Inter ou Plus Jakarta Sans.
+- Icônes fines, professionnelles et minimalistes.
+- Beaucoup d'espace entre les éléments.
+- Animations subtiles et fluides, sans surcharge visuelle.
+Modules concernés
+Appliquer ce langage visuel à l'ensemble de la plateforme :
+1. Tableau de bord institutionnel.
+2. Comité de pilotage.
+3. Coordination du Secrétariat technique.
+4. Sous-commissions et groupes de travail.
+5. Gestion des membres et responsabilités.
+6. Projets de normes, documents et validations.
+7. Réunions, décisions et suivi des activités.
+8. Organigrammes et visualisations institutionnelles.
+Exigences importantes
+- Préserver l'architecture fonctionnelle existante.
+- Respecter la structure organisationnelle Phoenix de la CNE-ITP.
+- Ne pas modifier les rôles, les permissions, les données ou les circuits de validation sans autorisation.
+- Créer un design system cohérent avec composants réutilisables.
+- Prévoir les versions desktop, tablette et mobile.
+- Assurer une excellente lisibilité des tableaux, formulaires et documents.
+- Ne pas utiliser de transparence excessive sur les contenus administratifs.
+- Préserver les contrastes et l'accessibilité.
+Résultat attendu
+Une plateforme gouvernementale moderne, élégante, lumineuse et professionnelle, avec une sensation de légèreté et de fluidité comparable à celle de ChatGPT Sites.
+Commencer par auditer les composants existants, définir le thème global, puis appliquer progressivement le nouveau design sans casser les fonctionnalités.
+1. Comment décrire précisément ce style ?
+Liquid Glass Dashboard UI Design by binara yehan on Dribbble
+Airy Minimalism
+Beaucoup d'espaces blancs, des composants bien séparés et une hiérarchie visuelle très claire. C'est ce qui donne l'impression de légèreté.
+Minimal glassmorphism style UI card with rounded rectangular panel and soft blue gradient accents on light background.
+Soft Glassmorphism
+Des surfaces légèrement translucides, des ombres diffuses et des bordures discrètes. Attention, dans ta capture, l'effet verre est surtout une impression visuelle, pas une transparence très marquée.
+Payrix SaaS - Web Finance Dashboard by RonDesignLab ⭐️ on Dribbble
+Soft SaaS Dashboard
+Un tableau de bord professionnel avec de grandes cartes, des coins arrondis, une typographie sobre et des couleurs pastel.
+2. Les couleurs à utiliser
+Dans ta capture, le blanc domine. Le bleu apparaît surtout en arrière-plan, avec du cyan et une touche de vert citron.
+Blanc
+#FFFFFF
+Glacier
+#F4F8FC
+Cyan
+#B7EAF7
+Bleu
+#74B9FF
+Accent
+#D9FF25
+Palette indicative inspirée de l'image, pas un relevé exact des couleurs.
+Le secret est de ne pas tout colorer. Je conseille environ 80 % de surfaces blanches ou très claires, et d'utiliser les couleurs pour guider le regardhttps://images.openai.com/static-rsc-4/VilZEaxIBKp4oC0-0A7PtfbpbmDOFO1ay2c0L4RoY9OFPKCFLa2Lb76H-n44AncvbmTipZFKDNfnAfU51fCnzDTW6brfkjqyCCaOMR1pEeQnyL_jaHOoQlxShS47zXhCEIdpSpW5TnTjIpinefoQypxa4HUSGzTMHwvMLFIrnCeRXVZgeqLwQLmi1C58nAXK?purpose=fullsize
+https://images.openai.com/static-rsc-4/qM_TC4CXo2g538iD6uOa_sCBrtSWBfyWxkV1w4h9qDyPHJi0l7G6xcEUGBgHTr4TVJTpItA_BAXP8tf4ICuCMl4kMgQGQXs74dKrb5FuQLoVquFeZJX3cUv2WK_NHOHkZIH3firwlAF7YffLr1MHgelmqjWf2PDa10Kf0MLUlJKKDsXHZLVz_BOjNPQa2eTZ?purpose=fullsize
+https://images.openai.com/static-rsc-4/aWLV6JlvkEW3GxvSl89H9PgZCOmz-XC8ib5jMF4wNYlqwvV60StGi5KKDeh03j-BdN2EJOPWrWF8fLS7Znq6j8wtgmL9OIdw72oHeQu5dPgsQF9kK298FwKnbyzlOwDSFgOPbNZ-1kagvvaIKXl4Z1gRmAshNsG2qKlGIm6zTnFpsTOZ1YjIBUT1TgRGVTvT?purpose=fullsize
+model: /home/minato/project/new_style  voir les idem ici.
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+ce que codex a fait : Je vais utiliser les deux captures comme références pour les cartes et graphiques, puis examiner /home/minato/project/new_style et les styles existants. Je commencerai par le thème partagé et le tableau de bord CTC, en gardant les autres modules compatibles avec leurs données et actions actuelles.
+
+
+
+
+a consulté plusieurs fichiers
+
+
+
+2 images vues
+
+
+
+Une image vue
+
+
+
+a consulté plusieurs fichiers
+
+
+
+Contexte compacté automatiquement
+
+
+
+a consulté plusieurs fichiers et A exécuté plusieurs commandes
+
+
+
+Les captures montrent surtout une hiérarchie plus aérée : grands indicateurs, graphiques intégrés aux cartes et fond bleu très léger. Je vais reprendre cette composition dans la CTC avec les données réellement rattachées ; lorsqu’il n’y a pas de tâches, le graphique l’indiquera sans inventer de pourcentage.
+
+
+
+
+A utilisé le navigateur, a modifié des fichiers et A exécuté plusieurs commandes
+
+
+
+Le navigateur sur 8002 affiche encore l’ancienne version du tableau de bord, alors que les fichiers ont changé. Je vérifie le processus qui sert cette adresse, puis je relance la version locale pour contrôler le rendu réellement visible.
+
+
+
+
+A exécuté plusieurs commandes
+
+
+
+Le contrôle Django passe. Le démarrage du serveur de vérification prend plus de temps que prévu ; pendant ce temps, je termine les détails de lisibilité et la validation des données des graphiques.
+
+
+
+
+A utilisé le navigateur, a modifié des fichiers, a consulté plusieurs fichiers et A exécuté plusieurs commandes
+
+
+
+Durée d’exécution : 13min 39s
+
+
+
+Le nouveau rendu est visible sur le serveur local : cartes arrondies, indicateurs plus lisibles et barres fondées sur 5 normes rattachées. À 390 px, la grille passe sur une colonne sans débordement horizontal. J’ai aussi corrigé l’ouverture du suivi pour qu’elle commence en haut de la page.
+
+
+
+
+
+visualise le ui ux toujour jamais partir a l'aveugle ; user: superuser , passe: superuser
+
+
+
+http://127.0.0.1:8001/ctc/
+ici ajout dans la sidebare un item pour suivre le statistique de tout /app { 
+* liste le sc(ctm){ 
+                 -utilise article pour avoir une liste scrollable dans le card du ctm pour voir tout le groupe de travail etn une pourcentage de performance
+                    }
+
+* titre + section pour le statistique global de ctm ; si on clic sur un ctm on ouvre une page avec tout les info de ce ctm {
+                -la structure de coordination (president , rapporteur et autre j'ai oublier son nom) poste eten bas le nom
+                -le groupe de travail dans se card et en bas a droit une graphe circulaire pour montre la performance.
+                -le groupe de travail sont aussi clicable , dedans on liste tout le norme ( nom -- statut ) nb: ici dans une groupe de travil on liste tout les norme sans prendre en compte leurs statut.
+                                        }
+
+* mes assingation est toujour vide je me demande pour quoi {
+                 -examine le code et propose et sache qu'il a de poste et chacun a son travail precise .
+                 -
+}
+* demande a traiter ressemble a jeux video (zero professionnalisme , des icom bete partout) {
+                 -ici on voit les demande d'adhesion(accepcter,contacter-- celui ci fais directement un mail a user pose parler ,refuser,choisi un ctm et un groue de travail)
+                 -les confirmation sur les etape suivant d'une norme(accepter ,refuser,revoire le refuse ,revoit l'acceptation , mettre en attente ;archiver et autre)
+                    }
+* il deux demande a traiter dans le sidebare .
+* En fonction de la matrices instutitionnel de la cellule technique de coordination organise le ctc 
+
+
+
+                                                                            }

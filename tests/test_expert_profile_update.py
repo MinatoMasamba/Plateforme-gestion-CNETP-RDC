@@ -203,3 +203,139 @@ def test_province_uses_predefined_choices(client, expert_factory):
     assert response.status_code == 400
     expert.user.refresh_from_db()
     assert expert.user.province == 'Kinshasa'
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_replaces_ctm_and_single_wg(
+    client, expert_factory, ctm_factory, wg_factory,
+):
+    ctm1 = ctm_factory(number=1, name='CTM 1')
+    ctm2 = ctm_factory(number=2, name='CTM 2')
+    wg1 = wg_factory(ctm=ctm1, number=1, name='WG 1')
+    wg2 = wg_factory(ctm=ctm2, number=1, name='WG 2')
+    expert = expert_factory(ctm=ctm1)
+    Affectation.objects.create(expert=expert, ctm=ctm1, wg=wg1)
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {
+        'ctm': ctm2.pk, 'wg': [wg2.pk],
+    })
+
+    assert response.status_code == 200
+    assert response.json()['ok'] is True
+    expert.refresh_from_db()
+    assert expert.ctm_id == ctm2.pk
+    assert list(
+        Affectation.objects.filter(expert=expert).values_list('ctm_id', 'wg_id')
+    ) == [(ctm2.pk, wg2.pk)]
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_rejects_two_wgs_for_regular_expert(
+    client, expert_factory, ctm_factory, wg_factory,
+):
+    ctm = ctm_factory(number=1, name='CTM 1')
+    wg1 = wg_factory(ctm=ctm, number=1, name='WG 1')
+    wg2 = wg_factory(ctm=ctm, number=2, name='WG 2')
+    expert = expert_factory(ctm=ctm)
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {
+        'ctm': ctm.pk, 'wg': [wg1.pk, wg2.pk],
+    })
+
+    assert response.status_code == 400
+    assert Affectation.objects.filter(expert=expert).count() == 0
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_allows_multiple_wgs_for_ctm_bureau(
+    client, expert_factory, ctm_factory, wg_factory,
+):
+    ctm = ctm_factory(number=1, name='CTM 1')
+    wg1 = wg_factory(ctm=ctm, number=1, name='WG 1')
+    wg2 = wg_factory(ctm=ctm, number=2, name='WG 2')
+    expert = expert_factory(ctm=ctm)
+    ctm.scientific_president = expert
+    ctm.save(update_fields=['scientific_president'])
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {
+        'ctm': ctm.pk, 'wg': [wg1.pk, wg2.pk],
+    })
+
+    assert response.status_code == 200
+    assert set(
+        Affectation.objects.filter(expert=expert).values_list('wg_id', flat=True)
+    ) == {wg1.pk, wg2.pk}
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_rejects_wg_from_another_ctm(
+    client, expert_factory, ctm_factory, wg_factory,
+):
+    ctm1 = ctm_factory(number=1, name='CTM 1')
+    ctm2 = ctm_factory(number=2, name='CTM 2')
+    wg2 = wg_factory(ctm=ctm2, number=1, name='WG 2')
+    expert = expert_factory(ctm=ctm1)
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {
+        'ctm': ctm1.pk, 'wg': [wg2.pk],
+    })
+
+    assert response.status_code == 400
+    assert Affectation.objects.filter(expert=expert).count() == 0
+
+
+@pytest.mark.django_db
+def test_app_exposes_ctm_bureau_ids_for_multiple_wg_selection(
+    client, expert_factory, ctm_factory, user_factory,
+):
+    ctm = ctm_factory(number=1, name='CTM 1')
+    expert = expert_factory(ctm=ctm)
+    ctm.scientific_president = expert
+    ctm.save(update_fields=['scientific_president'])
+    client.force_login(expert.user)
+
+    response = client.get(reverse('web:app'))
+    assert response.status_code == 200
+    assert ctm.pk in response.context['bureau_ctm_ids']
+
+    other = expert_factory(user=user_factory(username='other', email='other@cnetp.cd'))
+    client.force_login(other.user)
+    response = client.get(reverse('web:app'))
+    assert ctm.pk not in response.context['bureau_ctm_ids']
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_rejects_empty_wg_when_ctm_has_wgs(
+    client, expert_factory, ctm_factory, wg_factory,
+):
+    ctm = ctm_factory(number=1, name='CTM 1')
+    wg_factory(ctm=ctm, number=1, name='WG 1')
+    expert = expert_factory(ctm=ctm)
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {'ctm': ctm.pk})
+
+    assert response.status_code == 400
+    assert Affectation.objects.filter(expert=expert).count() == 0
+
+
+@pytest.mark.django_db
+def test_affectation_endpoint_accepts_ctm_without_wg(
+    client, expert_factory, ctm_factory,
+):
+    ctm = ctm_factory(number=7, name='CTM sans WG')
+    expert = expert_factory()
+    client.force_login(expert.user)
+
+    response = client.post(reverse('web:expert_profile_affectation_update'), {'ctm': ctm.pk})
+
+    assert response.status_code == 200
+    expert.refresh_from_db()
+    assert expert.ctm_id == ctm.pk
+    assert list(
+        Affectation.objects.filter(expert=expert).values_list('ctm_id', 'wg_id')
+    ) == [(ctm.pk, None)]

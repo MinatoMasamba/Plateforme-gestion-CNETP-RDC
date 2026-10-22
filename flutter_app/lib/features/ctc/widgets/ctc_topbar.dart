@@ -7,11 +7,13 @@ class CtcTopbar extends StatelessWidget {
     required this.poleLabel,
     required this.userName,
     required this.onToggleSidebar,
+    this.onLogout,
   });
 
   final String poleLabel;
   final String userName;
   final VoidCallback onToggleSidebar;
+  final VoidCallback? onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +118,16 @@ class CtcTopbar extends StatelessWidget {
                 const SizedBox(width: 10),
                 const Icon(Icons.notifications_none, size: 20, color: AppColors.muted),
                 const SizedBox(width: 14),
+                if (onLogout != null) ...[
+                  InkWell(
+                    onTap: onLogout,
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.logout, size: 19, color: AppColors.muted),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Container(
                   width: 32,
                   height: 32,

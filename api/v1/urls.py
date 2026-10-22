@@ -19,6 +19,7 @@ from .mobile.views import (
     NotificationViewSet, MobileProfileViewSet, MobilePublicViewSet
 )
 from .mobile.ctc_views import MobileCTCViewSet
+from .mobile.pilotage_views import MobilePilotageViewSet
 from .validation.views import LegisticReviewViewSet
 from .documents.views import DocumentFileViewSet
 from .public.views import PublicAmendementViewSet
@@ -117,6 +118,7 @@ router.register(r'mobile/notifications', NotificationViewSet, basename='notifica
 router.register(r'mobile/profile', MobileProfileViewSet, basename='mobile-profile')
 router.register(r'mobile/public', MobilePublicViewSet, basename='mobile-public')
 router.register(r'mobile/ctc', MobileCTCViewSet, basename='mobile-ctc')
+router.register(r'mobile/pilotage', MobilePilotageViewSet, basename='mobile-pilotage')
 
 urlpatterns = [
     # Routes principales

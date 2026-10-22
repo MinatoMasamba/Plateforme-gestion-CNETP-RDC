@@ -111,6 +111,7 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
               userName: userName,
               onTab: (i) => setState(() => _tab = i),
               onNotifications: () => setState(() => _tab = 7),
+              onLogout: () => ref.read(authControllerProvider.notifier).logout(),
             ),
             Expanded(
               child: Row(
@@ -142,12 +143,14 @@ class _ExpertTopbar extends StatelessWidget {
     required this.userName,
     required this.onTab,
     required this.onNotifications,
+    this.onLogout,
   });
 
   final int tab;
   final String userName;
   final ValueChanged<int> onTab;
   final VoidCallback onNotifications;
+  final VoidCallback? onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +221,16 @@ class _ExpertTopbar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
+                if (onLogout != null) ...[
+                  InkWell(
+                    onTap: onLogout,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.logout, size: 19, color: ExpertColors.muted),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 Container(
                   width: 28,
                   height: 28,
