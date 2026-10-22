@@ -2,8 +2,8 @@
 const CACHE_NAME = 'cnetp-shell-v1';
 const APP_SHELL = [
   '/app/',
-  '/static/dist/icons/icon-192.png',
-  '/static/dist/icons/icon-512.png',
+  '/static/icons/icon-192.png',
+  '/static/icons/icon-512.png',
 ];
 
 self.addEventListener('install', (event) => {

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Espace de Travail - CNE-ITP</title>
     <meta name="theme-color" content="#0095c9">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,8 +13,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="CNE-ITP">
     <link rel="manifest" href="/app/manifest.json">
-    <link rel="icon" href="/static/dist/icons/icon-192.png">
-    <link rel="apple-touch-icon" href="/static/dist/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'icons/icon-192.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -4823,6 +4824,12 @@
 
         try {
             const data = await apiFetch('/api/v1/legistic-reviews/legistique-workspace/');
+            if (!data.can_access) {
+                legistiqueState.canAccess = false;
+                legistiqueState.docs = [];
+                renderLegistiqueDenied();
+                return;
+            }
             legistiqueState.canAccess = true;
             legistiqueState.docs = data.reviews || [];
             if (legistiqueState.activeDocId && !legistiqueState.docs.some(d => String(d.review_id) === String(legistiqueState.activeDocId))) {

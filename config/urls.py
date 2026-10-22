@@ -20,9 +20,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve as static_serve
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
+    # Icône demandée implicitement par les navigateurs à la racine.
+    path(
+        'favicon.ico',
+        RedirectView.as_view(url='/static/img/favicon-32x32.png', permanent=True),
+        name='favicon',
+    ),
+
     # Admin Django
     path('admin/', admin.site.urls),
     

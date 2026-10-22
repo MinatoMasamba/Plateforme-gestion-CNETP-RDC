@@ -107,10 +107,18 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': config('SQLITE_NAME', default=str(BASE_DIR / 'db.sqlite3')),
         # Réduit les erreurs « database is locked » en concurrence (dev).
-        # NB: activer WAL une seule fois via `PRAGMA journal_mode=WAL;`
-        # (voir `python manage.py enable_sqlite_wal`).
+        # WAL persiste dans le fichier ; les PRAGMA sont réappliqués à chaque
+        # connexion via init_command. `transaction_mode=IMMEDIATE` évite les
+        # interblocages entre transactions différées qui promeuvent leur verrou.
+        # (commande ponctuelle : `python manage.py enable_sqlite_wal`)
         'OPTIONS': {
             'timeout': config('SQLITE_TIMEOUT', default=30, cast=int),
+            'transaction_mode': 'IMMEDIATE',
+            'init_command': (
+                'PRAGMA journal_mode=WAL;'
+                'PRAGMA synchronous=NORMAL;'
+                'PRAGMA busy_timeout=30000;'
+            ),
         },
     }
 }

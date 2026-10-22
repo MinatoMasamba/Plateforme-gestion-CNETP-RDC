@@ -233,10 +233,9 @@ class LegisticReviewViewSet(viewsets.ModelViewSet):
     def legistique_workspace(self, request):
         """Données du bureau légistique, visibles uniquement aux membres CTC."""
         if not self._is_ctc_member(request.user):
-            return Response(
-                {'detail': "Vous n'êtes pas autorisé à consulter le bureau légistique."},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            # Réponse normale (pas 403) : l'interface affiche l'état « accès
+            # refusé » sans polluer les journaux à chaque chargement de page.
+            return Response({'can_access': False, 'reviews': []})
 
         self._sync_vote_progression()
         for norme in Norme.objects.filter(status='LEGISTIC_REVIEW'):

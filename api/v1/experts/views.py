@@ -42,7 +42,9 @@ class StructureViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ExpertViewSet(viewsets.ModelViewSet):
     """ViewSet complet pour les experts"""
-    queryset = Expert.objects.select_related('user', 'structure').prefetch_related('governance_affectations')
+    queryset = Expert.objects.select_related(
+        'user', 'structure', 'profile_update',
+    ).prefetch_related('governance_affectations')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ExpertFilter
@@ -332,7 +334,9 @@ class ExpertViewSet(viewsets.ModelViewSet):
     def my_profile(self, request):
         """Récupérer le profil de l'utilisateur connecté"""
         try:
-            expert = Expert.objects.get(user=request.user)
+            expert = Expert.objects.select_related(
+                'user', 'structure', 'profile_update',
+            ).get(user=request.user)
             serializer = ExpertDetailSerializer(expert)
             return Response(serializer.data)
         except Expert.DoesNotExist:

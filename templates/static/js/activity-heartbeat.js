@@ -10,7 +10,14 @@
   if (!tabId) { tabId = randomId(); sessionStorage.setItem(tabKey, tabId); }
   let interacted = false;
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((name) => window.addEventListener(name, () => { interacted = true; }, {passive:true}));
-  const csrf = document.querySelector('meta[name="csrf-token"]')?.content || window.DJANGO_CSRF_TOKEN || '';
+  const cookieToken = () => {
+    const match = document.cookie.split(';').map((item) => item.trim())
+      .find((item) => item.startsWith('csrftoken='));
+    return match ? decodeURIComponent(match.slice('csrftoken='.length)) : '';
+  };
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    || window.DJANGO_CSRF_TOKEN
+    || cookieToken();
   const payload = () => ({
     device_id: deviceId,
     tab_id: tabId,
