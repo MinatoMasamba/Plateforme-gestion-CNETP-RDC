@@ -162,11 +162,11 @@
 
             <!-- Espace administratif Conseillers Institutionnels et Politiques (Postes 6 à 17) -->
             {% if pilotage_college == 'conseiller_politique' %}
-            <a href="{% url 'web:pilotage_atf_app' %}" title="Espace de travail ATF"
+            <a href="{% url 'web:pilotage_conseillers_app' %}" title="Espace des Conseillers Institutionnels et Politiques"
                class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
-                      bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
+                      bg-[#0095c9]/10 text-[#0095c9] border-[#0095c9]/30 hover:bg-[#0095c9]/20 transition-colors">
                 <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
-                <span class="hidden sm:inline">Espace de travail ATF</span>
+                <span class="hidden sm:inline">Espace Conseillers</span>
             </a>
             {% endif %}
 
@@ -177,6 +177,16 @@
                       bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">
                 <i data-lucide="layout-panel-left" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">Espace Administrateurs Techniques et Financiers</span>
+            </a>
+            {% endif %}
+
+            <!-- Accès au profil déterminé par le poste connecté -->
+            {% if poste and pilotage_college != 'directoire' and pilotage_college != 'membre' %}
+            <a href="{% url 'web:conseiller_spaces' %}" title="Mon interface de conseil"
+               class="flex items-center gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-lg border
+                      bg-sky-500/10 text-sky-500 border-sky-500/30 hover:bg-sky-500/20 transition-colors">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Mon interface</span>
             </a>
             {% endif %}
 
@@ -341,13 +351,13 @@
             </nav>
 
             <div class="p-4 border-t border-slate-200 dark:border-white/[8%]">
-                <button type="button" onclick="window.location.href='{% url 'web:expert_profile' %}'"
-                        title="Ouvrir les paramètres"
+                <button type="button" onclick="window.location.href='{% url 'web:pilotage_profile' %}'"
+                        title="Ouvrir mon profil COPIL"
                         class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold
                                text-slate-500 hover:text-slate-800 hover:bg-slate-100
                                dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5 transition-colors">
                     <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-                    Paramètres
+                    Mon profil COPIL
                 </button>
             </div>
         </aside>
@@ -359,6 +369,42 @@
              HERO — PROFIL & COLLÈGE
         ═══════════════════════════════════════════ -->
         {% include "pilotage/composants/hero_header.html" %}
+
+        {% if pilotage_college == 'membre' %}
+        <section class="max-w-7xl mx-auto px-4 pt-6" aria-labelledby="member-space-title">
+            <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] p-5 sm:p-7 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-[#0095c9]/10 text-[#0095c9] flex items-center justify-center shrink-0">
+                        <i data-lucide="users-round" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold uppercase tracking-wider text-[#0095c9]">Comité de pilotage</p>
+                        <h2 id="member-space-title" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1">Votre espace de membre</h2>
+                        <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 mt-2">
+                            Votre rôle « Conseiller » est enregistré. Les fonctions du Directoire et des collèges spécialisés nécessitent une nomination ou une habilitation explicite.
+                        </p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                    <a href="{% url 'web:app' %}" class="group flex items-center gap-3 rounded-xl border border-slate-200 dark:border-white/10 p-4 hover:border-[#0095c9]/50 hover:bg-[#0095c9]/[3%] transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 text-[#0095c9] shrink-0"></i>
+                        <span class="min-w-0"><strong class="block text-sm text-slate-800 dark:text-slate-100">Espace de travail</strong><small class="block text-xs text-slate-500 mt-0.5">Ouvrir mes dossiers</small></span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 ml-auto shrink-0"></i>
+                    </a>
+                    <a href="{% url 'web:instructions' %}" class="group flex items-center gap-3 rounded-xl border border-slate-200 dark:border-white/10 p-4 hover:border-[#0095c9]/50 hover:bg-[#0095c9]/[3%] transition-colors">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 text-[#0095c9] shrink-0"></i>
+                        <span class="min-w-0"><strong class="block text-sm text-slate-800 dark:text-slate-100">Instructions</strong><small class="block text-xs text-slate-500 mt-0.5">Consulter les consignes</small></span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 ml-auto shrink-0"></i>
+                    </a>
+                    <a href="{% url 'web:pilotage_profile' %}" class="group flex items-center gap-3 rounded-xl border border-slate-200 dark:border-white/10 p-4 hover:border-[#0095c9]/50 hover:bg-[#0095c9]/[3%] transition-colors">
+                        <i data-lucide="id-card" class="w-5 h-5 text-[#0095c9] shrink-0"></i>
+                        <span class="min-w-0"><strong class="block text-sm text-slate-800 dark:text-slate-100">Mon profil</strong><small class="block text-xs text-slate-500 mt-0.5">Vérifier mes informations</small></span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 ml-auto shrink-0"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+        {% endif %}
 
         {% if pilotage_post_count == 0 %}
         <div class="max-w-7xl mx-auto px-4 pt-5">
@@ -495,8 +541,17 @@
 
         <!-- ── Modules verrouillés (non-Directoire / hors spécialité) ────── -->
         {% if not can_view_global_console %}
+        {% if pilotage_college == 'membre' %}
+        <details class="group rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/[2%] p-4 sm:p-5">
+            <summary class="cursor-pointer list-none flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+                <i data-lucide="lock-keyhole" class="w-4 h-4 text-slate-500 shrink-0"></i>
+                <span class="flex-1">Autres fonctions du comité</span>
+                <span class="text-xs font-normal text-slate-500 hidden sm:inline">Accès soumis à habilitation</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"></i>
+            </summary>
+        {% endif %}
         <section class="animate-up" style="animation-delay:.35s">
-            <div class="flex items-center gap-2 mb-4">
+            <div class="flex items-center gap-2 mb-4 {% if pilotage_college == 'membre' %}mt-5{% endif %}">
                 <i data-lucide="eye-off" class="w-4 h-4 text-slate-400"></i>
                 <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-500">
                     Modules Restreints — Accès par Dérogation
@@ -521,6 +576,7 @@
                 {% endif %}
             </div>
         </section>
+        {% if pilotage_college == 'membre' %}</details>{% endif %}
         {% endif %}
 
         <!-- ── Mes demandes de permission ──────────────────────────────────── -->

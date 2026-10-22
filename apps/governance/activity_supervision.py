@@ -37,6 +37,10 @@ def activity_access_for(user):
     ctc_member = bool(roles)
     ctc_lead = bool(roles & LEAD_ACTIVITY_ROLES)
     direction = bool(expert and PilotageMembreship.objects.filter(expert=expert).exists())
+    conseiller_general = bool(
+        expert and expert.user.is_active and expert.status == 'ACTIVE' and
+        PilotageMembreship.objects.filter(expert=expert, role='CONSEILLER').exists()
+    )
     superuser = bool(getattr(user, 'is_superuser', False))
     dispute_qs = ActivityDispute.objects.filter(status='PENDING')
     if expert:
@@ -45,8 +49,8 @@ def activity_access_for(user):
         'expert': expert,
         'roles': roles,
         'can_view_aggregates': superuser or ctc_member or direction or user.has_perm('governance.view_activity_aggregates'),
-        'can_view_contributions': superuser or ctc_lead or user.has_perm('governance.view_activity_contributions'),
-        'can_view_session_details': superuser or ctc_lead or user.has_perm('governance.view_activity_session_details'),
+        'can_view_contributions': superuser or ctc_lead or conseiller_general or user.has_perm('governance.view_activity_contributions'),
+        'can_view_session_details': superuser or ctc_lead or conseiller_general or user.has_perm('governance.view_activity_session_details'),
         'can_manage_targets': superuser or ctc_lead or user.has_perm('governance.manage_activity_targets'),
         'can_review_declarations': superuser or ctc_lead or user.has_perm('governance.review_activity_declarations'),
         'can_review_disputes': superuser or ctc_lead or user.has_perm('governance.review_activity_disputes'),

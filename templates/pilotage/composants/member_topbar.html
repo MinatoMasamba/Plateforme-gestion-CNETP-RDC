@@ -1,0 +1,19 @@
+{% load static %}
+<header class="z-30 shrink-0 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-white/[8%] dark:bg-black/80">
+    <div class="flex h-1" aria-hidden="true"><span class="flex-1 bg-[#0095c9]"></span><span class="flex-1 bg-[#fff24b]"></span><span class="flex-1 bg-[#db3832]"></span></div>
+    <div class="flex min-h-16 items-center justify-between gap-2 px-3 py-2.5 sm:px-5">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+            <a href="{% if is_pilotage %}{% url 'web:pilotage_dashboard' %}{% else %}{% url 'web:app' %}{% endif %}" class="hidden h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[#d4af37] bg-white shadow-sm sm:block" aria-label="Retour au tableau de bord"><img src="{% static 'img/logo-cnetp.png' %}" alt="République démocratique du Congo" class="h-full w-full object-cover"></a>
+            <span class="hidden h-7 w-[3px] shrink-0 flex-col overflow-hidden rounded-sm sm:flex" aria-hidden="true"><i class="flex-1 bg-[#0095c9]"></i><i class="h-1.5 bg-[#fff24b]"></i><i class="flex-1 bg-[#db3832]"></i></span>
+            <a href="{% if is_pilotage %}{% url 'web:pilotage_dashboard' %}{% else %}{% url 'web:app' %}{% endif %}" class="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white" title="Retour au tableau de bord"><i data-lucide="arrow-left" class="h-3.5 w-3.5"></i><span class="hidden sm:inline">Espace de Travail</span></a>
+            <span class="hidden text-slate-300 dark:text-white/15 sm:inline">|</span>
+            <strong class="truncate text-xs font-extrabold uppercase tracking-tight text-slate-700 dark:text-white sm:text-sm">Pilotage CNE-ITP</strong>
+        </div>
+        <nav class="flex shrink-0 items-center gap-1.5 sm:gap-2" aria-label="Services du Pilotage">
+            <a href="{% url 'web:instructions' %}" title="Instructions existantes" aria-label="Instructions existantes" class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-2 text-xs font-bold text-violet-500 hover:bg-violet-500/20 sm:px-3"><i data-lucide="clipboard-list" class="h-3.5 w-3.5"></i><span class="hidden sm:inline">Instructions existantes</span></a>
+            {% if is_pilotage %}<a href="{% url 'web:pilotage_ia_console' %}" title="Assistant IA Pilotage" aria-label="Assistant IA Pilotage" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-[#0095c9] hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/5"><i data-lucide="sparkles" class="h-4 w-4"></i></a>{% endif %}
+            <a href="{% if is_pilotage %}{% url 'web:pilotage_profile' %}{% else %}{% url 'web:expert_profile' %}{% endif %}" title="Mon profil" aria-label="Mon profil" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5"><i data-lucide="user-round" class="h-4 w-4"></i></a>
+            <button type="button" data-theme-toggle title="Changer le thème" aria-label="Changer le thème" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5"><i data-lucide="sun" class="h-4 w-4 dark:hidden"></i><i data-lucide="moon" class="hidden h-4 w-4 dark:block"></i></button>
+        </nav>
+    </div>
+</header>

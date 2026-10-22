@@ -1,0 +1,71 @@
+<section class="panel reader-panel">
+    {% if selected_norm %}
+    <div class="reader-head">
+        <div>
+            <span class="eyebrow">Dossier sélectionné</span>
+            <h2>{{ selected_norm.reference_number }}</h2>
+            <p>{{ selected_norm.title }}</p>
+        </div>
+        <span class="status-pill" data-status="{{ selected_norm.status }}">{{ selected_norm.get_status_display }}</span>
+    </div>
+
+    <div class="reader-meta">
+        <div><span>Famille</span><strong>{{ selected_norm.get_standard_family_display }}</strong></div>
+        <div><span>Catégorie</span><strong>{{ selected_norm.category|default:"Non renseignée" }}</strong></div>
+        <div><span>CTM</span><strong>{% if selected_norm.ctm %}CTM {{ selected_norm.ctm.number }}{% else %}—{% endif %}</strong></div>
+        <div><span>Dernière mise à jour</span><strong>{{ selected_norm.updated_at|date:"d M Y" }}</strong></div>
+    </div>
+
+    <div class="reader-body">
+        <h3>Aperçu du dossier</h3>
+        <p>{{ selected_norm.description|linebreaksbr }}</p>
+        {% if versions %}
+        <div class="version-callout">
+            <div>
+                <span>Dernière version</span>
+                <strong>v{{ versions.0.version_number }} · {{ versions.0.title }}</strong>
+            </div>
+            <span class="soft-badge soft-badge--quiet">{{ versions.0.created_at|date:"d M Y" }}</span>
+        </div>
+        {% if versions.0.content %}
+        <div class="excerpt">
+            <span class="eyebrow">Extrait du texte</span>
+            <p>{{ versions.0.content|truncatechars:1100|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="review-strip" aria-label="État des examens">
+        {% for row in reviews %}
+        <div class="review-chip" data-tone="{{ row.tone }}">
+            <span>{{ row.label }}</span>
+            <strong>{{ row.status }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if comments %}
+    <div class="reader-block">
+        <div class="reader-block__head"><h3>Observations</h3><span>{{ comments|length }}</span></div>
+        <div class="observation-list">
+            {% for comment in comments %}
+            <article class="observation">
+                <div class="observation__meta">
+                    <strong>{% if comment.author %}{{ comment.author.full_name }}{% else %}Auteur non renseigné{% endif %}</strong>
+                    <span>{{ comment.created_at|date:"d M Y" }}</span>
+                </div>
+                <p>{{ comment.body|linebreaksbr }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state empty-state--reader">
+        <div class="empty-state__glyph" aria-hidden="true">{{ space.glyph }}</div>
+        <strong>Sélectionnez un dossier</strong>
+        <p>Le lecteur affichera la version, les examens et les observations disponibles.</p>
+    </div>
+    {% endif %}
+</section>

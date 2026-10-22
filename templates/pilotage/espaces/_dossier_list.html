@@ -1,0 +1,39 @@
+<section class="panel worklist-panel">
+    <div class="panel-head">
+        <div>
+            <span class="eyebrow">{{ list_eyebrow|default:space.scope }}</span>
+            <h2>{{ list_title|default:"Dossiers du périmètre" }}</h2>
+        </div>
+        <span class="panel-head__count">{{ norms|length }}</span>
+    </div>
+
+    {% if norms %}
+    <div class="worklist" role="list">
+        {% for norm in norms %}
+        <a class="work-item {% if selected_norm and selected_norm.pk == norm.pk %}is-selected{% endif %}"
+           href="?espace={{ space.key }}&vue={{ active_vue }}&norme={{ norm.pk }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.statut %}&statut={{ filters.statut }}{% endif %}"
+           role="listitem">
+            <div class="work-item__top">
+                <span class="work-item__ref">{{ norm.reference_number }}</span>
+                <span class="status-pill" data-status="{{ norm.status }}">{{ norm.get_status_display }}</span>
+            </div>
+            <strong class="work-item__title">{{ norm.title }}</strong>
+            <div class="work-item__meta">
+                <span>{% if norm.ctm %}CTM {{ norm.ctm.number }}{% else %}CTM non renseigné{% endif %}</span>
+                <span class="dot"></span>
+                <span>{{ norm.updated_at|date:"d M Y" }}</span>
+                {% if norm.wg %}<span class="dot"></span><span>{{ norm.wg }}</span>{% endif %}
+            </div>
+            <span class="work-item__arrow" aria-hidden="true">→</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__glyph" aria-hidden="true">{{ space.glyph }}</div>
+        <strong>Aucun dossier dans ce périmètre</strong>
+        <p>Le filtre ne retourne aucun enregistrement. Les données absentes ne sont pas interprétées comme un avis favorable.</p>
+        <a href="?espace={{ space.key }}&vue={{ active_vue }}" class="button button--quiet">Réinitialiser les filtres</a>
+    </div>
+    {% endif %}
+</section>

@@ -69,7 +69,7 @@
       link.addEventListener('click', event => { event.preventDefault(); selectNorm(norm.id); });
       nav.append(link);
     });
-    if (!state.norms.length) nav.append(element('p', 'empty', 'Aucune norme rattachée et confirmée dans ce périmètre.'));
+    if (!state.norms.length) nav.append(element('p', 'empty', 'Aucune norme liée à ce périmètre.'));
   }
   function renderChart() {
     const norm = state.selected;

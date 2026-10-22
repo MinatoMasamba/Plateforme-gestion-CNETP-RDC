@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.governance.models import GroupeCible, Organe, Tache
 from apps.governance.phoenix_models import (
-    MandatOrganisation, OrganisationVersion, PosteOrganisation, RattachementDocumentaire,
+    CorrespondanceGroupe, MandatOrganisation, OrganisationVersion, PosteOrganisation, RattachementDocumentaire,
 )
 from apps.norms.models import NormeVersion
 
@@ -76,17 +76,30 @@ def test_norms_tasks_versions_and_historical_filters_stay_in_sc(client, expert_f
     _mandate(president, sc)
     ctm = ctm_factory()
     wg = wg_factory(ctm=ctm)
+    second_wg = wg_factory(ctm=ctm)
     norm = norme_factory(ctm=ctm, wg=wg, reference_number='NCD-OWN')
+    second_norm = norme_factory(ctm=ctm, wg=second_wg, reference_number='NCD-SECOND-WG')
     other = norme_factory(reference_number='NCD-OTHER')
+    for legacy_group in (wg, second_wg):
+        CorrespondanceGroupe.objects.create(
+            version=version, wg=legacy_group, sc=sc, gt=group,
+            domain=legacy_group.name, source_reference='Acte de correspondance',
+            status='VALIDATED', decision_reference=f'MAP-{legacy_group.pk}',
+        )
     RattachementDocumentaire.objects.create(
         norme=norm, version=version, sc=sc, gt=group, role='OWNER', status='VALIDATED',
         decision_reference='DEC-1', effective_from=timezone.localdate(),
     )
     Tache.objects.create(target_group=group, norme=norm, titre='Rédaction', assigned_to=contributor,
                          status='COMPLETED')
+    Tache.objects.create(working_group=second_wg, norme=second_norm, titre='Relecture',
+                         assigned_to=contributor, status='IN_PROGRESS')
     NormeVersion.all_objects.create(norme=norm, version_number=1, title='Version initiale', content='Texte réel')
     NormeVersion.all_objects.create(norme=norm, version_number=2, title='Version revue', content='Texte conservé')
 
+    all_data = client.get(reverse('web:president_sc_data'), {'sc': sc.pk}).json()
+    assert {item['code'] for item in all_data['norms']} == {'NCD-OWN', 'NCD-SECOND-WG'}
+    assert all_data['norms'][1]['rows'][0]['total'] == 1
     data = client.get(reverse('web:president_sc_data'), {'sc': sc.pk, 'ctm': ctm.pk, 'wg': wg.pk}).json()
     assert [item['code'] for item in data['norms']] == ['NCD-OWN']
     assert data['norms'][0]['rows'][0]['done'] == 1

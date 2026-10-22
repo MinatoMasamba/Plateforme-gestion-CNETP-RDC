@@ -1323,3 +1323,7 @@ from .activity_models import (  # noqa: E402,F401
     ActivityDispute, ActivityAccessLog, ActivityAlert, ActivityAggregate,
     SavedActivityView,
 )
+
+from .advisory_models import (  # noqa: E402,F401
+    AvisConseiller, ConsultationConseiller, DemandeAnalyse, JournalAnalyse, PieceAnalyse,
+)

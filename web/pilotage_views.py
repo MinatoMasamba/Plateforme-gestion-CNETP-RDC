@@ -705,7 +705,9 @@ def get_pilotage_context(expert: Expert) -> dict | None:
     )
 
     # ── Poste nominatif (si disponible) ──────────────────────────────────────
-    poste = PosteNominatif.objects.filter(holder=expert).select_related('required_structure').first()
+    poste = (PosteNominatif.objects.filter(
+        holder=expert, comite=membership.comite, role=role,
+    ).select_related('required_structure').order_by('order').first())
     poste_title_lower = poste.title.lower() if poste else ''
 
     # ── Sous-rôle précis ─────────────────────────────────────────────────────
@@ -895,6 +897,16 @@ class PilotageDashboardView(View):
                 "Accédez à votre espace de travail habituel."
             )
             return redirect('web:app')
+
+        if priv['membership'].role == 'CONSEILLER':
+            from .conseiller_views import conseiller_dashboard
+            return conseiller_dashboard(request)
+        if (priv['poste'] and priv['membership'].role in {'CONSEILLER_POLITIQUE', 'ADMIN_TECH_FIN', 'PARTENAIRE_SOC_CIV'}
+                and PosteNominatif.objects.filter(
+                    holder=expert, comite=priv['membership'].comite, role=priv['membership'].role,
+                ).count() == 1
+                and request.GET.get('vue') != 'pilotage'):
+            return redirect('web:conseiller_spaces')
 
         # La navigation Pilotage expose la version d'organisation la plus récente
         # (la version active si elle existe), sans dépendre d'un code figé.
@@ -1478,7 +1490,9 @@ class PilotageConseillersAppView(View):
                 default_post_n = meta['n']
             postes.append({**meta, 'is_mine': is_mine})
 
-        my_poste = next((p for p in postes if p['is_mine']), postes[0])
+        # Une adhésion au collège ne vaut pas nomination à un poste précis.
+        # Ne jamais présenter le Poste 6 comme le poste du membre par défaut.
+        my_poste = next((p for p in postes if p['is_mine']), None)
 
         context = {
             'expert': expert,

@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from apps.experts.models import Expert, Structure
-from apps.governance.models import CTM, PilotageMembreship, CTCMembership
+from apps.governance.models import CTM, PilotageMembreship, CTCMembership, PosteNominatif
 from .forms import (
     ExpertRegistrationForm, User_Simple, UserLoginForm, ExpertLoginForm,
     UserProfileForm, ExpertProfileForm,
@@ -311,12 +311,17 @@ def expert_workspace_url_name(user):
         membership = PilotageMembreship.objects.filter(expert=expert).first()
         if membership:
             role = membership.role
+            has_poste = PosteNominatif.objects.filter(
+                holder=expert, comite=membership.comite, role=role,
+            ).count() == 1
             if role in _DIRECTOIRE:
                 return 'web:pilotage_directoire_app'
             if role == 'CONSEILLER_POLITIQUE':
-                return 'web:pilotage_conseillers_app'
+                return 'web:conseiller_spaces' if has_poste else 'web:pilotage_conseillers_app'
             if role == 'ADMIN_TECH_FIN':
-                return 'web:pilotage_atf_app'
+                return 'web:conseiller_spaces' if has_poste else 'web:pilotage_atf_app'
+            if role == 'PARTENAIRE_SOC_CIV':
+                return 'web:conseiller_spaces' if has_poste else 'web:pilotage_dashboard'
             return 'web:pilotage_dashboard'
         if CTCMembership.objects.filter(expert=expert).exists():
             return 'web:ctc_dashboard'

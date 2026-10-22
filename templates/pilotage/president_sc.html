@@ -4,24 +4,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Suivi des normes de ma SC · CNE-ITP</title>
+  <title>{% if observer %}Observation des SC{% else %}Suivi des normes de ma SC{% endif %} · CNE-ITP</title>
   <meta name="theme-color" content="#020204">
   <script>document.documentElement.classList.toggle('dark', (localStorage.getItem('theme-preference') || 'dark') !== 'light');</script>
   <link rel="stylesheet" href="{% static 'css/president-sc.css' %}">
   <link rel="stylesheet" href="{% static 'css/president-sc-app-theme.css' %}">
   <script defer src="{% static 'js/president-sc.js' %}"></script>
 </head>
-<body class="plan-layout" data-source="{% url 'web:president_sc_data' %}">
+<body class="plan-layout" data-source="{% if observer %}{% url 'web:conseiller_sc_observation_data' %}{% else %}{% url 'web:president_sc_data' %}{% endif %}">
   <div class="shell">
     <header class="plan-header">
       <div class="header-main">
-        <div class="brand"><img src="{% static 'img/logo-cnetp.png' %}" alt="" class="president-logo"><span class="president-flag" aria-hidden="true"></span><span class="president-brand-text"><b>CNE-ITP</b><small>Suivi des normes de ma SC</small></span></div>
+        <div class="brand"><img src="{% static 'img/logo-cnetp.png' %}" alt="" class="president-logo"><span class="president-flag" aria-hidden="true"></span><span class="president-brand-text"><b>CNE-ITP</b><small>{% if observer %}Observation des sous-commissions{% else %}Suivi des normes de ma SC{% endif %}</small></span></div>
         <div class="header-commission"><b>{{ selected.code }} — {{ selected.name }}</b><span>Commission nationale d’élaboration des normes ITP</span></div>
       </div>
-      <div class="header-right"><button type="button" id="theme-toggle" aria-label="Changer le thème" aria-pressed="false">Thème clair</button><span class="header-separator">|</span><a href="{% url 'web:app' %}">Espace de travail</a></div>
+      <div class="header-right"><button type="button" id="theme-toggle" aria-label="Changer le thème" aria-pressed="false">Thème clair</button><span class="header-separator">|</span><a href="{% if observer %}{% url 'web:conseiller_dashboard' %}{% else %}{% url 'web:app' %}{% endif %}">{% if observer %}Retour au conseiller{% else %}Espace de travail{% endif %}</a></div>
     </header>
     <main>
-      <nav class="president-breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'web:app' %}">Espace de travail</a><span>›</span><span aria-current="page">Suivi des normes de ma SC</span></nav>
+      <nav class="president-breadcrumb" aria-label="Fil d’Ariane"><a href="{% if observer %}{% url 'web:conseiller_dashboard' %}{% else %}{% url 'web:app' %}{% endif %}">{% if observer %}Conseiller général{% else %}Espace de travail{% endif %}</a><span>›</span><span aria-current="page">{% if observer %}Observation des SC · lecture seule{% else %}Suivi des normes de ma SC{% endif %}</span></nav>
       <form class="scope-controls" method="get" aria-label="Périmètre autorisé">
         <label>Périmètre
           <select id="scope-select" aria-label="Choisir un périmètre">
@@ -40,7 +40,7 @@
             {% for group in working_groups %}<option value="{{ group.pk }}" {% if wg.pk == group.pk %}selected{% endif %}>WG {{ group.number }} — {{ group.name }}</option>{% endfor %}
           </select>
         </label>{% endif %}
-        <p>Seules les sous-commissions liées à votre mandat actif sont proposées.</p>
+        <p>{% if observer %}Sous-commissions en vigueur · consultation sans action de validation.{% else %}Seules les sous-commissions liées à votre mandat actif sont proposées.{% endif %}</p>
       </form>
       <div id="page-error" class="president-error" role="alert" hidden></div>
       <nav id="norm-list" class="president-norm-list" aria-label="Normes du périmètre"></nav>

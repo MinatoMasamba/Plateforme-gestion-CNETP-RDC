@@ -13,8 +13,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from apps.experts.models import Expert
-from apps.governance.models import CTM, Organe, WG, Tache, GroupeCible
-from apps.governance.phoenix_models import DossierPhoenix, MandatOrganisation, OrganisationVersion, RattachementDocumentaire
+from apps.governance.models import CTM, Organe, WG, Tache, GroupeCible, ConsultationConseiller
+from apps.governance.phoenix_models import CorrespondanceGroupe, DossierPhoenix, MandatOrganisation, OrganisationVersion, RattachementDocumentaire
 from apps.governance.phoenix_workflow import can_consult
 from apps.norms.models import Norme, NormeVersion
 
@@ -41,14 +41,21 @@ def _sc_bureau_ids(expert, today):
     return sorted(ids)
 
 
-def _scope(request):
+def _scope(request, *, observer=False):
     expert = Expert.objects.filter(user=request.user).first()
     today = timezone.localdate()
-    sc_ids = _sc_bureau_ids(expert, today)
+    if observer:
+        from .conseiller_views import conseiller_expert
+        conseiller_expert(request)
+        sc_ids = list(Organe.objects.filter(type='SC', version__status='ACTIVE', status='ACTIVE').values_list('pk', flat=True))
+    else:
+        sc_ids = _sc_bureau_ids(expert, today)
     scopes = [{'kind': 'sc', 'id': row.pk, 'code': row.code, 'name': row.official_name or row.name}
               for row in Organe.objects.filter(pk__in=sc_ids).order_by('code')]
-    if not scopes:
+    if not scopes and not observer:
         raise PermissionDenied('Accès réservé au bureau confirmé d’une sous-commission.')
+    if not scopes:
+        return {'kind': 'sc', 'id': None, 'code': 'SC', 'name': 'Aucune sous-commission en vigueur'}, [], None, None, today
 
     ctm_raw, wg_raw, sc_raw = (request.GET.get(key, '') for key in ('ctm', 'wg', 'sc'))
     if sc_raw:
@@ -77,24 +84,30 @@ def _scope(request):
     return selected, scopes, ctm, wg, today
 
 
-def _norms(selected, ctm, wg, today, user):
+def _norms(selected, ctm, wg, today, user, *, observer=False):
     bindings = RattachementDocumentaire.objects.filter(
         sc_id=selected['id'], status='VALIDATED', version__status=OrganisationVersion.Status.ACTIVE,
     ).filter(Q(effective_from__isnull=True) | Q(effective_from__lte=today)).filter(
         Q(effective_to__isnull=True) | Q(effective_to__gte=today)
     )
-    norms = Norme.all_objects.filter(pk__in=bindings.values('norme_id'))
+    historical_wgs = CorrespondanceGroupe.objects.filter(
+        sc_id=selected['id'], status='VALIDATED', version__status=OrganisationVersion.Status.ACTIVE,
+    ).values('wg_id')
+    norms = Norme.all_objects.filter(
+        Q(pk__in=bindings.values('norme_id')) |
+        Q(circuit_version='LEGACY', wg_id__in=historical_wgs)
+    )
     if ctm:
         norms = norms.filter(ctm=ctm)
     if wg:
         norms = norms.filter(wg=wg)
     result = list(norms.distinct().order_by('reference_number', 'pk'))
     dossiers = {item.norme_id: item for item in DossierPhoenix.objects.filter(norme_id__in=[norm.pk for norm in result]).select_related('norme', 'gt__sc', 'circuit__version')}
-    return [norm for norm in result if norm.circuit_version != 'PHOENIX' or
+    return result if observer else [norm for norm in result if norm.circuit_version != 'PHOENIX' or
             (norm.pk in dossiers and can_consult(user, dossiers[norm.pk]))]
 
 
-def _norm_payload(norms, selected, today):
+def _norm_payload(norms, selected, today, *, observer=False):
     if not norms:
         return []
     norm_ids = [norm.pk for norm in norms]
@@ -102,7 +115,9 @@ def _norm_payload(norms, selected, today):
         Q(assigned_to__isnull=False) | Q(backup_assignee__isnull=False)
     ).select_related('assigned_to__user', 'backup_assignee__user'))
     group_ids = set(GroupeCible.objects.filter(sc_id=selected['id']).values_list('pk', flat=True))
-    tasks = [task for task in tasks if task.target_group_id in group_ids]
+    wg_by_norm = dict(Norme.all_objects.filter(pk__in=norm_ids).values_list('pk', 'wg_id'))
+    tasks = [task for task in tasks if task.target_group_id in group_ids or
+             (task.working_group_id and task.working_group_id == wg_by_norm.get(task.norme_id))]
     by_norm = defaultdict(lambda: defaultdict(list))
     experts = {}
     for task in tasks:
@@ -138,7 +153,7 @@ def _norm_payload(norms, selected, today):
             'id': norm.pk, 'code': norm.reference_number, 'title': norm.title,
             'status': norm.get_status_display(), 'rows': rows,
             'versions': version_rows[norm.pk], 'description': norm.description,
-            'dossier_url': reverse('web:phoenix_dossier', args=[dossier_ids[norm.pk]]) if norm.pk in dossier_ids else None,
+            'dossier_url': reverse('web:phoenix_dossier', args=[dossier_ids[norm.pk]]) if norm.pk in dossier_ids and not observer else None,
         })
     return payload
 
@@ -164,4 +179,31 @@ def president_sc_data(request):
     return JsonResponse({
         'scope': selected, 'scopes': scopes,
         'norms': _norm_payload(_norms(selected, ctm, wg, today, request.user), selected, today),
+    })
+
+
+@login_required(login_url='/se-connecter/')
+@require_GET
+def president_sc_observation_page(request):
+    selected, scopes, ctm, wg, today = _scope(request, observer=True)
+    available_norms = _norms(selected, None, None, today, request.user, observer=True)
+    ctm_ids = {norm.ctm_id for norm in available_norms if norm.ctm_id}
+    wg_ids = {norm.wg_id for norm in available_norms if norm.wg_id and (not ctm or norm.ctm_id == ctm.pk)}
+    return render(request, 'pilotage/president_sc.html', {
+        'selected': selected, 'scopes': scopes, 'ctm': ctm, 'wg': wg, 'observer': True,
+        'historical_ctms': CTM.objects.filter(pk__in=ctm_ids).order_by('number'),
+        'working_groups': WG.objects.filter(pk__in=wg_ids).order_by('number'),
+    })
+
+
+@login_required(login_url='/se-connecter/')
+@require_GET
+def president_sc_observation_data(request):
+    selected, scopes, ctm, wg, today = _scope(request, observer=True)
+    ConsultationConseiller.objects.create(
+        lecteur=request.user, rubrique='SC_OBSERVATION', cible=str(selected['id'] if selected else ''),
+    )
+    return JsonResponse({
+        'scope': selected, 'scopes': scopes,
+        'norms': _norm_payload(_norms(selected, ctm, wg, today, request.user, observer=True), selected, today, observer=True),
     })

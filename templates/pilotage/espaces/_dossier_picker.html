@@ -1,0 +1,16 @@
+{% if norms %}
+<form class="dossier-picker" method="get" action="{% url 'web:conseiller_spaces' %}">
+    <input type="hidden" name="vue" value="{{ active_vue }}">
+    <label>
+        <span class="eyebrow">Dossier de travail</span>
+        <select name="norme" onchange="this.form.requestSubmit()">
+            {% for norm in norms %}
+            <option value="{{ norm.pk }}" {% if selected_norm and selected_norm.pk == norm.pk %}selected{% endif %}>{{ norm.reference_number }} · {{ norm.title|truncatechars:80 }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="button button--quiet">Ouvrir</button>
+</form>
+{% else %}
+<p class="muted">Aucun dossier disponible dans ce périmètre.</p>
+{% endif %}

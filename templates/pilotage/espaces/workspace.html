@@ -1,0 +1,338 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ active_label }} — {{ space.title }} — CNE-ITP</title>
+    <meta name="theme-color" content="#0095c9">
+    <meta name="description" content="{{ active_lead }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/conseiller-espaces.css' %}?v=20261022-6">
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+</head>
+<body class="space-app" data-space="{{ space.key }}">
+    <div class="republic-line" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <header class="space-topbar">
+        <div class="space-brand">
+            <a class="space-brand__mark" href="{% url 'web:conseiller_spaces' %}" aria-label="Tableau de bord du conseiller">
+                <img src="{% static 'img/logo-cnetp.png' %}" alt="République démocratique du Congo" width="42" height="42">
+            </a>
+            <span class="space-brand__divider" aria-hidden="true"><i></i><i></i><i></i></span>
+            <a class="space-workspace-link" href="{% url 'web:app' %}" title="Retour à l'Espace de Travail" aria-label="Retour à l'Espace de Travail">
+                <i data-lucide="arrow-left" aria-hidden="true"></i><span>Espace de Travail</span>
+            </a>
+            <span class="space-brand__separator" aria-hidden="true">|</span>
+            <div class="space-brand__text">
+                <strong>Pilotage CNE-ITP</strong>
+            </div>
+        </div>
+        <nav class="space-top-links" aria-label="Services du Pilotage">
+            <a class="space-instructions-link" href="{% url 'web:instructions' %}" title="Instructions existantes" aria-label="Instructions existantes"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Instructions existantes</span></a>
+            <a class="space-icon-link space-ia-link" href="{% url 'web:pilotage_ia_console' %}" title="Assistant IA Pilotage" aria-label="Assistant IA Pilotage"><i data-lucide="sparkles" aria-hidden="true"></i></a>
+        </nav>
+
+        <div class="space-account">
+            <div class="space-account__identity">
+                <strong>{{ expert.full_name }}</strong>
+                <span>{{ poste_code }} · {{ poste_label }}</span>
+            </div>
+            <button type="button" class="icon-button space-menu-button" data-space-menu-toggle aria-controls="space-navigation" aria-expanded="false" aria-label="Ouvrir le menu">
+                <i data-lucide="menu" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="icon-button space-theme-toggle" data-theme-toggle aria-label="Changer le thème" title="Changer le thème">
+                <span class="space-theme-sun"><i data-lucide="sun" aria-hidden="true"></i></span>
+                <span class="space-theme-moon"><i data-lucide="moon" aria-hidden="true"></i></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="space-nav-backdrop" data-space-menu-close hidden></div>
+
+    <div class="space-layout">
+        <aside class="space-sidebar" id="space-navigation">
+            <div class="sidebar-mobile-head">
+                <span class="eyebrow">Navigation</span>
+                <button type="button" class="icon-button" data-space-menu-close aria-label="Fermer le menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+
+            <div class="mission-card">
+                <span class="eyebrow">Mission du profil</span>
+                <div class="mission-card__glyph" aria-hidden="true">{{ space.glyph }}</div>
+                <h2>{{ space.persona }}</h2>
+                <p>{{ space.lead }}</p>
+                <div class="mission-card__meta">
+                    <span>Cabinet du Ministre des ITP</span>
+                    <span class="dot"></span>
+                    <span>Voix consultative</span>
+                </div>
+            </div>
+
+            <nav class="space-menu" aria-label="Onglets de l'espace">
+                {% for tab_key, label in space.menu %}
+                <a href="?espace={{ space.key }}&vue={{ tab_key }}"
+                   class="space-menu__link {% if tab_key == active_vue %}is-active{% endif %}"
+                   {% if tab_key == active_vue %}aria-current="page"{% endif %}>
+                    <span class="space-menu__dot"></span>
+                    <span>{{ label }}</span>
+                    {% if tab_key == 'avis' and my_avis %}<em>{{ my_avis|length }}</em>{% endif %}
+                </a>
+                {% endfor %}
+            </nav>
+
+            <div class="scope-card">
+                <span class="eyebrow">Périmètre du mandat</span>
+                <strong>{{ poste_code }}</strong>
+                <p>{{ poste_label }}</p>
+                <div class="scope-card__row">
+                    <span>{{ total_scoped }} dossier{{ total_scoped|pluralize }}</span>
+                    <span class="scope-card__status">Lecture seule</span>
+                </div>
+            </div>
+
+            <div class="sidebar-foot">
+                <a href="{% url 'web:pilotage_profile' %}" class="sidebar-foot__link"><i data-lucide="user-round" aria-hidden="true"></i> Mon profil COPIL</a>
+                <a href="{% url 'web:app' %}" class="sidebar-foot__link"><i data-lucide="arrow-left" aria-hidden="true"></i> Espace de travail</a>
+                <a href="{% url 'web:pilotage_dashboard' %}?vue=pilotage" class="sidebar-foot__link"><i data-lucide="layout-dashboard" aria-hidden="true"></i> Pilotage classique</a>
+            </div>
+        </aside>
+
+        <main class="space-main">
+            {% if messages %}
+            <div class="space-messages" role="status">
+                {% for message in messages %}<div class="space-alert {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <section class="page-heading">
+                <div>
+                    <div class="breadcrumb">
+                        <span>Comité de Pilotage</span><span aria-hidden="true">/</span>
+                        <a href="?espace={{ space.key }}&vue=overview">{{ space.title }}</a><span aria-hidden="true">/</span>
+                        <strong>{{ active_label }}</strong>
+                    </div>
+                    <h1>{{ active_label }}</h1>
+                    <p class="page-heading__lead">{{ active_lead }}</p>
+                </div>
+                <div class="page-heading__badges">
+                    <span class="soft-badge soft-badge--blue">{{ space.title }}</span>
+                    <span class="soft-badge">Voix consultative</span>
+                    <span class="soft-badge soft-badge--quiet">Aucune validation</span>
+                </div>
+            </section>
+
+            {% if profile_unconfirmed %}
+            <div class="soft-notice" role="note">
+                <span class="soft-notice__icon" aria-hidden="true">i</span>
+                <div>
+                    <strong>Correspondance de poste à confirmer.</strong>
+                    <p>Le mandat ne référence pas encore de poste nominatif. Cet espace présente le profil fonctionnel sans créer de nomination ni élargir les droits.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if active_vue == 'overview' %}
+            <section class="kpi-grid" aria-label="Indicateurs du périmètre">
+                {% for kpi in kpis %}
+                <article class="kpi-card">
+                    <span class="kpi-card__label">{{ kpi.label }}</span>
+                    <strong class="kpi-card__value">{{ kpi.value }}</strong>
+                    <span class="kpi-card__hint">{{ kpi.hint }}</span>
+                    <span class="kpi-card__line" aria-hidden="true"></span>
+                </article>
+                {% endfor %}
+            </section>
+
+            <div class="overview-grid">
+                <section class="panel module-panel">
+                    <div class="panel-head"><div><span class="eyebrow">Vue globale</span><h2>Accès rapides</h2></div></div>
+                    <div class="quick-links">
+                        {% for tab_key, label in space.menu %}
+                        {% if tab_key != 'overview' %}
+                        <a class="quick-link" href="?espace={{ space.key }}&vue={{ tab_key }}">
+                            <span class="quick-link__glyph" aria-hidden="true">→</span>
+                            <span>{{ label }}</span>
+                        </a>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel module-panel">
+                    <div class="panel-head">
+                        <div><span class="eyebrow">{{ space.scope }}</span><h2>Derniers dossiers</h2></div>
+                        <span class="panel-head__count">{{ norms|length }}</span>
+                    </div>
+                    <div class="stack-list">
+                        {% for norm in norms|slice:":5" %}
+                        <a class="stack-item" href="?espace={{ space.key }}&vue={{ space.list_tab }}&norme={{ norm.pk }}">
+                            <strong>{{ norm.reference_number }} · {{ norm.title }}</strong>
+                            <span>{{ norm.get_status_display }} · {{ norm.updated_at|date:"d M Y" }}</span>
+                        </a>
+                        {% empty %}<span class="muted">Aucun dossier enregistré.</span>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel module-panel">
+                    <div class="panel-head">
+                        <div><span class="eyebrow">Consultatif</span><h2>Derniers avis</h2></div>
+                        <a class="button button--quiet" href="?espace={{ space.key }}&vue=avis">Ouvrir</a>
+                    </div>
+                    <div class="stack-list">
+                        {% for avis in my_avis|slice:":4" %}
+                        <article class="avis-item">
+                            <div class="avis-item__top"><span class="soft-badge {% if avis.statut == 'SOUMIS' %}soft-badge--blue{% else %}soft-badge--quiet{% endif %}">{{ avis.get_statut_display }}</span><span>{{ avis.created_at|date:"d M Y" }}</span></div>
+                            <strong>{{ avis.objet }}</strong>
+                            <p>{{ avis.norme.reference_number }} · {{ avis.get_recommandation_display }}</p>
+                        </article>
+                        {% empty %}<span class="muted">Aucun avis enregistré pour ce profil.</span>{% endfor %}
+                    </div>
+                </section>
+            </div>
+
+            {% elif active_vue == space.list_tab %}
+            {% include 'pilotage/espaces/_filters.html' %}
+            <div class="workspace-grid">
+                {% include 'pilotage/espaces/_dossier_list.html' %}
+                {% include 'pilotage/espaces/_reader.html' %}
+            </div>
+
+            {% elif space.key == 'expertise' and active_vue == 'analyse' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            {% include 'pilotage/espaces/_reader.html' %}
+
+            {% elif space.key == 'expertise' and active_vue == 'documents' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Références</span><h2>Documents et versions</h2></div><span class="panel-head__count">{{ versions|length }}</span></div>
+                {% if versions %}
+                <div class="document-grid">
+                    {% for version in versions %}
+                    <article class="document-card">
+                        <span class="document-card__glyph" aria-hidden="true">▤</span>
+                        <div><strong>Version {{ version.version_number }}</strong><p>{{ version.title }}</p><span>{{ version.created_at|date:"d M Y" }}{% if version.version_author %} · {{ version.version_author.full_name }}{% endif %}</span></div>
+                        {% if version.document %}<a href="{{ version.document.url }}" class="button button--quiet" target="_blank" rel="noopener">Ouvrir</a>{% else %}<span class="soft-badge soft-badge--quiet">Sans fichier</span>{% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}<p class="muted">Aucune version enregistrée pour ce dossier.</p>{% endif %}
+            </section>
+
+            {% elif space.key == 'coordination' and active_vue == 'calendrier' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Suivi</span><h2>Calendrier des contributions</h2></div><span class="panel-head__count">{{ tasks|length }}</span></div>
+                {% if tasks %}
+                <div class="timeline">
+                    {% for task in tasks %}
+                    <article class="timeline__item">
+                        <span class="timeline__dot" data-status="{{ task.status }}"></span>
+                        <div><strong>{{ task.titre }}</strong><p>{{ task.get_status_display }}{% if task.due_date %} · échéance {{ task.due_date|date:"d M Y" }}{% endif %}</p>{% if task.assigned_to %}<span>{{ task.assigned_to.full_name }}</span>{% endif %}</div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}<p class="muted">Aucune tâche enregistrée. Aucune échéance n'est déduite automatiquement.</p>{% endif %}
+            </section>
+
+            {% elif space.key == 'coordination' and active_vue == 'rapports' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Rapports</span><h2>Rapports institutionnels</h2></div><span class="panel-head__count">{{ analyses|length }}</span></div>
+                <p class="muted">Les rapports disponibles sont ceux du circuit d'analyse et des versions du dossier sélectionné.</p>
+                <div class="stack-list">
+                    {% for analysis in analyses %}
+                    <a class="stack-item" href="{% url 'web:conseiller_analysis_detail' analysis.pk %}"><strong>{{ analysis.objet }}</strong><span>{{ analysis.get_statut_display }} · {{ analysis.created_at|date:"d M Y" }}</span></a>
+                    {% empty %}<span class="muted">Aucun rapport d'analyse lié au compte.</span>{% endfor %}
+                </div>
+            </section>
+
+            {% elif space.key == 'conformite' and active_vue == 'reserves' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Points de contrôle</span><h2>Réserves et observations</h2></div><span class="panel-head__count">{{ comments|length }}</span></div>
+                {% if comments %}
+                <div class="observation-list">
+                    {% for comment in comments %}
+                    <article class="observation"><div class="observation__meta"><strong>{% if comment.author %}{{ comment.author.full_name }}{% else %}Auteur non renseigné{% endif %}</strong><span>{{ comment.created_at|date:"d M Y" }}</span></div><p>{{ comment.body|linebreaksbr }}</p></article>
+                    {% endfor %}
+                </div>
+                {% else %}<p class="muted">Aucune réserve enregistrée pour ce dossier. L'absence de réserve n'équivaut pas à une conformité validée.</p>{% endif %}
+            </section>
+
+            {% elif space.key == 'conformite' and active_vue == 'legistique' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Légistique</span><h2>Toilettage et obligations</h2></div><span class="soft-badge soft-badge--quiet">Selon habilitation</span></div>
+                {% for row in reviews %}
+                    {% if row.label == 'Toilettage légistique' %}
+                    <div class="detail-row"><span>Statut</span><strong>{{ row.status }}</strong></div>
+                    {% if row.review.comments %}<div class="detail-note"><span>Commentaires du légiste</span><p>{{ row.review.comments|linebreaksbr }}</p></div>{% endif %}
+                    {% endif %}
+                {% endfor %}
+                <div class="detail-row"><span>Accès</span><strong>{% if expert.user.is_superuser or membership.role == 'CONSEILLER' %}Module consultable{% else %}Selon habilitation{% endif %}</strong></div>
+                <p class="muted small">Le module légistique complet reste protégé par ses propres permissions. Cet espace n'ouvre aucun droit supplémentaire.</p>
+            </section>
+
+            {% elif space.key == 'controle' and active_vue == 'essais' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Contrôles</span><h2>Examens techniques enregistrés</h2></div></div>
+                <div class="review-table">
+                    {% for row in reviews %}
+                    <article class="review-line"><div><strong>{{ row.label }}</strong><span>{% if row.review.expert %}{{ row.review.expert.full_name }}{% elif row.review.legist %}{{ row.review.legist.full_name }}{% else %}Responsable non renseigné{% endif %}</span></div><span class="status-dot" data-tone="{{ row.tone }}"></span><strong>{{ row.status }}</strong></article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {% elif space.key == 'controle' and active_vue == 'finance' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Spécialité</span><h2>Domaines autorisés et évaluation financière</h2></div></div>
+                {% if ctm_options %}
+                <div class="pill-cloud">{% for ctm in ctm_options %}<span class="soft-badge">CTM {{ ctm.number }} · {{ ctm.name }}</span>{% endfor %}</div>
+                {% else %}<p class="muted">Aucun CTM rattaché aux dossiers du périmètre.</p>{% endif %}
+                <div class="detail-row"><span>Poste de rattachement</span><strong>{{ poste_code }}</strong></div>
+                <div class="detail-row"><span>Périmètre</span><strong>{{ poste_label }}</strong></div>
+                {% if selected_norm.economic_review %}<div class="detail-note"><span>Évaluation financière</span><p>{{ selected_norm.economic_review.comments|default:"Aucun commentaire financier enregistré." }}</p></div>{% endif %}
+                <p class="muted small">Les évaluations financières sont en lecture seule et ne constituent pas un engagement budgétaire.</p>
+            </section>
+
+            {% elif space.key == 'partenaires' and active_vue == 'consultations' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Consultations</span><h2>Contributions sectorielles</h2></div><span class="panel-head__count">{{ consultations|length }}</span></div>
+                {% if consultations %}
+                <div class="stack-list">
+                    {% for consultation in consultations %}
+                    <article class="stack-item"><strong>{{ consultation.norme.reference_number }} · {{ consultation.norme.title }}</strong><span>{{ consultation.get_status_display }}{% if consultation.expert %} · {{ consultation.expert.full_name }}{% endif %}</span></article>
+                    {% endfor %}
+                </div>
+                {% else %}<p class="muted">Aucune consultation enregistrée. Aucune contribution n'est extrapolée.</p>{% endif %}
+            </section>
+
+            {% elif active_vue == 'documents' %}
+            {% include 'pilotage/espaces/_dossier_picker.html' %}
+            <section class="panel module-panel">
+                <div class="panel-head"><div><span class="eyebrow">Partage</span><h2>Documents partagés</h2></div><span class="panel-head__count">{{ documents|length }}</span></div>
+                {% if documents %}
+                <div class="stack-list">{% for version in documents %}<a class="stack-item" href="{{ version.document.url }}" target="_blank" rel="noopener"><strong>Version {{ version.version_number }} · {{ version.title }}</strong><span>{{ version.created_at|date:"d M Y" }}</span></a>{% endfor %}</div>
+                {% else %}<p class="muted">Aucun document partagé pour le dossier sélectionné.</p>{% endif %}
+            </section>
+
+            {% elif active_vue == 'avis' %}
+            {% include 'pilotage/espaces/_avis.html' %}
+            {% endif %}
+
+            <footer class="space-footer">
+                <span>CNE-ITP · Comité de Pilotage</span>
+                <span>Le mandat officiel reste défini par le poste et les habilitations enregistrés.</span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="{% static 'js/conseiller-espaces.js' %}?v=20261022-3"></script>
+    <script>if (window.lucide) window.lucide.createIcons();</script>
+</body>
+</html>

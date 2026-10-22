@@ -62,9 +62,10 @@
 
     <div class="flex flex-1 overflow-hidden relative w-full">
 
-        {% include "pilotage/app_conseillers/components/sidebar_module.html" %}
+        {% if my_poste %}{% include "pilotage/app_conseillers/components/sidebar_module.html" %}{% endif %}
 
         <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+            {% if my_poste %}
             <div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
 
                 <div id="view-post-6" class="view-container hidden">
@@ -105,6 +106,26 @@
                 </div>
 
             </div>
+            {% else %}
+            <div class="max-w-3xl mx-auto px-4 py-8 sm:py-12">
+                <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] p-6 sm:p-8 shadow-sm">
+                    <div class="w-11 h-11 rounded-xl bg-[#0095c9]/10 text-[#0095c9] flex items-center justify-center mb-5">
+                        <i data-lucide="badge-help" class="w-5 h-5"></i>
+                    </div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-[#0095c9]">Collège des conseillers</p>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-2">Fonction nominative à confirmer</h2>
+                    <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 mt-3">
+                        Votre adhésion au collège est enregistrée, mais aucun des postes 6 à 17 ne vous est attribué dans le référentiel actuel. Les missions et les phases d'un poste s'afficheront ici après confirmation de votre nomination.
+                    </p>
+                    <div class="flex flex-wrap gap-3 mt-6">
+                        <a href="{% url 'web:pilotage_dashboard' %}" class="inline-flex items-center gap-2 rounded-lg bg-[#0095c9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#007ea8]">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Retour à Pilotage
+                        </a>
+                        <a href="{% url 'web:pilotage_profile' %}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/15 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5">Voir mon profil COPIL</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </main>
     </div>
 
@@ -198,10 +219,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            {% if my_poste %}
             window.switchView('post-{{ default_post_n|default:6 }}');
 
             const firstNavBtn = document.querySelector('#conseillers-sidebar .sidebar-nav-btn');
             if (firstNavBtn) window.switchPosteSection(firstNavBtn.dataset.section, firstNavBtn);
+            {% endif %}
         });
     </script>
 

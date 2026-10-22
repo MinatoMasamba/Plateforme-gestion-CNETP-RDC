@@ -60,11 +60,19 @@ from .activity_views import (
     activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
 )
 from .production_views import InstructionDashboardView, instruction_create, demande_transition
+from .pilotage_profile_views import pilotage_profile
 from .president_sc_views import president_sc_page, president_sc_data
+from .conseiller_views import conseiller_dashboard, ctc_observation
+from .conseiller_spaces_views import conseiller_space_avis, conseiller_spaces
+from .conseiller_analysis_views import (
+    analysis_list, analysis_create, analysis_detail, analysis_transition, analysis_piece,
+)
+from .president_sc_views import president_sc_observation_page, president_sc_observation_data
 
 app_name = 'web'
 
 urlpatterns = [
+    path('pilotage/profil/', pilotage_profile, name='pilotage_profile'),
     path('pilotage/organisation/gestion/', PhoenixManagementView.as_view(), name='phoenix_management'),
     path('pilotage/organisation/configuration/<str:kind>/', PhoenixConfigurationView.as_view(), name='phoenix_config_create'),
     path('pilotage/organisation/configuration/<str:kind>/<int:pk>/', PhoenixConfigurationView.as_view(), name='phoenix_config_edit'),
@@ -109,6 +117,17 @@ urlpatterns = [
 
     # ─── Comité de Pilotage Élargi ───────────────────────────────────────────
     path('pilotage/', PilotageDashboardView.as_view(), name='pilotage_dashboard'),
+    path('pilotage/conseiller/', conseiller_dashboard, name='conseiller_dashboard'),
+    path('pilotage/conseiller/espaces/', conseiller_spaces, name='conseiller_spaces'),
+    path('pilotage/conseiller/espaces/avis/', conseiller_space_avis, name='conseiller_space_avis'),
+    path('pilotage/conseiller/ctc/', ctc_observation, name='conseiller_ctc_observation'),
+    path('pilotage/conseiller/sc/', president_sc_observation_page, name='conseiller_sc_observation'),
+    path('pilotage/conseiller/sc/donnees/', president_sc_observation_data, name='conseiller_sc_observation_data'),
+    path('pilotage/analyses/', analysis_list, name='conseiller_analysis_list'),
+    path('pilotage/analyses/creer/', analysis_create, name='conseiller_analysis_create'),
+    path('pilotage/analyses/<int:pk>/', analysis_detail, name='conseiller_analysis_detail'),
+    path('pilotage/analyses/<int:pk>/transition/', analysis_transition, name='conseiller_analysis_transition'),
+    path('pilotage/analyses/pieces/<int:pk>/', analysis_piece, name='conseiller_analysis_piece'),
     path('pilotage/demande-permission/', PilotagePermissionRequestView.as_view(), name='pilotage_permission_request'),
     path('pilotage/approuver-demande/<int:pk>/', PilotageApproveRequestView.as_view(), name='pilotage_approve_request'),
     path('pilotage/processus/<int:pk>/receptionner/', PilotageAcknowledgeReceptionView.as_view(), name='pilotage_acknowledge_reception'),

@@ -1,0 +1,60 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0095c9">
+  <title>Conseiller général · Pilotage CNE-ITP</title>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+  <link rel="stylesheet" href="{% static 'css/conseiller-dashboard.css' %}?v=20261022-3">
+  <script defer src="{% static 'vendor/echarts.min.js' %}"></script>
+  <script defer src="{% static 'js/conseiller-dashboard.js' %}"></script>
+</head>
+<body class="cnetp-premium">
+  <div class="republic-line" aria-hidden="true"><span></span><span></span><span></span></div>
+  <header class="counselor-topbar">
+    <div class="brand"><img src="{% static 'img/logo-cnetp.png' %}" alt="République démocratique du Congo"><div><small>Comité de pilotage</small><strong>CNE-ITP · Conseiller général</strong></div></div>
+    <div class="top-actions"><button type="button" id="counselor-menu" class="menu-button" aria-controls="counselor-sidebar" aria-expanded="false">☰ <span>Menu</span></button>{% if request.user.is_superuser %}<a href="{% url 'web:conseiller_spaces' %}">Aperçu · expertise technique</a>{% endif %}<a href="{% url 'web:conseiller_analysis_list' %}">Demandes d’analyse</a>{% include 'pilotage/composants/theme_toggle.html' %}</div>
+  </header>
+  <div class="counselor-layout">
+    <aside id="counselor-sidebar" class="counselor-sidebar" aria-label="Navigation du conseiller général">
+      <div class="sidebar-identity"><span class="eyebrow">Supervision institutionnelle</span><strong>{{ expert.full_name|default:expert.user.username }}</strong><small>Consultation et analyse · mandat Conseiller</small></div>
+      <nav>
+        {% for key,label,icon in menu %}<a href="#{{ key }}" data-section="{{ key }}" {% if forloop.first %}aria-current="page"{% endif %}><span class="nav-icon" aria-hidden="true">{% if key == 'ensemble' %}▦{% elif key == 'copil' %}◈{% elif key == 'ctc' %}◎{% elif key == 'sc' %}◉{% elif key == 'normes' %}▤{% elif key == 'activite' %}▥{% elif key == 'analyses' %}✉{% else %}♙{% endif %}</span><span>{{ label }}</span></a>{% endfor %}
+      </nav>
+      <div class="sidebar-footer"><a href="{% url 'web:app' %}">← Espace de travail</a><a href="{% url 'web:pilotage_dashboard' %}">Accueil Pilotage</a></div>
+    </aside>
+    <main id="counselor-main" class="counselor-main">
+      <div class="page-heading"><div><p class="eyebrow">République démocratique du Congo · CNE-ITP</p><h1>Espace du conseiller général</h1><p>Suivi transversal des dossiers, travaux et analyses. Les graphiques reprennent les données enregistrées dans l’application.</p></div><span class="read-only-badge">Consultation institutionnelle</span></div>
+      <form class="filters" method="get" action="{% url 'web:conseiller_dashboard' %}" aria-label="Filtres des graphiques">
+        <label>Du <input type="date" name="debut" value="{{ start|date:'Y-m-d' }}"></label>
+        <label>Au <input type="date" name="fin" value="{{ end|date:'Y-m-d' }}"></label>
+        <label>SC <select name="sc"><option value="">Toutes</option>{% for item in scs %}<option value="{{ item.pk }}" {% if selected_sc.pk == item.pk %}selected{% endif %}>{{ item.code }} · {{ item.official_name|default:item.name }}</option>{% endfor %}</select></label>
+        <label>Groupe <select name="groupe"><option value="">Tous</option>{% for item in groups %}<option value="{{ item.pk }}" {% if selected_group.pk == item.pk %}selected{% endif %}>{{ item.sc.code }} · {{ item.code }}</option>{% endfor %}</select></label>
+        <label>Norme <select name="norme"><option value="">Toutes</option>{% for item in norms %}<option value="{{ item.pk }}" {% if selected_norm.pk == item.pk %}selected{% endif %}>{{ item.reference_number }}</option>{% endfor %}</select></label>
+        <label>Personne <select name="personne"><option value="">Toutes</option>{% for item in people %}<option value="{{ item.pk }}" {% if selected_person.pk == item.pk %}selected{% endif %}>{{ item.full_name|default:item.user.username }}</option>{% endfor %}</select></label>
+        <button type="submit">Appliquer</button>
+      </form>
+      {% if metrics %}<div class="metric-strip" aria-label="Indicateurs du périmètre"><span>Avancement <strong>{{ metrics.advancement.value|default_if_none:'Non configuré' }}{% if metrics.advancement.configured %} %{% endif %}</strong></span><span>Production <strong>{{ metrics.production.value|default_if_none:'Non configuré' }}{% if metrics.production.configured %} %{% endif %}</strong></span><span>Qualité <strong>{{ metrics.quality.value|default_if_none:'Non configuré' }}{% if metrics.quality.configured %} %{% endif %}</strong></span><span>Complétude <strong>{{ metrics.completeness.value|default_if_none:'Non configuré' }}{% if metrics.completeness.configured %} %{% endif %}</strong></span></div>{% endif %}
+      {% for section in sections %}
+      <section id="{{ section.key }}" class="counselor-section" data-section-panel="{{ section.key }}" {% if not forloop.first %}hidden{% endif %} aria-labelledby="{{ section.key }}-title">
+        <div class="section-heading"><div><p class="eyebrow">{{ forloop.counter|stringformat:'02d' }} · Supervision</p><h2 id="{{ section.key }}-title">{{ section.title }}</h2><p>{{ section.lead }}</p></div>{% if section.link %}<a class="section-link" href="{{ section.link }}">{{ section.link_label }} ↗</a>{% endif %}</div>
+        <div class="chart-grid">
+          {% for chart in section.charts %}
+          <article class="chart-card" aria-labelledby="{{ chart.key }}-title">
+            <div class="chart-heading"><div><h3 id="{{ chart.key }}-title">{{ chart.title }}</h3><p>{{ chart.sources }} source{{ chart.sources|pluralize }}</p></div><span class="chart-type">{% if chart.kind == 'line' %}Évolution{% else %}Répartition{% endif %}</span></div>
+            {% if chart.configured %}<div id="chart-{{ chart.key }}" class="chart-surface" role="img" aria-label="{{ chart.title }}. Valeurs dans le tableau ci-dessous."></div>{% else %}<div class="chart-empty">Non configuré · aucune donnée pour ce périmètre et cette période.</div>{% endif %}
+            <details class="chart-data" {% if not chart.configured %}open{% endif %}><summary>Voir les chiffres et la méthode</summary><p>{{ chart.method }}</p><div class="table-scroll"><table><caption>{{ chart.title }}</caption><thead><tr><th scope="col">Périmètre</th>{% for series in chart.series %}<th scope="col">{{ series.name }}{% if chart.unit %} ({{ chart.unit }}){% endif %}</th>{% endfor %}</tr></thead><tbody>{% for row in chart.table_rows %}<tr><th scope="row">{{ row.label }}</th>{% for value in row.values %}<td>{{ value }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="4">Aucune donnée.</td></tr>{% endfor %}</tbody></table></div></details>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="records-card"><div class="records-heading"><h3>Éléments du périmètre</h3><span>{{ section.records|length }} affiché{{ section.records|length|pluralize }}</span></div><div class="records-list">{% for record in section.records %}<div class="record-row"><span class="record-main">{% if record.url %}<a href="{{ record.url }}">{{ record.label }}</a>{% else %}<strong>{{ record.label }}</strong>{% endif %}<small>{{ record.detail }}</small></span>{% if record.when %}<time>{{ record.when|date:'d/m/Y' }}</time>{% endif %}</div>{% empty %}<p class="empty-records">Aucun élément enregistré pour les filtres choisis.</p>{% endfor %}</div></div>
+      </section>
+      {% endfor %}
+      <p class="data-note">Les minutes observées viennent des battements de présence visibles ; le travail hors plateforme est déclaré puis approuvé. Ces données ne mesurent pas tout le temps travaillé.</p>
+    </main>
+  </div>
+  {{ sections|json_script:'counselor-chart-data' }}
+</body>
+</html>

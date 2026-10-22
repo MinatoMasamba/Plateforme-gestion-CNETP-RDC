@@ -1,0 +1,27 @@
+<form class="filter-bar" method="get" action="{% url 'web:conseiller_spaces' %}" role="search">
+    <input type="hidden" name="vue" value="{{ active_vue }}">
+    <label class="search-field">
+        <span class="sr-only">Rechercher un dossier</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Rechercher une référence, un intitulé…">
+    </label>
+    <label class="select-field">
+        <span>Statut</span>
+        <select name="statut" onchange="this.form.requestSubmit()">
+            <option value="">Tous les statuts</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if filters.statut == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="select-field">
+        <span>CTM</span>
+        <select name="ctm" onchange="this.form.requestSubmit()">
+            <option value="">Tous les CTM</option>
+            {% for ctm in ctm_options %}
+            <option value="{{ ctm.number }}" {% if filters.ctm == ctm.number|stringformat:'s' %}selected{% endif %}>CTM {{ ctm.number }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="button button--primary">Filtrer</button>
+</form>

@@ -55,13 +55,13 @@ def peut_emettre(expert, priv):
     return bool(priv and priv.get('can_trigger_steps'))
 
 
-def peut_transitionner(expert, priv, demande):
+def peut_transitionner(expert, priv, demande, groupe_ids=None):
     """Le Directoire, le responsable désigné ou le responsable du groupe peuvent avancer le statut."""
     if priv and priv.get('can_trigger_steps'):
         return True
     if demande.destinataire_id == expert.id:
         return True
-    if demande.groupe_id and demande.groupe_id in _group_leader_ids(expert):
+    if demande.groupe_id and demande.groupe_id in (groupe_ids if groupe_ids is not None else _group_leader_ids(expert)):
         return True
     return False
 
@@ -184,19 +184,30 @@ class InstructionDashboardView(View):
         demandes = demandes.prefetch_related('journal').order_by('-created_at')
 
         status_labels = dict(Demande.STATUS_CHOICES)
+        groupe_ids = _group_leader_ids(expert)
         rows = [
             {
                 'demande': demande,
                 'badge_class': STATUT_BADGE.get(demande.statut, 'bg-slate-100 text-slate-700'),
-                'prochaines': [(s, status_labels[s]) for s in Demande.TRANSITIONS.get(demande.statut, [])],
+                'prochaines': (
+                    [(s, status_labels[s]) for s in Demande.TRANSITIONS.get(demande.statut, [])]
+                    if peut_transitionner(expert, priv, demande, groupe_ids) else []
+                ),
                 'journal': list(demande.journal.all()),
             }
             for demande in demandes
         ]
+        counts = {
+            'total': len(rows),
+            'a_traiter': sum(row['demande'].statut in ('ENVOYEE', 'LUE') for row in rows),
+            'en_cours': sum(row['demande'].statut == 'EN_COURS' for row in rows),
+            'executees': sum(row['demande'].statut == 'EXECUTEE' for row in rows),
+        }
 
         context = {
             'page_title': 'Instructions',
             'rows': rows,
+            'counts': counts,
             'statuts': Demande.STATUS_CHOICES,
             'types': Demande.TYPE_CHOICES,
             'peut_emettre': peut_emettre(expert, priv),

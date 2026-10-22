@@ -1,0 +1,59 @@
+<section class="panel avis-panel">
+    <div class="panel-head">
+        <div><span class="eyebrow">Production consultative</span><h2>Avis et recommandations</h2><p class="panel-head__lead">Un avis transmis alimente le circuit de décision. Il ne vaut ni validation, ni signature, ni homologation.</p></div>
+        <span class="soft-badge soft-badge--quiet">Sans pouvoir décisionnel</span>
+    </div>
+
+    <div class="avis-layout">
+        {% if preview_mode %}<p class="muted">Aperçu administrateur en lecture seule. La rédaction d’un avis nécessite un poste confirmé.</p>{% else %}
+        <form class="avis-form" method="post" action="{% url 'web:conseiller_space_avis' %}">
+            {% csrf_token %}
+            <input type="hidden" name="espace" value="{{ space.key }}">
+            {% if selected_norm %}<input type="hidden" name="norme" value="{{ selected_norm.pk }}">{% endif %}
+            <div class="field">
+                <label for="avis-objet">Objet de l'avis</label>
+                <input id="avis-objet" name="objet" maxlength="250" required placeholder="Ex. Observation sur les dispositions techniques" {% if not selected_norm %}disabled{% endif %}>
+            </div>
+            <div class="field">
+                <label for="avis-analyse">Analyse motivée</label>
+                <textarea id="avis-analyse" name="analyse" rows="6" required placeholder="Exposez les constats, les références et les points à vérifier." {% if not selected_norm %}disabled{% endif %}></textarea>
+            </div>
+            <div class="field">
+                <label for="avis-recommandation">Recommandation</label>
+                <select id="avis-recommandation" name="recommandation" required {% if not selected_norm %}disabled{% endif %}>
+                    {% for value, label in recommandations %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="avis-form__actions">
+                <button type="submit" name="action" value="brouillon" class="button button--quiet" {% if not selected_norm %}disabled{% endif %}>Enregistrer le brouillon</button>
+                <button type="submit" name="action" value="soumettre" class="button button--primary" {% if not selected_norm %}disabled{% endif %}>Transmettre au circuit</button>
+            </div>
+            {% if not selected_norm %}<p class="muted small">Sélectionnez un dossier pour préparer un avis.</p>{% endif %}
+        </form>
+        {% endif %}
+
+        <div class="avis-history">
+            <div class="avis-history__head"><h3>Mes avis</h3><span>{{ my_avis|length }}</span></div>
+            {% if my_avis %}
+            <div class="stack-list">
+                {% for avis in my_avis %}
+                <article class="avis-item" id="avis-{{ avis.pk }}">
+                    <div class="avis-item__top"><span class="soft-badge {% if avis.statut == 'SOUMIS' %}soft-badge--blue{% else %}soft-badge--quiet{% endif %}">{{ avis.get_statut_display }}</span><span>{{ avis.created_at|date:"d M Y" }}</span></div>
+                    <strong>{{ avis.objet }}</strong>
+                    <p>{{ avis.norme.reference_number }} · {{ avis.get_recommandation_display }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}<p class="muted">Aucun avis enregistré pour ce profil.</p>{% endif %}
+
+            {% if norme_avis %}
+            <div class="avis-history__head avis-history__head--spaced"><h3>Avis transmis sur ce dossier</h3><span>{{ norme_avis|length }}</span></div>
+            <div class="stack-list">
+                {% for avis in norme_avis %}
+                <article class="avis-item"><div class="avis-item__top"><span class="soft-badge soft-badge--blue">{{ avis.get_recommandation_display }}</span><span>{{ avis.get_profil_display }}</span></div><strong>{{ avis.objet }}</strong><p>{% if avis.auteur %}{{ avis.auteur.full_name }}{% else %}Auteur non renseigné{% endif %} · {{ avis.soumis_le|date:"d M Y" }}</p></article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
