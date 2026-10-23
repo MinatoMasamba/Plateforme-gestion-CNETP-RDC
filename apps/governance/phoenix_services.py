@@ -22,7 +22,7 @@ POLES = (
 
 @transaction.atomic
 def seed_phoenix(code='phoenix-2026-10', actor=None):
-    reference = json.loads(Path(__file__).with_name('phoenix_reference.json').read_text())
+    reference = json.loads(Path(__file__).with_name('phoenix_reference.json').read_text(encoding='utf-8'))
     source = Path(settings.BASE_DIR) / reference['source_document']
     if not source.is_file():
         raise ValidationError('La note source Phoenix doit être présente avant le chargement du catalogue.')

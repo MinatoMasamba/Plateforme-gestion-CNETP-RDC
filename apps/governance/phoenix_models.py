@@ -228,7 +228,7 @@ class AffectationSousCommission(PhoenixValidatedModel, BaseModel):
     """Rattachement migré d'un expert à une SC, sans mandat ni droit implicite."""
 
     class Status(models.TextChoices):
-        MIGRATED = 'MIGRATED', 'Affecté par migration'
+        MIGRATED = 'MIGRATED', 'Affecté'
         REVIEW = 'REVIEW', 'À examiner'
         ENDED = 'ENDED', 'Terminé'
         CANCELLED = 'CANCELLED', 'Annulé'
@@ -300,8 +300,8 @@ class AffectationSousCommission(PhoenixValidatedModel, BaseModel):
             raise ValidationError('La cible doit être une sous-commission de cette organisation.')
         if self.status == self.Status.MIGRATED:
             if not self.sc_id or not self.effective_from or not self.migration_reference.strip():
-                raise ValidationError('Une affectation migrée exige une SC, une date et une référence de migration.')
-            if not self.source_ctm_id:
+                raise ValidationError('Une affectation exige une SC, une date et une référence.')
+            if not self.source_ctm_id and self.source_kind != 'REPORT_PROPOSAL':
                 raise ValidationError('Une affectation migrée exige une provenance CTM vérifiable.')
         if self.source_wg_id and self.source_ctm_id != self.source_wg.ctm_id:
             raise ValidationError('Le WG source doit appartenir au CTM source.')
