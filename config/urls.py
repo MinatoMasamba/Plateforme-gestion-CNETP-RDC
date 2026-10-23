@@ -22,6 +22,7 @@ from django.views.static import serve as static_serve
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from apps.dashboard.views import intelligence_document_media
 
 urlpatterns = [
     # Icône demandée implicitement par les navigateurs à la racine.
@@ -60,6 +61,7 @@ urlpatterns = [
 # Les médias (uploads) sont servis par Django via une route explicite, y compris
 # lorsque DEBUG=False — en production, préférer un stockage objet ou un proxy.
 urlpatterns += [
+    path('media/documents/<path:path>', intelligence_document_media),
     re_path(r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
