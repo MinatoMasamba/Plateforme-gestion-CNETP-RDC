@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../theme/app_colors.dart';
+import '../../theme/copil_theme.dart';
 
 /// En-tête de section de panneau Copil (icône + titre + badge de compteur).
 class PanelHeader extends StatelessWidget {
@@ -42,7 +44,11 @@ class PanelHeader extends StatelessWidget {
             ),
             child: Text(
               '$count en attente',
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -68,6 +74,7 @@ class PanelEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
       decoration: BoxDecoration(
@@ -80,17 +87,17 @@ class PanelEmpty extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppColors.muted,
+              color: p.muted,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11.5, color: AppColors.subtle),
+            style: TextStyle(fontSize: 11.5, color: p.subtle),
           ),
         ],
       ),
@@ -107,7 +114,7 @@ class PanelCard extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.trailing,
-    this.child,
+    this.body,
     this.actions,
   });
 
@@ -116,17 +123,18 @@ class PanelCard extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? trailing;
-  final Widget? child;
+  final Widget? body;
   final Widget? actions;
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: p.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: p.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,10 +160,10 @@ class PanelCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: p.text,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -164,19 +172,16 @@ class PanelCard extends StatelessWidget {
                         subtitle!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 10, color: AppColors.subtle),
+                        style: TextStyle(fontSize: 10, color: p.subtle),
                       ),
                     ],
                   ],
                 ),
               ),
-              if (trailing != null) trailing!,
+              ?trailing,
             ],
           ),
-          if (child != null) ...[
-            const SizedBox(height: 12),
-            child!,
-          ],
+          if (body != null) ...[const SizedBox(height: 12), body!],
           if (actions != null) ...[
             const SizedBox(height: 14),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [actions!]),
@@ -205,7 +210,9 @@ class _SolidButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: outline ? Colors.transparent : color,
         borderRadius: BorderRadius.circular(10),
-        border: outline ? Border.all(color: color.withValues(alpha: 0.4)) : null,
+        border: outline
+            ? Border.all(color: color.withValues(alpha: 0.4))
+            : null,
       ),
       child: Text(
         label.toUpperCase(),
@@ -232,7 +239,8 @@ class CadragePanel extends StatelessWidget {
         icon: Icons.explore_outlined,
         color: AppColors.rdcBlue,
         title: 'Aucune action de cadrage en attente',
-        subtitle: 'Aucun dossier ne requiert votre intervention sur les Phases 1 ou 2 du Bureau Directoire.',
+        subtitle:
+            'Aucun dossier ne requiert votre intervention sur les Phases 1 ou 2 du Bureau Directoire.',
       );
     }
     return Column(
@@ -245,12 +253,19 @@ class CadragePanel extends StatelessWidget {
               iconColor: AppColors.rdcBlue,
               title: '${item.normeRef} — ${item.normeTitle}',
               subtitle: item.actionLabel,
-              child: TextField(
+              actions: _SolidButton(
+                label: item.buttonLabel,
+                color: AppColors.rdcBlue,
+              ),
+              body: TextField(
                 maxLines: 2,
                 style: const TextStyle(fontSize: 11.5),
                 decoration: InputDecoration(
                   hintText: item.hint,
-                  hintStyle: const TextStyle(fontSize: 11.5, color: AppColors.subtle),
+                  hintStyle: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.subtle,
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
                   contentPadding: const EdgeInsets.all(12),
@@ -260,7 +275,6 @@ class CadragePanel extends StatelessWidget {
                   ),
                 ),
               ),
-              actions: _SolidButton(label: item.buttonLabel, color: AppColors.rdcBlue),
             ),
           ),
       ],
@@ -295,7 +309,8 @@ class ReceptionPanel extends StatelessWidget {
         icon: Icons.inbox_outlined,
         color: AppColors.success,
         title: 'Aucune norme en attente de réception',
-        subtitle: 'Toutes les normes transmises par la CTC ont été réceptionnées.',
+        subtitle:
+            'Toutes les normes transmises par la CTC ont été réceptionnées.',
       );
     }
     return Column(
@@ -308,7 +323,10 @@ class ReceptionPanel extends StatelessWidget {
               iconColor: AppColors.success,
               title: '${item.normeRef} — ${item.normeTitle}',
               subtitle: item.signedBy,
-              actions: _SolidButton(label: 'Accuser réception', color: AppColors.success),
+              actions: _SolidButton(
+                label: 'Accuser réception',
+                color: AppColors.success,
+              ),
             ),
           ),
       ],
@@ -352,26 +370,54 @@ class DerogationPanel extends StatelessWidget {
               iconColor: AppColors.rdcBlue,
               title: item.name,
               subtitle: '${item.structure} — ${item.date}',
-              child: Column(
+              body: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'RESSOURCE DEMANDÉE',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.rdcBlue),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.rdcBlue,
+                    ),
                   ),
                   const SizedBox(height: 2),
-                  Text(item.resource, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.text)),
+                  Text(
+                    item.resource,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  const Text('MOTIF', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.subtle)),
+                  const Text(
+                    'MOTIF',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.subtle,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(item.reason, style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
+                  Text(
+                    item.reason,
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      color: AppColors.muted,
+                    ),
+                  ),
                 ],
               ),
               actions: Row(
                 children: [
                   _SolidButton(label: 'Approuver', color: AppColors.success),
                   const SizedBox(width: 8),
-                  _SolidButton(label: 'Refuser', color: AppColors.danger, outline: true),
+                  _SolidButton(
+                    label: 'Refuser',
+                    color: AppColors.danger,
+                    outline: true,
+                  ),
                 ],
               ),
             ),
@@ -421,18 +467,24 @@ class AdhesionsPanel extends StatelessWidget {
               iconColor: AppColors.rdcBlue,
               title: item.name,
               subtitle: '${item.email} · ${item.structure}',
-              child: Column(
+              body: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Inscrit le ${item.date}',
-                    style: const TextStyle(fontSize: 10, color: AppColors.subtle),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.subtle,
+                    ),
                   ),
                   if (item.specialties != null) ...[
                     const SizedBox(height: 6),
                     Text(
                       'Spécialités : ${item.specialties}',
-                      style: const TextStyle(fontSize: 10, color: AppColors.muted),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.muted,
+                      ),
                     ),
                   ],
                 ],
@@ -441,7 +493,11 @@ class AdhesionsPanel extends StatelessWidget {
                 children: [
                   _SolidButton(label: 'Activer', color: AppColors.success),
                   const SizedBox(width: 8),
-                  _SolidButton(label: 'Refuser', color: AppColors.danger, outline: true),
+                  _SolidButton(
+                    label: 'Refuser',
+                    color: AppColors.danger,
+                    outline: true,
+                  ),
                 ],
               ),
             ),

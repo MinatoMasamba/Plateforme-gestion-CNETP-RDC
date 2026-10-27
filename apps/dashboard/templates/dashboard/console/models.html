@@ -1,0 +1,71 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block page_actions %}
+<a href="{% url 'console:home' %}" class="console-btn">
+    <i data-lucide="arrow-left"></i> Accueil
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="console-toolbar">
+    <div class="console-search">
+        <i data-lucide="search"></i>
+        <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un modèle…" aria-label="Rechercher un modèle">
+        <button type="submit" class="console-btn">Rechercher</button>
+        {% if query %}<a href="{% url 'console:models' %}" class="console-btn console-btn-ghost">Effacer</a>{% endif %}
+    </div>
+</form>
+
+{% if groups %}
+<div class="console-stack">
+    {% for group in groups %}
+    <section class="console-card" id="app-{{ group.name }}">
+        <div class="console-card-head">
+            <div class="console-row">
+                <span class="console-app-icon"><i data-lucide="{{ group.icon }}"></i></span>
+                <div>
+                    <h2>{{ group.label }}</h2>
+                    <p>{{ group.rows|length }} modèle{{ group.rows|length|pluralize }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="console-table-wrap">
+            <table class="console-table">
+                <thead>
+                    <tr>
+                        <th>Modèle</th>
+                        <th>Enregistrements</th>
+                        <th>Accès</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in group.rows %}
+                    <tr>
+                        <td><a href="{{ row.url }}">{{ row.label }}</a></td>
+                        <td>{{ row.count }}</td>
+                        <td>
+                            <div class="console-badges">
+                                {% if row.permissions.add %}<span class="console-badge console-badge-green">Créer</span>{% endif %}
+                                {% if row.permissions.change %}<span class="console-badge console-badge-blue">Modifier</span>{% endif %}
+                                {% if row.permissions.delete %}<span class="console-badge console-badge-red">Supprimer</span>{% endif %}
+                                {% if not row.permissions.add and not row.permissions.change and not row.permissions.delete %}
+                                <span class="console-badge">Lecture seule</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td><a href="{{ row.url }}">Ouvrir →</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endfor %}
+</div>
+{% else %}
+<div class="console-card console-empty">
+    Aucun modèle ne correspond à « {{ query }} ».
+</div>
+{% endif %}
+{% endblock %}

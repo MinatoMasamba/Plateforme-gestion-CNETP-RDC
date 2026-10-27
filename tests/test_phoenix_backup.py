@@ -1,17 +1,29 @@
 import hashlib
 import json
 import sqlite3
+from types import SimpleNamespace
+
 from apps.governance.phoenix_backup import prepare_backup
 
 
-def test_backup_restores_private_phoenix_documents(settings, tmp_path):
+def test_backup_restores_private_phoenix_documents(monkeypatch, tmp_path):
     database = tmp_path / 'source.sqlite3'
     with sqlite3.connect(database) as connection:
         connection.execute('CREATE TABLE core_user (id INTEGER PRIMARY KEY, password TEXT, last_login TEXT, updated_at TEXT)')
         connection.execute("INSERT INTO core_user VALUES (1, 'empreinte-de-recette', NULL, NULL)")
-    settings.BASE_DIR = tmp_path
-    settings.MEDIA_ROOT = tmp_path / 'media'
-    settings.DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': str(database)}}
+    monkeypatch.setattr(
+        'apps.governance.phoenix_backup.settings',
+        SimpleNamespace(
+            BASE_DIR=tmp_path,
+            MEDIA_ROOT=tmp_path / 'media',
+            DATABASES={
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': str(database),
+                },
+            },
+        ),
+    )
     private = tmp_path / '.phoenix_documents'
     private.mkdir()
     (private / 'pv.txt').write_bytes(b'Proces-verbal de recette')

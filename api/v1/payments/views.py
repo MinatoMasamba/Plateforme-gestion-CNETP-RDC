@@ -1,15 +1,20 @@
+from datetime import date
+from decimal import Decimal
+
+from django.db.models import Sum, DecimalField
+from django.http import HttpResponse
+from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django.db.models import Sum, Count, Q, DecimalField, F, Case, When
-from django.utils import timezone
-from decimal import Decimal
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.payments.models import Cotisation, Paiement, JetonPresence
 from apps.experts.models import Expert, Structure
+from .receipts import generate_jeton_receipt, generate_payment_receipt
+from .sepa import build_pain_001, sepa_settings
 from .serializers import (
     CotisationBasicSerializer, CotisationDetailSerializer,
     CotisationCreateUpdateSerializer, PaiementBasicSerializer,
@@ -216,10 +221,38 @@ class PaiementViewSet(viewsets.ModelViewSet):
         serializer = PaiementBasicSerializer(paiements, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def receipt(self, request, pk=None):
+        """Télécharger le reçu PDF d'un paiement."""
+        paiement = self.get_object()
+        user = request.user
+        staff = (
+            user.is_staff or user.is_superuser
+            or getattr(user, 'is_ctc_staff', False)
+        )
+        expert = getattr(user, 'expert_profile', None)
+        if not staff and (
+            expert is None
+            or paiement.cotisation.structure_id != expert.structure_id
+        ):
+            return Response(
+                {'detail': "Ce reçu n'appartient pas à votre structure."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        response = HttpResponse(
+            generate_payment_receipt(paiement),
+            content_type='application/pdf',
+        )
+        filename = f"recu-{paiement.numero_recu or paiement.pk}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
 
 class JetonPresenceViewSet(viewsets.ModelViewSet):
     """ViewSet pour les jetons de présence"""
-    queryset = JetonPresence.objects.select_related('expert__user', 'reunion')
+    queryset = JetonPresence.objects.select_related(
+        'expert__user', 'reunion', 'contestation_resolved_by',
+    )
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['expert__id', 'status', 'reunion__id']
@@ -239,7 +272,10 @@ class JetonPresenceViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Permissions granulaires"""
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in [
+            'create', 'update', 'partial_update', 'destroy',
+            'resolve_contestation', 'sepa_export',
+        ]:
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
 
@@ -289,6 +325,191 @@ class JetonPresenceViewSet(viewsets.ModelViewSet):
         jeton.save()
 
         return Response(JetonPresenceDetailSerializer(jeton).data)
+
+    @action(detail=True, methods=['get'])
+    def receipt(self, request, pk=None):
+        """Télécharger le reçu PDF d'une indemnité."""
+        jeton = self.get_object()
+        user = request.user
+        staff = (
+            user.is_staff or user.is_superuser
+            or getattr(user, 'is_ctc_staff', False)
+        )
+        expert = getattr(user, 'expert_profile', None)
+        if not staff and (expert is None or expert.pk != jeton.expert_id):
+            return Response(
+                {'detail': "Ce reçu ne concerne pas votre indemnité."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        response = HttpResponse(
+            generate_jeton_receipt(jeton),
+            content_type='application/pdf',
+        )
+        response['Content-Disposition'] = (
+            f'attachment; filename="indemnite-{jeton.pk}.pdf"'
+        )
+        return response
+
+    @action(detail=True, methods=['post'])
+    def contest(self, request, pk=None):
+        """Contester une indemnité dont l'utilisateur est le bénéficiaire."""
+        jeton = self.get_object()
+        expert = getattr(request.user, 'expert_profile', None)
+        if expert is None or jeton.expert_id != expert.pk:
+            return Response(
+                {'detail': "Seul le bénéficiaire peut contester cette indemnité."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if jeton.contestation_status == 'PENDING':
+            return Response(
+                {'detail': "Une contestation est déjà en cours d'instruction."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        motif = str(request.data.get('motif') or '').strip()
+        if len(motif) < 10:
+            return Response(
+                {'detail': 'Le motif doit contenir au moins 10 caractères.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        jeton.contestation_status = 'PENDING'
+        jeton.contestation_motif = motif
+        jeton.contestation_created_at = timezone.now()
+        jeton.contestation_resolution = ''
+        jeton.contestation_resolved_at = None
+        jeton.contestation_resolved_by = None
+        jeton.save(update_fields=[
+            'contestation_status', 'contestation_motif',
+            'contestation_created_at', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'updated_at',
+        ])
+        return Response(JetonPresenceDetailSerializer(jeton).data)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsCTCCoordinator],
+    )
+    def resolve_contestation(self, request, pk=None):
+        """Accepter ou rejeter une contestation d'indemnité."""
+        jeton = self.get_object()
+        if jeton.contestation_status != 'PENDING':
+            return Response(
+                {'detail': "Cette contestation n'est pas en attente d'instruction."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        decision = str(request.data.get('decision') or '').upper()
+        if decision not in {'ACCEPTED', 'REJECTED'}:
+            return Response(
+                {'detail': 'La décision doit être ACCEPTED ou REJECTED.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        resolution = str(request.data.get('resolution') or '').strip()
+        if not resolution:
+            return Response(
+                {'detail': "La note d'instruction est obligatoire."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        jeton.contestation_status = decision
+        jeton.contestation_resolution = resolution
+        jeton.contestation_resolved_at = timezone.now()
+        jeton.contestation_resolved_by = request.user
+        jeton.save(update_fields=[
+            'contestation_status', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'updated_at',
+        ])
+        return Response(JetonPresenceDetailSerializer(jeton).data)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsCTCCoordinator],
+    )
+    def sepa_export(self, request):
+        """Exporter les indemnités en attente au format pain.001."""
+        config = sepa_settings()
+        if config['missing']:
+            return Response(
+                {
+                    'detail': (
+                        'Coordonnées bancaires de la CNETP non configurées : '
+                        + ', '.join(config['missing'])
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        jetons = self.get_queryset().filter(status='PENDING')
+        raw_ids = (request.query_params.get('ids') or '').strip()
+        if raw_ids:
+            try:
+                ids = {int(value) for value in raw_ids.split(',') if value.strip()}
+            except ValueError:
+                return Response(
+                    {'detail': 'ids doit être une liste d’identifiants.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            jetons = jetons.filter(pk__in=ids)
+            if jetons.count() != len(ids):
+                return Response(
+                    {'detail': 'Certains jetons ne sont plus en attente de paiement.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        jetons = list(jetons)
+        if not jetons:
+            return Response(
+                {'detail': 'Aucune indemnité en attente à exporter.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        missing = []
+        for jeton in jetons:
+            expert = jeton.expert
+            name = expert.user.get_full_name() or expert.user.username
+            if not expert.bank_account or not expert.bank_name:
+                missing.append(name)
+        if missing:
+            return Response(
+                {
+                    'detail': (
+                        'Coordonnées bancaires manquantes pour : '
+                        + ', '.join(sorted(missing))
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        raw_date = (request.query_params.get('execution_date') or '').strip()
+        try:
+            execution_date = date.fromisoformat(raw_date) if raw_date else date.today()
+        except ValueError:
+            return Response(
+                {'detail': 'execution_date doit être une date AAAA-MM-JJ.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        xml = build_pain_001(
+            jetons,
+            debtor_name=config['debtor_name'],
+            debtor_iban=config['debtor_iban'],
+            debtor_bic=config['debtor_bic'],
+            currency=config['currency'],
+            execution_date=execution_date,
+        )
+        response = HttpResponse(
+            xml,
+            content_type='application/xml; charset=utf-8',
+        )
+        response['Content-Disposition'] = (
+            f'attachment; filename="pain001-{execution_date.isoformat()}.xml"'
+        )
+        return response
 
     @action(detail=False, methods=['get'])
     def stats(self, request):

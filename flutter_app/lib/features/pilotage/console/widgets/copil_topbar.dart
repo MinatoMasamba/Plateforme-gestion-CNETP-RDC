@@ -1,239 +1,294 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/app_colors.dart';
+import '../../theme/copil_theme.dart';
 
 class CopilTopbar extends StatelessWidget {
   const CopilTopbar({
     super.key,
     required this.onToggleSidebar,
     required this.memberCount,
+    this.onBack,
+    this.onDirectoire,
+    this.onInstructions,
+    this.onAi,
     this.onThemeToggle,
-    this.onLogout,
-    this.isDark = false,
   });
-
   final VoidCallback onToggleSidebar;
   final int memberCount;
-  final VoidCallback? onThemeToggle;
-  final VoidCallback? onLogout;
-  final bool isDark;
+  final VoidCallback? onBack, onDirectoire, onInstructions, onAi, onThemeToggle;
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
+    final wide = MediaQuery.sizeOf(context).width >= 640;
+    final showActionLabels = MediaQuery.sizeOf(context).width >= 1180;
+    Widget icon(
+      IconData icon,
+      String label,
+      VoidCallback? action, {
+      Color? color,
+      bool outlined = false,
+    }) => SizedBox(
+      width: 34,
+      height: 34,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        tooltip: label,
+        onPressed: action,
+        style: IconButton.styleFrom(
+          side: outlined ? BorderSide(color: p.border) : BorderSide.none,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        icon: Icon(icon, size: 17, color: color ?? p.muted),
+      ),
+    );
+    Widget action(
+      IconData glyph,
+      String label,
+      VoidCallback? callback,
+      Color tint,
+    ) => !showActionLabels
+        ? Tooltip(
+            message: label,
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: OutlinedButton(
+                onPressed: callback,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  foregroundColor: tint,
+                  backgroundColor: tint.withValues(alpha: .08),
+                  side: BorderSide(color: tint.withValues(alpha: .3)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Icon(glyph, size: 14),
+              ),
+            ),
+          )
+        : Tooltip(
+            message: label,
+            child: OutlinedButton.icon(
+              onPressed: callback,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: tint,
+                backgroundColor: tint.withValues(alpha: .08),
+                side: BorderSide(color: tint.withValues(alpha: .3)),
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: Icon(glyph, size: 14),
+              label: showActionLabels
+                  ? Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          );
     return Container(
-      color: Colors.white,
+      width: double.infinity,
+      color: p.topbar,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _TricolorBar(height: 4),
+          SizedBox(
+            height: 4,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ColoredBox(
+                    color: p.blue,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                const Expanded(
+                  child: ColoredBox(
+                    color: Color(0xFFFFF24B),
+                    child: SizedBox.expand(),
+                  ),
+                ),
+                const Expanded(
+                  child: ColoredBox(
+                    color: Color(0xFFDB3832),
+                    child: SizedBox.expand(),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Container(
-            height: 74,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
+            height: wide ? 60 : 56,
+            padding: EdgeInsets.symmetric(
+              horizontal: wide ? 20 : 12,
+              vertical: 0,
+            ),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: p.border)),
             ),
             child: Row(
               children: [
-                // Armoirie + ligne d'État
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFD4AF37)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x22000000),
-                        blurRadius: 3,
-                        offset: Offset(0, 1),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (wide) ...[
+                      Container(
+                        width: 36,
+                        height: 36,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFD4AF37)),
+                        ),
+                        child: Image.asset(
+                          'assets/img/logo-cnetp.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 3,
+                        height: 26,
+                        child: Column(
+                          children: [
+                            Expanded(child: Container(color: p.blue)),
+                            Container(
+                              height: 7,
+                              color: const Color(0xFFFFF24B),
+                            ),
+                            Expanded(
+                              child: Container(color: const Color(0xFFDB3832)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    icon(
+                      Icons.menu,
+                      'Afficher ou masquer le menu',
+                      onToggleSidebar,
+                    ),
+                    if (onBack != null) ...[
+                      if (!wide)
+                        icon(Icons.arrow_back, 'Espace de Travail', onBack),
+                      if (wide)
+                        TextButton.icon(
+                          onPressed: onBack,
+                          icon: Icon(
+                            Icons.arrow_back,
+                            size: 14,
+                            color: p.muted,
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            minimumSize: Size.zero,
+                          ),
+                          label: Text(
+                            'Espace de Travail',
+                            style: TextStyle(fontSize: 12, color: p.muted),
+                          ),
+                        ),
+                      if (wide)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            '|',
+                            style: TextStyle(color: p.borderStrong),
+                          ),
+                        ),
+                    ],
+                    Text(
+                      'PILOTAGE CNE-ITP',
+                      style: TextStyle(
+                        fontSize: wide ? 14 : 12,
+                        fontWeight: FontWeight.w800,
+                        color: p.text,
+                      ),
+                    ),
+                    if (wide) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: p.blueSoft,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: p.blue.withValues(alpha: .3),
+                          ),
+                        ),
+                        child: Text(
+                          '$memberCount MEMBRE${memberCount == 1 ? '' : 'S'}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: p.blue,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset(
-                    'assets/img/logo-cnetp.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const _VerticalTricolor(),
-                const SizedBox(width: 14),
-                const Text(
-                  'PILOTAGE CNE-ITP',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                    color: AppColors.text,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.indigoSoft,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '$memberCount MEMBRES',
-                    style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.indigo,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
+                  ],
                 ),
                 const Spacer(),
-                _OutlineButton(
-                  icon: Icons.dashboard_outlined,
-                  label: 'Espace Bureau Directoire',
-                  color: AppColors.rdcBlue,
-                  background: AppColors.blueSoft,
-                  border: const Color(0xFFB7DDF0),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onDirectoire != null) ...[
+                      action(
+                        Icons.view_sidebar_outlined,
+                        'Espace Bureau Directoire',
+                        onDirectoire,
+                        p.blue,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (onInstructions != null) ...[
+                      action(
+                        Icons.assignment_outlined,
+                        'Instructions existantes',
+                        onInstructions,
+                        p.purple,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (onAi != null) ...[
+                      icon(
+                        Icons.auto_awesome_outlined,
+                        'Assistant IA Pilotage',
+                        onAi,
+                        color: p.blue,
+                        outlined: true,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    icon(
+                      p.isDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                      'Changer le thème',
+                      onThemeToggle,
+                      outlined: true,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                _OutlineButton(
-                  icon: Icons.description_outlined,
-                  label: 'Instructions existantes',
-                  color: AppColors.purple,
-                  background: AppColors.purpleSoft,
-                  border: const Color(0xFFDDD6FE),
-                ),
-                const SizedBox(width: 10),
-                _RoundIconButton(
-                  icon: Icons.auto_awesome_outlined,
-                  color: AppColors.indigo,
-                ),
-                const SizedBox(width: 8),
-                _RoundIconButton(
-                  icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                  color: AppColors.muted,
-                  onTap: onThemeToggle,
-                ),
-                const SizedBox(width: 8),
-                if (onLogout != null)
-                  _RoundIconButton(
-                    icon: Icons.logout,
-                    color: AppColors.danger,
-                    onTap: onLogout,
-                  ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TricolorBar extends StatelessWidget {
-  const _TricolorBar({required this.height});
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          Expanded(child: ColoredBox(color: AppColors.rdcBlue)),
-          Expanded(child: ColoredBox(color: AppColors.rdcYellow)),
-          Expanded(child: ColoredBox(color: AppColors.rdcRed)),
-        ],
-      ),
-    );
-  }
-}
-
-class _VerticalTricolor extends StatelessWidget {
-  const _VerticalTricolor();
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(2),
-        child: SizedBox(
-        width: 4,
-        height: 34,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            Expanded(flex: 3, child: ColoredBox(color: AppColors.rdcBlue)),
-            Expanded(flex: 2, child: ColoredBox(color: AppColors.rdcYellow)),
-            Expanded(flex: 3, child: ColoredBox(color: AppColors.rdcRed)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OutlineButton extends StatelessWidget {
-  const _OutlineButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.background,
-    required this.border,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color background;
-  final Color border;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: color),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({required this.icon, required this.color, this.onTap});
-
-  final IconData icon;
-  final Color color;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Icon(icon, size: 18, color: color),
       ),
     );
   }

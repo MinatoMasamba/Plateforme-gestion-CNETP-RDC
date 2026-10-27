@@ -104,6 +104,13 @@ class JetonPresence(BaseModel):
         ('PENDING', 'En attente de paiement'),
         ('PAID', 'Payé'),
     ]
+
+    CONTESTATION_CHOICES = [
+        ('NONE', 'Aucune'),
+        ('PENDING', 'En attente d’instruction'),
+        ('ACCEPTED', 'Contestation acceptée'),
+        ('REJECTED', 'Contestation rejetée'),
+    ]
     
     expert = models.ForeignKey(Expert, on_delete=models.CASCADE, related_name='jetons')
     reunion = models.ForeignKey(Reunion, on_delete=models.CASCADE, related_name='jetons_presence')
@@ -111,6 +118,25 @@ class JetonPresence(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     payment_date = models.DateField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+
+    contestation_status = models.CharField(
+        max_length=20, choices=CONTESTATION_CHOICES, default='NONE',
+        verbose_name="Statut de la contestation",
+    )
+    contestation_motif = models.TextField(blank=True, verbose_name="Motif de la contestation")
+    contestation_created_at = models.DateTimeField(
+        blank=True, null=True, verbose_name="Contesté le",
+    )
+    contestation_resolution = models.TextField(
+        blank=True, verbose_name="Décision d’instruction",
+    )
+    contestation_resolved_at = models.DateTimeField(
+        blank=True, null=True, verbose_name="Instruit le",
+    )
+    contestation_resolved_by = models.ForeignKey(
+        'core.User', on_delete=models.SET_NULL, blank=True, null=True,
+        related_name='jeton_contestations_resolved', verbose_name="Instruit par",
+    )
     
     class Meta:
         db_table = 'payments_jetonpresence'

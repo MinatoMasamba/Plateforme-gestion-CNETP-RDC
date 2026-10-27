@@ -144,30 +144,50 @@ class PaiementCreateSerializer(serializers.ModelSerializer):
 class JetonPresenceBasicSerializer(serializers.ModelSerializer):
     """Serializer basique pour les jetons de présence"""
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
+    contestation_resolved_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = JetonPresence
         fields = [
             'id', 'expert', 'expert_name', 'reunion', 'montant',
-            'status', 'created_at'
+            'status', 'contestation_status', 'contestation_motif',
+            'contestation_created_at', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'contestation_resolved_by_name', 'created_at'
         ]
-        read_only_fields = ['id', 'expert_name', 'created_at']
+        read_only_fields = [
+            'id', 'expert_name', 'contestation_status', 'contestation_motif',
+            'contestation_created_at', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'contestation_resolved_by_name', 'created_at',
+        ]
+
+    def get_contestation_resolved_by_name(self, obj):
+        user = obj.contestation_resolved_by
+        return (user.get_full_name() or user.username) if user else None
 
 
 class JetonPresenceDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour les jetons de présence"""
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
     reunion_info = serializers.SerializerMethodField()
+    contestation_resolved_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = JetonPresence
         fields = [
             'id', 'expert', 'expert_name', 'reunion', 'reunion_info',
             'montant', 'status', 'payment_date', 'notes',
-            'created_at', 'updated_at'
+            'contestation_status', 'contestation_motif',
+            'contestation_created_at', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'contestation_resolved_by_name', 'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'expert_name', 'created_at', 'updated_at'
+            'id', 'expert_name', 'contestation_status', 'contestation_motif',
+            'contestation_created_at', 'contestation_resolution',
+            'contestation_resolved_at', 'contestation_resolved_by',
+            'contestation_resolved_by_name', 'created_at', 'updated_at',
         ]
 
     def get_reunion_info(self, obj):
@@ -178,6 +198,10 @@ class JetonPresenceDetailSerializer(serializers.ModelSerializer):
             'date': obj.reunion.date,
             'type': obj.reunion.type
         }
+
+    def get_contestation_resolved_by_name(self, obj):
+        user = obj.contestation_resolved_by
+        return (user.get_full_name() or user.username) if user else None
 
 
 class JetonPresenceCreateSerializer(serializers.ModelSerializer):

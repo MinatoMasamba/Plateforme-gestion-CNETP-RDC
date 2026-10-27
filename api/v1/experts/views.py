@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django.db import models
+from django.db import transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
@@ -91,14 +91,18 @@ class ExpertViewSet(viewsets.ModelViewSet):
             requester = Expert.objects.get(user=user)
         except Expert.DoesNotExist:
             return False
+        from web.profile_update_views import ctm_bureau_ids
+        try:
+            return int(ctm_id) in ctm_bureau_ids(requester)
+        except (ValueError, TypeError):
+            return False
+
+    def _managed_ctm_ids(self, user):
         from apps.governance.models import CTM
-        return CTM.objects.filter(
-            id=ctm_id
-        ).filter(
-            models.Q(scientific_president=requester) |
-            models.Q(rapporteur=requester) |
-            models.Q(secretary=requester)
-        ).exists()
+        from web.profile_update_views import ctm_bureau_ids
+        if user.is_superuser or getattr(user, 'is_ctc_staff', False):
+            return set(CTM.objects.values_list('id', flat=True))
+        return ctm_bureau_ids(Expert.objects.filter(user=user).first())
 
     def _target_ctm_id(self, expert):
         affectation = expert.governance_affectations.order_by('-is_primary_ctm', '-is_primary_wg').first()
@@ -193,6 +197,7 @@ class ExpertViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_path='admit-to-ctm')
+    @transaction.atomic
     def admit_to_ctm(self, request, pk=None):
         """Accepter l'adhésion CTM, affecter au WG, créer le token d'activation et envoyer l'email."""
         from apps.governance.models import Affectation
@@ -205,6 +210,18 @@ class ExpertViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'ctm_id est requis.'}, status=status.HTTP_400_BAD_REQUEST)
         if not self._user_has_ctm_role(request.user, ctm_id):
             raise PermissionDenied("Un rôle CTM est requis pour accepter l'adhésion de cet expert.")
+
+        if expert.status != 'PENDING':
+            return Response({'detail': 'Seules les demandes en attente peuvent être admises.'}, status=400)
+        if str(self._target_ctm_id(expert)) != str(ctm_id):
+            return Response({'detail': 'La CTM doit correspondre à la demande d’adhésion.'}, status=400)
+        from apps.governance.models import WG
+        try:
+            wg_id = int(wg_id)
+        except (ValueError, TypeError):
+            return Response({'wg_id': 'Sélectionnez un groupe de travail valide.'}, status=400)
+        if not wg_id or not WG.objects.filter(pk=wg_id, ctm_id=ctm_id).exists():
+            return Response({'wg_id': 'Sélectionnez un groupe de travail de cette CTM.'}, status=400)
 
         expert.ctm_id          = ctm_id
         expert.status          = 'ACTIVE'
@@ -276,17 +293,7 @@ class ExpertViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='pending-for-my-ctm')
     def pending_for_my_ctm(self, request):
         """Liste des experts PENDING pour les CTM que l'utilisateur connecté dirige."""
-        try:
-            me = Expert.objects.get(user=request.user)
-        except Expert.DoesNotExist:
-            return Response([])
-
-        from apps.governance.models import CTM
-        my_ctms = CTM.objects.filter(
-            models.Q(scientific_president=me) |
-            models.Q(rapporteur=me) |
-            models.Q(secretary=me)
-        )
+        my_ctms = self._managed_ctm_ids(request.user)
         pending = Expert.objects.filter(
             ctm__in=my_ctms, status='PENDING'
         ).select_related('user', 'structure', 'ctm')
@@ -295,19 +302,9 @@ class ExpertViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='pending-count-for-my-ctm')
     def pending_count_for_my_ctm(self, request):
         """Compteur de demandes en attente — utilisé par le badge du widget web."""
-        try:
-            me = Expert.objects.get(user=request.user)
-        except Expert.DoesNotExist:
-            return Response({'count': 0, 'is_ctm_leader': False})
-
-        from apps.governance.models import CTM
-        my_ctms = CTM.objects.filter(
-            models.Q(scientific_president=me) |
-            models.Q(rapporteur=me) |
-            models.Q(secretary=me)
-        )
+        my_ctms = self._managed_ctm_ids(request.user)
         count = Expert.objects.filter(ctm__in=my_ctms, status='PENDING').count()
-        return Response({'count': count, 'is_ctm_leader': my_ctms.exists()})
+        return Response({'count': count, 'is_ctm_leader': bool(my_ctms)})
 
     @action(detail=True, methods=['post'], permission_classes=[IsCTCCoordinator])
     def deactivate(self, request, pk=None):
@@ -329,6 +326,53 @@ class ExpertViewSet(viewsets.ModelViewSet):
     def me(self, request):
         """Récupérer le profil de l'utilisateur connecté."""
         return self.my_profile(request)
+
+    @action(detail=False, methods=['get', 'patch'], url_path='my-affiliation')
+    def my_affiliation(self, request):
+        """Choix autonome de la sous-commission et des WG du profil connecté."""
+        from rest_framework import serializers
+        from apps.governance.models import Affectation, CTM, WG
+        from web.profile_update_views import ctm_bureau_ids
+
+        expert = Expert.objects.filter(user=request.user).first()
+        if expert is None:
+            return Response({'detail': 'Profil expert introuvable.'}, status=404)
+        bureau_ids = ctm_bureau_ids(expert)
+        if request.method == 'PATCH':
+            class SelectionSerializer(serializers.Serializer):
+                ctm = serializers.PrimaryKeyRelatedField(queryset=CTM.objects.all())
+                wgs = serializers.PrimaryKeyRelatedField(
+                    queryset=WG.objects.all(), many=True, allow_empty=True,
+                )
+
+            selection = SelectionSerializer(data=request.data)
+            selection.is_valid(raise_exception=True)
+            ctm = selection.validated_data['ctm']
+            wgs = list({wg.pk: wg for wg in selection.validated_data['wgs']}.values())
+            if any(wg.ctm_id != ctm.pk for wg in wgs):
+                raise ValidationError({'wgs': 'Groupe de travail invalide pour cette sous-commission.'})
+            if not wgs and WG.objects.filter(ctm=ctm).exists():
+                raise ValidationError({'wgs': 'Sélectionnez au moins un groupe de travail.'})
+            if len(wgs) > 1 and ctm.pk not in bureau_ids:
+                raise ValidationError({'wgs': 'Un seul groupe de travail est autorisé pour ce profil.'})
+            with transaction.atomic():
+                Affectation.objects.filter(expert=expert).delete()
+                Affectation.objects.bulk_create([
+                    Affectation(expert=expert, ctm=ctm, wg=wg,
+                                is_primary_ctm=True, is_primary_wg=True)
+                    for wg in (wgs or [None])
+                ])
+                expert.ctm = ctm
+                expert.save(update_fields=['ctm'])
+        return Response({
+            'ctm': expert.ctm_id,
+            'wgs': list(expert.governance_affectations.filter(
+                ctm_id=expert.ctm_id, wg__isnull=False,
+            ).values_list('wg_id', flat=True)),
+            'bureau_ctm_ids': sorted(bureau_ids),
+            'ctms': list(CTM.objects.order_by('number').values('id', 'number', 'name')),
+            'workgroups': list(WG.objects.order_by('number').values('id', 'ctm_id', 'number', 'name')),
+        })
 
     @action(detail=False, methods=['get'])
     def my_profile(self, request):

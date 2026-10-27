@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title|default:"Administration" }} — CNE-ITP{% endblock %}</title>
+    <meta name="theme-color" content="#0095c9">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+    <script src="{% static 'vendor/tailwindcss.js' %}"></script>
+    <script src="{% static 'vendor/lucide.js' %}"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <link rel="stylesheet" href="{% static 'css/console-admin.css' %}">
+</head>
+<body class="console-shell">
+    <header class="console-topbar">
+        <div class="console-tricolor" aria-hidden="true">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="console-topbar-row">
+            <div class="console-brand">
+                <button type="button" class="console-icon-btn console-menu-toggle" data-console-sidebar-toggle
+                        aria-label="Afficher ou masquer le menu" aria-controls="console-sidebar" aria-expanded="false">
+                    <i data-lucide="menu"></i>
+                </button>
+                <a href="{% url 'console:home' %}" class="console-logo">
+                    <img src="{% static 'img/logo-cnetp.png' %}" alt="CNE-ITP" width="36" height="36">
+                </a>
+                <div class="console-brand-text">
+                    <strong>Console d’administration</strong>
+                    <span>CNE-ITP · Pilotage institutionnel</span>
+                </div>
+            </div>
+            <div class="console-topbar-actions">
+                <a href="{% url 'web:app' %}" class="console-text-link">
+                    <i data-lucide="arrow-left"></i>
+                    <span>Espace de travail</span>
+                </a>
+                <a href="{% url 'console:audit' %}" class="console-text-link">
+                    <i data-lucide="history"></i>
+                    <span>Journal</span>
+                </a>
+                <button type="button" class="console-icon-btn" data-theme-toggle title="Changer le thème">
+                    <i data-lucide="sun" class="theme-icon-light"></i>
+                    <i data-lucide="moon" class="theme-icon-dark"></i>
+                </button>
+                <div class="console-user">
+                    <span class="console-user-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+                    <span class="console-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </div>
+                <form method="post" action="{% url 'logout' %}" class="console-logout">
+                    {% csrf_token %}
+                    <button type="submit" class="console-icon-btn" title="Se déconnecter" aria-label="Se déconnecter">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <div class="console-layout">
+        <div class="console-sidebar-overlay" data-console-sidebar-close hidden></div>
+        <aside id="console-sidebar" class="console-sidebar">
+            <nav aria-label="Navigation de la console">
+                <p class="console-nav-label">Pilotage</p>
+                <a href="{% url 'console:home' %}"
+                   class="console-nav-link{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i><span>Accueil</span>
+                </a>
+                <a href="{% url 'console:models' %}"
+                   class="console-nav-link{% if request.resolver_match.url_name == 'models' or request.resolver_match.url_name == 'model_list' or request.resolver_match.url_name == 'model_detail' or request.resolver_match.url_name == 'model_create' or request.resolver_match.url_name == 'model_edit' or request.resolver_match.url_name == 'model_delete' %} is-active{% endif %}">
+                    <i data-lucide="boxes"></i><span>Modèles</span>
+                </a>
+                <a href="{% url 'console:users' %}"
+                   class="console-nav-link{% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' or request.resolver_match.url_name == 'user_password' or request.resolver_match.url_name == 'user_deactivate' or request.resolver_match.url_name == 'user_reactivate' %} is-active{% endif %}">
+                    <i data-lucide="users"></i><span>Utilisateurs</span>
+                </a>
+                <a href="{% url 'console:audit' %}"
+                   class="console-nav-link{% if request.resolver_match.url_name == 'audit' %} is-active{% endif %}">
+                    <i data-lucide="scroll-text"></i><span>Journal d’audit</span>
+                </a>
+
+                <p class="console-nav-label console-nav-label-spaced">Raccourcis</p>
+                <a href="{% url 'console:model_list' 'norms' 'norme' %}" class="console-nav-link">
+                    <i data-lucide="book-open"></i><span>Normes</span>
+                </a>
+                <a href="{% url 'console:model_list' 'experts' 'expert' %}" class="console-nav-link">
+                    <i data-lucide="user-check"></i><span>Experts</span>
+                </a>
+                <a href="{% url 'console:model_list' 'governance' 'ctm' %}" class="console-nav-link">
+                    <i data-lucide="landmark"></i><span>Gouvernance</span>
+                </a>
+            </nav>
+
+            <div class="console-sidebar-footer">
+                {% if request.user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="console-nav-link">
+                    <i data-lucide="shield"></i><span>Admin Django</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'web:app' %}" class="console-nav-link">
+                    <i data-lucide="arrow-left"></i><span>Espace de travail</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="console-main" id="console-main">
+            <div class="console-page-head">
+                <div>
+                    <p class="console-eyebrow">Administration CNE-ITP</p>
+                    <h1>{% block heading %}{{ page_title|default:"Console" }}{% endblock %}</h1>
+                    {% block subheading %}{% endblock %}
+                </div>
+                <div class="console-page-actions">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
+
+            {% if messages %}
+            <div class="console-messages" role="status">
+                {% for message in messages %}
+                <div class="console-message console-message-{{ message.tags|default:'info' }}">
+                    <i data-lucide="{% if message.tags == 'success' %}check-circle-2{% elif message.tags == 'error' %}alert-circle{% elif message.tags == 'warning' %}alert-triangle{% else %}info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="{% static 'js/console.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

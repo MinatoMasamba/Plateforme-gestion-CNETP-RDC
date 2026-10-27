@@ -53,7 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             top: 0,
             left: 0,
             right: 0,
-            child: Container(
+            child: SizedBox(
               height: 3,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,8 +95,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : const Color(0xFFCCEDFB),
                         ),
                       ),
-                      child: const Icon(Icons.lock_outline,
-                          size: 24, color: AppColors.brand600),
+                      child: const Icon(
+                        Icons.lock_outline,
+                        size: 24,
+                        color: AppColors.brand600,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -112,7 +115,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'Connectez-vous à la plateforme CNE-ITP.',
                       style: TextStyle(
                         fontSize: 13,
-                        color: _dark ? const Color(0xFF94A3B8) : AppColors.muted,
+                        color: _dark
+                            ? const Color(0xFF94A3B8)
+                            : AppColors.muted,
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -149,14 +154,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 color: AppColors.danger.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color:
-                                      AppColors.danger.withValues(alpha: 0.2),
+                                  color: AppColors.danger.withValues(
+                                    alpha: 0.2,
+                                  ),
                                 ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.shield_outlined,
-                                      size: 18, color: AppColors.danger),
+                                  const Icon(
+                                    Icons.shield_outlined,
+                                    size: 18,
+                                    color: AppColors.danger,
+                                  ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -187,7 +196,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             icon: Icons.key_outlined,
                             dark: _dark,
                             obscure: _obscure,
-                            onToggle: () => setState(() => _obscure = !_obscure),
+                            onToggle: () =>
+                                setState(() => _obscure = !_obscure),
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -217,8 +227,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {},
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 32),
+                                ),
+                                onPressed: () =>
+                                    context.go('/mot-de-passe-oublie'),
                                 child: const Text(
                                   'Mot de passe oublié ?',
                                   style: TextStyle(
@@ -262,8 +277,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                               ),
                                             ),
                                             SizedBox(width: 8),
-                                            Icon(Icons.login,
-                                                size: 16, color: Colors.white),
+                                            Icon(
+                                              Icons.login,
+                                              size: 16,
+                                              color: Colors.white,
+                                            ),
                                           ],
                                         ),
                                 ),
@@ -274,24 +292,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text.rich(
-                      TextSpan(
-                        text: 'Pas encore accrédité ? ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _dark
-                              ? const Color(0xFF94A3B8)
-                              : AppColors.subtle,
-                        ),
-                        children: const [
-                          TextSpan(
-                            text: 'Déposer une candidature expert',
-                            style: TextStyle(
-                              color: AppColors.brand600,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    TextButton(
+                      onPressed: () => context.go('/candidature'),
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'Pas encore accrédité ? ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _dark
+                                ? const Color(0xFF94A3B8)
+                                : AppColors.subtle,
                           ),
-                        ],
+                          children: const [
+                            TextSpan(
+                              text: 'Déposer une candidature expert',
+                              style: TextStyle(
+                                color: AppColors.brand600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -322,7 +343,9 @@ class _RoundToggle extends StatelessWidget {
           shape: BoxShape.circle,
           color: dark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
           border: Border.all(
-            color: dark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0),
+            color: dark
+                ? Colors.white.withValues(alpha: 0.1)
+                : const Color(0xFFE2E8F0),
           ),
         ),
         child: Icon(
@@ -359,8 +382,9 @@ class _Field extends StatelessWidget {
     final borderColor = dark
         ? Colors.white.withValues(alpha: 0.1)
         : const Color(0xFFE2E8F0);
-    final fillColor =
-        dark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC);
+    final fillColor = dark
+        ? Colors.white.withValues(alpha: 0.05)
+        : const Color(0xFFF8FAFC);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,14 +419,18 @@ class _Field extends StatelessWidget {
                 ? IconButton(
                     onPressed: onToggle,
                     icon: Icon(
-                      obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      obscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                       size: 18,
                       color: AppColors.subtle,
                     ),
                   )
                 : null,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: borderColor),

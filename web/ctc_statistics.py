@@ -117,7 +117,7 @@ def build_ctc_statistics():
             norms = norms_by_wg[wg.pk]
             scoped_tasks.extend(tasks)
             group_performance = _performance(tasks)
-            groups.append({'id': f'ctm-{wg.pk}', 'code': f'GT {ctm.number}.{wg.number}', 'name': wg.name,
+            groups.append({'id': f'wg-{wg.pk}', 'code': f'GT {ctm.number}.{wg.number}', 'name': wg.name,
                            'performance': group_performance, 'color': _performance_color(group_performance),
                            'tasks': tasks, 'norms': norms,
                            'status': 'Actif'})

@@ -5,9 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/auth/login_screen.dart';
+import '../../features/auth/password_reset_screen.dart';
+import '../../features/auth/registration_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/pilotage/console/copil_console_screen.dart';
 import '../../features/pilotage/directoire/directoire_screen.dart';
+import '../../features/pilotage/directoire/directoire_board_screen.dart';
+import '../../features/pilotage/organisation/organisation_screen.dart';
 import '../../features/ctc/ctc_screen.dart';
 import '../../features/expert/expert_screen.dart';
 
@@ -35,13 +39,14 @@ const _protected = <String>{
   '/pilotage/directoire',
   '/pilotage/conseillers',
   '/pilotage/atf',
+  '/pilotage/organisation',
   '/ctc',
   '/expert',
 };
 
 class _AuthRefresh extends ChangeNotifier {
   _AuthRefresh(Ref ref) {
-    ref.listen(authControllerProvider, (_, __) => notifyListeners());
+    ref.listen(authControllerProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -67,14 +72,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null; // routes publiques (/, /login)
       }
 
-      // 2) Authentifié : /splash, /login et / redirigent vers l'espace.
+      // 2) Authentifié : /splash et /login redirigent vers l'espace.
       if (loggedIn) {
         if (loc == '/splash') {
           final to = state.uri.queryParameters['to'];
           if (to != null && to.isNotEmpty) return to;
           return spacePath(auth.session?.space ?? 'public');
         }
-        if (loc == '/' || loc == '/login') {
+        if (loc == '/login') {
           return spacePath(auth.session?.space ?? 'public');
         }
         return null;
@@ -85,23 +90,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
-      GoRoute(path: '/pilotage', builder: (_, __) => const CopilConsoleScreen()),
+      GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(
+        path: '/candidature',
+        builder: (_, _) => const RegistrationScreen(),
+      ),
+      GoRoute(
+        path: '/mot-de-passe-oublie',
+        builder: (_, _) => const PasswordResetScreen(),
+      ),
+      GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
+      GoRoute(path: '/pilotage', builder: (_, _) => const CopilConsoleScreen()),
+      GoRoute(
+        path: '/pilotage/organisation',
+        builder: (_, _) => const CopilOrganisationScreen(),
+      ),
       GoRoute(
         path: '/pilotage/directoire',
-        builder: (_, __) => const DirectoireScreen(),
+        builder: (_, _) => const DirectoireBoardScreen(),
       ),
       GoRoute(
         path: '/pilotage/conseillers',
-        builder: (_, __) => const DirectoireScreen(conseillers: true),
+        builder: (_, _) => const DirectoireScreen(conseillers: true),
       ),
       GoRoute(
         path: '/pilotage/atf',
-        builder: (_, __) => const CopilConsoleScreen(),
+        builder: (_, _) => const CopilConsoleScreen(),
       ),
-      GoRoute(path: '/ctc', builder: (_, __) => const CtcScreen()),
+      GoRoute(path: '/ctc', builder: (_, _) => const CtcScreen()),
       GoRoute(
         path: '/expert',
         builder: (context, state) {

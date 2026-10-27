@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/app_colors.dart';
+
+import '../../theme/copil_theme.dart';
 
 class ScGroup {
   const ScGroup({
@@ -7,12 +8,30 @@ class ScGroup {
     required this.title,
     required this.memberCount,
     required this.experts,
+    this.id,
   });
 
   final String code;
+  final int? id;
   final String title;
   final int memberCount;
   final List<String> experts;
+}
+
+class CopilProfile {
+  const CopilProfile({
+    this.fullName = '',
+    this.role = '',
+    this.structure = '',
+    this.status = '',
+    this.appointmentDate = '',
+  });
+
+  final String fullName;
+  final String role;
+  final String structure;
+  final String status;
+  final String appointmentDate;
 }
 
 /// Données réelles de la version d'organisation courante (base locale).
@@ -163,29 +182,47 @@ const demoScGroups = <ScGroup>[
   ),
   ScGroup(
     code: 'SC-VRD',
-    title: 'Réseaux Divers (VRD), Équipements & Fluides (Proposition d\'expert)',
+    title:
+        'Réseaux Divers (VRD), Équipements & Fluides (Proposition d\'expert)',
     memberCount: 0,
     experts: [],
   ),
 ];
 
 class ConsoleContent extends StatelessWidget {
-  const ConsoleContent({super.key, this.scs = const [], this.counts = const {}});
+  const ConsoleContent({
+    super.key,
+    this.scs = const [],
+    this.counts = const {},
+    this.profile = const CopilProfile(),
+    this.onInstruction,
+    this.onSubcommission,
+    this.onManageExperts,
+    this.onFreeze,
+    this.platformLocked = false,
+  });
 
   final List<ScGroup> scs;
   final Map<String, int> counts;
+  final CopilProfile profile;
+  final VoidCallback? onInstruction;
+  final ValueChanged<ScGroup>? onSubcommission;
+  final VoidCallback? onManageExperts;
+  final VoidCallback? onFreeze;
+  final bool platformLocked;
 
-  List<ScGroup> get _groups => scs.isNotEmpty ? scs : demoScGroups;
+  List<ScGroup> get _groups => scs;
 
   @override
   Widget build(BuildContext context) {
     final groups = _groups;
+    final p = CopilTheme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _Hero(),
+        _Hero(profile: profile),
         Padding(
-          padding: const EdgeInsets.fromLTRB(28, 22, 28, 32),
+          padding: const EdgeInsets.fromLTRB(16, 32, 16, 64),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -193,32 +230,44 @@ class ConsoleContent extends StatelessWidget {
               const SizedBox(height: 16),
               _KpiRow(counts: counts),
               const SizedBox(height: 26),
-              Row(
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
                 children: [
-                  const Icon(Icons.hub_outlined, size: 15, color: AppColors.subtle),
-                  const SizedBox(width: 8),
-                  Text(
-                    'LES ${groups.length} SOUS-COMMISSIONS TECHNIQUES',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.4,
-                      color: AppColors.muted,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.hub_outlined, size: 15, color: p.subtle),
+                      const SizedBox(width: 8),
+                      Text(
+                        'LES ${groups.length} SOUS-COMMISSIONS TECHNIQUES',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.4,
+                          color: p.muted,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  _PrimaryButton(label: 'Donner une Instruction', onTap: () {}),
+                  _PrimaryButton(
+                    label: 'Donner une instruction',
+                    onTap: onInstruction ?? () {},
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final columns = constraints.maxWidth >= 1080
+                  final viewport = MediaQuery.sizeOf(context).width;
+                  final columns = viewport >= 1280
                       ? 3
-                      : constraints.maxWidth >= 700
-                          ? 2
-                          : 1;
-                  const gap = 14.0;
+                      : viewport >= 640
+                      ? 2
+                      : 1;
+                  const gap = 12.0;
                   final width =
                       (constraints.maxWidth - gap * (columns - 1)) / columns;
                   return Wrap(
@@ -228,12 +277,99 @@ class ConsoleContent extends StatelessWidget {
                       for (final group in groups)
                         SizedBox(
                           width: width,
-                          child: _ScCard(group: group),
+                          child: _ScCard(
+                            group: group,
+                            onTap: onSubcommission == null
+                                ? null
+                                : () => onSubcommission!(group),
+                          ),
                         ),
                     ],
                   );
                 },
               ),
+              if (groups.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    "La structure des sous-commissions n'est pas encore disponible.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: p.muted),
+                  ),
+                ),
+              if (onManageExperts != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: p.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: p.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'GESTION DES ACCÈS EXPERTS',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: p.subtle,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Consultez la sous-commission de chaque expert et gérez son accès à la plateforme.',
+                        style: TextStyle(fontSize: 12, color: p.subtle),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: onManageExperts,
+                        icon: const Icon(Icons.people_outline, size: 14),
+                        label: const Text('Gérer les experts'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (onFreeze != null) ...[
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: p.blueSoft,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: p.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Verrouillage de la plateforme',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: p.title,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        platformLocked
+                            ? 'Plateforme verrouillée. Les actions opérationnelles sont suspendues.'
+                            : 'Cette action suspend les opérations techniques et le cadrage sur toute la plateforme.',
+                        style: TextStyle(fontSize: 12, color: p.muted),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: onFreeze,
+                        child: Text(
+                          platformLocked ? 'Déverrouiller' : 'Verrouiller',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -247,17 +383,20 @@ class _ConsoleHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     return Row(
-      children: const [
-        Icon(Icons.settings_suggest_outlined, size: 17, color: AppColors.subtle),
-        SizedBox(width: 8),
-        Text(
-          'CONSOLE GLOBALE DE SUPERVISION',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.6,
-            color: AppColors.muted,
+      children: [
+        Icon(Icons.dashboard_outlined, size: 16, color: p.blue),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'CONSOLE GLOBALE DE SUPERVISION',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.6,
+              color: p.blue,
+            ),
           ),
         ),
       ],
@@ -266,15 +405,18 @@ class _ConsoleHeading extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero();
+  const _Hero({required this.profile});
+
+  final CopilProfile profile;
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+      decoration: BoxDecoration(
+        color: p.bg,
+        border: Border(bottom: BorderSide(color: p.border)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,36 +424,38 @@ class _Hero extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  'eddie masamba',
+                  profile.fullName,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: p.title,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'Bureau Directoire · Président',
-                  style: TextStyle(fontSize: 13, color: AppColors.muted),
+                  profile.role,
+                  style: TextStyle(fontSize: 13, color: p.muted),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Default Structure (DS)',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.subtle),
+                  profile.structure,
+                  style: TextStyle(fontSize: 11.5, color: p.subtle),
                 ),
-                SizedBox(height: 3),
-                Text(
-                  'Nommé le 30/05/2026',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.subtle),
-                ),
+                if (profile.appointmentDate.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Nommé le ${profile.appointmentDate}',
+                    style: TextStyle(fontSize: 12, color: p.subtle),
+                  ),
+                ],
               ],
             ),
           ),
-          const Text(
-            'Actif',
-            style: TextStyle(fontSize: 11.5, color: AppColors.subtle),
+          Text(
+            profile.status,
+            style: TextStyle(fontSize: 11.5, color: p.subtle),
           ),
         ],
       ),
@@ -325,15 +469,24 @@ class _KpiRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     final items = [
-      _KpiData('${counts['sous_commissions'] ?? 0}', 'SOUS-COMMISSIONS', AppColors.rdcBlue),
-      _KpiData('${counts['experts'] ?? 0}', 'EXPERTS', AppColors.success),
-      _KpiData('${counts['a_examiner'] ?? 0}', 'À EXAMINER', AppColors.warning),
-      _KpiData('${counts['normes_travaillees'] ?? 0}', 'NORMES TRAVAILLÉES', AppColors.danger),
+      _KpiData(
+        '${counts['sous_commissions'] ?? 0}',
+        'SOUS-COMMISSIONS',
+        p.blue,
+      ),
+      _KpiData('${counts['experts'] ?? 0}', 'EXPERTS', p.success),
+      _KpiData('${counts['a_examiner'] ?? 0}', 'À EXAMINER', p.warning),
+      _KpiData(
+        '${counts['normes_travaillees'] ?? 0}',
+        'NORMES TRAVAILLÉES',
+        p.danger,
+      ),
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 760 ? 4 : 2;
+        final columns = MediaQuery.sizeOf(context).width >= 640 ? 4 : 2;
         const gap = 12.0;
         final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
         return Wrap(
@@ -341,7 +494,10 @@ class _KpiRow extends StatelessWidget {
           runSpacing: gap,
           children: [
             for (final item in items)
-              SizedBox(width: width, child: _KpiCard(data: item)),
+              SizedBox(
+                width: width,
+                child: _KpiCard(data: item),
+              ),
           ],
         );
       },
@@ -362,10 +518,11 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = CopilTheme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: data.color.withValues(alpha: 0.05),
+        color: data.color.withValues(alpha: p.isDark ? 0.08 : 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: data.color.withValues(alpha: 0.2)),
       ),
@@ -374,7 +531,7 @@ class _KpiCard extends StatelessWidget {
           Text(
             data.value,
             style: TextStyle(
-              fontSize: 27,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
               height: 1,
               color: data.color,
@@ -384,11 +541,11 @@ class _KpiCard extends StatelessWidget {
           Text(
             data.label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: AppColors.muted,
+              color: p.muted,
             ),
           ),
         ],
@@ -398,114 +555,128 @@ class _KpiCard extends StatelessWidget {
 }
 
 class _ScCard extends StatelessWidget {
-  const _ScCard({required this.group});
+  const _ScCard({required this.group, this.onTap});
   final ScGroup group;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    final p = CopilTheme.of(context);
+    return Material(
+      color: p.card,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: p.card,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: p.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.rdcBlue.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.rdcBlue.withValues(alpha: 0.2),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: p.blueSoft,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: p.blue.withValues(alpha: 0.25)),
+                    ),
+                    child: Text(
+                      group.code,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: p.blue,
+                      ),
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  Text(
+                    '${group.memberCount} experts',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: p.subtle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 32,
                 child: Text(
-                  group.code,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.rdcBlue,
+                  group.title,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                    color: p.title,
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                '${group.memberCount} experts',
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.subtle,
-                ),
+              const SizedBox(height: 12),
+              Divider(height: 1, color: p.border),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: group.experts.isEmpty ? 16 : 128,
+                child: group.experts.isEmpty
+                    ? Text(
+                        'Aucun expert classé dans cette sous-commission.',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                          color: p.subtle,
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final expert in group.experts)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: p.success,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        expert,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: p.muted,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            group.title,
-            maxLines: 2,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              height: 1.3,
-              color: AppColors.text,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 104,
-            child: group.experts.isEmpty
-                ? const Text(
-                    'Aucun expert classé dans cette sous-commission.',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontStyle: FontStyle.italic,
-                      color: AppColors.subtle,
-                    ),
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final expert in group.experts)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 5,
-                                  height: 5,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.success,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    expert,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.muted,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -519,8 +690,8 @@ class _PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.accent,
-      borderRadius: BorderRadius.circular(9),
+      color: const Color(0xFF2563EB),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(9),

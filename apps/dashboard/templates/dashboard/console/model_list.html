@@ -1,0 +1,61 @@
+{% extends "dashboard/console/base.html" %}
+{% load admin_list %}
+
+{% block page_actions %}
+<a href="{% url 'console:models' %}" class="console-btn">
+    <i data-lucide="arrow-left"></i> Modèles
+</a>
+{% if permissions.add %}
+<a href="{% url 'console:model_create' app_label model_name %}" class="console-btn console-btn-primary">
+    <i data-lucide="plus"></i> Créer
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if related_label %}
+<div class="console-message console-message-info" style="margin-bottom: 14px;">
+    <i data-lucide="filter"></i>
+    <span>Liste filtrée par {{ related_label }}. <a href="{{ related_clear_url }}">Retirer le filtre</a></span>
+</div>
+{% endif %}
+
+<div class="console-card" style="margin-bottom: 14px;">
+    <form method="get" class="console-toolbar" style="margin-bottom: 0;">
+        {% for key, value in request.GET.items %}
+            {% if key != 'q' and key != 'p' and key != 'related_field' and key != 'related_pk' %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <div class="console-search">
+            <i data-lucide="search"></i>
+            <input type="search" name="q" value="{{ cl.params.q|default:'' }}" placeholder="Rechercher…" aria-label="Rechercher dans {{ model_verbose_name_plural }}">
+            <button type="submit" class="console-btn">Rechercher</button>
+            {% if cl.params.q %}<a href="{{ related_clear_url }}" class="console-btn console-btn-ghost">Effacer</a>{% endif %}
+        </div>
+        <span class="console-muted console-small">{{ pagination_meta }}</span>
+    </form>
+
+    {% if filters %}
+    <div style="margin-top: 14px;">
+        {% for group in filters %}
+        <div class="console-filter-group">
+            <div class="console-filter-title">{{ group.title }}</div>
+            {% for choice in group.choices %}
+            <a href="{{ choice.query_string }}" class="console-filter-choice{% if choice.selected %} is-selected{% endif %}">{{ choice.display }}</a>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="console-table-wrap">
+    {% result_list cl %}
+</div>
+{% if not cl.result_count %}
+<div class="console-empty">Aucun enregistrement ne correspond à cette liste.</div>
+{% endif %}
+
+{% include "dashboard/console/partials/pagination.html" %}
+{% endblock %}

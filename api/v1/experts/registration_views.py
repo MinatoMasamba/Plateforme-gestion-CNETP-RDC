@@ -28,6 +28,40 @@ class ExpertPublicRegistrationViewSet(viewsets.ViewSet):
 
     permission_classes = [AllowAny]
 
+    @action(detail=False, methods=['post'], authentication_classes=[],
+            url_path='candidature')
+    def candidature(self, request):
+        """Parcours du portail actuel : dossier en attente, sans mandat ni CTM."""
+        from django.db import IntegrityError, transaction
+        from web.forms import ExpertRegistrationForm
+        from ..throttles import MobileAuthThrottle
+
+        throttle = MobileAuthThrottle()
+        if not throttle.allow_request(request, self):
+            self.throttled(request, throttle.wait())
+        fields = ('first_name', 'last_name', 'email', 'password',
+                  'password_confirm', 'whatsapp_number', 'structure', 'specialties')
+        data = {key: request.data.get(key, '') for key in fields}
+        data['email'] = str(data['email']).strip().lower()
+        if User.objects.filter(email__iexact=data['email']).exists():
+            return Response({'email': ['Cet email est déjà utilisé.']}, status=400)
+        cv = request.FILES.get('cv')
+        if cv and not cv.name.lower().endswith(('.pdf', '.doc', '.docx')):
+            return Response({'cv': ['Formats acceptés : PDF, DOC, DOCX.']}, status=400)
+        form = ExpertRegistrationForm(data, request.FILES)
+        if not form.is_valid():
+            return Response(dict(form.errors), status=400)
+        try:
+            with transaction.atomic():
+                expert = form.save()
+        except IntegrityError:
+            return Response({'email': ['Cet email est déjà utilisé.']}, status=400)
+        return Response({
+            'message': "Votre candidature est enregistrée et sera examinée par l'administration.",
+            'id': expert.pk,
+            'status': expert.status,
+        }, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def public_register(self, request):
         """

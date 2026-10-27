@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, OperationalError
 from django.db.models import Q
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
@@ -210,6 +210,10 @@ class PhoenixConfigurationView(PhoenixView):
 
     def post(self, request, kind, pk=None):
         context = self.context(request, kind, pk, request.POST)
+        def invalid_form():
+            if getattr(request, 'mobile_json', False):
+                return JsonResponse({'errors': context['form'].errors.get_json_data()}, status=400)
+            return render(request, 'pilotage/phoenix/form.html', context, status=400)
         if context['form'].is_valid():
             try:
                 source = context['renewal_source']
@@ -229,7 +233,7 @@ class PhoenixConfigurationView(PhoenixView):
                             'start_date',
                             f'La date prévue doit être postérieure à la fin du mandat actuel ({source.end_date:%d/%m/%Y}).',
                         )
-                        return render(request, 'pilotage/phoenix/form.html', context, status=400)
+                        return invalid_form()
                 correction_reason = ''
                 if kind == 'poste' and context['instance']:
                     cleaned = context['form'].cleaned_data
@@ -247,12 +251,14 @@ class PhoenixConfigurationView(PhoenixView):
                         correction_reason = f'Correction des dates affichées du poste. Motif : {motive}'
                 obj = configure(request.user, context['version'], kind, context['form'].cleaned_data, pk=pk,
                                 reason=f'Renouvellement proposé du mandat {source.pk} ; mandat précédent conservé.' if source else correction_reason or 'Modification du référentiel CNE-ITP.')
+                if getattr(request, 'mobile_json', False):
+                    return JsonResponse({'id': obj.pk, 'message': 'Informations enregistrées.'})
                 if source:
                     return redirect('web:phoenix_config_edit', kind='mandat', pk=obj.pk)
                 return redirect(configuration_return(kind, obj))
             except (ValidationError, IntegrityError) as error:
                 context['form'].add_error(None, error_message(error))
-        return render(request, 'pilotage/phoenix/form.html', context, status=400)
+        return invalid_form()
 
 
 class PhoenixActivationView(PhoenixView):

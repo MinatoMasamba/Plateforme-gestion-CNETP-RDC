@@ -22,6 +22,16 @@ const List<CtcNavSection> ctcNavSections = [
     CtcNavItem('dossiers', 'Dossiers normatifs', Icons.folder_outlined),
     CtcNavItem('assignations', 'Mes Assignations', Icons.check_circle_outline),
     CtcNavItem('ctc_requests', 'Demandes à Traiter', Icons.send_outlined),
+    CtcNavItem(
+      'assistant_executif',
+      'Assistant Exécutif',
+      Icons.inbox_outlined,
+    ),
+    CtcNavItem(
+      'financial',
+      'Budget & Comptabilité',
+      Icons.account_balance_wallet_outlined,
+    ),
   ]),
   CtcNavSection('Supervision', [
     CtcNavItem('statistiques', 'Suivi statistique', Icons.insights_outlined),
@@ -30,6 +40,7 @@ const List<CtcNavSection> ctcNavSections = [
   CtcNavSection('Outils', [
     CtcNavItem('instructions', 'Instruction', Icons.assignment_outlined),
     CtcNavItem('reunions', 'Réunions', Icons.calendar_month_outlined),
+    CtcNavItem('drive', 'Espace Drive', Icons.cloud_outlined),
   ]),
   CtcNavSection('Système', [
     CtcNavItem('archives', 'Archives', Icons.history),
@@ -146,11 +157,20 @@ class CtcSidebar extends StatelessWidget {
                 Container(
                   width: 30,
                   height: 30,
-                  decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                   child: Center(
                     child: Text(
-                      userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                      userName.isNotEmpty
+                          ? userName.substring(0, 1).toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -159,7 +179,11 @@ class CtcSidebar extends StatelessWidget {
                   child: Text(
                     userName,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
+                    ),
                   ),
                 ),
               ],
@@ -172,7 +196,11 @@ class CtcSidebar extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem({required this.item, required this.active, required this.onTap});
+  const _NavItem({
+    required this.item,
+    required this.active,
+    required this.onTap,
+  });
 
   final CtcNavItem item;
   final bool active;

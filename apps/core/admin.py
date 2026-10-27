@@ -84,6 +84,14 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('is_expert', 'is_ctc_staff', 'is_minister', 'created_at')
     inlines = [ExpertInline]
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop('delete_selected', None)
+        return actions
+
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):

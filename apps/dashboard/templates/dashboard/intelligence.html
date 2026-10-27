@@ -15,7 +15,7 @@
       <a class="{% if section == 'observations' %}current{% endif %}" href="?section=observations">Observations</a>
       <a class="{% if section == 'rapports' %}current{% endif %}" href="?section=rapports">Rapports</a>
     </nav>
-    <div class="rail-bottom"><a href="{% url 'dashboard:index' %}">← Tableau de bord statistique</a><small>Données accessibles selon votre rôle</small></div>
+    <div class="rail-bottom">{% if console_access %}<a href="{% url 'console:home' %}">Console d'administration</a>{% endif %}<a href="{% url 'dashboard:index' %}">← Tableau de bord statistique</a><small>Données accessibles selon votre rôle</small></div>
   </aside>
   <div class="work">
     <header class="topbar"><div><small>COMMISSION NATIONALE D'ÉLABORATION DES NORMES ITP</small><strong>Centre d'intelligence institutionnelle</strong></div><a class="back" href="{% url 'dashboard:index' %}">← Tableau de bord statistique</a></header>

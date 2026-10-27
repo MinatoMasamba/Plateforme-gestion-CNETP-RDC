@@ -171,9 +171,18 @@ class MobileLoginSerializer(serializers.Serializer):
         # 1. Authentification par email (si email != username)
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        candidates = User.objects.filter(email__iexact=email).order_by(
+            '-is_active', '-is_expert', 'id'
+        )
+        user = next(
+            (
+                candidate
+                for candidate in candidates
+                if candidate.check_password(password)
+            ),
+            None,
+        )
+        if user is None:
             raise serializers.ValidationError("Email ou mot de passe incorrect.")
 
         # 2. Vérification du mot de passe

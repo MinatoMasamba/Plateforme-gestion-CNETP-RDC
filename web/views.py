@@ -93,8 +93,8 @@ class HomeView(View):
             'home_stats': [
                 {'value': '25+', 'label': 'Normes en traitement'},
                 {'value': '200', 'label': 'Experts mobilisés'},
-                {'value': '8', 'label': 'Comités techniques'},
-                {'value': '24', 'label': 'Groupes de travail'},
+                {'value': '7', 'label': 'Sous-commissions techniques (SC)'},
+                {'value': '35', 'label': 'Groupes de travail'},
             ],
             'workflows': [
                 {
@@ -104,8 +104,8 @@ class HomeView(View):
                 },
                 {
                     'icon': 'users',
-                    'title': 'Travail en commissions',
-                    'description': "Les comités techniques et groupes de travail disposent d'un cadre commun pour organiser leurs échanges.",
+                    'title': 'Travail en sous-commissions',
+                    'description': "Les sept sous-commissions techniques et leurs 35 groupes de travail disposent d'un cadre commun pour organiser leurs échanges.",
                 },
                 {
                     'icon': 'shield-check',
@@ -134,6 +134,9 @@ class App(View):
             return redirect('web:home')
 
         if not Expert.objects.filter(user=request.user).exists():
+            from apps.dashboard.console_permissions import has_console_access
+            if has_console_access(request.user):
+                return redirect('console:home')
             messages.warning(request, "Votre compte n'est pas encore validé en tant qu'expert. Veuillez patienter ou contacter l'administrateur.")
             return redirect('web:home')
 
@@ -305,6 +308,9 @@ def expert_workspace_url_name(user):
     Directoire / conseillers / ATF pour le pilotage, tableau de bord CTC pour la
     cellule technique, sinon l'espace de travail expert générique.
     """
+    from apps.dashboard.console_permissions import has_console_access
+    if has_console_access(user):
+        return 'console:home'
     _DIRECTOIRE = {'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'RAPPORTEUR'}
     expert = Expert.objects.filter(user=user).first()
     if expert:

@@ -1,0 +1,51 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block page_actions %}
+<a href="{{ cancel_url }}" class="console-btn">
+    <i data-lucide="arrow-left"></i> Retour
+</a>
+{% endblock %}
+
+{% block content %}
+<section class="console-card">
+    <div class="console-card-head">
+        <div>
+            <h2>{% if action == 'deactivate' %}Désactiver le compte{% else %}Réactiver le compte{% endif %}</h2>
+            <p>{{ object }}</p>
+        </div>
+    </div>
+
+    {% if action == 'deactivate' %}
+    <p>Le compte sera désactivé et ne pourra plus se connecter.</p>
+    {% if expert %}
+    <p class="console-muted console-small">
+        Le profil expert associé ({{ expert.get_status_display }}) sera suspendu s’il est actif ou en attente.
+    </p>
+    {% endif %}
+    {% else %}
+    <p>Le compte sera réactivé.</p>
+    {% if expert and expert.status == 'SUSPENDED' %}
+    <p class="console-muted console-small">
+        Statut expert précédent : <strong>{{ previous_expert_status|default:"ACTIVE" }}</strong>.
+    </p>
+    {% endif %}
+    {% endif %}
+
+    <form method="post" style="margin-top: 18px;" data-confirm="{% if action == 'deactivate' %}Confirmer la désactivation de {{ object }} ?{% else %}Confirmer la réactivation de {{ object }} ?{% endif %}">
+        {% csrf_token %}
+        {% if action == 'reactivate' and expert and expert.status == 'SUSPENDED' %}
+        <label class="console-row" style="margin-bottom: 14px;">
+            <input type="checkbox" name="restore_expert_status" checked>
+            <span>Rétablir le statut expert précédent</span>
+        </label>
+        {% endif %}
+        <div class="console-form-actions">
+            <button type="submit" class="console-btn {% if action == 'deactivate' %}console-btn-danger{% else %}console-btn-primary{% endif %}">
+                <i data-lucide="{% if action == 'deactivate' %}user-x{% else %}user-check{% endif %}"></i>
+                {% if action == 'deactivate' %}Désactiver{% else %}Réactiver{% endif %}
+            </button>
+            <a href="{{ cancel_url }}" class="console-btn console-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

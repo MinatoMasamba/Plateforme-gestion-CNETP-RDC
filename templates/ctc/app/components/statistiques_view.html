@@ -63,7 +63,17 @@
   <section data-ctc-stat-panel="{{ group.id }}" class="hidden space-y-5" aria-label="{{ group.name }}">
     <button type="button" data-ctc-stat-target="{{ row.id }}" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Retour à {{ row.code }}</button>
     <div class="institutional-card premium-glass p-5 flex flex-wrap items-center justify-between gap-4"><div class="min-w-0"><p class="text-xs institutional-muted">{{ row.code }} · {{ group.code }}</p><h3 class="mt-1 text-xl font-bold">{{ group.name }}</h3><p class="mt-1 text-xs institutional-muted">Σ poids × progression ÷ Σ poids planifiés · {{ group.tasks|length }} tâche{{ group.tasks|length|pluralize }}</p></div>{% if group.performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ group.performance }}; --donut-color: {{ group.color }}" aria-label="Performance {{ group.performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ group.performance }}%</span></div></div>{% endif %}</div>
-    <div class="institutional-card overflow-hidden"><h4 class="border-b border-slate-200 p-4 font-bold dark:border-slate-700">Toutes les normes</h4><div class="divide-y divide-slate-200 dark:divide-slate-700">{% for norm in group.norms %}<div class="grid gap-1 p-4 text-sm sm:grid-cols-[1fr_auto] sm:items-center"><span class="min-w-0 font-medium">{{ norm.title }}</span><span class="institutional-muted">{{ norm.get_status_display }}</span></div>{% empty %}<p class="p-4 text-sm institutional-muted">Aucune norme explicitement rattachée à ce groupe.</p>{% endfor %}</div></div>
+    <div class="institutional-card overflow-hidden">
+      <h4 class="border-b border-slate-200 p-4 font-bold dark:border-slate-700">Toutes les normes</h4>
+      <div class="divide-y divide-slate-200 dark:divide-slate-700">
+        {% for norm in group.norms %}
+        <a href="{% url 'web:ctc_norme_read' norm.pk %}" target="_blank" rel="noopener noreferrer" class="grid gap-2 p-4 text-sm hover:bg-sky-50/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-slate-800 sm:grid-cols-[1fr_auto] sm:items-center" aria-label="Lire {{ norm.title }} en lecture seule (nouvel onglet)">
+          <span class="min-w-0 font-medium text-blue-700 underline underline-offset-4 dark:text-blue-300">{{ norm.title }}</span>
+          <span class="sm:text-right"><span class="institutional-muted">{{ norm.get_status_display }}</span><span class="mt-1 block text-xs institutional-muted">Lecture seule · Nouvel onglet ↗</span></span>
+        </a>
+        {% empty %}<p class="p-4 text-sm institutional-muted">Aucune norme explicitement rattachée à ce groupe.</p>{% endfor %}
+      </div>
+    </div>
     {% if ctc_can_view_task_sources %}
     <details class="institutional-card p-4"><summary class="cursor-pointer font-semibold">Tâches sources · {{ group.tasks|length }}</summary><div class="mt-3 divide-y divide-slate-200 dark:divide-slate-700">{% for task in group.tasks %}<div class="grid gap-1 py-2 text-sm sm:grid-cols-[1fr_auto]"><span>{{ task.titre }}</span><span>{{ task.get_status_display }} · {{ task.progress }} % · poids {{ task.weight }}</span></div>{% empty %}<p class="text-sm institutional-muted">Aucune tâche rattachée.</p>{% endfor %}</div></details>
     {% endif %}

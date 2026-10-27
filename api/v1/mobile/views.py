@@ -227,6 +227,20 @@ class MobileAuthViewSet(viewsets.ViewSet):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny],
+            authentication_classes=[], throttle_classes=[MobileAuthThrottle],
+            url_path='password-reset/request')
+    def password_reset_request(self, request):
+        from .password_reset import request_reset
+        return request_reset(request.data)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny],
+            authentication_classes=[], throttle_classes=[MobileAuthThrottle],
+            url_path='password-reset/confirm')
+    def password_reset_confirm(self, request):
+        from .password_reset import confirm_reset
+        return confirm_reset(request.data)
+
     @action(detail=False, methods=['get'], permission_classes=[AllowAny],
             url_path='confirm-email')
     def confirm_email(self, request):

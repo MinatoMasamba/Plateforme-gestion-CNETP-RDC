@@ -1,0 +1,29 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block page_actions %}
+<a href="{{ cancel_url }}" class="console-btn">
+    <i data-lucide="x"></i> Annuler
+</a>
+{% endblock %}
+
+{% block content %}
+<section class="console-card console-form-card">
+    <div class="console-card-head">
+        <div>
+            <h2>{% if is_create %}Nouvel utilisateur{% else %}Compte utilisateur{% endif %}</h2>
+            <p>{% if object %}{{ object }}{% else %}Créer un compte et définir son mot de passe.{% endif %}</p>
+        </div>
+    </div>
+    <form method="post" class="console-form" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form.as_p }}
+        <div class="console-form-actions">
+            <button type="submit" class="console-btn console-btn-primary">
+                <i data-lucide="save"></i> {{ submit_label }}
+            </button>
+            <a href="{{ cancel_url }}" class="console-btn console-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

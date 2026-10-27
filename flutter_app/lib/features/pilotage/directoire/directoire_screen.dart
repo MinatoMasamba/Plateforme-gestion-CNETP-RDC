@@ -34,7 +34,9 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
   Widget build(BuildContext context) {
     final session = ref.watch(authControllerProvider).session;
     final userName = session?.fullName ?? 'Expert';
-    final title = widget.conseillers ? 'Conseillers Institutionnels' : 'Bureau Directoire';
+    final title = widget.conseillers
+        ? 'Conseillers Institutionnels'
+        : 'Bureau Directoire';
 
     return Scaffold(
       backgroundColor: AppColors.page,
@@ -43,7 +45,8 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
           children: [
             CopilTopbar(
               memberCount: 0,
-              onToggleSidebar: () => setState(() => _sidebarVisible = !_sidebarVisible),
+              onToggleSidebar: () =>
+                  setState(() => _sidebarVisible = !_sidebarVisible),
             ),
             Expanded(
               child: Row(
@@ -55,17 +58,23 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
                       child: SingleChildScrollView(
                         child: Container(
                           constraints: const BoxConstraints(maxWidth: 860),
-                          margin: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 28,
+                            horizontal: 24,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _PosteCard(
                                 title: '$title — $userName',
                                 origin: 'Manuel organisationnel CNETP 2026',
-                                mission: 'Coordination et validation des travaux de normalisation.',
+                                mission:
+                                    'Coordination et validation des travaux de normalisation.',
                               ),
                               const SizedBox(height: 16),
-                              for (final p in _phaseTitles.take(widget.conseillers ? 3 : 5))
+                              for (final p in _phaseTitles.take(
+                                widget.conseillers ? 3 : 5,
+                              ))
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: _PhaseCard(title: p),
@@ -102,10 +111,22 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
               children: [
                 const Text(
                   'Pilotage CNE-ITP',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: AppColors.subtle),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                    color: AppColors.subtle,
+                  ),
                 ),
                 const SizedBox(height: 6),
-                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.text)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.text,
+                  ),
+                ),
               ],
             ),
           ),
@@ -120,26 +141,40 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Text(
                       'MES FONCTIONS',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.4, color: AppColors.subtle),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.4,
+                        color: AppColors.subtle,
+                      ),
                     ),
                   ),
                   for (int i = 0; i < _phaseTitles.length; i++)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Material(
-                        color: _phase == i ? AppColors.rdcBlue.withValues(alpha: 0.10) : Colors.transparent,
+                        color: _phase == i
+                            ? AppColors.rdcBlue.withValues(alpha: 0.10)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(11),
                         child: InkWell(
                           onTap: () => setState(() => _phase = i),
                           borderRadius: BorderRadius.circular(11),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 10,
+                            ),
                             child: Text(
                               _phaseTitles[i],
                               style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: _phase == i ? FontWeight.w800 : FontWeight.w600,
-                                color: _phase == i ? AppColors.rdcBlue : AppColors.muted,
+                                fontWeight: _phase == i
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                                color: _phase == i
+                                    ? AppColors.rdcBlue
+                                    : AppColors.muted,
                               ),
                             ),
                           ),
@@ -157,7 +192,11 @@ class _DirectoireScreenState extends ConsumerState<DirectoireScreen> {
 }
 
 class _PosteCard extends StatelessWidget {
-  const _PosteCard({required this.title, required this.origin, required this.mission});
+  const _PosteCard({
+    required this.title,
+    required this.origin,
+    required this.mission,
+  });
   final String title;
   final String origin;
   final String mission;
@@ -181,18 +220,43 @@ class _PosteCard extends StatelessWidget {
               color: AppColors.rdcBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.badge_outlined, size: 22, color: AppColors.rdcBlue),
+            child: const Icon(
+              Icons.badge_outlined,
+              size: 22,
+              color: AppColors.rdcBlue,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.text)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.text,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(origin.toUpperCase(), style: const TextStyle(fontSize: 10, letterSpacing: 1.2, color: AppColors.subtle)),
+                Text(
+                  origin.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                    color: AppColors.subtle,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                Text(mission, style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.muted)),
+                Text(
+                  mission,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: AppColors.muted,
+                  ),
+                ),
               ],
             ),
           ),
@@ -223,9 +287,17 @@ class _PhaseCard extends StatelessWidget {
             children: [
               Text(
                 title.toUpperCase(),
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.3, color: AppColors.rdcBlue),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.3,
+                  color: AppColors.rdcBlue,
+                ),
               ),
-              const Text('0 dossier en attente', style: TextStyle(fontSize: 11, color: AppColors.subtle)),
+              const Text(
+                '0 dossier en attente',
+                style: TextStyle(fontSize: 11, color: AppColors.subtle),
+              ),
             ],
           ),
           const SizedBox(height: 16),

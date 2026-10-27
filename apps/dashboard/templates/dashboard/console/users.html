@@ -1,0 +1,96 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block page_actions %}
+{% if can_create %}
+<a href="{% url 'console:user_create' %}" class="console-btn console-btn-primary">
+    <i data-lucide="user-plus"></i> Créer un utilisateur
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="console-card" style="margin-bottom: 14px;">
+    <form method="get" class="console-toolbar" style="margin-bottom: 0;">
+        <div class="console-search">
+            <i data-lucide="search"></i>
+            <input type="search" name="q" value="{{ query }}" placeholder="Nom, identifiant ou e-mail…" aria-label="Rechercher un utilisateur">
+        </div>
+        <div class="console-filters">
+            <select name="status" class="console-field" aria-label="Statut du compte" style="min-width: 130px;">
+                <option value="">Tous les statuts</option>
+                <option value="active"{% if status == 'active' %} selected{% endif %}>Actifs</option>
+                <option value="inactive"{% if status == 'inactive' %} selected{% endif %}>Désactivés</option>
+            </select>
+            <select name="role" aria-label="Rôle" style="min-width: 150px;">
+                <option value="">Tous les rôles</option>
+                <option value="superuser"{% if role == 'superuser' %} selected{% endif %}>Superutilisateur</option>
+                <option value="staff"{% if role == 'staff' %} selected{% endif %}>Staff</option>
+                <option value="expert"{% if role == 'expert' %} selected{% endif %}>Expert</option>
+                <option value="ctc"{% if role == 'ctc' %} selected{% endif %}>CTC</option>
+                <option value="minister"{% if role == 'minister' %} selected{% endif %}>Ministre</option>
+            </select>
+            <select name="expert_status" aria-label="Statut expert" style="min-width: 150px;">
+                <option value="">Tous les experts</option>
+                {% for value, label in expert_statuses %}
+                <option value="{{ value }}"{% if expert_status == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="console-btn">Filtrer</button>
+            <a href="{% url 'console:users' %}" class="console-btn console-btn-ghost">Réinitialiser</a>
+        </div>
+    </form>
+</div>
+
+<div class="console-table-wrap">
+    <table class="console-table">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Rôles</th>
+                <th>Expert</th>
+                <th>Compte</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in page_obj %}
+            <tr>
+                <td>
+                    <a href="{% url 'console:user_detail' user.pk %}">{{ user.get_full_name|default:user.username }}</a>
+                    <div class="console-muted console-small">{{ user.username }}{% if user.email %} · {{ user.email }}{% endif %}</div>
+                </td>
+                <td>
+                    <div class="console-badges">
+                        {% if user.is_superuser %}<span class="console-badge console-badge-red">Superuser</span>{% endif %}
+                        {% if user.is_staff %}<span class="console-badge console-badge-blue">Staff</span>{% endif %}
+                        {% if user.is_expert %}<span class="console-badge console-badge-green">Expert</span>{% endif %}
+                        {% if user.is_ctc_staff %}<span class="console-badge console-badge-gold">CTC</span>{% endif %}
+                        {% if user.is_minister %}<span class="console-badge">Ministre</span>{% endif %}
+                    </div>
+                </td>
+                <td>
+                    {% if user.expert_profile %}
+                    <span class="console-badge">{{ user.expert_profile.get_status_display }}</span>
+                    <div class="console-muted console-small">{{ user.expert_profile.structure.acronym|default:"—" }}</div>
+                    {% else %}
+                    <span class="console-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                    <span class="console-badge console-badge-green">Actif</span>
+                    {% else %}
+                    <span class="console-badge console-badge-red">Désactivé</span>
+                    {% endif %}
+                </td>
+                <td><a href="{% url 'console:user_detail' user.pk %}">Ouvrir →</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5"><div class="console-empty">Aucun utilisateur trouvé.</div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "dashboard/console/partials/pagination.html" %}
+{% endblock %}

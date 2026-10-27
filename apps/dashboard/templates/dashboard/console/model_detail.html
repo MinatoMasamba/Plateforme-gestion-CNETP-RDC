@@ -1,0 +1,103 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block page_actions %}
+<a href="{{ list_url }}" class="console-btn">
+    <i data-lucide="arrow-left"></i> Liste
+</a>
+{% if admin_url %}
+<a href="{{ admin_url }}" class="console-btn">
+    <i data-lucide="external-link"></i> Admin Django
+</a>
+{% endif %}
+{% if permissions.change %}
+<a href="{{ edit_url }}" class="console-btn console-btn-primary">
+    <i data-lucide="pencil"></i> Modifier
+</a>
+{% endif %}
+{% if permissions.delete %}
+<a href="{{ delete_url }}" class="console-btn console-btn-danger">
+    <i data-lucide="trash-2"></i> Supprimer
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="console-detail-grid">
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>{{ model_verbose_name|capfirst }}</h2>
+                <p>{{ object }}</p>
+            </div>
+        </div>
+        <dl>
+            {% for field in fields %}
+            <div class="console-field">
+                <dt>{{ field.label }}</dt>
+                <dd>
+                    {% if field.link %}
+                    <a href="{{ field.link }}">{{ field.value }}</a>
+                    {% elif field.file_url %}
+                    <a href="{{ field.file_url }}" target="_blank" rel="noopener">{{ field.value }}</a>
+                    {% elif field.long %}
+                    <pre class="console-pre">{{ field.value }}</pre>
+                    {% else %}
+                    {{ field.value }}
+                    {% endif %}
+                </dd>
+            </div>
+            {% empty %}
+            <div class="console-empty">Aucun champ à afficher.</div>
+            {% endfor %}
+        </dl>
+    </section>
+
+    <div class="console-stack">
+        {% if m2m_rows %}
+        <section class="console-card">
+            <div class="console-card-head">
+                <div>
+                    <h2>Relations</h2>
+                    <p>Liens many-to-many associés.</p>
+                </div>
+            </div>
+            {% for row in m2m_rows %}
+            <div class="console-filter-group">
+                <div class="console-filter-title">{{ row.label }} ({{ row.count }})</div>
+                {% if row.values %}
+                <div class="console-detail-list">
+                    {% for value in row.values %}
+                    <a href="{{ value.url }}"><span>{{ value.label }}</span><span class="count">Ouvrir →</span></a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="console-muted console-small">Aucune valeur.</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <section class="console-card">
+            <div class="console-card-head">
+                <div>
+                    <h2>Objets liés</h2>
+                    <p>Relations inverses détectées.</p>
+                </div>
+            </div>
+            {% if reverse_rows %}
+            <div class="console-detail-list">
+                {% for row in reverse_rows %}
+                <a href="{{ row.url }}">
+                    <span>{{ row.label }}</span>
+                    <span class="count">{{ row.count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="console-empty">Aucune relation inverse.</div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

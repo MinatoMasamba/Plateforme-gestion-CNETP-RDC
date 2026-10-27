@@ -73,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.csrf',
+                'apps.dashboard.context_processors.console_access',
             ],
         },
     },
@@ -182,6 +183,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'core.User'
 
+# Console d'administration — groupe d'accès dédié (les superusers restent autorisés)
+CONSOLE_ACCESS_GROUP = config('CONSOLE_ACCESS_GROUP', default='Administrateurs CNE-ITP')
+
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -236,7 +240,16 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=DEBUG, cast=bool)
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_PRIVATE_NETWORK = True  # Chrome Private Network Access (localhost → 127.0.0.1)
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://localhost:8000', cast=Csv())
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default=(
+        'http://localhost:3000,http://localhost:5173,http://localhost:8000,'
+        'http://localhost:8080,http://127.0.0.1:8080,'
+        'http://localhost:8081,http://127.0.0.1:8081,'
+        'http://localhost:8082,http://127.0.0.1:8082'
+    ),
+    cast=Csv(),
+)
 
 # Headers custom envoyés par le client Flutter mobile
 from corsheaders.defaults import default_headers
@@ -293,6 +306,15 @@ LOGOUT_REDIRECT_URL = 'inscription-expert/'
 
 # URL publique de la plateforme — utilisée dans les liens d'activation/confirmation
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
+
+# Mandatement bancaire pain.001 — coordonnées du compte débiteur CNETP.
+# Laisser les valeurs bancaires vides tant qu'elles ne sont pas fournies par le
+# service financier : l'export est alors refusé avec un message explicite.
+CNETP_SEPA_DEBTOR_NAME = config('CNETP_SEPA_DEBTOR_NAME', default='CNETP')
+CNETP_SEPA_DEBTOR_IBAN = config('CNETP_SEPA_DEBTOR_IBAN', default='')
+CNETP_SEPA_DEBTOR_BIC = config('CNETP_SEPA_DEBTOR_BIC', default='')
+CNETP_SEPA_CURRENCY = config('CNETP_SEPA_CURRENCY', default='USD')
 
 
 # Celery Configuration — actif si CELERY_BROKER_URL est défini

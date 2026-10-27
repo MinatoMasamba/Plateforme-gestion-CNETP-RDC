@@ -1,0 +1,163 @@
+{% extends "dashboard/console/base.html" %}
+{% load static %}
+
+{% block page_actions %}
+<a href="{% url 'console:models' %}" class="console-btn">
+    <i data-lucide="boxes"></i> Tous les modèles
+</a>
+<a href="{% url 'console:audit' %}" class="console-btn console-btn-primary">
+    <i data-lucide="scroll-text"></i> Journal d’audit
+</a>
+{% endblock %}
+
+{% block content %}
+<section class="console-stats" aria-label="Indicateurs clés">
+    {% for stat in stats %}
+    <a href="{{ stat.url }}" class="console-stat">
+        <div>
+            <div class="console-stat-label">{{ stat.label }}</div>
+            <div class="console-stat-value">{{ stat.value }}</div>
+            <div class="console-stat-detail">{{ stat.detail }}</div>
+        </div>
+        <span class="console-stat-icon"><i data-lucide="{{ stat.icon }}"></i></span>
+    </a>
+    {% endfor %}
+</section>
+
+<div class="console-grid console-grid-2">
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>Activité des 12 derniers mois</h2>
+                <p>Actions administratives et événements métier enregistrés.</p>
+            </div>
+        </div>
+        <div id="console-chart-activity" class="console-chart" role="img" aria-label="Graphique de l’activité sur douze mois"></div>
+    </section>
+
+    <div class="console-stack">
+        <section class="console-card">
+            <div class="console-card-head">
+                <div>
+                    <h2>À traiter</h2>
+                    <p>Points nécessitant une vérification.</p>
+                </div>
+            </div>
+            {% if alerts %}
+            <div class="console-alerts">
+                {% for alert in alerts %}
+                <a href="{{ alert.url }}" class="console-alert">
+                    <span class="console-alert-main">
+                        <i data-lucide="{{ alert.icon }}"></i>
+                        <span class="console-alert-label">{{ alert.label }}</span>
+                    </span>
+                    <span class="console-alert-count">{{ alert.count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="console-empty">Aucune alerte immédiate.</div>
+            {% endif %}
+        </section>
+
+        <section class="console-card">
+            <div class="console-card-head">
+                <div>
+                    <h2>Actions rapides</h2>
+                    <p>Accès directs aux opérations courantes.</p>
+                </div>
+            </div>
+            <div class="console-quick">
+                {% for action in quick_actions %}
+                <a href="{{ action.url }}">
+                    <i data-lucide="{{ action.icon }}"></i>
+                    <span>{{ action.label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="console-grid console-grid-2" style="margin-top: 14px;">
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>Répartition par application</h2>
+                <p>Volume d’enregistrements dans les applications locales.</p>
+            </div>
+        </div>
+        <div id="console-chart-apps" class="console-chart console-chart-sm" role="img" aria-label="Graphique du volume par application"></div>
+    </section>
+
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>Statuts des normes</h2>
+                <p>Répartition du cycle de vie des normes.</p>
+            </div>
+            <a href="{% url 'console:model_list' 'norms' 'norme' %}">Ouvrir</a>
+        </div>
+        <div id="console-chart-norms" class="console-chart console-chart-sm" role="img" aria-label="Graphique des statuts des normes"></div>
+    </section>
+</div>
+
+<div class="console-grid console-grid-2" style="margin-top: 14px;">
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>Applications</h2>
+                <p>Accès rapide aux espaces de données.</p>
+            </div>
+            <a href="{% url 'console:models' %}">Explorer</a>
+        </div>
+        <div class="console-apps">
+            {% for app in apps %}
+            <a href="{{ app.url }}" class="console-app">
+                <span class="console-app-icon"><i data-lucide="{{ app.icon }}"></i></span>
+                <span>
+                    <span class="console-app-name">{{ app.label }}</span>
+                    <span class="console-app-meta">{{ app.model_count }} modèle{{ app.model_count|pluralize }} · {{ app.total }} enregistrement{{ app.total|pluralize }}</span>
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="console-card">
+        <div class="console-card-head">
+            <div>
+                <h2>Activité récente</h2>
+                <p>Dernières actions administratives et métier.</p>
+            </div>
+            <a href="{% url 'console:audit' %}">Tout voir</a>
+        </div>
+        {% if recent_activity %}
+        <div class="console-detail-list">
+            {% for item in recent_activity %}
+            <a href="{% url 'console:audit' %}">
+                <span>
+                    <strong>{{ item.label|truncatechars:54 }}</strong>
+                    <span class="console-muted console-small">{{ item.action }} · {{ item.when|date:"d/m/Y H:i" }}</span>
+                </span>
+                <span class="count">{{ item.user|default:"Système" }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="console-empty">Aucune activité enregistrée.</div>
+        {% endif %}
+    </section>
+</div>
+
+{{ chart_data|json_script:"console-chart-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'vendor/echarts.min.js' %}"></script>
+<script>
+    if (window.ConsoleAdmin) {
+        window.ConsoleAdmin.initCharts();
+    }
+</script>
+{% endblock %}

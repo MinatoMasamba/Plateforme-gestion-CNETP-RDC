@@ -5,6 +5,7 @@ import '../../core/api/api_client.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../theme/app_colors.dart';
 import 'widgets/ctc_dashboard.dart';
+import 'widgets/ctc_modules.dart';
 import 'widgets/ctc_sidebar.dart';
 import 'widgets/ctc_topbar.dart';
 
@@ -24,22 +25,6 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
   List<Map<String, dynamic>> _assignations = [];
   bool _loading = true;
 
-  static const _titles = <String, String>{
-    'dashboard': 'Tableau de bord',
-    'dossiers': 'Dossiers normatifs',
-    'assignations': 'Mes Assignations',
-    'ctc_requests': 'Demandes à traiter',
-    'assistant_executif': 'Assistant Exécutif',
-    'financial': 'Budget & Comptabilité',
-    'statistiques': 'Suivi statistique',
-    'homologations': 'Homologations',
-    'instructions': 'Instructions',
-    'reunions': 'Réunions',
-    'drive': 'Espace Drive CNE-ITP',
-    'archives': 'Archives',
-    'parametres': 'Paramètres',
-  };
-
   @override
   void initState() {
     super.initState();
@@ -54,14 +39,18 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
         ApiClient.dio.get('/api/v1/mobile/ctc/assignations/'),
       ]);
       final dash = (results[0].data as Map<String, dynamic>);
-      final dossiers = (results[1].data as Map<String, dynamic>)['results'] as List? ?? [];
-      final assignations = (results[2].data as Map<String, dynamic>)['results'] as List? ?? [];
+      final dossiers =
+          (results[1].data as Map<String, dynamic>)['results'] as List? ?? [];
+      final assignations =
+          (results[2].data as Map<String, dynamic>)['results'] as List? ?? [];
       final countsRaw = (dash['counts'] as Map<String, dynamic>?) ?? {};
       if (!mounted) return;
       setState(() {
         _counts = countsRaw.map((k, v) => MapEntry(k, (v as num).toInt()));
         _dossiers = dossiers.map((e) => e as Map<String, dynamic>).toList();
-        _assignations = assignations.map((e) => e as Map<String, dynamic>).toList();
+        _assignations = assignations
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
         _loading = false;
       });
     } catch (_) {
@@ -83,8 +72,10 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
             CtcTopbar(
               poleLabel: poleLabel,
               userName: userName,
-              onToggleSidebar: () => setState(() => _sidebarVisible = !_sidebarVisible),
-              onLogout: () => ref.read(authControllerProvider.notifier).logout(),
+              onToggleSidebar: () =>
+                  setState(() => _sidebarVisible = !_sidebarVisible),
+              onLogout: () =>
+                  ref.read(authControllerProvider.notifier).logout(),
             ),
             Expanded(
               child: Row(
@@ -122,14 +113,19 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
           counts: _counts,
           dossiers: _dossiers,
           assignations: _assignations,
-          onOpenAssignations: () => setState(() => _activeView = 'assignations'),
+          onOpenAssignations: () =>
+              setState(() => _activeView = 'assignations'),
         );
       case 'dossiers':
         return _DossiersView(dossiers: _dossiers);
       case 'assignations':
         return _AssignationsView(assignations: _assignations);
       default:
-        return _PlaceholderView(title: _titles[_activeView] ?? _activeView);
+        return CtcModuleView(
+          view: _activeView,
+          counts: _counts,
+          dossiers: _dossiers,
+        );
     }
   }
 }
@@ -145,11 +141,19 @@ class _DossiersView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Dossiers normatifs',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text)),
+          const Text(
+            'Dossiers normatifs',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppColors.text,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text('${dossiers.length} dossier(s) dans le circuit CTC.',
-              style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+          Text(
+            '${dossiers.length} dossier(s) dans le circuit CTC.',
+            style: const TextStyle(fontSize: 13, color: AppColors.muted),
+          ),
           const SizedBox(height: 20),
           if (dossiers.isEmpty)
             const _Empty('Aucun dossier dans le circuit CTC.')
@@ -184,20 +188,36 @@ class _DossierCard extends StatelessWidget {
               color: AppColors.rdcBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.folder_outlined, size: 18, color: AppColors.rdcBlue),
+            child: const Icon(
+              Icons.folder_outlined,
+              size: 18,
+              color: AppColors.rdcBlue,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(d['reference'] as String? ?? '',
-                    style: const TextStyle(fontSize: 11, color: AppColors.subtle, fontFamily: 'monospace')),
+                Text(
+                  d['reference'] as String? ?? '',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.subtle,
+                    fontFamily: 'monospace',
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(d['title'] as String? ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text)),
+                Text(
+                  d['title'] as String? ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
               ],
             ),
           ),
@@ -208,8 +228,14 @@ class _DossierCard extends StatelessWidget {
               color: AppColors.rdcBlue.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(999),
             ),
-            child: Text(d['stage_label'] as String? ?? '',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.rdcBlue)),
+            child: Text(
+              d['stage_label'] as String? ?? '',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.rdcBlue,
+              ),
+            ),
           ),
         ],
       ),
@@ -228,11 +254,19 @@ class _AssignationsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Mes Assignations',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text)),
+          const Text(
+            'Mes Assignations',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppColors.text,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text('${assignations.length} assignation(s) attribuée(s) à votre poste.',
-              style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+          Text(
+            '${assignations.length} assignation(s) attribuée(s) à votre poste.',
+            style: const TextStyle(fontSize: 13, color: AppColors.muted),
+          ),
           const SizedBox(height: 20),
           if (assignations.isEmpty)
             const _Empty("Aucune assignation explicite n'attend ce poste.")
@@ -248,25 +282,46 @@ class _AssignationsView extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline, size: 20, color: AppColors.success),
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 20,
+                      color: AppColors.success,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(a['type_label'] as String? ?? 'Traitement CTC',
-                              style: const TextStyle(fontSize: 11, color: AppColors.muted)),
+                          Text(
+                            a['type_label'] as String? ?? 'Traitement CTC',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.muted,
+                            ),
+                          ),
                           const SizedBox(height: 2),
-                          Text(a['title'] as String? ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text)),
+                          Text(
+                            a['title'] as String? ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(a['status_display'] as String? ?? '',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.warning)),
+                    Text(
+                      a['status_display'] as String? ?? '',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.warning,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -290,48 +345,10 @@ class _Empty extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Text(msg, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted)),
-    );
-  }
-}
-
-class _PlaceholderView extends StatelessWidget {
-  const _PlaceholderView({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text)),
-          const SizedBox(height: 6),
-          const Text('Gestion et suivi des travaux de normalisation.',
-              style: TextStyle(fontSize: 13, color: AppColors.muted)),
-          const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 48),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Column(
-              children: [
-                Icon(Icons.construction_outlined, size: 40, color: AppColors.subtle),
-                SizedBox(height: 12),
-                Text('Cette vue est en cours de construction.',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.muted)),
-                SizedBox(height: 4),
-                Text('Le contenu détaillé sera disponible prochainement.',
-                    style: TextStyle(fontSize: 12, color: AppColors.subtle)),
-              ],
-            ),
-          ),
-        ],
+      child: Text(
+        msg,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppColors.muted),
       ),
     );
   }
