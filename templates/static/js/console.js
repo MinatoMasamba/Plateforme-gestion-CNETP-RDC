@@ -47,6 +47,14 @@
         });
     }
 
+    function initListFilters() {
+        document.querySelectorAll('[data-console-filter-select]').forEach(function (select) {
+            select.addEventListener('change', function () {
+                window.location.assign(select.value);
+            });
+        });
+    }
+
     function chartTheme() {
         var dark = document.documentElement.classList.contains('dark');
         return {
@@ -241,6 +249,7 @@
     function init() {
         refreshIcons();
         initSidebar();
+        initListFilters();
         initConfirmations();
         initCharts();
         initThemeWatcher();

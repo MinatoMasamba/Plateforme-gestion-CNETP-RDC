@@ -20,7 +20,7 @@
 </div>
 {% endif %}
 
-<div class="console-card" style="margin-bottom: 14px;">
+<div class="console-card console-list-controls">
     <form method="get" class="console-toolbar" style="margin-bottom: 0;">
         {% for key, value in request.GET.items %}
             {% if key != 'q' and key != 'p' and key != 'related_field' and key != 'related_pk' %}
@@ -37,25 +37,39 @@
     </form>
 
     {% if filters %}
-    <div style="margin-top: 14px;">
+    <div class="console-list-filters" aria-label="Filtres de la liste">
         {% for group in filters %}
         <div class="console-filter-group">
-            <div class="console-filter-title">{{ group.title }}</div>
-            {% for choice in group.choices %}
-            <a href="{{ choice.query_string }}" class="console-filter-choice{% if choice.selected %} is-selected{% endif %}">{{ choice.display }}</a>
-            {% endfor %}
+            <label class="console-filter-title" for="console-filter-{{ forloop.counter }}">{{ group.title }}</label>
+            <select id="console-filter-{{ forloop.counter }}" class="console-filter-select" data-console-filter-select>
+                {% for choice in group.choices %}
+                <option value="{{ choice.query_string }}"{% if choice.selected %} selected{% endif %}>{{ choice.display }}</option>
+                {% endfor %}
+            </select>
+            <noscript>
+                {% for choice in group.choices %}
+                <a href="{{ choice.query_string }}" class="console-filter-choice{% if choice.selected %} is-selected{% endif %}">{{ choice.display }}</a>
+                {% endfor %}
+            </noscript>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 </div>
 
-<div class="console-table-wrap">
+<div class="console-table-wrap console-model-results" role="region" aria-label="Liste des {{ model_verbose_name_plural }}" tabindex="0">
+    {% if cl.result_count %}
     {% result_list cl %}
+    {% else %}
+    <div class="console-empty console-list-empty">
+        <i data-lucide="users-round" aria-hidden="true"></i>
+        <p>Aucun enregistrement ne correspond aux filtres sélectionnés.</p>
+        <a href="{{ related_clear_url }}" class="console-btn">Réinitialiser les filtres</a>
+    </div>
+    {% endif %}
 </div>
-{% if not cl.result_count %}
-<div class="console-empty">Aucun enregistrement ne correspond à cette liste.</div>
-{% endif %}
 
+{% if cl.result_count %}
 {% include "dashboard/console/partials/pagination.html" %}
+{% endif %}
 {% endblock %}

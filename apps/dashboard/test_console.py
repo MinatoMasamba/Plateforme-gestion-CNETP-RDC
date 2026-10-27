@@ -89,6 +89,52 @@ def test_console_pages_render(client, console_admin, norme_factory, user_factory
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize('status_parameter', ['status', 'status__exact'])
+def test_expert_list_selects_pending_filter_and_keeps_it_in_search_links(
+    client, console_admin, user_factory, status_parameter,
+):
+    from apps.experts.models import Expert, Structure
+    structure = Structure.objects.create(name='Structure de test', acronym='TEST', category='ADMIN')
+    pending = Expert.objects.create(
+        user=user_factory(username='pending-console', email='pending-console@example.test'),
+        structure=structure,
+        status='PENDING',
+    )
+    Expert.objects.create(
+        user=user_factory(username='active-console', email='active-console@example.test'),
+        structure=structure,
+        status='ACTIVE',
+    )
+    client.force_login(console_admin)
+    response = client.get(
+        reverse('console:model_list', args=['experts', 'expert']),
+        {status_parameter: 'PENDING', 'q': 'pending-console'},
+    )
+    assert response.status_code == 200
+    assert list(response.context['cl'].result_list) == [pending]
+    status_filter = next(group for group in response.context['filters'] if group['title'] == 'Statut')
+    selected = [choice for choice in status_filter['choices'] if choice['selected']]
+    assert len(selected) == 1
+    assert str(selected[0]['display']) == 'En attente'
+    assert 'status__exact=PENDING' in selected[0]['query_string']
+    assert 'q=pending-console' in selected[0]['query_string']
+    assert b'data-console-filter-select' in response.content
+    assert b'console-model-results' in response.content
+
+
+@pytest.mark.django_db
+def test_expert_list_empty_filter_has_reset_and_no_empty_table(client, console_admin):
+    client.force_login(console_admin)
+    response = client.get(
+        reverse('console:model_list', args=['experts', 'expert']), {'status': 'PENDING'},
+    )
+    assert response.status_code == 200
+    assert b'console-list-empty' in response.content
+    assert 'Réinitialiser les filtres'.encode() in response.content
+    assert b'id="result_list"' not in response.content
+
+
+@pytest.mark.django_db
 def test_user_delete_is_blocked(client, console_admin, user_factory):
     target = user_factory(username='cannot-delete')
     client.force_login(console_admin)

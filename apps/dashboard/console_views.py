@@ -29,7 +29,7 @@ from apps.core.account_services import (
 from apps.core.models import AuditLog, User
 
 from .console_audit import record_admin_action, record_user_action, recent_activity, snapshot
-from .console_changelist import ConsoleChangeList, filter_groups
+from .console_changelist import ConsoleChangeList, canonical_filter_request, filter_groups
 from .console_forms import ConsoleUserCreationForm, ConsoleUserEditForm, build_model_form
 from .console_permissions import console_required
 from .console_registry import (
@@ -330,6 +330,7 @@ def _related_admin(model, related_field, related_pk):
 
 @console_required
 def model_list(request, app_label, model_name):
+    """Liste paginée de la console, avec filtres Django et liens de détail."""
     model = _get_model_or_404(app_label, model_name)
     if model is User:
         return redirect('console:users')
@@ -359,7 +360,7 @@ def model_list(request, app_label, model_name):
     sortable_by = model_admin.get_sortable_by(request)
     try:
         change_list = ConsoleChangeList(
-            request,
+            canonical_filter_request(request, model, list_filter),
             model,
             list_display,
             list_display_links,
