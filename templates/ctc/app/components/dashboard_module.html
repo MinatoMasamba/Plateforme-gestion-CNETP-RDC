@@ -3,6 +3,31 @@
     <div><p class="premium-eyebrow">Secrétariat technique · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
     <button type="button" onclick="window.switchView('assignations')" class="institutional-primary rounded-lg px-4 py-2 text-sm font-semibold">Mes assignations</button>
   </div>
+
+  <div class="ctc-card">
+    <div class="ctc-card__head"><h3>Mon rôle et mes droits</h3><span class="ctc-badge ctc-badge--info">{{ pole_label }}</span></div>
+    <p class="ctc-subtitle">{% if poste %}{{ poste.title }}{% else %}{{ pole_label }}{% endif %} · Sous-rôle « {{ ctc_sub_role }} »</p>
+    <div class="ctc-sc-card__meta" style="margin-top:.75rem;">
+      {% if is_direction %}<span class="ctc-badge ctc-badge--success">Acheminement documentaire</span>{% endif %}
+      {% if can_transmit_directoire %}<span class="ctc-badge ctc-badge--success">Transmission au Pilotage</span>{% endif %}
+      {% if can_approve_ctc_requests %}<span class="ctc-badge ctc-badge--success">Demandes à traiter</span>{% endif %}
+      {% if can_legistique_ctc %}<span class="ctc-badge ctc-badge--success">Examen légistique</span>{% endif %}
+      {% if can_translate_iso %}<span class="ctc-badge ctc-badge--success">Conformité ISO</span>{% endif %}
+      {% if can_eco_env_matrix %}<span class="ctc-badge ctc-badge--success">Matrice éco-environnementale</span>{% endif %}
+      {% if can_methodologie_chronogramme %}<span class="ctc-badge ctc-badge--success">Méthodologie & chronogramme</span>{% endif %}
+      {% if can_enquete_publique %}<span class="ctc-badge ctc-badge--success">Enquête publique</span>{% endif %}
+      {% if can_cadrage_industriel %}<span class="ctc-badge ctc-badge--success">Consultation industrielle</span>{% endif %}
+      {% if can_grand_livre %}<span class="ctc-badge ctc-badge--success">Grand livre comptable</span>{% endif %}
+      {% if can_upload_maps %}<span class="ctc-badge ctc-badge--success">Serveur SIG</span>{% endif %}
+      {% if can_admin_system %}<span class="ctc-badge ctc-badge--success">Administration système</span>{% endif %}
+      {% if can_fast_entry %}<span class="ctc-badge ctc-badge--success">Saisie massive</span>{% endif %}
+      {% if readonly_logistique %}<span class="ctc-badge ctc-badge--neutral">Lecture seule logistique</span>{% endif %}
+      {% if must_use_amendment %}<span class="ctc-badge ctc-badge--neutral">Amendement obligatoire</span>{% endif %}
+      {% if blocked_political %}<span class="ctc-badge ctc-badge--neutral">Validations politiques bloquées</span>{% endif %}
+      {% if blocked_scientific_write %}<span class="ctc-badge ctc-badge--neutral">Rédaction technique bloquée</span>{% endif %}
+    </div>
+  </div>
+
   <div class="institutional-card premium-hero p-5 sm:p-7">
     <p class="premium-eyebrow">Votre activité</p><h3 class="premium-section-title">Vue d'ensemble</h3>
     <div class="premium-kpi-grid mt-5">

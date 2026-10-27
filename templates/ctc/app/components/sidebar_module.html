@@ -33,7 +33,7 @@
 <script>
   const sidebarConfigEl = document.getElementById('sidebar-nav-config');
   const sidebarNavConfig = sidebarConfigEl ? JSON.parse(sidebarConfigEl.textContent) : {};
-  const sidebarAllowedViews = new Set(['dashboard', 'dossiers', 'assignations', 'ctc_requests', 'assistant_executif', 'financial', 'statistiques', 'homologations', 'archives', 'parametres', 'reunions', 'instructions']);
+  const sidebarAllowedViews = new Set(['dashboard', 'dossiers', 'assignations', 'ctc_requests', 'assistant_executif', 'financial', 'statistiques', 'homologations', 'archives', 'parametres', 'reunions', 'instructions', 'experts', 'tracabilite']);
   let sidebarCurrentView = 'dashboard';
 
   function renderSidebarButtons(containerId, items) {

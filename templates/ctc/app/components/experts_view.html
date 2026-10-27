@@ -1,0 +1,141 @@
+{% load static %}
+<section class="ctc-module" aria-labelledby="experts-title" data-ctc-experts>
+  <div class="ctc-module__head">
+    <div>
+      <p class="ctc-eyebrow">Supervision · Secrétariat technique</p>
+      <h2 id="experts-title" class="ctc-page-title">Experts et affectations</h2>
+      <p class="ctc-subtitle">Consultation en lecture seule des profils, affectations et responsabilités. La modification reste réservée aux habilitations appropriées.</p>
+    </div>
+    {% if expert_directory.referential %}
+    <span class="ctc-badge {% if expert_directory.referential.is_active %}ctc-badge--success{% else %}ctc-badge--neutral{% endif %}">
+      Référentiel {{ expert_directory.referential.code }} · {{ expert_directory.referential.status }}
+    </span>
+    {% endif %}
+  </div>
+
+  <div class="ctc-metrics">
+    <div class="ctc-metric"><span class="ctc-metric__icon"><i data-lucide="users-round" aria-hidden="true"></i></span><div><strong>{{ expert_directory.total }}</strong><p>Experts enregistrés</p></div></div>
+    <div class="ctc-metric ctc-metric--success"><span class="ctc-metric__icon"><i data-lucide="badge-check" aria-hidden="true"></i></span><div><strong>{{ expert_directory.complete }}</strong><p>Profils complets</p></div></div>
+    <div class="ctc-metric ctc-metric--warning"><span class="ctc-metric__icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span><div><strong>{{ expert_directory.incomplete }}</strong><p>Profils à compléter</p></div></div>
+    <div class="ctc-metric ctc-metric--neutral"><span class="ctc-metric__icon"><i data-lucide="user-round-x" aria-hidden="true"></i></span><div><strong>{{ expert_directory.without_login }}</strong><p>Sans connexion connue</p></div></div>
+  </div>
+
+  <div class="ctc-card">
+    <div class="ctc-toolbar">
+      <label class="ctc-search"><i data-lucide="search" aria-hidden="true"></i><input type="search" data-experts-search placeholder="Rechercher un nom, un email, une structure…"></label>
+      <label class="ctc-select">Affectation<select data-experts-affectation>
+        <option value="">Toutes</option>
+        <option value="validée">Affectation validée</option>
+        <option value="à examiner">Affectation proposée</option>
+        <option value="choix">Choix exprimé</option>
+        <option value="aucune">Non affectée</option>
+      </select></label>
+      <label class="ctc-select">Sous-commission<select data-experts-sc>
+        <option value="">Toutes</option>
+        {% for sc in expert_directory.scs %}<option value="{{ sc.code }}">{{ sc.code }}</option>{% endfor %}
+      </select></label>
+      <label class="ctc-select">Profil<select data-experts-complete>
+        <option value="">Tous</option>
+        <option value="complete">Complet</option>
+        <option value="incomplete">À compléter</option>
+      </select></label>
+    </div>
+
+    <div class="ctc-table-wrap">
+      <table class="ctc-table">
+        <thead><tr><th>Expert</th><th>Structure</th><th>Sous-commission</th><th>Affectation</th><th>Profil</th>{% if expert_directory.can_view_contributions %}<th>Activité</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for row in expert_directory.rows %}
+          <tr data-experts-row data-search="{{ row.name|lower }} {{ row.email|lower }} {{ row.structure_name|lower }}"
+              data-affectation="{{ row.affectation }}" data-sc="{{ row.sc_code|default:'' }}" data-complete="{% if row.complete %}complete{% else %}incomplete{% endif %}">
+            <td data-label="Expert"><button type="button" class="ctc-link" data-experts-open="{{ row.id }}">{{ row.name }}</button><small class="ctc-muted">{{ row.email }}</small></td>
+            <td data-label="Structure">{{ row.structure_name|default:'Non renseignée' }}{% if row.structure %}<small class="ctc-muted">{{ row.structure }}</small>{% endif %}</td>
+            <td data-label="Sous-commission">{{ row.sc_name|default:'—' }}</td>
+            <td data-label="Affectation"><span class="ctc-badge {% if row.affectation == 'validée' %}ctc-badge--success{% elif row.affectation == 'à examiner' %}ctc-badge--warning{% elif row.affectation == 'choix' %}ctc-badge--info{% else %}ctc-badge--neutral{% endif %}">{{ row.affectation_label }}</span></td>
+            <td data-label="Profil">
+              {% if row.complete %}<span class="ctc-badge ctc-badge--success">Complet</span>
+              {% else %}<span class="ctc-badge ctc-badge--warning">À compléter</span><small class="ctc-muted">Manque : {{ row.missing|join:', ' }}</small>{% endif %}
+            </td>
+            {% if expert_directory.can_view_contributions %}
+            <td data-label="Activité"><span class="ctc-muted">{{ row.minutes }} min · {{ row.editions }} version{{ row.editions|pluralize }}</span></td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="ctc-empty">Aucun expert enregistré.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="ctc-empty-row ctc-muted" data-experts-empty hidden>Aucun expert ne correspond aux filtres sélectionnés.</p>
+    </div>
+  </div>
+
+  <div class="ctc-card">
+    <div class="ctc-card__head"><h3>Sous-commissions · effectifs et responsabilités</h3><p class="ctc-subtitle">Postes de coordination et postes non pourvus, issus du référentiel courant.</p></div>
+    <div class="ctc-sc-grid">
+      {% for sc in expert_directory.scs %}
+      <article class="ctc-sc-card">
+        <div class="ctc-sc-card__head"><span class="ctc-badge ctc-badge--info">{{ sc.code }}</span><strong>{{ sc.name }}</strong></div>
+        <div class="ctc-sc-card__meta"><span>{{ sc.experts }} expert{{ sc.experts|pluralize }}</span><span>{{ sc.gt_count }} GT</span><span class="{% if sc.vacant %}ctc-text-warning{% else %}ctc-muted{% endif %}">{{ sc.vacant }} poste{{ sc.vacant|pluralize }} vacant{{ sc.vacant|pluralize }}</span></div>
+        <ul class="ctc-sc-card__posts">
+          {% for post in sc.posts %}
+          <li><span>{{ post.title }}</span>{% if post.holder %}<strong>{{ post.holder }}</strong>{% else %}<em class="ctc-muted">Titulaire à confirmer</em>{% endif %}</li>
+          {% empty %}<li class="ctc-muted">Aucun poste enregistré.</li>{% endfor %}
+        </ul>
+      </article>
+      {% empty %}<p class="ctc-empty">Aucune sous-commission dans le référentiel courant.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% for row in expert_directory.rows %}
+  <div class="ctc-drawer" data-experts-drawer="{{ row.id }}" hidden>
+    <div class="ctc-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="expert-title-{{ row.id }}">
+      <button type="button" class="ctc-drawer__close" data-experts-close aria-label="Fermer"><i data-lucide="x"></i></button>
+      <h3 id="expert-title-{{ row.id }}" class="ctc-page-title">{{ row.name }}</h3>
+      <p class="ctc-subtitle">{{ row.email }}{% if row.structure_name %} · {{ row.structure_name }}{% endif %}</p>
+      <dl class="ctc-detail">
+        <div><dt>Sous-commission</dt><dd>{{ row.sc_name|default:'—' }}</dd></div>
+        <div><dt>Affectation</dt><dd>{{ row.affectation_label }}</dd></div>
+        <div><dt>Dossier de mise à jour</dt><dd>{{ row.profile_status }}</dd></div>
+        <div><dt>Informations manquantes</dt><dd>{% if row.missing %}{{ row.missing|join:', ' }}{% else %}Aucune{% endif %}</dd></div>
+        {% if expert_directory.can_view_contributions %}
+        <div><dt>Activité mesurée</dt><dd>{{ row.minutes }} minutes · {{ row.editions }} version{{ row.editions|pluralize }}</dd></div>
+        {% endif %}
+      </dl>
+      <p class="ctc-note"><i data-lucide="info" aria-hidden="true"></i> Consultation en lecture seule. Les actions de modification du profil relèvent des habilitations appropriées et ne sont pas effectuées ici.</p>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+<script>
+(() => {
+  const root = document.querySelector('[data-ctc-experts]'); if (!root) return;
+  const rows = Array.from(root.querySelectorAll('[data-experts-row]'));
+  const search = root.querySelector('[data-experts-search]');
+  const affectation = root.querySelector('[data-experts-affectation]');
+  const sc = root.querySelector('[data-experts-sc]');
+  const complete = root.querySelector('[data-experts-complete]');
+  const empty = root.querySelector('[data-experts-empty]');
+  function apply() {
+    const q = search.value.trim().toLocaleLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const ok = (!q || row.dataset.search.includes(q))
+        && (!affectation.value || row.dataset.affectation === affectation.value)
+        && (!sc.value || row.dataset.sc === sc.value)
+        && (!complete.value || row.dataset.complete === complete.value);
+      row.hidden = !ok; if (ok) visible++;
+    });
+    empty.hidden = visible > 0;
+  }
+  [search, affectation, sc, complete].forEach(el => {
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);
+  });
+  root.querySelectorAll('[data-experts-open]').forEach(btn => btn.addEventListener('click', () => {
+    const drawer = root.querySelector(`[data-experts-drawer="${btn.dataset.expertsOpen}"]`); drawer.hidden = false; drawer.querySelector('[data-experts-close]').focus();
+  }));
+  root.querySelectorAll('[data-experts-close]').forEach(btn => btn.addEventListener('click', () => btn.closest('.ctc-drawer').hidden = true));
+  root.querySelectorAll('.ctc-drawer').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.hidden = true; }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') root.querySelectorAll('.ctc-drawer:not([hidden])').forEach(d => d.hidden = true); });
+})();
+</script>

@@ -21,6 +21,7 @@
 
     <script src="{% static 'js/theme.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
+    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261027">
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
@@ -131,6 +132,8 @@
                     {% include "ctc/app/components/assignations_view.html" %}
                 </div>
                 <div id="view-statistiques" class="view-container hidden">{% include "ctc/app/components/statistiques_view.html" %}</div>
+                <div id="view-experts" class="view-container hidden">{% include "ctc/app/components/experts_view.html" %}</div>
+                <div id="view-tracabilite" class="view-container hidden">{% include "ctc/app/components/tracabilite_view.html" %}</div>
                 <div id="view-homologations" class="view-container hidden">{% include "ctc/app/components/homologations_view.html" %}</div>
                 <div id="view-instructions" class="view-container hidden">{% include "ctc/app/components/instruction_module.html" %}</div>
 

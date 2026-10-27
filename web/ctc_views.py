@@ -369,6 +369,8 @@ def get_ctc_context(expert: Expert) -> dict | None:
     ]
     sidebar_nav_config['supervision'] = [
         {'view': 'statistiques', 'label': 'Suivi statistique', 'icon': 'chart-no-axes-combined'},
+        {'view': 'experts', 'label': 'Experts et affectations', 'icon': 'users'},
+        {'view': 'tracabilite', 'label': 'Traçabilité', 'icon': 'scroll-text'},
         {'view': 'homologations', 'label': 'Homologations', 'icon': 'shield-check'},
     ]
     sidebar_nav_config['outils'] = [
@@ -631,8 +633,12 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
     ctc_ctx_json = {k: ctx.get(k) for k in _json_safe_keys}
 
     from web.ctc_statistics import build_ctc_statistics
+    from web.ctc_experts import build_expert_directory, build_traceability
     from apps.governance.activity_supervision import activity_access_for
     ctc_statistics = build_ctc_statistics()
+    expert_directory = build_expert_directory(expert)
+    traceability = build_traceability(expert)
+    ctc_activity_access = activity_access_for(expert.user)
 
     # ── Instructions CTC (onglet « Instruction ») ───────────────────────────
     from apps.governance.models import CopilRapport, Demande
@@ -659,6 +665,9 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
         'dossiers': dossiers,
         'assignation_tasks': assignation_tasks,
         'ctc_statistics': ctc_statistics,
+        'expert_directory': expert_directory,
+        'traceability': traceability,
+        'ctc_activity_access': ctc_activity_access,
         'ctc_can_view_task_sources': activity_access_for(expert.user)['can_view_contributions'],
         'dashboard_dossiers_count': dossiers.count(),
         'dashboard_assignations_count': len(assignation_tasks),
