@@ -82,7 +82,8 @@ def main():
             page.get_by_text('Organisation CNE-ITP', exact=True).click()
             page.wait_for_timeout(1500)
             page.screenshot(path=str(output / 'flutter_organisation.png'))
-            page.get_by_role('button', name='Changer le thème', exact=True).click()
+            # Theme control at the top-right of the organisation reference.
+            page.mouse.click(page.viewport_size['width'] - 38, 42)
             page.wait_for_timeout(300)
             page.screenshot(path=str(output / 'flutter_organisation_light.png'))
             page.get_by_text('Secrétariat technique', exact=True).first.click()

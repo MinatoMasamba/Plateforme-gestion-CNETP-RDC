@@ -861,6 +861,7 @@ class _OrganisationTopbar extends StatelessWidget {
                   child: Image.asset(
                     'assets/img/logo-cnetp.png',
                     fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -870,6 +871,7 @@ class _OrganisationTopbar extends StatelessWidget {
                     width: 4,
                     height: 34,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Expanded(flex: 3, child: ColoredBox(color: p.blue)),
                         Expanded(flex: 2, child: ColoredBox(color: p.yellow)),
@@ -919,25 +921,29 @@ class _OrganisationTopbar extends StatelessWidget {
                 const Spacer(),
                 Text(status, style: TextStyle(fontSize: 12, color: p.muted)),
                 const SizedBox(width: 12),
-                Material(
-                  color: p.card,
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    onTap: onTheme,
+                Semantics(
+                  button: true,
+                  label: 'Changer le thème',
+                  child: Material(
+                    color: p.card,
                     borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: p.border),
-                      ),
-                      child: Icon(
-                        p.isDark
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                        size: 17,
-                        color: p.subtle,
+                    child: InkWell(
+                      onTap: onTheme,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: p.border),
+                        ),
+                        child: Icon(
+                          p.isDark
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                          size: 17,
+                          color: p.subtle,
+                        ),
                       ),
                     ),
                   ),
