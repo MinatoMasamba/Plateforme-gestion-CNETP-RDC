@@ -119,6 +119,15 @@ html.dark {
 @keyframes ctc-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ctc-slide { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+/* Révélation progressive des cartes et graphiques (déclenchée par ctc-animations.js). */
+.premium-chart-card, .premium-kpi, .premium-donut, .ctc-metric, .premium-hero {
+    transition: opacity .35s ease-out, transform .35s ease-out;
+}
+.ctc-reveal-pending { opacity: 0; transform: translateY(10px); }
+.premium-donut.ctc-reveal-pending { transform: scale(.9); }
+.ctc-revealed { opacity: 1; transform: none; }
+.premium-chart-fill { transition: width .9s cubic-bezier(.22,.61,.36,1); }
+
 @media (max-width: 900px) {
   .ctc-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ctc-sc-grid { grid-template-columns: 1fr; }
@@ -133,4 +142,6 @@ html.dark {
 @media (prefers-reduced-motion: reduce) {
   .ctc-metric, .ctc-table tbody tr, .ctc-drawer__panel { animation: none; }
   .ctc-drawer__panel { transition: none; }
+  .premium-chart-card, .premium-kpi, .premium-donut, .ctc-metric, .premium-hero, .premium-chart-fill { transition: none; }
+  .ctc-reveal-pending { opacity: 1; transform: none; }
 }
