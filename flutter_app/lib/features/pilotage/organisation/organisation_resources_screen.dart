@@ -47,19 +47,21 @@ class _OrganisationResourcesScreenState
       );
       final body = response.data;
       final rows = body is List ? body : body['results'] as List;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _items = rows
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList();
           _total = body is List ? rows.length : (body['count'] as num).toInt();
         });
+      }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => _error =
               'Impossible de charger ces informations. Vérifiez vos habilitations et réessayez.',
         );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
