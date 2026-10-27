@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0095c9">
+    <title>{% block title %}Erreur{% endblock %} — CNE-ITP</title>
+    <style>
+        :root { color-scheme: light dark; --background: #f1f5f9; --surface: #fff; --text: #0f172a; --muted: #475569; --border: #e2e8f0; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--background); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+        .flag { height: 6px; background: linear-gradient(to right, #0095c9 0 33.33%, #fff24b 33.33% 66.66%, #db3832 66.66%); }
+        header { padding: 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+        .brand { display: block; max-width: 1040px; margin: auto; color: var(--text); text-decoration: none; font-size: 19px; font-weight: 800; }
+        .brand span { color: #0095c9; }
+        main { width: 100%; flex: 1; display: grid; place-items: center; padding: 48px 20px; }
+        .card { width: 100%; max-width: 640px; padding: 44px 36px; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 16px 48px rgb(15 23 42 / 6%); }
+        .code { margin: 0 0 12px; color: #0095c9; font-size: clamp(64px, 15vw, 96px); font-weight: 900; line-height: 1; letter-spacing: -4px; }
+        h1 { margin: 0 0 16px; font-size: clamp(24px, 5vw, 32px); line-height: 1.2; }
+        .message { margin: 0; color: var(--muted); line-height: 1.7; }
+        .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 700; text-decoration: none; }
+        .button.primary { background: #fff24b; border-color: #fff24b; color: #0f172a; }
+        .button:hover { text-decoration: underline; }
+        a:focus-visible { outline: 3px solid #0095c9; outline-offset: 4px; }
+        footer { padding: 20px; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; }
+        @media (prefers-color-scheme: dark) {
+            :root { --background: #020617; --surface: #0f172a; --text: #f1f5f9; --muted: #cbd5e1; --border: #334155; }
+        }
+        @media (max-width: 480px) {
+            .card { padding: 32px 24px; }
+            .actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="flag" aria-hidden="true"></div>
+    <header>
+        <a class="brand" href="{% url 'web:home' %}"><span>CNE-ITP</span> · Plateforme des normes</a>
+    </header>
+    <main>
+        <section class="card" aria-labelledby="error-title">
+            <p class="code">{% block code %}{% endblock %}</p>
+            <h1 id="error-title">{% block heading %}{% endblock %}</h1>
+            <p class="message">{% block message %}{% endblock %}</p>
+            <div class="actions">
+                <a class="button primary" href="{% url 'web:home' %}">Retour à l’accueil</a>
+                {% block secondary_action %}
+                <a class="button" href="{% url 'web:expert_login' %}">Se connecter</a>
+                {% endblock %}
+            </div>
+        </section>
+    </main>
+    <footer>Commission nationale d’élaboration des normes ITP<br>République démocratique du Congo</footer>
+</body>
+</html>
