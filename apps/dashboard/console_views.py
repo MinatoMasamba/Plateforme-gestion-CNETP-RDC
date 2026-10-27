@@ -330,7 +330,7 @@ def _related_admin(model, related_field, related_pk):
 
 @console_required
 def model_list(request, app_label, model_name):
-    """Liste paginée de la console, avec filtres Django et liens de détail."""
+    """Liste générique ou annuaire Experts, sur les droits et routes existants."""
     model = _get_model_or_404(app_label, model_name)
     if model is User:
         return redirect('console:users')
@@ -351,6 +351,14 @@ def model_list(request, app_label, model_name):
         model_admin = _related_admin(model, related_field, related_pk)
         related_label = field.verbose_name
 
+    is_expert_directory = model._meta.label_lower == 'experts.expert'
+    change_list_request = request
+    directory_scope = None
+    directory_state = None
+    if is_expert_directory:
+        from .console_experts import directory_admin
+        model_admin, change_list_request, directory_scope, directory_state = directory_admin(model_admin, request)
+
     list_display = model_admin.get_list_display(request)
     list_display_links = model_admin.get_list_display_links(request, list_display)
     list_filter = model_admin.get_list_filter(request)
@@ -360,7 +368,7 @@ def model_list(request, app_label, model_name):
     sortable_by = model_admin.get_sortable_by(request)
     try:
         change_list = ConsoleChangeList(
-            canonical_filter_request(request, model, list_filter),
+            canonical_filter_request(change_list_request, model, list_filter),
             model,
             list_display,
             list_display_links,
@@ -377,6 +385,12 @@ def model_list(request, app_label, model_name):
         )
     except (IncorrectLookupParameters, DisallowedModelAdminLookup, FieldError, ValueError) as exc:
         raise Http404('Filtre invalide.') from exc
+
+    directory = {}
+    if is_expert_directory:
+        from .console_experts import directory_context, restore_directory_parameters
+        restore_directory_parameters(change_list, directory_state)
+        directory = directory_context(request, change_list, model_admin, directory_scope, directory_state)
 
     pages = []
     previous_url = None
@@ -406,7 +420,7 @@ def model_list(request, app_label, model_name):
             f' · page {page_number} sur {change_list.paginator.num_pages}'
         )
 
-    return render(request, 'dashboard/console/model_list.html', {
+    return render(request, 'dashboard/console/expert_list.html' if is_expert_directory else 'dashboard/console/model_list.html', {
         'page_title': str(model._meta.verbose_name_plural),
         'model': model,
         'opts': model._meta,
@@ -424,6 +438,7 @@ def model_list(request, app_label, model_name):
         'permissions': model_permissions(request.user, model),
         'related_label': related_label,
         'related_clear_url': console_url('model_list', model),
+        **directory,
     })
 
 

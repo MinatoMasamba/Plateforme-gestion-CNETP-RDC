@@ -14,7 +14,7 @@
     <script>
         tailwind.config = { darkMode: 'class' };
     </script>
-    <link rel="stylesheet" href="{% static 'css/console-admin.css' %}?v=20261027-experts">
+    <link rel="stylesheet" href="{% static 'css/console-admin.css' %}?v=20261027-airy">
 </head>
 <body class="console-shell">
     <header class="console-topbar">
@@ -65,44 +65,45 @@
     <div class="console-layout">
         <div class="console-sidebar-overlay" data-console-sidebar-close hidden></div>
         <aside id="console-sidebar" class="console-sidebar">
+            <button type="button" class="console-icon-btn console-sidebar-dismiss" data-console-sidebar-dismiss aria-label="Fermer le menu"><i data-lucide="x" aria-hidden="true"></i></button>
             <nav aria-label="Navigation de la console">
                 <p class="console-nav-label">Pilotage</p>
                 <a href="{% url 'console:home' %}"
-                   class="console-nav-link{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}">
+                   title="Accueil" class="console-nav-link{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}">
                     <i data-lucide="layout-dashboard"></i><span>Accueil</span>
                 </a>
                 <a href="{% url 'console:models' %}"
-                   class="console-nav-link{% if request.resolver_match.url_name == 'models' or request.resolver_match.url_name == 'model_list' or request.resolver_match.url_name == 'model_detail' or request.resolver_match.url_name == 'model_create' or request.resolver_match.url_name == 'model_edit' or request.resolver_match.url_name == 'model_delete' %} is-active{% endif %}">
+                   title="Modèles" class="console-nav-link{% if model_name != 'expert' %}{% if request.resolver_match.url_name == 'models' or request.resolver_match.url_name == 'model_list' or request.resolver_match.url_name == 'model_detail' or request.resolver_match.url_name == 'model_create' or request.resolver_match.url_name == 'model_edit' or request.resolver_match.url_name == 'model_delete' %} is-active{% endif %}{% endif %}">
                     <i data-lucide="boxes"></i><span>Modèles</span>
                 </a>
                 <a href="{% url 'console:users' %}"
-                   class="console-nav-link{% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' or request.resolver_match.url_name == 'user_password' or request.resolver_match.url_name == 'user_deactivate' or request.resolver_match.url_name == 'user_reactivate' %} is-active{% endif %}">
+                   title="Utilisateurs" class="console-nav-link{% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' or request.resolver_match.url_name == 'user_password' or request.resolver_match.url_name == 'user_deactivate' or request.resolver_match.url_name == 'user_reactivate' %} is-active{% endif %}">
                     <i data-lucide="users"></i><span>Utilisateurs</span>
                 </a>
                 <a href="{% url 'console:audit' %}"
-                   class="console-nav-link{% if request.resolver_match.url_name == 'audit' %} is-active{% endif %}">
+                   title="Journal d’audit" class="console-nav-link{% if request.resolver_match.url_name == 'audit' %} is-active{% endif %}">
                     <i data-lucide="scroll-text"></i><span>Journal d’audit</span>
                 </a>
 
                 <p class="console-nav-label console-nav-label-spaced">Raccourcis</p>
-                <a href="{% url 'console:model_list' 'norms' 'norme' %}" class="console-nav-link">
+                <a href="{% url 'console:model_list' 'norms' 'norme' %}" class="console-nav-link" title="Normes">
                     <i data-lucide="book-open"></i><span>Normes</span>
                 </a>
-                <a href="{% url 'console:model_list' 'experts' 'expert' %}" class="console-nav-link">
+                <a href="{% url 'console:model_list' 'experts' 'expert' %}" class="console-nav-link{% if app_label == 'experts' and model_name == 'expert' %} is-active{% endif %}" title="Experts">
                     <i data-lucide="user-check"></i><span>Experts</span>
                 </a>
-                <a href="{% url 'console:model_list' 'governance' 'ctm' %}" class="console-nav-link">
+                <a href="{% url 'console:model_list' 'governance' 'ctm' %}" class="console-nav-link" title="Gouvernance">
                     <i data-lucide="landmark"></i><span>Gouvernance</span>
                 </a>
             </nav>
 
             <div class="console-sidebar-footer">
                 {% if request.user.is_staff %}
-                <a href="{% url 'admin:index' %}" class="console-nav-link">
+                <a href="{% url 'admin:index' %}" class="console-nav-link" title="Admin Django">
                     <i data-lucide="shield"></i><span>Admin Django</span>
                 </a>
                 {% endif %}
-                <a href="{% url 'web:app' %}" class="console-nav-link">
+                <a href="{% url 'web:app' %}" class="console-nav-link" title="Espace de travail">
                     <i data-lucide="arrow-left"></i><span>Espace de travail</span>
                 </a>
             </div>
@@ -111,7 +112,7 @@
         <main class="console-main" id="console-main">
             <div class="console-page-head">
                 <div>
-                    <p class="console-eyebrow">Administration CNE-ITP</p>
+                    {% block eyebrow %}<p class="console-eyebrow">Administration CNE-ITP</p>{% endblock %}
                     <h1>{% block heading %}{{ page_title|default:"Console" }}{% endblock %}</h1>
                     {% block subheading %}{% endblock %}
                 </div>
@@ -135,7 +136,7 @@
         </main>
     </div>
 
-    <script src="{% static 'js/console.js' %}?v=20261027-experts"></script>
+    <script src="{% static 'js/console.js' %}?v=20261027-airy"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

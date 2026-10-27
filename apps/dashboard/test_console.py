@@ -118,7 +118,7 @@ def test_expert_list_selects_pending_filter_and_keeps_it_in_search_links(
     assert str(selected[0]['display']) == 'En attente'
     assert 'status__exact=PENDING' in selected[0]['query_string']
     assert 'q=pending-console' in selected[0]['query_string']
-    assert b'data-console-filter-select' in response.content
+    assert b'data-directory-filters' in response.content
     assert b'console-model-results' in response.content
 
 

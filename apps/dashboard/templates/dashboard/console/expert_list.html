@@ -1,0 +1,126 @@
+{% extends "dashboard/console/base.html" %}
+
+{% block eyebrow %}
+<nav class="console-breadcrumb" aria-label="Fil d’Ariane">
+    <a href="{% url 'console:home' %}">Administration</a>
+    <i data-lucide="chevron-right" aria-hidden="true"></i><span aria-current="page">Experts</span>
+</nav>
+{% endblock %}
+{% block subheading %}<p class="console-page-subtitle">Supervision des profils, des structures et des affectations.</p>{% endblock %}
+{% block page_actions %}
+<a href="{% url 'console:models' %}" class="console-btn console-btn-ghost"><i data-lucide="boxes" aria-hidden="true"></i>Modèles</a>
+{% if permissions.add %}<a href="{% url 'console:model_create' app_label model_name %}" class="console-btn console-btn-primary"><i data-lucide="plus" aria-hidden="true"></i>Créer un expert</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="expert-directory" data-expert-directory>
+    <section class="console-metrics{% if show_incomplete_stat %} console-metrics--five{% endif %}" aria-label="Statistiques des experts">
+        {% include "dashboard/console/partials/metric.html" with label="Total des experts" value=expert_stats.total icon="users-round" detail="Profils enregistrés" tone="blue" %}
+        {% include "dashboard/console/partials/metric.html" with label="Experts actifs" value=expert_stats.active icon="user-round-check" detail="Statut actif" tone="success" %}
+        {% include "dashboard/console/partials/metric.html" with label="En attente" value=expert_stats.pending icon="clock-3" detail="Profils en attente de traitement" tone="warning" %}
+        {% include "dashboard/console/partials/metric.html" with label="Inactifs ou suspendus" value=expert_stats.inactive icon="user-round-minus" detail="Selon le statut enregistré" tone="neutral" %}
+        {% if show_incomplete_stat %}{% include "dashboard/console/partials/metric.html" with label="Profils à compléter" value=expert_stats.incomplete icon="clipboard-pen-line" detail="Selon le suivi des profils" tone="neutral" %}{% endif %}
+    </section>
+
+    {% if related_label %}<div class="console-message"><i data-lucide="filter" aria-hidden="true"></i><span>Périmètre : {{ related_label }}. <a href="{{ related_clear_url }}">Retirer ce filtre</a></span></div>{% endif %}
+
+    <section class="expert-directory-card" aria-labelledby="expert-directory-title">
+        <header class="expert-directory-heading">
+            <div><h2 id="expert-directory-title">Annuaire des experts</h2><p>Consultez les profils et gérez leurs informations.</p></div>
+            <span class="expert-result-count" aria-live="polite">{{ cl.result_count }} résultat{{ cl.result_count|pluralize }}</span>
+        </header>
+        <form method="get" class="expert-filter-form" data-directory-filters>
+            {% for key,value in directory_hidden_params %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+            <input type="hidden" name="per_page" value="{{ directory_state.per_page }}">
+            <div class="expert-filter-bar">
+                <div class="expert-search-field">
+                    <label for="expert-search" class="console-sr-only">Rechercher un expert</label>
+                    <i data-lucide="search" aria-hidden="true"></i>
+                    <input id="expert-search" type="search" name="q" value="{{ directory_query }}" placeholder="Rechercher un nom, un email, une structure…" autocomplete="off">
+                </div>
+                <div class="expert-select-field">
+                    <label for="expert-status" class="console-sr-only">Statut</label>
+                    <select name="status__exact" id="expert-status">
+                        <option value="">Tous les statuts</option>
+                        {% for code,label in expert_status_choices %}<option value="{{ code }}"{% if selected_status == code %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <details class="console-popover expert-structures" data-structure-filter>
+                    <summary><i data-lucide="building-2" aria-hidden="true"></i><span>Structures</span><span class="console-selection-count" data-structure-count{% if not selected_structure_count %} hidden{% endif %}>{{ selected_structure_count }}</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+                    <div class="console-popover-panel expert-structure-panel">
+                        <label for="structure-search">Rechercher une structure</label>
+                        <input id="structure-search" type="search" placeholder="Nom ou sigle…" data-structure-search autocomplete="off">
+                        <fieldset class="expert-structure-options"><legend class="console-sr-only">Structures à afficher</legend>
+                            {% for item in expert_structures %}
+                            <label class="expert-structure-option" data-structure-option>
+                                <input type="checkbox" name="structure__id__in" value="{{ item.id }}"{% if item.selected %} checked{% endif %}>
+                                <span>{{ item.name }}{% if item.acronym %}<small>{{ item.acronym }}</small>{% endif %}</span>
+                            </label>
+                            {% endfor %}
+                        </fieldset>
+                        <p class="console-muted console-small" data-structure-empty hidden>Aucune structure ne correspond à cette recherche.</p>
+                        <div class="expert-popover-footer"><button type="button" class="console-text-button" data-structure-clear>Tout désélectionner</button><button type="button" class="console-text-button" data-popover-close>Fermer</button></div>
+                    </div>
+                </details>
+                <div class="expert-select-field expert-committee-field">
+                    <label for="expert-committee" class="console-sr-only">Comité ou affectation</label>
+                    <select id="expert-committee" name="committee">{% for code,label in committee_choices %}<option value="{{ code }}"{% if directory_state.committee == code %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                </div>
+                <details class="console-popover expert-date-filter">
+                    <summary><i data-lucide="calendar-days" aria-hidden="true"></i><span>Nomination</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+                    <div class="console-popover-panel expert-date-panel">
+                        <label for="expert-date-from">À partir du</label><input type="date" id="expert-date-from" name="appointment_date__gte" value="{{ date_from }}">
+                        <label for="expert-date-to">Jusqu’au</label><input type="date" id="expert-date-to" name="appointment_date__lte" value="{{ date_to }}">
+                        <button type="button" class="console-text-button" data-popover-close>Fermer</button>
+                    </div>
+                </details>
+                <button type="submit" class="console-btn console-btn-primary expert-apply"><i data-lucide="sliders-horizontal" aria-hidden="true"></i><span>Appliquer</span></button>
+                <a href="{{ directory_reset_url }}" class="console-icon-btn expert-reset" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres"><i data-lucide="rotate-ccw" aria-hidden="true"></i></a>
+            </div>
+        </form>
+        {% if active_filters %}
+        <div class="expert-active-filters" aria-label="Filtres actifs"><span>Filtres actifs</span>
+            {% for filter in active_filters %}<a href="{{ filter.url }}" class="expert-filter-chip" aria-label="Retirer le filtre {{ filter.label }}">{{ filter.label }}<i data-lucide="x" aria-hidden="true"></i></a>{% endfor %}
+        </div>
+        {% endif %}
+
+        {% if expert_rows %}
+        <div class="console-model-results expert-table-scroll" role="region" aria-label="Annuaire des experts, tableau défilable" tabindex="0">
+            <table id="result_list" class="expert-table">
+                <caption class="console-sr-only">Annuaire des experts — {{ cl.result_count }} résultat{{ cl.result_count|pluralize }}</caption>
+                <thead><tr>{% for header in expert_headers %}<th scope="col"{% if header.url %} aria-sort="{{ header.aria_sort }}"{% endif %}>
+                    {% if header.url %}<a href="{{ header.url }}" aria-label="Trier par {{ header.label }}">{{ header.label }}<i data-lucide="{% if header.direction == 'asc' %}arrow-up{% elif header.direction == 'desc' %}arrow-down{% else %}arrow-up-down{% endif %}" aria-hidden="true"></i></a>{% else %}{{ header.label }}{% endif %}
+                </th>{% endfor %}</tr></thead>
+                <tbody>{% for row in expert_rows %}
+                    <tr>
+                        <th scope="row" class="expert-identity-cell"><div class="expert-identity"><span class="expert-avatar" aria-hidden="true">{{ row.initials }}</span><div><a href="{% url 'console:model_detail' 'experts' 'expert' row.expert.pk %}" class="expert-name">{{ row.name }}</a><span class="expert-secondary">{{ row.secondary }}</span></div></div></th>
+                        <td class="expert-structure-cell"><span>{{ row.expert.structure.name|default:'Non renseignée' }}</span>{% if row.expert.structure.acronym %}<small>{{ row.expert.structure.acronym }}</small>{% endif %}</td>
+                        <td><span class="expert-status expert-status--{{ row.status_tone }}"><span aria-hidden="true"></span>{{ row.expert.get_status_display }}</span></td>
+                        <td class="expert-committee-cell">{% for committee in row.committees %}<span class="expert-committee" title="{{ committee.detail }}">{{ committee.label }}</span>{% empty %}<span class="expert-unassigned">Non affecté</span>{% endfor %}</td>
+                        <td class="expert-date-cell">{{ row.expert.appointment_date|date:'d M Y'|default:'—' }}</td>
+                        <td class="expert-presence-cell">{{ row.expert.presence_count|default_if_none:'—' }}</td>
+                        <td class="expert-actions-cell"><details class="console-row-menu" data-console-row-menu>
+                            <summary class="console-icon-btn" aria-label="Actions pour {{ row.name }}"><i data-lucide="ellipsis" aria-hidden="true"></i></summary>
+                            <div class="console-row-menu-panel" role="group" aria-label="Actions pour {{ row.name }}">
+                                <a href="{% url 'console:model_detail' 'experts' 'expert' row.expert.pk %}"><i data-lucide="user-round" aria-hidden="true"></i>Voir la fiche</a>
+                                {% if row.can_change %}<a href="{% url 'console:model_edit' 'experts' 'expert' row.expert.pk %}"><i data-lucide="pencil" aria-hidden="true"></i>Modifier</a>{% endif %}
+                                {% if row.can_delete %}<a href="{% url 'console:model_delete' 'experts' 'expert' row.expert.pk %}" class="console-row-menu-danger"><i data-lucide="trash-2" aria-hidden="true"></i>Supprimer</a>{% endif %}
+                            </div>
+                        </details></td>
+                    </tr>
+                {% endfor %}</tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="console-empty console-list-empty expert-empty" role="status"><span class="expert-empty-icon"><i data-lucide="users-round" aria-hidden="true"></i></span><h3>Aucun expert trouvé</h3><p>{% if active_filters %}Essayez d’autres critères ou réinitialisez les filtres pour retrouver l’annuaire complet.{% else %}Les profils enregistrés apparaîtront dans cet annuaire.{% endif %}</p>{% if active_filters %}<a href="{{ directory_reset_url }}" class="console-btn">Réinitialiser les filtres</a>{% endif %}</div>
+        {% endif %}
+        <footer class="expert-directory-footer">
+            <form method="get" class="expert-page-size" data-directory-page-size>
+                {% for key,value in pagination_hidden_params %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+                <label for="expert-page-size">Lignes par page</label><select id="expert-page-size" name="per_page">{% for size in page_sizes %}<option value="{{ size }}"{% if directory_state.per_page == size %} selected{% endif %}>{{ size }}</option>{% endfor %}</select><button type="submit" class="console-text-button">Afficher</button>
+            </form>
+            {% include "dashboard/console/partials/pagination.html" %}
+        </footer>
+    </section>
+</div>
+{% endblock %}
