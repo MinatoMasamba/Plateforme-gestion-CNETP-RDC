@@ -1,0 +1,88 @@
+#messages-container .chat-message {
+  display: flex;
+  width: 100%;
+}
+
+#messages-container .chat-message--outgoing { justify-content: flex-end; }
+#messages-container .chat-message--incoming { justify-content: flex-start; }
+
+#messages-container .chat-message-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: min(82%, 430px);
+}
+
+#messages-container .chat-message--outgoing .chat-message-stack { align-items: flex-end; }
+
+#messages-container .chat-message-author {
+  margin: 0 0 5px 7px;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#messages-container .chat-message--outgoing .chat-message-author {
+  margin: 0 7px 5px 0;
+  color: #1e40af;
+}
+
+#messages-container .chat-message-bubble {
+  width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  border: 1px solid #dbe3ee;
+  border-radius: 17px 17px 17px 5px;
+  padding: 10px 13px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, .04);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#messages-container .chat-message--outgoing .chat-message-bubble {
+  border-color: #1e40af;
+  border-radius: 17px 17px 5px 17px;
+  background: #1e40af;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(30, 64, 175, .17);
+}
+
+#messages-container .chat-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 6px 0;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1;
+}
+
+#messages-container .chat-message--outgoing .chat-message-meta { color: #1e40af; }
+
+html.dark #messages-container .chat-message-author { color: #aab7cb; }
+html.dark #messages-container .chat-message--outgoing .chat-message-author { color: #93b4ff; }
+
+html.dark #messages-container .chat-message-bubble {
+  border-color: #283447;
+  background: #161f2d;
+  color: #eef3fa;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .14);
+}
+
+html.dark #messages-container .chat-message--outgoing .chat-message-bubble {
+  border-color: #3268d9;
+  background: #214da9;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, .19);
+}
+
+html.dark #messages-container .chat-message-meta { color: #9aa8bd; }
+html.dark #messages-container .chat-message--outgoing .chat-message-meta { color: #93b4ff; }
+
+@media (max-width: 767px) {
+  #messages-container .chat-message-stack { max-width: 88%; }
+}

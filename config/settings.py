@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.ia_agent.apps.IaAgentConfig',
     'apps.dashboard.apps.DashboardConfig',
     'apps.gemini_drafts.apps.GeminiDraftsConfig',
+    'apps.reporting.apps.ReportingConfig',
 ]
 
 MIDDLEWARE = [

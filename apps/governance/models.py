@@ -87,6 +87,12 @@ class WG(BaseModel):
     def __str__(self):
         return f"WG {self.ctm.number}.{self.number} - {self.name}"
 
+    @property
+    def catalogue_code(self):
+        from .catalogue import SC_CATALOGUE
+        entry = SC_CATALOGUE.get(self.ctm.number)
+        return f'T{entry[1]}-GT{self.number}' if entry else f'WG {self.ctm.number}.{self.number}'
+
 
 class Affectation(BaseModel):
     """Affectation expert à CTM/WG - Complète le modèle dans experts"""
@@ -573,6 +579,10 @@ class ExecutiveLevel(BaseModel):
 
 class Tache(BaseModel):
     """Tâche de production suivie par la coordination technique."""
+    target_sc = models.ForeignKey(
+        'governance.Organe', on_delete=models.PROTECT, null=True, blank=True,
+        related_name='direct_tasks', verbose_name='Sous-commission destinataire',
+    )
     working_group = models.ForeignKey(
         WG,
         on_delete=models.PROTECT,
@@ -688,15 +698,18 @@ class Tache(BaseModel):
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        if not self.working_group_id and not self.target_group_id:
-            raise ValidationError('La tâche doit être rattachée à un groupe de travail.')
-        if self.working_group_id and self.target_group_id:
-            raise ValidationError('Choisir le groupe historique ou le groupe courant, pas les deux.')
+        targets = sum(bool(value) for value in (self.working_group_id, self.target_group_id, self.target_sc_id))
+        if not targets:
+            raise ValidationError('La tâche doit être rattachée à un groupe de travail ou une sous-commission.')
+        if targets > 1:
+            raise ValidationError('Choisir un seul destinataire : groupe historique, groupe courant ou sous-commission.')
+        if self.target_sc_id and self.target_sc.type != 'SC':
+            raise ValidationError('Le destinataire doit être une sous-commission.')
         if self.backup_assignee_id and self.backup_assignee_id == self.assigned_to_id:
             raise ValidationError('Le remplaçant doit être distinct du responsable.')
     
     def __str__(self):
-        group = self.target_group or self.working_group
+        group = self.target_group or self.working_group or self.target_sc
         return f"{self.titre} ({group.name if group else 'Rattachement à confirmer'})"
 
 
@@ -1312,7 +1325,7 @@ class CopilRapport(BaseModel):
 from .phoenix_models import (  # noqa: E402,F401
     OrganisationVersion, Organe, PosteOrganisation, GroupeCible, ChoixOrganisationExpert,
     CorrespondanceStructure, CorrespondanceGroupe, AffectationSousCommission, MandatOrganisation,
-    HabilitationAction, RattachementDocumentaire, JournalMigration,
+    NominationCTC, HabilitationAction, RattachementDocumentaire, JournalMigration,
     CircuitOrganisation, DossierPhoenix, PiecePhoenix, DecisionPhoenix, EnquetePhoenix,
     ReunionPhoenix, ParticipationPhoenix,
 )

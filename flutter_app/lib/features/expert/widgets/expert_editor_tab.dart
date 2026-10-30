@@ -812,38 +812,41 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 '${_advice!['error'] ?? 'Analyse indisponible : aucune correction vérifiée.'}',
                 style: TextStyle(color: p.amber),
               ),
-            ExpansionTile(
-              title: Text(
-                'Modifications proposées (${edits.length})',
-                style: TextStyle(color: p.text),
-              ),
-              initiallyExpanded: true,
-              children: [
-                for (final edit in edits)
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${edit['reason'] ?? ''} — ${edit['applied'] == true ? 'Applicable' : 'Non applicable'}',
-                          style: TextStyle(color: p.text),
-                        ),
-                        SelectableText(
-                          '${edit['find'] ?? ''}',
-                          style: TextStyle(
-                            color: p.red,
-                            decoration: TextDecoration.lineThrough,
+            Material(
+              type: MaterialType.transparency,
+              child: ExpansionTile(
+                title: Text(
+                  'Modifications proposées (${edits.length})',
+                  style: TextStyle(color: p.text),
+                ),
+                initiallyExpanded: true,
+                children: [
+                  for (final edit in edits)
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${edit['reason'] ?? ''} — ${edit['applied'] == true ? 'Applicable' : 'Non applicable'}',
+                            style: TextStyle(color: p.text),
                           ),
-                        ),
-                        SelectableText(
-                          '${edit['replace'] ?? ''}',
-                          style: TextStyle(color: p.blue),
-                        ),
-                      ],
+                          SelectableText(
+                            '${edit['find'] ?? ''}',
+                            style: TextStyle(
+                              color: p.red,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          SelectableText(
+                            '${edit['replace'] ?? ''}',
+                            style: TextStyle(color: p.blue),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             if (_analyzedText != _text.text)
               Text(

@@ -2,13 +2,42 @@
 from django.test import TestCase
 from django.template.loader import render_to_string
 
-from apps.governance.models import CTM, WG, GroupeCible, Organe, OrganisationVersion, Tache
+from apps.governance.models import CTM, WG, CorrespondanceGroupe, GroupeCible, Organe, OrganisationVersion, Tache
 from apps.norms.models import Norme
 from django.urls import reverse
 from web.ctc_statistics import build_ctc_statistics
 
 
 class CTCStatisticsTests(TestCase):
+    def test_direct_sc_tasks_count_for_the_sc_without_assigning_them_to_a_wg(self):
+        version = OrganisationVersion.objects.create(code='direct-sc-test', name='Test', source_document='Test')
+        sc = Organe.objects.create(version=version, code='SC-BAT', name='Bâtiments', type='SC', source_reference='Test')
+        ctm = CTM.objects.create(number=1, name='Bâtiments')
+        WG.objects.create(ctm=ctm, number=1, name='Conception')
+        Tache.objects.create(target_sc=sc, titre='Dossier direct', weight=2, progress=25)
+        result = build_ctc_statistics()
+        row = result['rows'][0]
+        self.assertEqual(row['task_count'], 1)
+        self.assertEqual(row['performance'], 25)
+        self.assertEqual(result['task_count'], 1)
+        self.assertIsNone(row['groups'][0]['performance'])
+        self.assertEqual(result['global_performance'], 25)
+
+    def test_target_group_task_needs_validated_group_correspondence(self):
+        version = OrganisationVersion.objects.create(code='ctc-task-link', name='Test', source_document='Test')
+        sc = Organe.objects.create(version=version, code='SC-T', name='Test', type='SC', source_reference='Test')
+        gt = GroupeCible.objects.create(sc=sc, code='GT-T', name='GT test',
+                                        source_reference='Test', activity='PRODUCTION')
+        ctm = CTM.objects.create(name='CTM test', number=1)
+        wg = WG.objects.create(ctm=ctm, name='WG test', number=1)
+        Tache.objects.create(target_group=gt, titre='Tâche à rattacher')
+
+        self.assertEqual(build_ctc_statistics()['task_count'], 0)
+        CorrespondanceGroupe.objects.create(version=version, wg=wg, sc=sc, gt=gt,
+                                            status='VALIDATED', source_reference='Test', domain='Test',
+                                            decision_reference='Test')
+        self.assertEqual(build_ctc_statistics()['task_count'], 1)
+
     def test_group_navigation_has_unique_panels_and_norm_read_links(self):
         ctm = CTM.objects.create(name='CTM lecture', number=1)
         group = WG.objects.create(pk=ctm.pk, ctm=ctm, name='Groupe lecture', number=1)
@@ -55,7 +84,7 @@ class CTCStatisticsTests(TestCase):
         self.assertEqual(result['global_performance'], 16.7)
 
         html = render_to_string('ctc/app/components/statistiques_view.html', {'ctc_statistics': result, 'ctc_can_view_task_sources': True})
-        self.assertIn('Non configuré', html)
+        self.assertIn('Aucune tâche pondérée', html)
         self.assertIn('Travail A', html)
         self.assertNotIn('/pilotage/', html)
         restricted_html = render_to_string('ctc/app/components/statistiques_view.html', {'ctc_statistics': result, 'ctc_can_view_task_sources': False})

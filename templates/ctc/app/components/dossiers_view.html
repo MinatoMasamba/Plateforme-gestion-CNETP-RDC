@@ -33,6 +33,50 @@
         </div>
     </div>
 
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900" aria-labelledby="ctc-catalogue-title">
+        <h3 id="ctc-catalogue-title" class="text-lg font-bold text-slate-900 dark:text-white">Catalogue des normes · {{ catalogue_normes|length }}</h3>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Tous les projets enregistrés et leurs rattachements. La réception dans les cinq étapes CTC est suivie séparément ci-dessous.</p>
+        <div class="mt-4 max-h-[32rem] overflow-auto">
+            <table class="institutional-table w-full text-left text-sm">
+                <thead><tr><th class="p-3">Référence</th><th class="p-3">Titre</th><th class="p-3">Groupe de travail</th><th class="p-3">Statut</th><th class="p-3">Sous-commission</th><th class="p-3">Dossier</th></tr></thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for norme in catalogue_normes %}<tr>
+                        <td class="p-3 font-mono font-semibold">{{ norme.reference_number }}</td>
+                        <td class="p-3">{{ norme.title }}</td>
+                        <td class="p-3">{{ norme.wg.catalogue_code }} · {{ norme.wg.name }}</td>
+                        <td class="p-3">{{ norme.get_status_display }}</td>
+                        <td class="p-3">
+                            {% if norme.circuit_version == 'LEGACY' and norme.ctm %}CTM {{ norme.ctm.number }} · {{ norme.ctm.name }}{% endif %}
+                            {% for binding in norme.organisation_bindings.all %}
+                                {% if binding.role == 'OWNER' %}<div>{{ binding.sc.code }} · {{ binding.sc.name }} ({{ binding.get_status_display|lower }})</div>{% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="p-3"><a class="font-semibold text-blue-700 underline dark:text-blue-300" href="{% url 'web:ctc_norme_read' norme.pk %}">Lire</a></td>
+                    </tr>{% empty %}<tr><td colspan="6" class="p-3 text-slate-500">Aucune norme enregistrée.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if sc_tasks %}
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900" aria-labelledby="sc-tasks-title">
+        <h3 id="sc-tasks-title" class="text-lg font-bold text-slate-900 dark:text-white">Tâches adressées aux sous-commissions · {{ sc_tasks|length }}</h3>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Chaque sous-commission examine le périmètre du projet et confirme le groupe compétent avant une affectation nominative.</p>
+        <div class="mt-4 overflow-x-auto"><table class="institutional-table w-full text-left text-sm">
+            <thead><tr><th class="p-3">Norme</th><th class="p-3">Sous-commission</th><th class="p-3">Tâche</th><th class="p-3">État</th><th class="p-3">Dossier</th></tr></thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for task in sc_tasks %}<tr>
+                    <td class="p-3 font-mono font-semibold">{{ task.norme.reference_number }}</td>
+                    <td class="p-3">{{ task.target_sc.code }} · {{ task.target_sc.name }}</td>
+                    <td class="p-3">{{ task.titre }}</td>
+                    <td class="p-3">{{ task.get_status_display }}</td>
+                    <td class="p-3"><a class="font-semibold text-blue-700 underline dark:text-blue-300" href="{% url 'web:ctc_norme_read' task.norme_id %}">Lire</a></td>
+                </tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </section>
+    {% endif %}
+
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm dark:bg-black/30 dark:border-white/10 dark:shadow-none">
         <div class="overflow-x-auto">
             <table class="institutional-table institutional-table--stacked w-full text-left text-sm">
@@ -162,6 +206,7 @@
             </table>
         </div>
     </div>
+
 </div>
 
 <script>

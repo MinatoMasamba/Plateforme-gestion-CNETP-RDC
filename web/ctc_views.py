@@ -25,18 +25,19 @@ from django.conf import settings
 from django.urls import reverse
 
 from apps.experts.models import Expert
+from apps.governance.phoenix_runtime import active_st_mandate
 from web.pilotage_views import get_pilotage_context
 from apps.governance.models import (
     TechnicalCell, CTCMembership, CTCOperationalRequest,
     PilotageMembreship, PosteNominatifCTC, CTM, CTCProcessus, PlatformFreeze,
-    Demande, JournalDemande, CopilRapport, WG,
+    Demande, JournalDemande, CopilRapport, WG, Tache,
 )
 from apps.mobileapp.signals import create_notification_for_user
 from apps.validation.models import (
     ISOReview, EcologicalReview, EconomicReview,
     ScheduleReview, IndustrialConsultation, LegisticReview,
 )
-from apps.norms.models import Norme, NormeComment
+from apps.norms.models import Norme, NormeComment, NormeVersion
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -137,6 +138,14 @@ def _resolve_ctc_sub_role(ctc_role: str, acronym: str) -> str:
 
 def _initialize_ctc_reviews(norme):
     """Crée les examens CTC requis et les attribue aux postes disponibles."""
+    simulation = norme.source_reference == 'SIMULATION — SANS VALEUR OFFICIELLE'
+
+    def eligible_members(role):
+        members = CTCMembership.objects.filter(role=role)
+        if simulation:
+            return members.filter(expert__user__username__endswith='@example.invalid')
+        return members.exclude(expert__user__username__endswith='@example.invalid')
+
     assignments = {
         'legistic_review': (LegisticReview, 'legist', 'LEGAL', 'Examen légistique CTC'),
         'iso_review': (ISOReview, 'expert', 'ISO_EXPERT', 'Examen ISO / SADC'),
@@ -147,8 +156,7 @@ def _initialize_ctc_reviews(norme):
     created = []
     for relation, (model, expert_field, membership_role, label) in assignments.items():
         member = (
-            CTCMembership.objects
-            .filter(role=membership_role)
+            eligible_members(membership_role)
             .select_related('expert__user')
             .order_by('id')
             .first()
@@ -173,8 +181,8 @@ def _initialize_ctc_reviews(norme):
         created.append(review)
 
     schedule_member = {
-        'planner': CTCMembership.objects.filter(role='PLANNER').select_related('expert__user').order_by('id').first(),
-        'scientist': CTCMembership.objects.filter(role='SCIENTIFIC').select_related('expert__user').order_by('id').first(),
+        'planner': eligible_members('PLANNER').select_related('expert__user').order_by('id').first(),
+        'scientist': eligible_members('SCIENTIFIC').select_related('expert__user').order_by('id').first(),
     }
     schedule, was_created = ScheduleReview.objects.get_or_create(
         norme=norme,
@@ -249,8 +257,12 @@ def get_ctc_context(expert: Expert) -> dict | None:
     is_logistique = sub_role in _LOGISTIQUE_SUBS
     is_numerique  = sub_role in _NUMERIQUE_SUBS
 
-    # ── Poste nominatif CTC (si disponible) ──────────────────────────────
-    poste = PosteNominatifCTC.objects.filter(holder=expert).select_related('required_structure').first()
+    # ── Poste de la matrice Phoenix (24 postes du ST), sinon ancien référentiel ──
+    mandate = active_st_mandate(expert)
+    poste = (
+        mandate.poste if mandate
+        else PosteNominatifCTC.objects.filter(holder=expert).select_related('required_structure').first()
+    )
 
     # ── Demandes opérationnelles en attente (Assistant Exécutif) ─────────
     pending_ctc_requests = (
@@ -493,7 +505,7 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
     ctx['ctc_drive_recent_attempts'] = DriveSyncAttempt.objects.order_by('-created_at')[:5]
 
     # CTMs pour le hub de routage (Direction) et la modale CTM
-    ctms = CTM.objects.prefetch_related('working_groups').order_by('number')
+    ctms = CTM.objects.filter(number__in=range(1, 8)).prefetch_related('working_groups').order_by('number')
     ctms_list = [
         {
             'ctm': c,
@@ -607,12 +619,45 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
             'source_label': "Expert extérieur",
         })
 
+    for task in Tache.objects.filter(assigned_to=expert,
+                                    status__in=['PLANNED', 'IN_PROGRESS', 'BLOCKED', 'ON_HOLD'])\
+                             .select_related('norme', 'target_sc').order_by('due_date', 'pk'):
+        assignation_tasks.append({
+            'type_label': 'Tâche attribuée',
+            'icon': 'clipboard-check',
+            'reference': task.norme.reference_number if task.norme else '',
+            'title': task.titre,
+            'status_display': task.get_status_display(),
+            'view_target': 'dossiers',
+            'detail_url': reverse('web:ctc_norme_read', args=[task.norme_id]) if task.norme_id else None,
+            'category': 'personnelle',
+            'category_label': 'Tâche de mon poste',
+            'source_label': f'Échéance {task.due_date:%d/%m/%Y}' if task.due_date else 'Échéance à fixer',
+        })
+
     # Pipeline complet des dossiers normatifs (vue "Dossiers Normatifs")
     dossiers = (
         CTCProcessus.objects
         .select_related('norme', 'norme__ctm', 'received_by__user')
         .order_by('-updated_at')
     )
+    catalogue_normes = (
+        Norme.all_objects
+        .select_related('ctm')
+        .prefetch_related('organisation_bindings__sc')
+        .order_by('reference_number', 'pk')
+    )
+    sc_tasks = list(Tache.objects.filter(target_sc__isnull=False, assigned_to__isnull=True)
+                    .select_related('norme', 'target_sc').order_by('target_sc__code', 'norme__reference_number'))
+    ctc_assigned = list(Tache.objects.filter(target_sc__isnull=False, assigned_to__isnull=False)
+                        .select_related('assigned_to__user', 'norme', 'target_sc').order_by('pk'))
+    ctc_roles_by_expert = dict(CTCMembership.objects.filter(
+        expert_id__in=[task.assigned_to_id for task in ctc_assigned]
+    ).values_list('expert_id', 'role'))
+    ctc_role_distribution = {}
+    for task in ctc_assigned:
+        role = ctc_roles_by_expert.get(task.assigned_to_id, 'À vérifier')
+        ctc_role_distribution[role] = ctc_role_distribution.get(role, 0) + 1
 
     # Sous-ensemble JSON-safe du contexte de privilèges, injecté côté client
     # via `{{ ctc_ctx_json|json_script:"ctc-ctx-data" }}` (window.CTC_CTX).
@@ -663,6 +708,12 @@ def _ctc_shared_context(expert: Expert) -> dict | None:
         'my_ctc_requests': my_ctc_requests,
         'ctc_directory': ctc_directory,
         'dossiers': dossiers,
+        'catalogue_normes': catalogue_normes,
+        'sc_tasks': sc_tasks,
+        'ctc_assigned_count': len(ctc_assigned),
+        'ctc_assigned_tasks': ctc_assigned,
+        'ctc_account_name': expert.full_name or expert.user.username,
+        'ctc_role_distribution': sorted(ctc_role_distribution.items()),
         'assignation_tasks': assignation_tasks,
         'ctc_statistics': ctc_statistics,
         'expert_directory': expert_directory,
@@ -1249,7 +1300,7 @@ class CTCNormeReadView(View):
             return redirect('web:app')
 
         norme = get_object_or_404(
-            Norme.objects.select_related('ctm', 'wg'),
+            Norme.all_objects.select_related('ctm', 'wg'),
             pk=pk,
         )
         processus = (
@@ -1258,12 +1309,17 @@ class CTCNormeReadView(View):
             .select_related('received_by', 'received_by__structure')
             .first()
         )
-        latest_version = norme.get_latest_version()
         versions = (
-            norme.versions
+            NormeVersion.all_objects.filter(norme=norme)
             .select_related('version_author')
             .order_by('-version_number')[:8]
         )
+        latest_version = versions[0] if versions else None
+        if request.GET.get('version'):
+            latest_version = get_object_or_404(
+                NormeVersion.all_objects.select_related('version_author'),
+                norme=norme, pk=request.GET['version'] if request.GET['version'].isdigit() else 0,
+            )
         comments = (
             NormeComment.objects
             .filter(norme=norme)

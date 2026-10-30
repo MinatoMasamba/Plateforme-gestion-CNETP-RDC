@@ -228,7 +228,9 @@ def intelligence(request):
     selected_norm = request.GET.get('norme', '')
     if selected_norm and not selected_norm.isdecimal():
         raise Http404
-    norms = Norme.all_objects.select_related('ctm', 'wg').order_by('reference_number')
+    norms = (Norme.all_objects.select_related('ctm', 'wg')
+             .exclude(status='ARCHIVED')
+             .order_by('reference_number'))
     if selected_norm:
         norm = get_object_or_404(norms, pk=selected_norm)
     else:

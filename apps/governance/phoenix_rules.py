@@ -21,6 +21,11 @@ ACTIONS = {
     'document.adopter': 'Adopter',
     'document.homologuer': 'Homologuer',
     'document.publier': 'Publier au Journal Officiel',
+    'rapport.consulter': 'Consulter les rapports du périmètre',
+    'rapport.rediger': 'Rédiger les rapports du périmètre',
+    'rapport.controler': 'Contrôler les rapports du périmètre',
+    'rapport.approuver': 'Approuver les rapports du périmètre',
+    'rapport.transmettre': 'Consigner la transmission des rapports',
 }
 FINAL_ACTIONS = {'document.adopter': 'ADOPTED', 'document.homologuer': 'HOMOLOGATED', 'document.publier': 'PUBLISHED'}
 
@@ -41,7 +46,8 @@ def validate_circuit(config):
         seen.add(rule['id'])
         if rule.get('from') not in codes or rule.get('to') not in codes or rule['from'] == rule['to']:
             raise ValidationError('Une transition relie deux états distincts du circuit.')
-        if rule.get('action') not in ACTIONS or rule['action'] in ('organisation.consulter', 'document.consulter', 'document.creer', 'document.editer', 'document.joindre', 'document.verrouiller', 'reunion.planifier'):
+        if (rule.get('action') not in ACTIONS or rule['action'].startswith('rapport.') or
+                rule['action'] in ('organisation.consulter', 'document.consulter', 'document.creer', 'document.editer', 'document.joindre', 'document.verrouiller', 'reunion.planifier')):
             raise ValidationError('L’action de transition est invalide.')
         if not isinstance(rule.get('label'), str) or not rule.get('label') or not isinstance(rule.get('organe_types'), list) or not rule.get('organe_types') or any(kind not in ('GT', 'SC', 'ST', 'ST_POLE', 'COPIL') for kind in rule['organe_types']):
             raise ValidationError('Préciser le libellé et les organes habilités de chaque transition.')

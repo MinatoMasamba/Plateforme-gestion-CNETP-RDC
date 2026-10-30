@@ -52,4 +52,5 @@ staticfiles/
 data.json
 /.local_backups/
 /.phoenix_documents/
+/demo_data/
 

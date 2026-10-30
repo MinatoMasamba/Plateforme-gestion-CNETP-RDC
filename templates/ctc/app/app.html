@@ -21,7 +21,7 @@
 
     <script src="{% static 'js/theme.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
-    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261027">
+    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261029">
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
@@ -48,6 +48,18 @@
         .animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+        /* Hauteur dynamique et défilement mobile : 100vh fige la hauteur et le
+           bas du contenu passe sous la barre d'outils des navigateurs mobiles. */
+        html, body { height: 100%; }
+        @supports (height: 100dvh) {
+            body.cnetp-premium { height: 100dvh; }
+        }
+        #ctc-shell { min-height: 0; }
+        #ctc-main { min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+        #main-viewport-content > .view-container { min-height: 0; }
+        @media (max-width: 767px) {
+            #ctc-main { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem); }
+        }
         @media (max-width: 767px) {
             #main-viewport-content h2 { font-size: 1.25rem !important; line-height: 1.35 !important; }
             #main-viewport-content h3 { font-size: 0.98rem !important; line-height: 1.35 !important; }
@@ -100,12 +112,12 @@
 
     {% include "ctc/app/components/topbar_module.html" %}
 
-    <div class="flex flex-1 overflow-hidden relative w-full">
+    <div id="ctc-shell" class="flex flex-1 overflow-hidden relative w-full">
 
     {% include "ctc/app/components/sidebar_module.html" %}
     {% include "ctc/app/components/ctm_working_groups_modal.html" %}
 
-        <main class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
+        <main id="ctc-main" class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
             <div id="main-viewport-content" class="w-full h-full">
 
                 <div id="view-dashboard" class="view-container">
@@ -270,7 +282,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             safeCreateIcons();
-            window.switchView(window.location.hash.slice(1) || 'dashboard');
+            window.switchView(window.location.hash.slice(1) || (window.location.pathname === '/ctc/experts/' ? 'experts' : 'dashboard'));
         });
         window.addEventListener('hashchange', () => window.switchView(window.location.hash.slice(1) || 'dashboard'));
     </script>

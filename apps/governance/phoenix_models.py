@@ -380,6 +380,15 @@ class MandatOrganisation(PhoenixValidatedModel, BaseModel):
         return f'{self.expert.user.get_full_name() or self.expert.user.username} · {self.function or "Fonction à confirmer"} · {self.get_capacity_display()}'
 
 
+class NominationCTC(MandatOrganisation):
+    """Vue administrable des nominations sur les 24 postes du Secrétariat technique."""
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Nomination CTC'
+        verbose_name_plural = 'Nominations CTC (24 postes)'
+
+
 class HabilitationAction(PhoenixValidatedModel, BaseModel):
     mandat = models.ForeignKey(MandatOrganisation, on_delete=models.PROTECT, related_name='habilitations')
     action = models.CharField(max_length=100)

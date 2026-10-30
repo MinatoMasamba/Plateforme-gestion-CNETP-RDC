@@ -1,0 +1,4 @@
+{% extends 'reporting/base.html' %}{% block title %}Nouveau rapport{% endblock %}{% block content %}
+<div class="page-title"><div><p class="eyebrow">Étape 1 sur 5 · Identification</p><h1>Nouveau rapport</h1><p>Choisissez un modèle, une période et le périmètre concerné. Les autres rubriques seront proposées à l’étape suivante.</p></div></div>
+<form method="post" class="card form-grid">{% csrf_token %}{% for field in form %}<div class="field {% if field.name == 'title' or field.name == 'recipient' %}wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="error">{{ error }}</p>{% endfor %}</div>{% endfor %}{% if form.non_field_errors %}<p class="error wide">{{ form.non_field_errors }}</p>{% endif %}<div class="wide actions"><a href="{% url 'reporting:index' %}">Annuler</a><button class="primary" type="submit">Créer le brouillon →</button></div></form>
+{% endblock %}

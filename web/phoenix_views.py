@@ -20,6 +20,7 @@ from apps.governance.models import (OrganisationVersion, Organe, PosteOrganisati
                                    HabilitationAction, RattachementDocumentaire, CircuitOrganisation, PiecePhoenix, DecisionPhoenix, JournalMigration, ParticipationPhoenix)
 from apps.governance.phoenix_operations import CONFIG_MODELS, configure, object_version, readiness, activate, suspend, validate_mapping
 from apps.governance.phoenix_rules import ACTIONS
+from apps.governance.phoenix_runtime import st_posts
 from apps.governance.phoenix_services import has_organisation_action
 from apps.governance.organisation_permissions import can_manage_organisation, can_activate_organisation
 from apps.governance.phoenix_workflow import (accessible_dossiers, mandates_for, permitted_transitions, create_dossier,
@@ -167,6 +168,15 @@ class PhoenixConfigurationView(PhoenixView):
         if instance and object_version(instance).pk != context['version'].pk:
             raise Http404
         form = configuration_form(kind, context['version'], data=data, instance=instance)
+        if kind == 'mandat':
+            initial_poste = request.GET.get('poste', '')
+            selected = (
+                PosteOrganisation.objects.select_related('organe').filter(
+                    pk=initial_poste, organe__version=context['version'],
+                ).first() if initial_poste.isdigit() else None
+            )
+            if request.GET.get('scope') == 'st' or (selected and selected.organe.type in ('ST', 'ST_POLE')):
+                form.fields['poste'].queryset = st_posts(context['version'])
         renewal_id = request.POST.get('renew_from') if data is not None else request.GET.get('renouveler')
         renewal_source = None
         if kind == 'mandat' and not instance and renewal_id and renewal_id.isdecimal():

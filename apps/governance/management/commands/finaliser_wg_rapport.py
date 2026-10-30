@@ -16,64 +16,14 @@ from apps.governance.models import CTM, WG
 
 
 # numéro CTM -> 5 GT de référence, dans l'ordre officiel.
-CANONICAL = {
-    1: [  # SC-BAT
-        'Conception architecturale et structurelle',
-        'Sécurité incendie et accessibilité PMR',
-        'Efficacité énergétique, thermique et acoustique',
-        'Urbanisme et aménagement urbain',
-        'Transition numérique et BIM (Building Information Modeling)',
-    ],
-    2: [  # SC-ENV
-        'Évaluations environnementales et sociales (EES)',
-        'Gestion et valorisation des déchets de construction',
-        'Hygiène, santé et sécurité au travail (SST)',
-        'Protection des ressources en eau et prévention des pollutions',
-        'Résilience climatique et développement durable',
-    ],
-    3: [  # SC-GF
-        'Reconnaissance des sols et investigations in situ',
-        'Mécanique des roches et risques naturels',
-        'Fondations superficielles et profondes',
-        'Ouvrages de soutènement et amélioration des sols',
-        'Auscultation, diagnostic et pathologie géotechnique',
-    ],
-    4: [  # SC-IT
-        'Conception géométrique, dimensionnement et chaussées',
-        'Ponts et ouvrages d\'art',
-        'Infrastructures ferroviaires',
-        'Infrastructures aéroportuaires',
-        'Infrastructures portuaires et fluviales',
-    ],
-    5: [  # SC-OH
-        'Hydrologie et modélisation des bassins versants',
-        'Barrages, digues et réservoirs',
-        'Drainage et assainissement routier et urbain',
-        'Aménagements hydro-agricoles et irrigation',
-        'Adduction d\'eau potable et ouvrages de captage',
-    ],
-    6: [  # SC-SOCLE
-        'Terminologie, symboles et métrologie normative',
-        'Caractérisation physique et mécanique des matériaux',
-        'Liants hydrauliques, bétons et produits manufacturés',
-        'Évaluation de la conformité et assurance qualité des laboratoires',
-        'Valorisation des matériaux locaux et éco-matériaux',
-    ],
-    7: [  # SC-VRD
-        'Voiries et réseaux divers (VRD) et assainissement urbain secondaire',
-        'Installations électriques, courants forts et éclairage public',
-        'Courants faibles, sécurité électronique et automatismes',
-        'Chauffage, ventilation, climatisation (CVC) et traitement d\'air',
-        'Plomberie, sanitaires, gaz et fluides spéciaux',
-    ],
-}
+from apps.governance.catalogue import GT_CATALOGUE as CANONICAL
 
 # Corrections d'intitulé : intitulé actuel -> intitulé de référence.
 RENAMES = {
     'Sécurité incendie et accessibilité': 'Sécurité incendie et accessibilité PMR',
-    'Routes, Conception géométrique & dimensionnement': 'Conception géométrique, dimensionnement et chaussées',
-    'Drainage et assainissement routier/urbain': 'Drainage et assainissement routier et urbain',
-    'Voiries et Réseaux Divers (VRD) et assainissement secondaire': 'Voiries et réseaux divers (VRD) et assainissement urbain secondaire',
+    'Conception géométrique, dimensionnement et chaussées': 'Routes, Conception géométrique & dimensionnement',
+    'Drainage et assainissement routier et urbain': 'Drainage et assainissement routier/urbain',
+    'Voiries et réseaux divers (VRD) et assainissement urbain secondaire': 'Voiries et Réseaux Divers (VRD) et assainissement secondaire',
     'Chauffage, Ventilation, Climatisation (CVC) et traitement d\'air': 'Chauffage, ventilation, climatisation (CVC) et traitement d\'air',
 }
 

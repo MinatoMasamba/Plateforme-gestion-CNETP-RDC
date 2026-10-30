@@ -4,18 +4,22 @@ import '../../../theme/app_colors.dart';
 
 /// Vues CTC secondaires, structurées d'après les écrans Django de référence.
 /// Les valeurs métier absentes de l'API restent explicitement indisponibles :
-/// aucune donnée financière ou décision n'est simulée.
+/// aucune donnée financière ou décision n'est créée localement.
 class CtcModuleView extends StatelessWidget {
   const CtcModuleView({
     super.key,
     required this.view,
     required this.counts,
     required this.dossiers,
+    this.stageRows = const [],
+    this.groupNormRows = const [],
   });
 
   final String view;
   final Map<String, int> counts;
   final List<Map<String, dynamic>> dossiers;
+  final List<Map<String, dynamic>> stageRows;
+  final List<Map<String, dynamic>> groupNormRows;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,24 @@ class CtcModuleView extends StatelessWidget {
       case 'financial':
         return const _Financial();
       case 'statistiques':
-        return _Statistics(counts);
+        return _Statistics(counts, stageRows, groupNormRows);
+      case 'experts':
+        return const _SimpleTable(
+          eyebrow: 'Supervision',
+          title: 'Experts et affectations',
+          subtitle: 'Annuaire et affectations du Secrétariat technique.',
+          headers: ['EXPERT', 'POSTE', 'AFFECTATION'],
+          empty:
+              "Les données d'affectation ne sont pas encore disponibles dans l'API mobile.",
+        );
+      case 'tracabilite':
+        return const _SimpleTable(
+          eyebrow: 'Supervision',
+          title: 'Traçabilité',
+          subtitle: 'Historique des actions du circuit CTC.',
+          headers: ['DATE', 'ACTION', 'AUTEUR'],
+          empty: "L'historique n'est pas encore disponible dans l'API mobile.",
+        );
       case 'homologations':
         return const _SimpleTable(
           eyebrow: 'Supervision',
@@ -153,7 +174,7 @@ class _RequestsState extends State<_Requests> {
         const _Card(
           child: Align(
             alignment: Alignment.centerLeft,
-            child: _Badge('Opérationnelles · 0'),
+            child: _Badge('Demandes : données indisponibles'),
           ),
         ),
         const SizedBox(height: 18),
@@ -223,8 +244,8 @@ class _Assistant extends StatelessWidget {
           children: [
             _Metric(
               'EN ATTENTE',
-              '0',
-              'Demandes à traiter maintenant',
+              '—',
+              'Données de demandes non connectées',
               Color(0xFF00AFA0),
             ),
             _Metric(
@@ -235,8 +256,8 @@ class _Assistant extends StatelessWidget {
             ),
             _Metric(
               'PRIORITÉ',
-              'Haute',
-              'Tri, réponse, transmission',
+              '—',
+              'Priorité non fournie par l’API',
               AppColors.rdcBlue,
             ),
           ],
@@ -280,7 +301,7 @@ class _Financial extends StatelessWidget {
               'Données financières à connecter',
               Color(0xFF00B57A),
             ),
-            _Metric('ENGAGÉ', '—', 'Aucune valeur simulée', Color(0xFFFFA000)),
+            _Metric('ENGAGÉ', '—', 'Données financières à connecter', Color(0xFFFFA000)),
             _Metric(
               'À LIQUIDER',
               '—',
@@ -312,8 +333,10 @@ class _Financial extends StatelessWidget {
 }
 
 class _Statistics extends StatelessWidget {
-  const _Statistics(this.counts);
+  const _Statistics(this.counts, this.stageRows, this.groupNormRows);
   final Map<String, int> counts;
+  final List<Map<String, dynamic>> stageRows;
+  final List<Map<String, dynamic>> groupNormRows;
   int get norms => counts['normes_suivies'] ?? 0;
 
   @override
@@ -335,35 +358,52 @@ class _Statistics extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Les mesures utilisent seulement les tâches affectées explicitement.',
+                'Les mesures de progression utilisent seulement les tâches affectées explicitement. Aucun classement automatique.',
                 style: TextStyle(color: AppColors.muted),
               ),
               const SizedBox(height: 22),
-              Wrap(
-                spacing: 54,
-                runSpacing: 20,
-                children: [
-                  _Stat(
-                    'Normes rattachées',
-                    '$norms',
-                    'Dans les groupes suivis',
-                  ),
-                  const _Stat(
-                    'Sous-commissions et CTM',
-                    '—',
-                    'Référentiel à connecter',
-                  ),
-                  const _Stat(
-                    'Groupes de travail',
-                    '—',
-                    'Rattachement explicite',
-                  ),
-                  _Stat(
-                    'Tâches en retard',
-                    '${counts['taches_en_retard'] ?? 0}',
-                    'Selon leur échéance',
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 780 ? 4 : 2;
+                  final itemWidth = constraints.maxWidth / columns;
+                  return Wrap(
+                    runSpacing: 20,
+                    children: [
+                      SizedBox(
+                        width: itemWidth,
+                        child: _Stat(
+                          'Normes rattachées',
+                          '$norms',
+                          'Dans les groupes suivis',
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: _Stat(
+                          'Sous-commissions et CTM',
+                          '${counts['sous_commissions'] ?? 0}',
+                          'Référentiel courant et historique',
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: _Stat(
+                          'Groupes de travail',
+                          '${counts['groupes'] ?? 0}',
+                          'Avec rattachement explicite',
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: _Stat(
+                          'Tâches suivies',
+                          '${counts['taches'] ?? 0}',
+                          '${counts['taches_en_retard'] ?? 0} en retard',
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -379,36 +419,81 @@ class _Statistics extends StatelessWidget {
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 20),
-              Center(
-                child: SizedBox(
-                  width: 130,
-                  height: 130,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      const CircularProgressIndicator(
-                        value: 1,
-                        strokeWidth: 14,
-                        color: Color(0xFF70B5FF),
-                        backgroundColor: Color(0xFFEDF3F7),
-                      ),
-                      Center(
-                        child: Text(
-                          '$norms\nnormes',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _StatisticBars(stageRows),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Label('RÉPARTITION PAR GROUPE'),
+              const Text(
+                'Normes suivies',
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
               ),
+              const SizedBox(height: 20),
+              _StatisticBars(groupNormRows),
             ],
           ),
         ),
       ],
     ),
   );
+}
+
+class _StatisticBars extends StatelessWidget {
+  const _StatisticBars(this.rows);
+  final List<Map<String, dynamic>> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    if (rows.isEmpty) {
+      return const Text(
+        'Aucune norme rattachée.',
+        style: TextStyle(color: AppColors.muted),
+      );
+    }
+    return Column(
+      children: [
+        for (final row in rows) ...[
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  [
+                    if (row['parent'] != null) row['parent'],
+                    row['label'],
+                  ].join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12, color: AppColors.text),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${row['count'] ?? 0}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          LinearProgressIndicator(
+            value:
+                ((row['width'] as num?)?.toDouble() ?? 0).clamp(0, 100) / 100,
+            minHeight: 5,
+            backgroundColor: const Color(0xFFEDF3F7),
+            color: AppColors.rdcBlue,
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
 }
 
 class _SimpleTable extends StatelessWidget {
@@ -853,7 +938,7 @@ class _Stat extends StatelessWidget {
   final String label, value, note;
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 190,
+    width: double.infinity,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

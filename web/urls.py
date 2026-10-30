@@ -49,6 +49,7 @@ from .ctc_views import (
     ctc_copil_rapport,
 )
 from .ctc_settings_views import CTCNotificationSettingsView, CTCBackupView, CTCDriveSettingsView
+from .ctc_expert_views import expert_detail as ctc_expert_detail, expert_cv as ctc_expert_cv
 from apps.ia_agent.views_web import PilotageIAConsoleView, RAGSourceDownloadView, RAGSourceView
 from .activity_views import (
     ActivityDashboardView, ActivityCurrentSubcommissionView,
@@ -170,6 +171,9 @@ urlpatterns = [
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────
     path('ctc/', CTCDashboardView.as_view(), name='ctc_dashboard'),
+    path('ctc/experts/', CTCDashboardView.as_view(), name='ctc_experts'),
+    path('ctc/experts/<int:pk>/fiche/', ctc_expert_detail, name='ctc_expert_detail'),
+    path('ctc/experts/<int:pk>/cv/', ctc_expert_cv, name='ctc_expert_cv'),
     path('ctc/parametres/notifications/', CTCNotificationSettingsView.as_view(), name='ctc_notification_settings'),
     path('ctc/parametres/sauvegarde/', CTCBackupView.as_view(), name='ctc_backup'),
     path('ctc/parametres/drive/', CTCDriveSettingsView.as_view(), name='ctc_drive_settings'),

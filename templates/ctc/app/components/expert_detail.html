@@ -1,0 +1,33 @@
+<h3 class="ctc-page-title" id="expert-detail-title">{{ target.full_name|default:target.user.username }}</h3>
+<p class="ctc-subtitle">{{ target.structure.name }}</p>
+<dl class="ctc-detail">
+  <div><dt>Email</dt><dd>{{ target.user.email|default:'Non renseigné' }}</dd></div>
+  <div><dt>Téléphone</dt><dd>{{ target.user.phone|default:'Non renseigné' }}</dd></div>
+  <div><dt>WhatsApp</dt><dd>{{ target.whatsapp_number|default:'Non renseigné' }}</dd></div>
+  <div><dt>Statut</dt><dd>{{ target.get_status_display }}</dd></div>
+  <div><dt>Sous-commission principale</dt><dd>{{ target.ctm.name|default:'Non renseignée' }}</dd></div>
+  <div><dt>Compétences et spécialités</dt><dd>{{ target.specialties|default:'Non renseignées'|linebreaksbr }}</dd></div>
+  <div><dt>Présentation</dt><dd>{{ target.user.bio|default:'Non renseignée'|linebreaksbr }}</dd></div>
+  <div><dt>Nomination</dt><dd>{{ target.appointment_decree_number|default:'Référence non renseignée' }}{% if target.appointment_date %} · {{ target.appointment_date|date:'d/m/Y' }}{% endif %}</dd></div>
+  <div><dt>Dernière connexion</dt><dd>{{ target.user.last_login|date:'d/m/Y H:i'|default:'Non enregistrée' }}</dd></div>
+  <div><dt>CV</dt><dd>{% if cv_available %}<a class="ctc-link" href="{% url 'web:ctc_expert_cv' target.pk %}" target="_blank" rel="noopener">Ouvrir le CV ↗</a>{% elif target.cv %}Référence enregistrée, fichier CV introuvable{% else %}Aucun CV enregistré{% endif %}</dd></div>
+</dl>
+{% if can_view_contributions %}
+<div class="ctc-card">
+  <h4>Temps actif enregistré</h4><strong>{{ time_display }}</strong>
+  <p class="ctc-muted">{{ session_count }} session{{ session_count|pluralize }} · Ensemble des sessions conservées. Le travail hors connexion n’est pas inclus.</p>
+</div>
+<section class="ctc-card" aria-labelledby="expert-editions-title">
+  <h4 id="expert-editions-title">Éditions · {{ editions|length }} version{{ editions|length|pluralize }}</h4>
+  <div class="ctc-table-wrap"><table class="ctc-table"><thead><tr><th>Norme</th><th>Version</th><th>Date</th><th>Modifications</th></tr></thead><tbody>
+  {% for edition in editions %}<tr>
+    <td><a class="ctc-link" href="{% url 'web:ctc_norme_read' edition.norme_id %}?version={{ edition.pk }}" target="_blank" rel="noopener">{{ edition.norme.reference_number }} · {{ edition.norme.title }}</a></td>
+    <td>V{{ edition.version_number }}{% if edition.is_draft %} · Brouillon{% endif %}</td>
+    <td>{{ edition.created_at|date:'d/m/Y H:i' }}</td><td>{{ edition.summary|default:'Résumé non renseigné' }}</td>
+  </tr>{% empty %}<tr><td colspan="4">Aucune version attribuée à cet expert.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="ctc-card"><h4>Travaux attribués · {{ tasks|length }}</h4>
+  {% for task in tasks %}<p>{% if task.norme %}<a class="ctc-link" href="{% url 'web:ctc_norme_read' task.norme_id %}">{{ task.norme.reference_number }}</a> · {% endif %}{{ task.titre }} — {{ task.get_status_display }} · {{ task.progress }} %</p>{% empty %}<p class="ctc-muted">Aucune tâche attribuée.</p>{% endfor %}
+</section>
+{% else %}<p class="ctc-note">La consultation du temps d’activité, des éditions et des travaux détaillés est réservée aux rôles habilités.</p>{% endif %}

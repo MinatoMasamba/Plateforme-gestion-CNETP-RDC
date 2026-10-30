@@ -64,6 +64,7 @@
             document.querySelector('#view-statistiques'),
             document.querySelector('#view-experts'),
             document.querySelector('#view-tracabilite'),
+            document.querySelector('#ctm-detail'),
         ].filter(Boolean);
 
         if (!('IntersectionObserver' in window)) {

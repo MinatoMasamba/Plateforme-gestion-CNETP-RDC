@@ -48,7 +48,7 @@
           {% for row in expert_directory.rows %}
           <tr data-experts-row data-search="{{ row.name|lower }} {{ row.email|lower }} {{ row.structure_name|lower }}"
               data-affectation="{{ row.affectation }}" data-sc="{{ row.sc_code|default:'' }}" data-complete="{% if row.complete %}complete{% else %}incomplete{% endif %}">
-            <td data-label="Expert"><button type="button" class="ctc-link" data-experts-open="{{ row.id }}">{{ row.name }}</button><small class="ctc-muted">{{ row.email }}</small></td>
+            <td data-label="Expert"><button type="button" class="ctc-link" data-experts-open="{{ row.id }}" data-detail-url="{% url 'web:ctc_expert_detail' row.id %}">{{ row.name }}</button><small class="ctc-muted">{{ row.email }}</small></td>
             <td data-label="Structure">{{ row.structure_name|default:'Non renseignée' }}{% if row.structure %}<small class="ctc-muted">{{ row.structure }}</small>{% endif %}</td>
             <td data-label="Sous-commission">{{ row.sc_name|default:'—' }}</td>
             <td data-label="Affectation"><span class="ctc-badge {% if row.affectation == 'validée' %}ctc-badge--success{% elif row.affectation == 'à examiner' %}ctc-badge--warning{% elif row.affectation == 'choix' %}ctc-badge--info{% else %}ctc-badge--neutral{% endif %}">{{ row.affectation_label }}</span></td>
@@ -86,25 +86,12 @@
     </div>
   </div>
 
-  {% for row in expert_directory.rows %}
-  <div class="ctc-drawer" data-experts-drawer="{{ row.id }}" hidden>
-    <div class="ctc-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="expert-title-{{ row.id }}">
-      <button type="button" class="ctc-drawer__close" data-experts-close aria-label="Fermer"><i data-lucide="x"></i></button>
-      <h3 id="expert-title-{{ row.id }}" class="ctc-page-title">{{ row.name }}</h3>
-      <p class="ctc-subtitle">{{ row.email }}{% if row.structure_name %} · {{ row.structure_name }}{% endif %}</p>
-      <dl class="ctc-detail">
-        <div><dt>Sous-commission</dt><dd>{{ row.sc_name|default:'—' }}</dd></div>
-        <div><dt>Affectation</dt><dd>{{ row.affectation_label }}</dd></div>
-        <div><dt>Dossier de mise à jour</dt><dd>{{ row.profile_status }}</dd></div>
-        <div><dt>Informations manquantes</dt><dd>{% if row.missing %}{{ row.missing|join:', ' }}{% else %}Aucune{% endif %}</dd></div>
-        {% if expert_directory.can_view_contributions %}
-        <div><dt>Activité mesurée</dt><dd>{{ row.minutes }} minutes · {{ row.editions }} version{{ row.editions|pluralize }}</dd></div>
-        {% endif %}
-      </dl>
-      <p class="ctc-note"><i data-lucide="info" aria-hidden="true"></i> Consultation en lecture seule. Les actions de modification du profil relèvent des habilitations appropriées et ne sont pas effectuées ici.</p>
+  <div class="ctc-drawer" data-expert-detail-drawer hidden>
+    <div class="ctc-drawer__panel ctc-expert-detail-panel" role="dialog" aria-modal="true" aria-label="Fiche expert">
+      <button type="button" class="ctc-drawer__close" data-experts-close aria-label="Fermer">✕</button>
+      <div data-expert-detail-content aria-live="polite"></div>
     </div>
   </div>
-  {% endfor %}
 </section>
 <script>
 (() => {
@@ -131,11 +118,47 @@
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
-  root.querySelectorAll('[data-experts-open]').forEach(btn => btn.addEventListener('click', () => {
-    const drawer = root.querySelector(`[data-experts-drawer="${btn.dataset.expertsOpen}"]`); drawer.hidden = false; drawer.querySelector('[data-experts-close]').focus();
+  const drawer = root.querySelector('[data-expert-detail-drawer]');
+  document.body.appendChild(drawer);
+  const content = drawer.querySelector('[data-expert-detail-content]');
+  const closeButton = drawer.querySelector('[data-experts-close]');
+  let controller, opener;
+  function close() {
+    if (controller) controller.abort();
+    drawer.hidden = true;
+    if (opener) opener.focus();
+  }
+  async function open(button) {
+    if (controller) controller.abort();
+    const request = new AbortController(); controller = request;
+    opener = button; drawer.hidden = false;
+    drawer.querySelector('.ctc-drawer__panel').scrollTop = 0;
+    content.textContent = 'Chargement de la fiche…';
+    closeButton.focus();
+    const timer = setTimeout(() => request.abort(), 15000);
+    try {
+      const response = await fetch(button.dataset.detailUrl, {signal: request.signal, credentials: 'same-origin'});
+      if (!response.ok || response.redirected) throw new Error('Accès indisponible');
+      const html = await response.text();
+      if (controller === request && !drawer.hidden) content.innerHTML = html;
+    } catch (error) {
+      if (controller === request && !drawer.hidden) content.textContent = 'Impossible de charger la fiche. Fermez-la puis cliquez sur l’expert pour réessayer.';
+    } finally { clearTimeout(timer); }
+  }
+  root.querySelectorAll('[data-experts-open]').forEach(button => button.addEventListener('click', () => open(button)));
+  rows.forEach(row => row.addEventListener('click', event => {
+    if (!event.target.closest('a, button, input, select')) open(row.querySelector('[data-experts-open]'));
   }));
-  root.querySelectorAll('[data-experts-close]').forEach(btn => btn.addEventListener('click', () => btn.closest('.ctc-drawer').hidden = true));
-  root.querySelectorAll('.ctc-drawer').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.hidden = true; }));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') root.querySelectorAll('.ctc-drawer:not([hidden])').forEach(d => d.hidden = true); });
+  closeButton.addEventListener('click', close);
+  drawer.addEventListener('click', event => { if (event.target === drawer) close(); });
+  drawer.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    if (event.key === 'Tab') {
+      const controls = Array.from(drawer.querySelectorAll('button, a[href]'));
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
 })();
 </script>

@@ -48,6 +48,45 @@ const List<CtcNavSection> ctcNavSections = [
   ]),
 ];
 
+List<CtcNavSection> ctcSectionsFromConfig(Map<String, dynamic> config) {
+  const icons = <String, IconData>{
+    'dashboard': Icons.dashboard_outlined,
+    'dossiers': Icons.folder_outlined,
+    'assignations': Icons.check_circle_outline,
+    'ctc_requests': Icons.send_outlined,
+    'assistant_executif': Icons.inbox_outlined,
+    'financial': Icons.account_balance_wallet_outlined,
+    'statistiques': Icons.insights_outlined,
+    'experts': Icons.people_outline,
+    'tracabilite': Icons.receipt_long_outlined,
+    'homologations': Icons.verified_user_outlined,
+    'instructions': Icons.assignment_outlined,
+    'reunions': Icons.calendar_month_outlined,
+    'drive': Icons.cloud_outlined,
+    'archives': Icons.history,
+    'parametres': Icons.settings_outlined,
+  };
+  const groups = [
+    ('principal', 'Travail'),
+    ('supervision', 'Supervision'),
+    ('outils', 'Outils'),
+    ('system', 'Système'),
+  ];
+  return [
+    for (final group in groups)
+      if (config[group.$1] is List)
+        CtcNavSection(group.$2, [
+          for (final raw in config[group.$1] as List)
+            if (raw is Map && raw['view'] is String && raw['label'] is String)
+              CtcNavItem(
+                raw['view'] as String,
+                raw['label'] as String,
+                icons[raw['view']] ?? Icons.circle_outlined,
+              ),
+        ]),
+  ];
+}
+
 class CtcSidebar extends StatelessWidget {
   const CtcSidebar({
     super.key,
@@ -55,12 +94,16 @@ class CtcSidebar extends StatelessWidget {
     required this.onSelect,
     required this.poleLabel,
     required this.userName,
+    this.sections = ctcNavSections,
+    this.onLogout,
   });
 
   final String activeView;
   final ValueChanged<String> onSelect;
   final String poleLabel;
   final String userName;
+  final List<CtcNavSection> sections;
+  final VoidCallback? onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +168,7 @@ class CtcSidebar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final section in ctcNavSections) ...[
+                  for (final section in sections) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 10, 8, 6),
                       child: Text(
@@ -186,6 +229,12 @@ class CtcSidebar extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onLogout != null)
+                  IconButton(
+                    tooltip: 'Se déconnecter',
+                    onPressed: onLogout,
+                    icon: const Icon(Icons.logout, size: 18),
+                  ),
               ],
             ),
           ),

@@ -1,0 +1,4 @@
+{% load static %}
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}Rapports{% endblock %} · CNE-ITP</title><link rel="stylesheet" href="{% static 'css/reporting.css' %}"></head>
+<body><header class="site-head"><a href="/ctc/">← Espace CTC</a><div><small>République démocratique du Congo · Ministère des Infrastructures et Travaux publics</small><strong>Coordination du Secrétariat technique · CNE-ITP</strong></div><a href="{% url 'reporting:index' %}">Rapports</a></header>
+<main class="layout">{% block content %}{% endblock %}</main></body></html>

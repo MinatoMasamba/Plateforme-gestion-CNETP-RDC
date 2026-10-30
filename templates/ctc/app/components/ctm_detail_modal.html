@@ -86,7 +86,7 @@
                                 <div class="rounded-xl border border-slate-200 dark:border-white/[8%] bg-white dark:bg-white/[3%] p-4">
                                     <div class="flex items-start justify-between mb-2">
                                         <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase bg-[#0095c9]/10 text-[#0095c9] border border-[#0095c9]/20">
-                                            WG {{ item.ctm.number }}.{{ wg.number }}
+                                            {{ wg.catalogue_code }}
                                         </span>
                                         <span class="text-[9px] font-bold text-slate-500">{{ wg.affectations.count }} expert{{ wg.affectations.count|pluralize }}</span>
                                     </div>
@@ -125,7 +125,7 @@
                                         <tr class="border-b border-slate-100 dark:border-white/5">
                                             <td class="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200">{{ a.expert.full_name }}</td>
                                             <td class="px-2 py-2 text-slate-500">{{ a.expert.structure.acronym }}</td>
-                                            <td class="px-2 py-2 text-slate-500">WG {{ item.ctm.number }}.{{ a.wg.number }} — {{ a.wg.name }}</td>
+                                            <td class="px-2 py-2 text-slate-500">{{ a.wg.catalogue_code }} — {{ a.wg.name }}</td>
                                             <td class="px-2 py-2 text-slate-500">{{ a.role }}</td>
                                         </tr>
                                         {% endfor %}
@@ -161,7 +161,7 @@
                                                 {{ norme.title }}
                                             </p>
                                             <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1">
-                                                WG {{ item.ctm.number }}.{{ norme.wg.number }}
+                                                {{ norme.wg.catalogue_code }}
                                             </p>
                                         </div>
                                         <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0 mt-1"></i>
@@ -174,7 +174,7 @@
                                             </div>
                                             <div class="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 p-3 space-y-1">
                                                 <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Références</p>
-                                                <p class="text-[12px] sm:text-xs text-slate-600 dark:text-slate-400 mt-2">CTM {{ norme.ctm.number }} — WG {{ norme.wg.number }}</p>
+                                                <p class="text-[12px] sm:text-xs text-slate-600 dark:text-slate-400 mt-2">{{ norme.wg.catalogue_code }}</p>
                                                 {% if norme.iso_reference %}<p class="text-[12px] sm:text-xs text-slate-600 dark:text-slate-400">ISO : {{ norme.iso_reference }}</p>{% endif %}
                                                 {% if norme.arso_reference %}<p class="text-[12px] sm:text-xs text-slate-600 dark:text-slate-400">ARSO : {{ norme.arso_reference }}</p>{% endif %}
                                             </div>

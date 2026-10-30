@@ -17,6 +17,7 @@ class CtcTopbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 760;
     return Container(
       color: Colors.white,
       child: Column(
@@ -28,25 +29,29 @@ class CtcTopbar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  'RDC - CABINET INTERMINISTÉRIEL DE CO-GOUVERNANCE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
+              children: [
+                const Flexible(
+                  child: Text(
+                    'RDC - CABINET INTERMINISTÉRIEL DE CO-GOUVERNANCE',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
+                    ),
                   ),
                 ),
-                Text(
-                  'Secrétariat National CNE-ITP',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.4,
+                if (!compact)
+                  const Text(
+                    'Secrétariat National CNE-ITP',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.4,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -65,30 +70,34 @@ class CtcTopbar extends StatelessWidget {
                   tooltip: 'Ouvrir le menu',
                 ),
                 const SizedBox(width: 4),
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFD4AF37)),
+                if (!compact)
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: const Color(0xFFD4AF37)),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      'assets/img/logo-cnetp.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset('assets/img/logo-cnetp.png', fit: BoxFit.cover),
-                ),
-                const SizedBox(width: 8),
-                const _VerticalTricolor(),
-                const SizedBox(width: 12),
+                if (!compact) const SizedBox(width: 8),
+                if (!compact) const _VerticalTricolor(),
+                SizedBox(width: compact ? 4 : 12),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Coordination du Secrétariat technique',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: compact ? 12 : 14,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text,
                         ),
@@ -102,28 +111,43 @@ class CtcTopbar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                _TopAction(icon: Icons.mail_outline, label: 'Annuaire & Mail'),
-                const SizedBox(width: 6),
-                _TopAction(
-                  icon: Icons.videocam_outlined,
-                  label: 'Réunion Meet',
-                  color: AppColors.rdcBlue,
-                ),
-                const SizedBox(width: 6),
-                _TopAction(
-                  icon: Icons.storage_outlined,
-                  label: 'Espace Drive',
-                  color: AppColors.success,
-                ),
-                const SizedBox(width: 10),
-                const Icon(Icons.notifications_none, size: 20, color: AppColors.muted),
-                const SizedBox(width: 14),
-                if (onLogout != null) ...[
+                if (!compact)
+                  _TopAction(
+                    icon: Icons.mail_outline,
+                    label: 'Annuaire & Mail',
+                  ),
+                if (!compact) const SizedBox(width: 6),
+                if (!compact)
+                  _TopAction(
+                    icon: Icons.videocam_outlined,
+                    label: 'Réunion Meet',
+                    color: AppColors.rdcBlue,
+                  ),
+                if (!compact) const SizedBox(width: 6),
+                if (!compact)
+                  _TopAction(
+                    icon: Icons.storage_outlined,
+                    label: 'Espace Drive',
+                    color: AppColors.success,
+                  ),
+                if (!compact) const SizedBox(width: 10),
+                if (!compact)
+                  const Icon(
+                    Icons.notifications_none,
+                    size: 20,
+                    color: AppColors.muted,
+                  ),
+                if (!compact) const SizedBox(width: 14),
+                if (!compact && onLogout != null) ...[
                   InkWell(
                     onTap: onLogout,
                     child: const Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.logout, size: 19, color: AppColors.muted),
+                      child: Icon(
+                        Icons.logout,
+                        size: 19,
+                        color: AppColors.muted,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -146,21 +170,26 @@ class CtcTopbar extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.text),
-                    ),
-                    Text(
-                      poleLabel,
-                      style: TextStyle(fontSize: 9, color: AppColors.subtle),
-                    ),
-                  ],
-                ),
+                if (!compact) const SizedBox(width: 10),
+                if (!compact)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      Text(
+                        poleLabel,
+                        style: TextStyle(fontSize: 9, color: AppColors.subtle),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -170,10 +199,12 @@ class CtcTopbar extends StatelessWidget {
   }
 
   static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return '?';
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    final parts = trimmed.split(RegExp(r'\s+'));
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1)).toUpperCase();
+    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+        .toUpperCase();
   }
 }
 
@@ -220,7 +251,11 @@ class _VerticalTricolor extends StatelessWidget {
 }
 
 class _TopAction extends StatelessWidget {
-  const _TopAction({required this.icon, required this.label, this.color = AppColors.muted});
+  const _TopAction({
+    required this.icon,
+    required this.label,
+    this.color = AppColors.muted,
+  });
 
   final IconData icon;
   final String label;
@@ -234,7 +269,14 @@ class _TopAction extends StatelessWidget {
         children: [
           Icon(icon, size: 15, color: color),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
       ),
     );

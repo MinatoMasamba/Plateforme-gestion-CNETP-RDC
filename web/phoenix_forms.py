@@ -79,7 +79,8 @@ def configuration_form(kind, version, data=None, instance=None):
     organs = version.organes.all()
     sc = organs.filter(type='SC')
     mandates = MandatOrganisation.objects.filter(Q(poste__organe__version=version) | Q(groupe__sc__version=version))
-    options = {'organe': organs, 'parent': organs.exclude(pk=instance.pk) if instance and kind == 'organe' else organs, 'sc': sc, 'perimeter': organs, 'poste': PosteOrganisation.objects.filter(organe__version=version),
+    options = {'organe': organs, 'parent': organs.exclude(pk=instance.pk) if instance and kind == 'organe' else organs, 'sc': sc, 'perimeter': organs,
+               'poste': PosteOrganisation.objects.filter(organe__version=version).select_related('organe').order_by('organe__code', 'code'),
                'groupe': GroupeCible.objects.filter(sc__version=version), 'gt': GroupeCible.objects.filter(sc__version=version),
                'mandat': mandates, 'expert': Expert.objects.filter(status='ACTIVE', user__is_active=True).select_related('user'),
                'delegated_from': HabilitationAction.objects.filter(mandat__in=mandates, delegated_from__isnull=True),

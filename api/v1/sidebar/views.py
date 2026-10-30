@@ -372,7 +372,7 @@ class DashboardKPIsViewSet(viewsets.ViewSet):
         experts_approved = Expert.objects.filter(status='ACTIVE').count()
         experts_total = Expert.objects.count()
 
-        all_norms = Norme.objects.all()
+        all_norms = Norme.objects.exclude(status='ARCHIVED')
         total_norms = all_norms.count()
         global_norms_progress = 0
         if total_norms > 0:

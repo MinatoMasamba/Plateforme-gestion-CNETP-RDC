@@ -16,196 +16,255 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon-32x32.png' %}">
+
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
+    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261027">
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: { extend: { colors: { dark: { 100: '#06060c', 200: '#020204' } } } }
         };
-        const stored = localStorage.getItem('theme-preference');
-        if (stored === 'dark') document.documentElement.classList.add('dark');
-        else if (stored === 'light') document.documentElement.classList.remove('dark');
-        else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-        .ctm-wg summary::-webkit-details-marker { display: none; }
-        @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-        .animate-up { animation: slideUp .35s ease-out forwards; }
+        #ctm-detail .ctc-card { animation: ctc-rise .35s ease-out both; }
+        @media (prefers-reduced-motion: reduce) {
+            #ctm-detail .ctc-card, #ctm-detail .ctc-metric { animation: none; }
+        }
     </style>
 </head>
-<body class="cnetp-premium institutional-page premium-canvas min-h-screen text-slate-800 dark:text-slate-200">
+<body class="cnetp-premium min-h-screen bg-slate-50 text-slate-800 dark:bg-[#020204] dark:text-slate-300">
 
-    <header class="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-5 py-3 bg-white/80 dark:bg-[#0b1220]/80 backdrop-blur border-b border-slate-200 dark:border-white/[8%] shrink-0">
-        <div class="flex items-center gap-3 min-w-0">
-            <a href="{% url 'web:ctc_dashboard' %}" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0">
-                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Tableau de bord
-            </a>
-            <span class="text-slate-300 dark:text-white/15">|</span>
-            <span class="premium-status premium-status--info shrink-0">CTM {{ ctm.number }}</span>
-            <h1 class="text-[12px] sm:text-sm font-extrabold tracking-tight text-slate-700 dark:text-white truncate max-w-[58vw] sm:max-w-none">{{ ctm.name }}</h1>
+    <header class="sticky top-0 z-40 bg-white border-b border-slate-200 dark:bg-[#0b1220] dark:border-white/10">
+        <div class="flex h-1">
+            <div class="flex-1 bg-[#0095c9]"></div>
+            <div class="flex-1 bg-[#fff24b]"></div>
+            <div class="flex-1 bg-[#db3832]"></div>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
-            <button onclick="toggleTheme()" title="Changer le thème" class="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
-                <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
-                <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
-            </button>
+        <div class="bg-[#05050b] text-white px-4 py-1 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest select-none">
+            <span class="truncate">RDC - Cabinet Interministériel de Co-Gouvernance</span>
+            <span class="text-white/80 font-mono hidden sm:inline">Secrétariat National CNE-ITP</span>
+        </div>
+        <div class="px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex min-w-0 items-center gap-3">
+                <a href="{% url 'web:ctc_dashboard' %}" class="shrink-0 p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-white/5 transition-colors" aria-label="Retour au tableau de bord CTC">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div class="hidden sm:flex items-center gap-2.5 shrink-0 select-none">
+                    <div class="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white">
+                        <img src="{% static 'img/logo-cnetp.png' %}" alt="République Démocratique du Congo" width="36" height="36" class="w-full h-full object-cover">
+                    </div>
+                    <div class="w-[3px] h-[28px] flex flex-col rounded-sm overflow-hidden shrink-0">
+                        <div class="flex-1 bg-[#0095c9]"></div>
+                        <div class="h-[25%] bg-[#fff24b]"></div>
+                        <div class="flex-1 bg-[#db3832]"></div>
+                    </div>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500">Comité technique mixte · CTM {{ ctm.number }}</p>
+                    <h1 class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight truncate">{{ ctm.name }}</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="ctc-badge ctc-badge--info">CTM {{ ctm.number }}</span>
+                <button type="button" data-theme-toggle aria-label="Changer le thème" class="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500 dark:text-slate-400">
+                    <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+                    <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="w-full">
-        <div class="max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 sm:py-8 space-y-5 sm:space-y-6">
-
-            <div class="premium-glass p-5 sm:p-7 animate-up">
-                <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div class="flex items-start gap-4 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74b9ff] to-[#b7eaf7] flex items-center justify-center shrink-0 text-white shadow-sm">
-                            <i data-lucide="grid-3x3" class="w-6 h-6"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="premium-eyebrow">Comité technique mixte</p>
-                            <h2 class="premium-page-title">{{ ctm.name }}</h2>
-                            {% if ctm.iso_reference or ctm.arso_reference %}
-                            <p class="text-[10px] sm:text-xs text-slate-400 font-mono uppercase tracking-wide mt-1">
-                                {% if ctm.iso_reference %}{{ ctm.iso_reference }}{% endif %}
-                                {% if ctm.arso_reference %} · {{ ctm.arso_reference }}{% endif %}
-                            </p>
-                            {% endif %}
-                            <p class="text-[13px] sm:text-sm institutional-muted mt-3 leading-relaxed">{{ ctm.description }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="premium-stat-grid mt-6">
-                    <div class="premium-stat"><span class="premium-stat__icon bg-sky-100 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"><i data-lucide="network"></i></span><span class="premium-stat__body"><span class="premium-stat__label">Groupes de travail</span><span class="premium-stat__value">{{ wgs_with_stats|length }}</span></span></div>
-                    <div class="premium-stat"><span class="premium-stat__icon bg-lime-100 text-lime-600 dark:bg-lime-500/10 dark:text-lime-400"><i data-lucide="users"></i></span><span class="premium-stat__body"><span class="premium-stat__label">Experts membres</span><span class="premium-stat__value">{{ affectations|length }}</span></span></div>
-                    <div class="premium-stat"><span class="premium-stat__icon bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"><i data-lucide="file-cog"></i></span><span class="premium-stat__body"><span class="premium-stat__label">Normes en cours</span><span class="premium-stat__value">{{ normes_en_cours|length }}</span></span></div>
-                    <div class="premium-stat"><span class="premium-stat__icon bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><i data-lucide="badge-check"></i></span><span class="premium-stat__body"><span class="premium-stat__label">Normes publiées</span><span class="premium-stat__value">{{ normes_publiees|length }}</span></span></div>
-                </div>
+    <main id="ctm-detail" class="ctc-module premium-canvas min-h-[calc(100vh-7rem)]">
+        <div class="ctc-module__head">
+            <div class="min-w-0">
+                <p class="ctc-eyebrow">Comité technique mixte · CTM {{ ctm.number }}</p>
+                <h2 class="ctc-page-title">{{ ctm.name }}</h2>
+                {% if ctm.iso_reference or ctm.arso_reference %}
+                <p class="ctc-note">
+                    <i data-lucide="tag" aria-hidden="true"></i>
+                    <span class="font-mono uppercase tracking-wide">
+                        {% if ctm.iso_reference %}{{ ctm.iso_reference }}{% endif %}
+                        {% if ctm.iso_reference and ctm.arso_reference %} · {% endif %}
+                        {% if ctm.arso_reference %}{{ ctm.arso_reference }}{% endif %}
+                    </span>
+                </p>
+                {% endif %}
+                {% if ctm.description %}<p class="ctc-subtitle">{{ ctm.description }}</p>{% endif %}
             </div>
+            <span class="ctc-badge ctc-badge--neutral">Lecture seule</span>
+        </div>
 
-            <section class="premium-glass p-6 animate-up" style="animation-delay:.04s" aria-labelledby="ctm-coordination-title">
-                <h3 id="ctm-coordination-title" class="premium-eyebrow flex items-center gap-2 mb-4"><i data-lucide="users"></i> Structure de coordination</h3>
-                <div class="grid gap-3 sm:grid-cols-3">
-                    {% for post in coordination %}
-                    <div class="institutional-card p-4"><p class="text-xs font-semibold institutional-muted">{{ post.title }}</p><p class="mt-2 text-sm font-semibold">{{ post.holder }}</p></div>
-                    {% endfor %}
+        <div class="ctc-metrics">
+            <div class="ctc-metric">
+                <span class="ctc-metric__icon"><i data-lucide="network" aria-hidden="true"></i></span>
+                <div><strong>{{ wgs_with_stats|length }}</strong><p>Groupes de travail</p></div>
+            </div>
+            <div class="ctc-metric ctc-metric--success">
+                <span class="ctc-metric__icon"><i data-lucide="users-round" aria-hidden="true"></i></span>
+                <div><strong>{{ affectations|length }}</strong><p>Experts membres</p></div>
+            </div>
+            <div class="ctc-metric ctc-metric--warning">
+                <span class="ctc-metric__icon"><i data-lucide="file-cog" aria-hidden="true"></i></span>
+                <div><strong>{{ normes_en_cours|length }}</strong><p>Normes en cours</p></div>
+            </div>
+            <div class="ctc-metric">
+                <span class="ctc-metric__icon"><i data-lucide="badge-check" aria-hidden="true"></i></span>
+                <div><strong>{{ normes_publiees|length }}</strong><p>Normes publiées</p></div>
+            </div>
+        </div>
+
+        <section class="ctc-card" aria-labelledby="ctm-coordination-title">
+            <div class="ctc-card__head">
+                <h3 id="ctm-coordination-title">Structure de coordination</h3>
+                <span class="ctc-badge ctc-badge--neutral">{{ coordination|length }} poste{{ coordination|length|pluralize }}</span>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-3">
+                {% for post in coordination %}
+                <div class="ctc-sc-card">
+                    <div class="ctc-sc-card__head">
+                        <span class="ctc-badge ctc-badge--info">{{ forloop.counter|stringformat:"02d" }}</span>
+                        <strong>{{ post.title|default:"Poste de coordination" }}</strong>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ post.holder|default:"Non pourvu" }}</p>
                 </div>
-            </section>
+                {% empty %}
+                <p class="ctc-empty sm:col-span-3">Aucun poste de coordination renseigné.</p>
+                {% endfor %}
+            </div>
+        </section>
 
-            <section class="premium-glass p-6 animate-up" style="animation-delay:.08s" aria-labelledby="ctm-wg-title">
-                <h3 id="ctm-wg-title" class="premium-eyebrow flex items-center gap-2 mb-4"><i data-lucide="git-branch"></i> Groupes de travail</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {% for item in wgs_with_stats %}
-                    <details class="ctm-wg institutional-card group">
-                        <summary class="list-none cursor-pointer p-4 flex flex-col gap-3">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <span class="premium-status premium-status--info">WG {{ ctm.number }}.{{ item.wg.number }}</span>
-                                    <p class="mt-2 text-sm font-bold text-slate-800 dark:text-slate-200 leading-snug">{{ item.wg.name }}</p>
-                                    <p class="mt-1 text-xs institutional-muted">{{ item.member_count }} expert{{ item.member_count|pluralize }} · {{ item.norms|length }} norme{{ item.norms|length|pluralize }}</p>
-                                </div>
-                                {% if item.performance is not None %}
-                                <span class="premium-donut premium-donut--value premium-donut--sm shrink-0" style="--donut-value: {{ item.performance }}; --donut-color: {{ item.color }}" aria-label="Performance {{ item.performance }} pour cent">
-                                    <span class="premium-donut__ring"></span>
-                                    <span class="premium-donut__center"><span class="premium-donut__value">{{ item.performance }}%</span></span>
-                                </span>
-                                {% else %}
-                                <span class="premium-status premium-status--neutral shrink-0">Non configuré</span>
-                                {% endif %}
-                            </div>
-                        </summary>
-                        <div class="border-t border-slate-200 dark:border-slate-700 px-4 py-3">
-                            <p class="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Normes du groupe</p>
-                            <ul class="space-y-2">
-                                {% for norm in item.norms %}
-                                <li class="flex items-center justify-between gap-3 text-sm"><span class="min-w-0 font-medium">{{ norm.title }}</span><span class="premium-status premium-status--neutral shrink-0">{{ norm.get_status_display }}</span></li>
-                                {% empty %}
-                                <li class="text-sm institutional-muted">Aucune norme rattachée à ce groupe.</li>
-                                {% endfor %}
-                            </ul>
+        <section class="ctc-card" aria-labelledby="ctm-wg-title">
+            <div class="ctc-card__head">
+                <h3 id="ctm-wg-title">Groupes de travail</h3>
+                <span class="ctc-badge ctc-badge--info">{{ wgs_with_stats|length }} groupe{{ wgs_with_stats|length|pluralize }}</span>
+            </div>
+            <div class="ctc-sc-grid">
+                {% for item in wgs_with_stats %}
+                <article class="ctc-sc-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="ctc-sc-card__head min-w-0">
+                            <span class="ctc-badge ctc-badge--info shrink-0">WG {{ ctm.number }}.{{ item.wg.number }}</span>
+                            <strong class="min-w-0">{{ item.wg.name }}</strong>
                         </div>
-                    </details>
-                    {% empty %}
-                    <p class="text-sm institutional-muted col-span-full">Aucun groupe de travail enregistré.</p>
-                    {% endfor %}
-                </div>
-            </section>
+                        {% if item.performance is not None %}
+                        <span class="premium-donut premium-donut--value premium-donut--sm shrink-0" style="--donut-value: {{ item.performance }}; --donut-color: {{ item.color }}" aria-label="Performance {{ item.performance }} pour cent">
+                            <span class="premium-donut__ring"></span>
+                            <span class="premium-donut__center"><span class="premium-donut__value">{{ item.performance }}%</span></span>
+                        </span>
+                        {% else %}
+                        <span class="ctc-badge ctc-badge--neutral shrink-0">Non configuré</span>
+                        {% endif %}
+                    </div>
+                    <div class="ctc-sc-card__meta">
+                        <span>{{ item.member_count }} expert{{ item.member_count|pluralize }}</span>
+                        <span>{{ item.norms|length }} norme{{ item.norms|length|pluralize }}</span>
+                    </div>
+                    <ul class="ctc-sc-card__posts">
+                        {% for norm in item.norms %}
+                        <li>
+                            <span class="min-w-0">{{ norm.title }}</span>
+                            <em class="ctc-badge ctc-badge--neutral shrink-0">{{ norm.get_status_display }}</em>
+                        </li>
+                        {% empty %}
+                        <li class="ctc-muted">Aucune norme rattachée à ce groupe.</li>
+                        {% endfor %}
+                    </ul>
+                </article>
+                {% empty %}
+                <p class="ctc-empty sm:col-span-2">Aucun groupe de travail enregistré.</p>
+                {% endfor %}
+            </div>
+        </section>
 
-            <section class="premium-glass p-6 animate-up" style="animation-delay:.12s" aria-labelledby="ctm-members-title">
-                <h3 id="ctm-members-title" class="premium-eyebrow flex items-center gap-2 mb-4"><i data-lucide="contact"></i> Experts membres</h3>
-                <div class="overflow-x-auto -mx-2">
-                    <table class="w-full text-xs">
-                        <thead>
-                            <tr class="text-left text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 dark:border-white/[8%]">
-                                <th class="px-2 py-2">Expert</th>
-                                <th class="px-2 py-2">Structure</th>
-                                <th class="px-2 py-2">Groupe de travail</th>
-                                <th class="px-2 py-2">Rôle</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for a in affectations %}
-                            <tr class="border-b border-slate-100 dark:border-white/5">
-                                <td class="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200">{{ a.expert.full_name }}</td>
-                                <td class="px-2 py-2 text-slate-500">{{ a.expert.structure.acronym }}</td>
-                                <td class="px-2 py-2 text-slate-500">WG {{ ctm.number }}.{{ a.wg.number }} — {{ a.wg.name }}</td>
-                                <td class="px-2 py-2 text-slate-500">{{ a.role }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+        <section class="ctc-card" aria-labelledby="ctm-members-title">
+            <div class="ctc-card__head">
+                <h3 id="ctm-members-title">Experts membres</h3>
+                <span class="ctc-badge ctc-badge--neutral">{{ affectations|length }} membre{{ affectations|length|pluralize }}</span>
+            </div>
+            <div class="ctc-table-wrap">
+                <table class="ctc-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Expert</th>
+                            <th scope="col">Structure</th>
+                            <th scope="col">Groupe de travail</th>
+                            <th scope="col">Rôle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in affectations %}
+                        <tr>
+                            <td class="font-semibold">{{ a.expert.full_name }}</td>
+                            <td>{% if a.expert.structure %}{{ a.expert.structure.acronym }}{% else %}—{% endif %}</td>
+                            <td>{% if a.wg %}WG {{ ctm.number }}.{{ a.wg.number }} — {{ a.wg.name }}{% else %}—{% endif %}</td>
+                            <td>{{ a.role|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="ctc-empty-row">Aucun expert affecté à ce comité.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <section class="premium-glass p-6 animate-up" style="animation-delay:.16s" aria-labelledby="ctm-progress-title">
-                <h3 id="ctm-progress-title" class="premium-eyebrow flex items-center gap-2 mb-4"><i data-lucide="file-cog"></i> Normes en cours</h3>
+        <div class="grid gap-5 lg:grid-cols-2">
+            <section class="ctc-card" aria-labelledby="ctm-progress-title">
+                <div class="ctc-card__head">
+                    <h3 id="ctm-progress-title">Normes en cours</h3>
+                    <span class="ctc-badge ctc-badge--warning">{{ normes_en_cours|length }}</span>
+                </div>
                 {% if normes_en_cours %}
-                <div class="space-y-3">
+                <div class="divide-y divide-slate-200 dark:divide-white/10">
                     {% for norme in normes_en_cours %}
-                    <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[3%] px-4 py-3 sm:px-5 sm:py-4">
+                    <div class="py-3 first:pt-0 last:pb-0">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="premium-status premium-status--info">{{ norme.reference_number }}</span>
-                            <span class="premium-status premium-status--neutral">{{ norme.get_status_display }}</span>
+                            <span class="ctc-badge ctc-badge--info">{{ norme.reference_number }}</span>
+                            <span class="ctc-badge ctc-badge--neutral">{{ norme.get_status_display }}</span>
                         </div>
-                        <p class="text-sm sm:text-[13px] font-bold text-slate-800 dark:text-slate-200 mt-2 leading-snug">{{ norme.title }}</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-200">{{ norme.title }}</p>
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}<p class="text-sm institutional-muted">Aucune norme en cours.</p>{% endif %}
+                {% else %}<p class="ctc-empty">Aucune norme en cours.</p>{% endif %}
             </section>
 
-            <section class="premium-glass p-6 animate-up" style="animation-delay:.2s" aria-labelledby="ctm-published-title">
-                <h3 id="ctm-published-title" class="premium-eyebrow flex items-center gap-2 mb-4 text-emerald-600 dark:text-emerald-400"><i data-lucide="badge-check"></i> Normes publiées</h3>
+            <section class="ctc-card" aria-labelledby="ctm-published-title">
+                <div class="ctc-card__head">
+                    <h3 id="ctm-published-title">Normes publiées</h3>
+                    <span class="ctc-badge ctc-badge--success">{{ normes_publiees|length }}</span>
+                </div>
                 {% if normes_publiees %}
-                <div class="space-y-3">
+                <div class="divide-y divide-slate-200 dark:divide-white/10">
                     {% for norme in normes_publiees %}
-                    <div class="rounded-2xl border border-emerald-400/20 bg-white dark:bg-white/[3%] px-4 py-3 sm:px-5 sm:py-4">
+                    <div class="py-3 first:pt-0 last:pb-0">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="premium-status premium-status--ok">{{ norme.reference_number }}</span>
-                            <span class="premium-status premium-status--ok">Publiée</span>
+                            <span class="ctc-badge ctc-badge--success">{{ norme.reference_number }}</span>
+                            <span class="ctc-badge ctc-badge--success">Publiée</span>
                         </div>
-                        <p class="text-sm sm:text-[13px] font-bold text-slate-800 dark:text-slate-200 mt-2 leading-snug">{{ norme.title }}</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-200">{{ norme.title }}</p>
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}<p class="text-sm institutional-muted">Aucune norme publiée.</p>{% endif %}
+                {% else %}<p class="ctc-empty">Aucune norme publiée.</p>{% endif %}
             </section>
         </div>
     </main>
 
+    <script src="{% static 'js/ctc-animations.js' %}?v=20261027"></script>
     <script>
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme-preference', isDark ? 'dark' : 'light');
-            lucide.createIcons();
-        }
-        document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>

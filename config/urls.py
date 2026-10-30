@@ -45,6 +45,7 @@ urlpatterns = [
     path('dashboard/administration/', include('apps.dashboard.console_urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('drafts/', include('apps.gemini_drafts.urls')),
+    path('ctc/rapports/', include('apps.reporting.urls')),
     
     # Documentation OpenAPI/Swagger
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -4,8 +4,9 @@ from collections import Counter, defaultdict
 
 from django.utils import timezone
 
-from apps.governance.models import CTM, Organe, Tache
+from apps.governance.models import CTM, CorrespondanceGroupe, Organe, Tache
 from apps.norms.models import Norme
+from apps.governance.catalogue import SC_CATALOGUE
 
 
 _DONUT_PALETTE = ['#74b9ff', '#c5e736', '#7bcddd', '#9aaec1', '#ffd166', '#8b9cf4', '#f78fb3', '#4dd4ac']
@@ -97,27 +98,45 @@ def build_ctc_statistics():
         if sc.official_name:
             sc_by_name[sc.official_name.casefold()] = sc
 
-    ctms = list(CTM.objects.select_related(
+    ctms = list(CTM.objects.filter(number__in=range(1, 8)).select_related(
         'scientific_president__user', 'rapporteur__user', 'secretary__user'
     ).prefetch_related('working_groups').order_by('number'))
     group_ids = [wg.pk for ctm in ctms for wg in ctm.working_groups.all()]
     tasks_by_wg = defaultdict(list)
     for task in Tache.objects.filter(working_group_id__in=group_ids).select_related('norme').order_by('due_date', 'titre'):
         tasks_by_wg[task.working_group_id].append(task)
+    target_to_wg = defaultdict(set)
+    for correspondence in CorrespondanceGroupe.objects.filter(
+        wg_id__in=group_ids, status='VALIDATED'
+    ).values('gt_id', 'wg_id'):
+        target_to_wg[correspondence['gt_id']].add(correspondence['wg_id'])
+    for task in Tache.objects.filter(target_group_id__in=target_to_wg).select_related('norme').order_by('due_date', 'titre'):
+        possible_wgs = target_to_wg[task.target_group_id]
+        if len(possible_wgs) == 1:
+            tasks_by_wg[next(iter(possible_wgs))].append(task)
     norms_by_wg = defaultdict(list)
-    for norm in Norme.all_objects.filter(wg_id__in=group_ids).order_by('title'):
+    for norm in (Norme.all_objects.filter(wg_id__in=group_ids)
+                 .order_by('title')):
         norms_by_wg[norm.wg_id].append(norm)
+
+    direct_tasks = defaultdict(list)
+    for task in Tache.objects.filter(target_sc__isnull=False).select_related('target_sc', 'norme').order_by('pk'):
+        direct_tasks[task.target_sc.code].append(task)
+        source_tasks[task.pk] = task
+        if task.due_date and task.due_date < today and task.status != 'COMPLETED':
+            overdue_ids.add(task.pk)
 
     for ctm in ctms:
         sc = sc_by_name.get(ctm.name.casefold())
         groups = []
-        scoped_tasks = []
+        sc_direct_tasks = direct_tasks[SC_CATALOGUE[ctm.number][0]]
+        scoped_tasks = list(sc_direct_tasks)
         for wg in sorted(ctm.working_groups.all(), key=lambda value: value.name.casefold()):
             tasks = tasks_by_wg[wg.pk]
             norms = norms_by_wg[wg.pk]
             scoped_tasks.extend(tasks)
             group_performance = _performance(tasks)
-            groups.append({'id': f'wg-{wg.pk}', 'code': f'GT {ctm.number}.{wg.number}', 'name': wg.name,
+            groups.append({'id': f'wg-{wg.pk}', 'code': wg.catalogue_code, 'name': wg.name,
                            'performance': group_performance, 'color': _performance_color(group_performance),
                            'tasks': tasks, 'norms': norms,
                            'status': 'Actif'})
@@ -133,6 +152,8 @@ def build_ctc_statistics():
                      'status': 'Actif', 'historical': False,
                      'coordination': _coordination(sc) if sc else _legacy_coordination(ctm),
                      'groups': groups,
+                     'direct_tasks': sc_direct_tasks,
+                     'task_count': len({task.pk for task in scoped_tasks}),
                      'performance': _performance(scoped_tasks),
                      'color': _performance_color(_performance(scoped_tasks))})
 
@@ -151,6 +172,7 @@ def build_ctc_statistics():
     for item in group_norm_rows:
         item['width'] = round(item['count'] * 100 / largest_group)
     return {'rows': rows, 'sc_count': len(rows), 'group_count': sum(len(row['groups']) for row in rows),
+            'catalogue_count': Norme.all_objects.count(),
             'norm_count': len(source_norm_ids), 'task_count': len(source_tasks),
             'global_performance': _performance(source_tasks.values()),
             'global_color': _performance_color(_performance(source_tasks.values())),

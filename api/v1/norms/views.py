@@ -62,6 +62,8 @@ class NormeViewSet(viewsets.ModelViewSet):
         une vue transverse (``user_ctm_scope`` renvoie ``None``).
         """
         qs = super().get_queryset()
+        if self.action == 'publish_to_jo' and self.request.user.is_minister:
+            return qs
         scope = user_ctm_scope(self.request.user)
         if scope is None:
             return qs

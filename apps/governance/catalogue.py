@@ -1,0 +1,48 @@
+"""Catalogue des sept SC et 35 GT transmis par l’utilisateur le 29/10/2026.
+Source déclarée : rapport consolidé de réorganisation du 15 octobre 2026.
+Les clés conservent les numéros CTM historiques ; le tome est une autre référence.
+"""
+
+SC_CATALOGUE = {1: ('SC-BAT', 6, 'Bâtiments courants & spéciaux'),
+ 2: ('SC-ENV', 5, 'Environnement, santé & sécurité'),
+ 3: ('SC-GF', 2, 'Géotechnique & fondations'),
+ 4: ('SC-IT', 1, 'Infrastructures de transport'),
+ 5: ('SC-OH', 3, 'Ouvrages hydrauliques'),
+ 6: ('SC-SOCLE', 0, 'Matériaux & Essais / Socle commun'),
+ 7: ('SC-VRD', 4, 'Réseaux divers (VRD), équipements techniques & fluides')}
+
+GT_CATALOGUE = {1: ['Conception architecturale et structurelle',
+     'Sécurité incendie et accessibilité PMR',
+     'Efficacité énergétique, thermique et acoustique',
+     'Urbanisme et aménagement urbain',
+     'Transition numérique et BIM (Building Information Modeling)'],
+ 2: ['Évaluations environnementales et sociales (EES)',
+     'Gestion et valorisation des déchets de construction',
+     'Hygiène, santé et sécurité au travail (SST)',
+     'Protection des ressources en eau et prévention des pollutions',
+     'Résilience climatique et développement durable'],
+ 3: ['Reconnaissance des sols et investigations in situ',
+     'Mécanique des roches et risques naturels',
+     'Fondations superficielles et profondes',
+     'Ouvrages de soutènement et amélioration des sols',
+     'Auscultation, diagnostic et pathologie géotechnique'],
+ 4: ['Routes, Conception géométrique & dimensionnement',
+     "Ponts et ouvrages d'art",
+     'Infrastructures ferroviaires',
+     'Infrastructures aéroportuaires',
+     'Infrastructures portuaires et fluviales'],
+ 5: ['Hydrologie et modélisation des bassins versants',
+     'Barrages, digues et réservoirs',
+     'Drainage et assainissement routier/urbain',
+     'Aménagements hydro-agricoles et irrigation',
+     "Adduction d'eau potable et ouvrages de captage"],
+ 6: ['Terminologie, symboles et métrologie normative',
+     'Caractérisation physique et mécanique des matériaux',
+     'Liants hydrauliques, bétons et produits manufacturés',
+     'Évaluation de la conformité et assurance qualité des laboratoires',
+     'Valorisation des matériaux locaux et éco-matériaux'],
+ 7: ['Voiries et Réseaux Divers (VRD) et assainissement secondaire',
+     'Installations électriques, courants forts et éclairage public',
+     'Courants faibles, sécurité électronique et automatismes',
+     "Chauffage, Ventilation, Climatisation (CVC) et traitement d'air",
+     'Plomberie, sanitaires, gaz et fluides spéciaux']}

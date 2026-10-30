@@ -1,3 +1,4 @@
+{% load l10n %}
 <section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8" aria-labelledby="ctc-dashboard-title">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div><p class="premium-eyebrow">Secrétariat technique · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
@@ -33,7 +34,7 @@
     <div class="premium-kpi-grid mt-5">
       <div class="premium-kpi"><p>Dossiers du Secrétariat technique</p><strong>{{ dashboard_dossiers_count }}</strong><span>Enregistrés dans le circuit</span></div>
       <div class="premium-kpi"><p>Mes assignations</p><strong>{{ dashboard_assignations_count }}</strong><span>Attribuées à votre poste</span></div>
-      <div class="premium-kpi"><p>Normes suivies</p><strong>{{ ctc_statistics.norm_count }}</strong><span>Rattachement explicite</span></div>
+      <div class="premium-kpi"><p>Normes enregistrées</p><strong>{{ ctc_statistics.catalogue_count }}</strong><span>{{ ctc_statistics.norm_count }} dans les groupes de travail</span></div>
       <div class="premium-kpi"><p>Tâches en retard</p><strong>{{ ctc_statistics.overdue_count }}</strong><span>Selon leur échéance</span></div>
     </div>
   </div>
@@ -48,7 +49,7 @@
       <div class="divide-y divide-slate-200 dark:divide-slate-700">{% for dossier in dossiers|slice:':5' %}<div class="grid gap-2 p-4 sm:grid-cols-[1fr_auto] sm:items-center"><div class="min-w-0"><p class="text-xs institutional-muted">{{ dossier.norme.reference_number }} · {{ dossier.get_current_stage_display }}</p><p class="mt-1 text-sm font-semibold">{{ dossier.norme.title }}</p></div><a href="{% url 'web:ctc_norme_read' dossier.norme_id %}" class="text-sm font-semibold text-blue-700 underline dark:text-blue-300">Lire</a></div>{% empty %}<p class="p-4 text-sm institutional-muted">Aucun dossier dans le circuit CTC.</p>{% endfor %}</div>
     </section>
   </div>
-  <div class="institutional-card flex flex-wrap items-center justify-between gap-3 p-4"><div class="flex items-center gap-4"><div><h3 class="font-bold">Suivi statistique</h3><p class="mt-1 text-sm institutional-muted">{{ ctc_statistics.sc_count }} sous-commissions et CTM · {{ ctc_statistics.group_count }} groupes suivis.</p></div>{% if ctc_statistics.global_performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ ctc_statistics.global_performance }}; --donut-color: {{ ctc_statistics.global_color }}" aria-label="Performance globale {{ ctc_statistics.global_performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ ctc_statistics.global_performance }}%</span></div></div>{% endif %}</div><button type="button" onclick="window.switchView('statistiques')" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Consulter dans la CTC</button></div>
+  <div class="institutional-card flex flex-wrap items-center justify-between gap-3 p-4"><div class="flex items-center gap-4"><div><h3 class="font-bold">Suivi statistique</h3><p class="mt-1 text-sm institutional-muted">{{ ctc_statistics.sc_count }} sous-commissions et CTM · {{ ctc_statistics.group_count }} groupes suivis.</p></div>{% if ctc_statistics.global_performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ ctc_statistics.global_performance|unlocalize }}; --donut-color: {{ ctc_statistics.global_color }}" aria-label="Performance globale {{ ctc_statistics.global_performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ ctc_statistics.global_performance }}%</span></div></div>{% endif %}</div><button type="button" onclick="window.switchView('statistiques')" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Consulter dans la CTC</button></div>
   {% if is_direction %}<details class="institutional-card p-4"><summary class="cursor-pointer font-bold">Acheminement documentaire</summary><div class="mt-4">{% include "ctc/composants/hub_routage_documentaire.html" %}</div></details>{% endif %}
   <h3 class="border-b border-slate-200 pb-2 text-lg font-bold dark:border-slate-700">Outils de votre poste</h3>
   <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
