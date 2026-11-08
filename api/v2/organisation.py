@@ -52,7 +52,7 @@ class ReferenceAPI(PhoenixAPIView):
         organisation = version()
         return Response({'version': organisation.code, 'status': organisation.status, 'readiness': readiness(organisation),
                          'organes': list(organisation.organes.values('id', 'code', 'type', 'name', 'official_name', 'status')),
-                         'groups': list(GroupeCible.objects.filter(sc__version=organisation).values('id', 'code', 'name', 'sc_id', 'activity', 'status')),
+                         'groups': list(GroupeCible.objects.filter(sc__version=organisation).values('id', 'code', 'name', 'sc_id', 'activity')),
                          'legacy_preserved': True})
 
 

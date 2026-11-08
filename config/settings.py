@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from decouple import config, Csv
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -213,6 +214,7 @@ REST_FRAMEWORK = {
         'anon': '200/day',
         'user': '2000/day',
         'mobile_auth': '5/minute',
+        'meeting_join': '30/minute',
     },
 }
 
@@ -335,6 +337,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.mobileapp.tasks.send_all_notification_digests',
         'schedule': 24 * 60 * 60,  # toutes les 24h
     },
+    'rapport-quotidien-neuronne': {
+        'task': 'apps.ia_agent.tasks.send_neuronne_daily_report',
+        'schedule': crontab(hour=23, minute=55),
+    },
 }
 
 # Email Configuration
@@ -359,6 +365,25 @@ DEEPSEEK_MAX_TOKENS = config('DEEPSEEK_MAX_TOKENS', default=8192, cast=int)
 DEEPSEEK_TEMPERATURE = config('DEEPSEEK_TEMPERATURE', default=0.7, cast=float)
 DEEPSEEK_TIMEOUT = config('DEEPSEEK_TIMEOUT', default=120, cast=int)
 IA_AGENT_MAX_TOOL_ITERATIONS = config('IA_AGENT_MAX_TOOL_ITERATIONS', default=8, cast=int)
+# Administration Neuronne : verrouille la création console au profit de l'assistant.
+NEURONNE_CONSOLE_WRITE_LOCK = config('NEURONNE_CONSOLE_WRITE_LOCK', default=True, cast=bool)
+NEURONNE_REPORT_RECIPIENTS = config('NEURONNE_REPORT_RECIPIENTS', default='')
+
+# Réunions LiveKit auto-hébergées — laisser vide pour désactiver la salle.
+LIVEKIT_URL = config('LIVEKIT_URL', default='')
+LIVEKIT_API_URL = config('LIVEKIT_API_URL', default='')
+LIVEKIT_API_KEY = config('LIVEKIT_API_KEY', default='')
+LIVEKIT_API_SECRET = config('LIVEKIT_API_SECRET', default='')
+LIVEKIT_TOKEN_TTL_SECONDS = config('LIVEKIT_TOKEN_TTL_SECONDS', default=300, cast=int)
+REUNION_JOIN_WINDOW_MINUTES = config('REUNION_JOIN_WINDOW_MINUTES', default=15, cast=int)
+MEETING_VOTE_REQUIRE_SESSION = config('MEETING_VOTE_REQUIRE_SESSION', default=False, cast=bool)
+# Fichiers audio privés, hors de MEDIA_ROOT public.
+RECORDINGS_DIR = config('RECORDINGS_DIR', default='') or str(BASE_DIR / 'private' / 'recordings')
+WHISPER_MODEL = config('WHISPER_MODEL', default='large-v3-turbo')
+WHISPER_DEVICE = config('WHISPER_DEVICE', default='cpu')
+WHISPER_COMPUTE_TYPE = config('WHISPER_COMPUTE_TYPE', default='int8')
+WHISPER_LANGUAGE = config('WHISPER_LANGUAGE', default='fr')
+WHISPER_BEAM_SIZE = config('WHISPER_BEAM_SIZE', default=5, cast=int)
 
 # WhatsApp via Twilio (laisser vide pour désactiver l'envoi réel)
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')

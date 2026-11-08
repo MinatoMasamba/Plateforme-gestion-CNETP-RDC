@@ -1,0 +1,38 @@
+<section class="st-space-home st-member-workspace p-4 md:p-6 max-w-[1400px] mx-auto space-y-5" data-workspace="{{ st_workspace.kind }}">
+    <header class="st-member-header">
+        <p class="ctc-eyebrow">{{ st_space_label }} · {{ poste.title }}</p>
+        <h2 class="ctc-page-title">{{ st_workspace.title }}</h2>
+        <p class="ctc-subtitle">{{ st_workspace.mission }}</p>
+    </header>
+    <nav class="st-workspace-tools" aria-label="Outils de mon poste">
+        {% for tool in st_workspace_tools %}<a href="#{{ tool.view }}" class="st-tool-card"><i data-lucide="{{ tool.icon }}"></i><span>{{ tool.label }}</span><span aria-hidden="true">→</span></a>{% endfor %}
+    </nav>
+    <div class="st-space-kpis st-personal-kpis">
+        {% if st_workspace.kind == 'ptn' %}
+        <a href="#ptn" class="st-space-kpi premium-glass"><span>Mes fiches PTN</span><strong>{{ st_space_dashboard.kpis.records }}</strong><small>{{ st_space_dashboard.kpis.confirmed }} confirmée(s)</small></a>
+        {% elif st_workspace.kind == 'logistique' %}
+        <a href="#reunions" class="st-space-kpi premium-glass"><span>Réunions à organiser</span><strong>{{ st_space_dashboard.kpis.meetings }}</strong><small>Calendrier et convocations</small></a>
+        {% elif st_workspace.kind == 'ged' %}
+        <a href="#indexation" class="st-space-kpi premium-glass"><span>Dossiers à indexer</span><strong>{{ indexation_queue|length }}</strong><small>Rapport de SC reçu</small></a>
+        {% elif st_workspace.kind == 'finance' %}
+        <a href="#financial" class="st-space-kpi premium-glass"><span>Mes écritures</span><strong>{{ st_space_dashboard.kpis.records }}</strong><small>{{ st_space_dashboard.kpis.confirmed }} confirmée(s)</small></a>
+        {% elif st_workspace.kind == 'reception' %}
+        <a href="#assistant_executif" class="st-space-kpi premium-glass"><span>Dossiers en réception</span><strong>{{ st_space_dashboard.kpis.dossiers }}</strong><small>Accusés et rapports de SC</small></a>
+        {% else %}
+        <a href="#assignations" class="st-space-kpi premium-glass"><span>Mes travaux en cours</span><strong>{{ st_space_dashboard.kpis.tasks }}</strong><small>Affectations de mon poste</small></a>
+        {% endif %}
+        <a href="#assignations" class="st-space-kpi premium-glass"><span>Mes échéances dépassées</span><strong>{{ st_space_dashboard.kpis.overdue }}</strong><small>{{ st_space_dashboard.kpis.blocked }} tâche(s) bloquée(s)</small></a>
+    </div>
+    {% include "ctc/app/components/workday_module.html" %}
+    {% if st_workspace.kind == 'logistique' %}
+    <section class="ctc-card"><h3 class="font-bold">Mon calendrier de préparation</h3>
+        {% for reunion in st_space_dashboard.upcoming_meetings %}<a href="#reunions" class="st-workspace-row"><strong>{{ reunion.titre }}</strong><span>{{ reunion.date|date:"d/m/Y H:i" }}</span></a>{% empty %}<p class="ctc-subtitle">Aucune réunion à préparer dans votre périmètre.</p>{% endfor %}
+    </section>
+    {% elif st_workspace.kind == 'ptn' or st_workspace.kind == 'finance' %}
+        {% include "ctc/app/components/space_records.html" %}
+    {% elif st_workspace.kind == 'ged' %}
+    <section class="ctc-card"><h3 class="font-bold">Ma file documentaire</h3>
+        {% for p in indexation_queue %}<a href="{% url 'web:ctc_norme_read' p.norme_id %}" class="st-workspace-row"><strong>{{ p.norme.reference_number }}</strong><span>{{ p.norme.title }}</span></a>{% empty %}<p class="ctc-subtitle">Aucun dossier éligible à l’indexation.</p>{% endfor %}
+    </section>
+    {% endif %}
+</section>

@@ -141,7 +141,7 @@ class PhoenixMappingView(View):
         return {'mapping': mapping, 'kind': kind, 'error': error,
                 'can_manage': can_manage_organisation(request.user),
                 'sc_list': mapping.version.organes.filter(type='SC'),
-                'groups': GroupeCible.objects.filter(sc__version=mapping.version, status__in=['VALIDATED', 'ACTIVE'])}
+                'groups': GroupeCible.objects.filter(sc__version=mapping.version)}
 
     def get(self, request, kind, pk):
         self.mapping(kind, pk)

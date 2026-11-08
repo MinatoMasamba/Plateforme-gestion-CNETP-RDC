@@ -70,6 +70,16 @@ class NominationCTCAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
+        from .st_matrix import VERSION
+        if obj.poste.organe.version.code == VERSION and obj.status == 'ACTIVE' and (not change or NominationCTC.objects.get(pk=obj.pk).status != 'ACTIVE'):
+            from .st_operations import nominate_batch
+            result = nominate_batch(request.user, [{'post_code': obj.poste.code,
+                'expert_id': obj.expert_id, 'start_date': obj.start_date.isoformat(),
+                'appointment_reference': obj.appointment_reference}], apply=True)[0]
+            obj.pk = result['mandate_id']
+            obj._state.adding = False
+            obj.function = obj.poste.title
+            return
         if not obj.function and obj.poste_id:
             obj.function = obj.poste.title or obj.poste.code
         super().save_model(request, obj, form, change)

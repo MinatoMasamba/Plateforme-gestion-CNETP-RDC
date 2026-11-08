@@ -129,7 +129,7 @@ def configuration_form(kind, version, data=None, instance=None):
 class DossierCreateForm(forms.Form):
     mandate = forms.ModelChoiceField(queryset=MandatOrganisation.objects.none(), label='Mandat sélectionné')
     circuit = forms.ModelChoiceField(queryset=CircuitOrganisation.objects.none(), label='Circuit approuvé')
-    gt = forms.ModelChoiceField(queryset=GroupeCible.objects.none(), label='GT confirmé')
+    gt = forms.ModelChoiceField(queryset=GroupeCible.objects.none(), label='Groupe de travail')
     reference_number = forms.CharField(max_length=50, label='Référence')
     title = forms.CharField(max_length=500, label='Titre')
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3}), label='Description')
@@ -140,7 +140,7 @@ class DossierCreateForm(forms.Form):
         from apps.governance.phoenix_workflow import mandates_for
         super().__init__(*args, **kwargs)
         mandates = mandates_for(user)
-        groups = list(GroupeCible.objects.filter(sc__version=version, status__in=['VALIDATED', 'ACTIVE']))
+        groups = list(GroupeCible.objects.filter(sc__version=version))
         identifiers = [group.pk for group in groups if any(has_organisation_action(user, mandate, 'document.creer', groupe=group) for mandate in mandates)]
         self.fields['mandate'].queryset = mandates
         self.fields['gt'].queryset = GroupeCible.objects.filter(pk__in=identifiers)

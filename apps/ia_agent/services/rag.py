@@ -294,8 +294,10 @@ def _is_member_of_platform_scope(user):
     expert = Expert.objects.filter(user=user, status='ACTIVE').first()
     if not expert:
         return False
+    from apps.governance.phoenix_runtime import active_st_mandate
     return (
-        CTCMembership.objects.filter(expert=expert).exists()
+        active_st_mandate(expert) is not None
+        or CTCMembership.objects.filter(expert=expert).exists()
         or PilotageMembreship.objects.filter(expert=expert).exists()
     )
 

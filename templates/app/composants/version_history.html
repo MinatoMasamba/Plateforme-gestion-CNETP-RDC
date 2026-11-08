@@ -1,0 +1,40 @@
+<div id="module-history" class="module-container flex-col flex-1 h-full w-full">
+    <div class="nvh-host"><div id="app-version-history">Sélectionnez un document pour consulter ses versions.</div></div>
+</div>
+<script>
+    // Utilisé aussi par les notifications du shell Expert.
+    function escapeHtml(value = '') {
+        return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    let appHistoryViewer = null;
+    async function initHistoryModule(normeId) {
+        if (!normeId) return;
+        if (!appHistoryViewer) {
+            appHistoryViewer = new NormVersionHistory(document.getElementById('app-version-history'), {
+                loadVersions: id => NormVersionHistory.loadAll(id),
+                compare: (left, right, id) => NormVersionHistory.requestJSON(`/api/v1/norms/${encodeURIComponent(id)}/diff/?v1=${left.version_number}&v2=${right.version_number}`),
+                restore: async (version, id) => {
+                    const restored = await NormVersionHistory.requestJSON(`/api/v1/norms/${encodeURIComponent(id)}/rollback-version/`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+                        body: JSON.stringify({version_number: version.version_number})
+                    });
+                    if (String(editorState.document?.id) === String(id)) {
+                        editorState.document.latest_version = restored;
+                        editorState.document.content = restored.content;
+                        editorState.text = restored.content;
+                        document.getElementById('ed-main-textarea').value = restored.content;
+                        document.getElementById('ed-edit-comment').value = '';
+                        updateCounts(); validateSaveBtn();
+                    }
+                    if (window.showAppToast) window.showAppToast(`Version v${restored.version_number} créée par restauration.`, 'success');
+                }
+            });
+        }
+        const doc = sidebarState.documents.find(item => String(item.id) === String(normeId));
+        if (appHistoryViewer.key !== String(normeId)) document.querySelector('#module-history .nvh-host').scrollTop = 0;
+        await appHistoryViewer.open(normeId, doc ? `${doc.code} · ${doc.title}` : 'Historique du document');
+    }
+    async function loadHistoryData(normeId = null) {
+        return initHistoryModule(normeId || appHistoryViewer?.key || editorState.document?.id);
+    }
+</script>

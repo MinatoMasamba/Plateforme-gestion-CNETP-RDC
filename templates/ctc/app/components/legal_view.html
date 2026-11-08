@@ -1,0 +1,106 @@
+<section class="ged-workspace legal-workspace" data-legal-workspace aria-busy="true">
+    <header class="ged-heading">
+        <div>
+            <p class="ged-eyebrow">CNE-ITP / Pôle 3 / Co-chefs juristes</p>
+            <h2>Avis juridiques</h2>
+            <p>Demandes reçues, avis motivés et double contrôle des co-chefs</p>
+        </div>
+        <button type="button" class="ged-button" data-legal-refresh><i data-lucide="refresh-cw"></i> Actualiser</button>
+    </header>
+    <p class="ged-mission">Recevoir une demande d’avis juridique, ouvrir le dossier normatif, consulter ses pièces et rédiger un avis. Un avis n’est valable qu’après confirmation par l’autre co-chef ; aucune décision normative n’est prise ici.</p>
+
+    <div class="ged-kpis">
+        <button type="button" data-legal-kpi="open"><span class="ged-kpi-icon"><i data-lucide="inbox"></i></span><span>Demandes ouvertes<strong data-legal-count="open">—</strong><small>À instruire ou en cours</small></span></button>
+        <button type="button" data-legal-kpi="pending"><span class="ged-kpi-icon ged-amber"><i data-lucide="stamp"></i></span><span>Avis à confirmer<strong data-legal-count="pending">—</strong><small>Contrôle de l’autre co-chef</small></span></button>
+        <button type="button" data-legal-kpi="confirmed"><span class="ged-kpi-icon ged-green"><i data-lucide="badge-check"></i></span><span>Avis confirmés<strong data-legal-count="confirmed">—</strong><small>Versés au dossier</small></span></button>
+        <button type="button" data-legal-kpi="overdue"><span class="ged-kpi-icon ged-red"><i data-lucide="alarm-clock"></i></span><span>Demandes en retard<strong data-legal-count="overdue">—</strong><small>Échéance dépassée</small></span></button>
+    </div>
+
+    <nav class="ged-tabs" aria-label="Modules des avis juridiques">
+        <button type="button" data-legal-mode="work" aria-pressed="true">Demandes</button>
+        <button type="button" data-legal-mode="confirm">Avis à confirmer</button>
+        <button type="button" data-legal-mode="stats">Statistiques</button>
+        <button type="button" data-legal-mode="journal">Journal</button>
+    </nav>
+    <p class="ged-feedback" data-legal-message role="status" aria-live="polite"></p>
+
+    <section data-legal-panel="work">
+        <div class="legal-toolbar">
+            <button type="button" class="ged-button ged-primary" data-legal-new><i data-lucide="plus"></i> Enregistrer une demande reçue</button>
+            <span class="ged-muted" data-legal-total></span>
+        </div>
+
+        <form class="ged-card legal-request-form" data-legal-request-form hidden>
+            <header><div><p class="ged-eyebrow">Provenance vérifiable</p><h3>Nouvelle demande d’avis</h3></div><button type="button" class="ged-button" data-legal-cancel>Annuler</button></header>
+            <div class="legal-form-grid">
+                <label>Dossier normatif<select name="process_id" required></select></label>
+                <label>Priorité<select name="priority"><option value="NORMAL">Normale</option><option value="HIGH">Prioritaire</option></select></label>
+                <label>Demandeur<input name="requester_name" maxlength="200" required placeholder="Nom ou service demandeur"></label>
+                <label>Référence de la demande<input name="source_reference" maxlength="200" required placeholder="Courriel, courrier, note…"></label>
+                <label>Échéance<input name="due_date" type="date"></label>
+                <label>Objet<input name="subject" maxlength="250" required placeholder="Objet juridique de la demande"></label>
+                <label class="legal-span">Question posée<textarea name="question" rows="4" maxlength="20000" required placeholder="Faits, points de droit et pièces utiles"></textarea></label>
+            </div>
+            <div class="ged-actions"><button type="submit" class="ged-button ged-primary"><i data-lucide="save"></i> Enregistrer la demande</button></div>
+            <p class="ged-muted">La référence officielle est générée à l’enregistrement. La demande rejoindra le dossier normatif sélectionné.</p>
+        </form>
+
+        <div class="ged-columns">
+            <section class="ged-card ged-queue">
+                <header><div><p class="ged-eyebrow">File du pôle 3</p><h3>Demandes d’avis</h3></div><span data-legal-queue-total></span></header>
+                <div class="ged-filters" role="group" aria-label="Filtrer les demandes">
+                    <button type="button" data-legal-filter="ALL" aria-pressed="true">Toutes</button>
+                    <button type="button" data-legal-filter="OPEN" aria-pressed="false">Ouvertes</button>
+                    <button type="button" data-legal-filter="IN_PROGRESS" aria-pressed="false">En cours</button>
+                    <button type="button" data-legal-filter="ANSWERED" aria-pressed="false">Répondues</button>
+                    <button type="button" data-legal-filter="CLOSED" aria-pressed="false">Clôturées</button>
+                </div>
+                <label class="ged-search"><i data-lucide="search"></i><span class="sr-only">Rechercher une demande</span><input type="search" data-legal-search placeholder="Référence, objet, dossier ou demandeur…"></label>
+                <div class="ged-queue-list" data-legal-queue></div>
+            </section>
+
+            <section class="ged-card ged-index-panel" data-legal-detail>
+                <header><div><p class="ged-eyebrow">Fiche de la demande</p><h3 data-legal-reference>Sélectionnez une demande</h3></div><span class="ged-badge" data-legal-state>—</span></header>
+                <h4 data-legal-subject>Les demandes enregistrées apparaissent dans la file.</h4>
+                <p class="ged-muted" data-legal-origin></p>
+                <dl class="legal-meta" data-legal-meta></dl>
+                <div class="legal-block"><h4>Pièces du dossier</h4><div data-legal-pieces></div></div>
+                <div class="legal-block"><h4>Avis versés</h4><div data-legal-opinions></div></div>
+                <form class="legal-opinion-form" data-legal-opinion-form hidden>
+                    <h4>Rédiger mon avis</h4>
+                    <label>Analyse juridique<textarea name="analysis" rows="5" maxlength="20000" required placeholder="Motivation, textes applicables et réserves éventuelles"></textarea></label>
+                    <label>Recommandation<select name="recommendation"><option value="FAVORABLE">Favorable</option><option value="RESERVE">Favorable avec réserves</option><option value="COMPLEMENT">Complément demandé</option><option value="DEFAVORABLE">Défavorable</option></select></label>
+                    <div class="ged-actions">
+                        <button type="button" class="ged-button" data-legal-save>Enregistrer le brouillon</button>
+                        <button type="button" class="ged-button ged-primary" data-legal-submit>Transmettre à l’autre co-chef</button>
+                    </div>
+                </form>
+                <p class="ged-muted" data-legal-own-state></p>
+                <div class="ged-actions" data-legal-close-box hidden><button type="button" class="ged-button" data-legal-close>Clôturer la demande</button></div>
+            </section>
+        </div>
+    </section>
+
+    <section data-legal-panel="confirm" hidden>
+        <div class="ged-card">
+            <header><div><p class="ged-eyebrow">Double contrôle</p><h3>Avis transmis à l’autre co-chef</h3></div><span data-legal-confirm-total></span></header>
+            <div class="legal-confirm-list" data-legal-confirm-list></div>
+        </div>
+    </section>
+
+    <section data-legal-panel="stats" hidden>
+        <div class="ged-charts">
+            <article class="ged-card"><p class="ged-eyebrow">Recommandations</p><h3>Répartition des avis</h3><div data-legal-stat-reco></div></article>
+            <article class="ged-card"><p class="ged-eyebrow">Dossiers</p><h3>Demandes par SC et tome</h3><div data-legal-stat-tomes></div></article>
+            <article class="ged-card"><p class="ged-eyebrow">Délais</p><h3>Demande → avis transmis</h3><div data-legal-stat-delay></div><p class="ged-muted">Calculé sur les horodatages réels des avis transmis. L’absence de données n’est pas un délai nul.</p></article>
+        </div>
+    </section>
+
+    <section data-legal-panel="journal" hidden>
+        <div class="ged-card">
+            <header><div><p class="ged-eyebrow">Traçabilité</p><h3>Journal des actions juridiques</h3></div></header>
+            <div data-legal-history></div>
+            <p class="ged-muted">Chaque action est journalisée et reste consultable par la coordination, qui conserve le contrôle indépendant des actes du pôle 3.</p>
+        </div>
+    </section>
+</section>

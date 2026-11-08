@@ -11,14 +11,21 @@ def get_expert_for_user(user):
 
 
 def available_scopes(user):
-    """Liste des scopes ('expert'/'ctc'/'pilotage') accessibles à cet utilisateur."""
+    """Liste des scopes accessibles à cet utilisateur."""
+    from .neuronne_admin import is_neuronne_admin
+
+    admin = is_neuronne_admin(user)
     expert = get_expert_for_user(user)
     if not expert:
-        return []
+        scopes = ['expert'] if user.is_active and user.is_staff and user.has_perm('governance.add_nominationctc') else []
+        return scopes + (['admin'] if admin else [])
 
     scopes = ['expert']
+    if admin:
+        scopes.append('admin')
 
-    if CTCMembership.objects.filter(expert=expert).exists():
+    from apps.governance.phoenix_runtime import active_st_mandate
+    if active_st_mandate(expert) or CTCMembership.objects.filter(expert=expert).exists():
         scopes.append('ctc')
 
     if PilotageMembreship.objects.filter(expert=expert).exists():

@@ -1,0 +1,32 @@
+{% if st_post_code != 'ST-V3-11' and st_post_code != 'ST-V3-10' %}
+{% comment %}Dossiers à indexer du pôle 2.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1300px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · Indexation</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Dossiers à indexer</h2>
+            <p class="mt-1 text-sm text-slate-500">Rapports de revue reçus et dossiers en attente de fiche d’indexation.</p>
+        </div>
+        <a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+    <section class="premium-glass p-4">
+        <div class="overflow-x-auto">
+            <table class="ctc-table w-full text-left text-sm">
+                <thead><tr><th>Référence</th><th>Dossier</th><th>Statut</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for p in indexation_queue %}
+                    {% if p.display_status.code == 'RAPPORT_RECU' or p.display_status.code == 'REVUE_SC_ATTENTE' %}
+                    <tr>
+                        <td class="font-mono font-bold">{{ p.norme.reference_number }}</td>
+                        <td>{{ p.norme.title }}</td>
+                        <td>{% include "ctc/app/components/status_badge.html" with status=p.display_status %}</td>
+                        <td><a href="#ged" onclick="window.switchView('ged'); window.stGEDSelect?.({{ p.pk }}); return false;" class="font-bold text-[#007ea8] underline">Ouvrir la fiche GED</a></td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}<tr><td colspan="4" class="text-slate-500">Aucun dossier à indexer.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endif %}

@@ -23,7 +23,7 @@ def organisation():
     )
     group = GroupeCible.objects.create(
         sc=sc2, code='GT-2', name='Groupe 2', activity='PRODUCTION',
-        status='VALIDATED', source_reference='Catalogue test',
+         source_reference='Catalogue test',
     )
     return sc1, sc2, group
 

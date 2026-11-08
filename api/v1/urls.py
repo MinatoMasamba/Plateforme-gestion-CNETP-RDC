@@ -13,6 +13,9 @@ from .hierarchy.views import (
 from .norms.views import NormeViewSet, NormeVersionViewSet, ChangementVersionViewSet
 from .amendments.views import AmendementViewSet, VoteViewSet, ResultatVoteViewSet
 from .meetings.views import ReunionViewSet, PresenceViewSet, ProcessusVerbauxViewSet, ReunionVoteViewSet
+from .st_ged_views import STGEDViewSet, STGEDDocumentView
+from .st_legal_views import STLegalViewSet
+from .meetings.webhook import livekit_webhook
 from .payments.views import CotisationViewSet, PaiementViewSet, JetonPresenceViewSet
 from .mobile.views import (
     MobileAuthViewSet, PushTokenViewSet, NotificationPreferenceViewSet,
@@ -24,6 +27,7 @@ from .validation.views import LegisticReviewViewSet
 from .documents.views import DocumentFileViewSet
 from .public.views import PublicAmendementViewSet
 from .messaging.views import MessageViewSet
+from .messaging.dispatch_views import InstitutionalDispatchViewSet
 from .sidebar.views import (
     UserProfileViewSet, WorkingGroupSidebarViewSet, ExpertSidebarViewSet,
     TaskDetailViewSet, DocumentSidebarViewSet, MeetingSidebarViewSet,
@@ -32,8 +36,19 @@ from .sidebar.views import (
 )
 from .ia_agent.views import AgentSessionViewSet, AgentArtifactViewSet
 
+from .st_views import STBackendViewSet
+from .st_admin_views import STReceptionViewSet, STPVViewSet
+from .st_report_views import STReportViewSet
+from .st_notification_views import STNotificationViewSet
+
 # Créer le router et enregistrer les viewsets
 router = DefaultRouter()
+router.register(r'communications', InstitutionalDispatchViewSet, basename='institutional-dispatch')
+router.register(r'st/receptions', STReceptionViewSet, basename='st-receptions')
+router.register(r'st/pv', STPVViewSet, basename='st-pv')
+router.register(r'st/records', STBackendViewSet, basename='st-backend')
+router.register(r'st/reports', STReportViewSet, basename='st-reports')
+router.register(r'st/notifications', STNotificationViewSet, basename='st-notifications')
 
 # Auth routes
 router.register(r'auth', AuthViewSet, basename='auth')
@@ -74,6 +89,8 @@ router.register(r'reunions', ReunionViewSet, basename='reunions')
 router.register(r'presences', PresenceViewSet, basename='presences')
 router.register(r'reunion-votes', ReunionVoteViewSet, basename='reunion-votes')
 router.register(r'pv', ProcessusVerbauxViewSet, basename='pv')
+router.register(r'st/ged', STGEDViewSet, basename='st-ged')
+router.register(r'st/legal', STLegalViewSet, basename='st-legal')
 
 # Payments routes
 router.register(r'cotisations', CotisationViewSet, basename='cotisations')
@@ -121,6 +138,10 @@ router.register(r'mobile/ctc', MobileCTCViewSet, basename='mobile-ctc')
 router.register(r'mobile/pilotage', MobilePilotageViewSet, basename='mobile-pilotage')
 
 urlpatterns = [
+    path('st/ged-documents/<int:pk>/', STGEDDocumentView.as_view(), name='st-ged-document'),
+    # Webhook LiveKit (signature vérifiée, pas de session/CSRF)
+    path('meetings/livekit/webhook/', livekit_webhook, name='livekit-webhook'),
+
     # Routes principales
     path('', include(router.urls)),
 

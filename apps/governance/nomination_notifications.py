@@ -11,9 +11,11 @@ from django.urls import reverse
 
 from apps.experts.models import Expert
 from .models import (
-    CTM, WG, CTCMembership, ComitePilotage, ExecutiveLevel, MandatOrganisation,
-    PilotageMembreship, PosteNominatif, PosteNominatifCTC, TechnicalCell,
+    Affectation, CTM, WG, CTCMembership, ComitePilotage, ExecutiveLevel,
+    MandatOrganisation, PilotageMembreship, PosteNominatif, PosteNominatifCTC,
+    TechnicalCell,
 )
+from .phoenix_models import AffectationSousCommission
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,9 @@ LEADERS = {
 TRACKED = {
     Expert: ('appointment_decree_number', 'appointment_date'),
     PilotageMembreship: ('expert_id', 'comite_id', 'role'),
-    CTCMembership: ('expert_id', 'ctc_id', 'role'),
+    CTCMembership: ('expert_id', 'ctc_id', 'role', 'is_active'),
+    Affectation: ('expert_id', 'ctm_id', 'wg_id'),
+    AffectationSousCommission: ('expert_id', 'sc_id', 'status'),
     ExecutiveLevel: ('expert_id', 'position'),
     PosteNominatif: ('holder_id', 'role'),
     PosteNominatifCTC: ('holder_id', 'role'),
@@ -169,9 +173,23 @@ def _deliver(model, pk, expert_id, expected):
             return
         _send_mail(expert_id, item.get_role_display(), item.comite.name, reverse('web:pilotage_dashboard'))
     elif model is CTCMembership:
-        if _covered_by_poste(item):
+        if not item.is_active or _covered_by_poste(item):
             return
         _send_mail(expert_id, item.get_role_display(), item.ctc.name, reverse('web:ctc_dashboard'))
+    elif model is Affectation:
+        organisation = str(item.wg or item.ctm)
+        _send_mail(
+            expert_id, item.role or 'Membre', organisation, reverse('web:app'),
+        )
+    elif model is AffectationSousCommission:
+        if item.status != AffectationSousCommission.Status.MIGRATED or not item.sc_id:
+            return
+        _send_mail(
+            expert_id,
+            'Affectation à la sous-commission',
+            item.sc.official_name or item.sc.name,
+            reverse('web:expert_subcommission', args=[item.sc_id]),
+        )
     elif model is PosteNominatif:
         _send_mail(expert_id, item.title, item.comite.name, reverse('web:pilotage_dashboard'))
     elif model is PosteNominatifCTC:

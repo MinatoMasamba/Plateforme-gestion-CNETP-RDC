@@ -1,0 +1,115 @@
+{% comment %}Registre des paramètres techniques nationaux — données réelles STRecord.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1400px] mx-auto space-y-6 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · Documentation, codification et PTN</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Registre des paramètres techniques nationaux</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Chaque modification crée une version conservée. La confirmation est réservée au chef du pôle 2.</p>
+        </div>
+        <a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+
+    {% if st_can_manage_ptn or st_is_pole_head %}
+    <section class="premium-glass p-4" aria-labelledby="ptn-create-title">
+        <h3 id="ptn-create-title" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Ajouter une fiche PTN</h3>
+        <form id="ptn-create-form" class="mt-3 grid gap-3 md:grid-cols-2" onsubmit="submitPtn(event)">
+            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Référence
+                <input name="reference" required maxlength="100" class="ctc-search mt-1 w-full" placeholder="PTN-001">
+            </label>
+            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Source
+                <input name="source_reference" required maxlength="500" class="ctc-search mt-1 w-full" placeholder="Rapport, norme ou acte source">
+            </label>
+            <label class="text-xs font-bold text-slate-600 dark:text-slate-300 md:col-span-2">Intitulé
+                <input name="title" required maxlength="250" class="ctc-search mt-1 w-full" placeholder="Nom du paramètre">
+            </label>
+            <label class="text-xs font-bold text-slate-600 dark:text-slate-300 md:col-span-2">Valeur et précisions
+                <textarea name="content" rows="3" class="ctc-search mt-1 w-full" placeholder="Valeur, unité, conditions d’application"></textarea>
+            </label>
+            <div class="md:col-span-2 flex justify-end">
+                <button type="submit" class="institutional-primary text-xs">Enregistrer la fiche</button>
+            </div>
+        </form>
+        <p id="ptn-form-status" class="mt-2 hidden text-xs font-semibold" role="status"></p>
+    </section>
+    {% endif %}
+
+    <section class="premium-glass p-4" aria-labelledby="ptn-list-title">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 id="ptn-list-title" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Fiches enregistrées · {{ ptn_records|length }}</h3>
+            <a href="#tracabilite" class="text-xs font-bold text-[#007ea8]">Voir l’historique d’audit</a>
+        </div>
+        <div class="mt-3 overflow-x-auto">
+            <table class="ctc-table w-full text-left text-sm">
+                <thead><tr><th>Référence</th><th>Intitulé</th><th>Version</th><th>Source</th><th>État</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for record in ptn_records %}
+                    {% with latest=record.versions.first %}
+                    <tr>
+                        <td class="font-mono font-bold">{{ record.reference }}</td>
+                        <td>{{ latest.title|default:"—" }}</td>
+                        <td>v{{ latest.number|default:0 }}</td>
+                        <td class="max-w-xs truncate">{{ latest.source_reference|default:"—" }}</td>
+                        <td>
+                            {% if latest.confirmation.decision == 'CONFIRMED' %}
+                                <span class="ctc-badge ctc-badge--success">Confirmée</span>
+                            {% elif latest.confirmation.decision == 'REJECTED' %}
+                                <span class="ctc-badge ctc-badge--danger">À corriger</span>
+                            {% else %}
+                                <span class="ctc-badge ctc-badge--warning">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if st_is_pole_head and latest and not latest.confirmation and latest.author_id != expert.user_id %}
+                            <button type="button" class="text-xs font-bold text-[#007ea8] underline" onclick="confirmPtn({{ record.pk }}, {{ latest.number }})">Confirmer</button>
+                            {% else %}
+                            <span class="text-xs text-slate-400">Lecture</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr><td colspan="6" class="text-slate-500">Aucune fiche PTN enregistrée.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+async function submitPtn(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = document.getElementById('ptn-form-status');
+    const payload = Object.fromEntries(new FormData(form).entries());
+    payload.kind = 'PTN';
+    status.className = 'mt-2 text-xs font-semibold text-slate-500';
+    status.textContent = 'Enregistrement…';
+    status.classList.remove('hidden');
+    try {
+        const response = await ctcFetchResponse('/api/v1/st/records/', { method: 'POST', body: JSON.stringify(payload) });
+        if (!response.ok) throw new Error((await response.json()).detail || 'Enregistrement refusé.');
+        status.className = 'mt-2 text-xs font-semibold text-emerald-600';
+        status.textContent = 'Fiche enregistrée. Rechargement…';
+        setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+        status.className = 'mt-2 text-xs font-semibold text-red-600';
+        status.textContent = error.message || 'Erreur inconnue.';
+    }
+}
+
+async function confirmPtn(recordId, revision) {
+    const comment = window.prompt('Commentaire de confirmation (obligatoire) :');
+    if (!comment || !comment.trim()) return;
+    try {
+        const response = await ctcFetchResponse(`/api/v1/st/records/${recordId}/confirm/`, {
+            method: 'POST',
+            body: JSON.stringify({ revision, decision: 'CONFIRMED', comment: comment.trim() }),
+        });
+        if (!response.ok) throw new Error((await response.json()).detail || 'Confirmation refusée.');
+        window.location.reload();
+    } catch (error) {
+        window.showAppToast?.(error.message || 'Confirmation impossible.', 'error');
+    }
+}
+</script>

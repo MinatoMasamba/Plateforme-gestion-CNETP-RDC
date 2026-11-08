@@ -44,6 +44,13 @@
                     <i data-lucide="history"></i>
                     <span>Journal</span>
                 </a>
+                {% if request.user.is_staff %}
+                <button type="button" class="console-text-link" onclick="toggleIaAgentPanel()"
+                        title="Assistant Neuronne — administration" aria-controls="ia-agent-panel">
+                    <i data-lucide="sparkles"></i>
+                    <span>Neuronne admin</span>
+                </button>
+                {% endif %}
                 <button type="button" class="console-icon-btn" data-theme-toggle title="Changer le thème">
                     <i data-lucide="sun" class="theme-icon-light"></i>
                     <i data-lucide="moon" class="theme-icon-dark"></i>
@@ -136,7 +143,11 @@
         </main>
     </div>
 
+    <script src="{% static 'js/network-utils.js' %}"></script>
     <script src="{% static 'js/console.js' %}?v=20261027-airy"></script>
+    {% if request.user.is_staff %}
+    {% include 'ia_agent/composants/agent_widget.html' with widget_scope='admin' widget_position='bottom-6 right-6' %}
+    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

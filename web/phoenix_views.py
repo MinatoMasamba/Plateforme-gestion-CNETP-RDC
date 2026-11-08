@@ -61,7 +61,7 @@ FORM_SECTIONS = {
     'gt': [
         ('Rattachement', 'Sous-commission de rattachement du groupe de travail.', ['sc']),
         ('Identification', 'Code, intitulé et nature de l’activité.', ['code', 'name', 'activity']),
-        ('Statut et traçabilité', 'État de préparation et source officielle.', ['status', 'source_reference']),
+        ('Source', 'Référence documentaire du groupe de travail.', ['source_reference']),
     ],
     'mandat': [
         ('Périmètre du mandat', 'Personne nommée et cible du mandat.', ['expert', 'poste', 'groupe']),

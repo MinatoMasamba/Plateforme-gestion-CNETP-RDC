@@ -40,7 +40,14 @@ class AuthState {
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController({AuthState? initialState}) : super(initialState ?? const AuthState()) {
+  AuthController({AuthState? initialState})
+    : super(initialState ?? const AuthState()) {
+    ApiClient.refreshAccessToken = () async {
+      if (!mounted) return false;
+      final current = state.session;
+      if (current == null) return false;
+      return _tryRefresh(current);
+    };
     final s = state.session;
     if (state.status == AuthStatus.authenticated && s != null) {
       ApiClient.accessToken = s.access;
@@ -91,6 +98,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> _validateInBackground(Session session) async {
     try {
       final boot = await _fetchBootstrap();
+      if (!mounted || ApiClient.accessToken != session.access) return;
       final refreshed = _merge(session, boot);
       await _persist(refreshed);
       if (state.status == AuthStatus.authenticated) {
@@ -98,11 +106,15 @@ class AuthController extends StateNotifier<AuthState> {
       }
     } catch (e) {
       // Seules les erreurs d'authentification déclenchent un refresh/logout.
-      final isAuthError = e is DioException &&
+      final isAuthError =
+          e is DioException &&
           (e.response?.statusCode == 401 || e.response?.statusCode == 403);
       if (!isAuthError) return;
       final ok = await _tryRefresh(session);
-      if (!ok && state.status == AuthStatus.authenticated) {
+      if (!ok &&
+          _refreshRejected &&
+          mounted &&
+          state.status == AuthStatus.authenticated) {
         await logout();
       }
     }
@@ -111,12 +123,15 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = state.copyWith(loading: true, clearError: true);
     try {
-      final resp = await ApiClient.dio.post('/api/v1/mobile/auth/login/', data: {
-        'email': email,
-        'password': password,
-        'device_id': 'flutter-web',
-        'device_type': 'web',
-      });
+      final resp = await ApiClient.dio.post(
+        '/api/v1/mobile/auth/login/',
+        data: {
+          'email': email,
+          'password': password,
+          'device_id': 'flutter-web',
+          'device_type': 'web',
+        },
+      );
 
       final data = resp.data as Map<String, dynamic>;
       if (data['error_code'] == 'EMAIL_NOT_CONFIRMED') {
@@ -177,7 +192,22 @@ class AuthController extends StateNotifier<AuthState> {
     return resp.data as Map<String, dynamic>;
   }
 
+  Future<bool>? _refreshInFlight;
+  bool _refreshRejected = false;
+
   Future<bool> _tryRefresh(Session session) async {
+    if (_refreshInFlight != null) return _refreshInFlight!;
+    final future = _performRefresh(session);
+    _refreshInFlight = future;
+    try {
+      return await future;
+    } finally {
+      _refreshInFlight = null;
+    }
+  }
+
+  Future<bool> _performRefresh(Session session) async {
+    _refreshRejected = false;
     try {
       final resp = await ApiClient.dio.post(
         '/api/v1/mobile/auth/refresh/',
@@ -197,14 +227,45 @@ class AuthController extends StateNotifier<AuthState> {
         ctcRole: session.ctcRole,
         pilotageRole: session.pilotageRole,
       );
+      if (!mounted ||
+          state.status != AuthStatus.authenticated ||
+          state.session?.refresh != session.refresh) {
+        return false;
+      }
       ApiClient.accessToken = refreshed.access;
-      final boot = await _fetchBootstrap();
-      final merged = _merge(refreshed, boot);
-      await _persist(merged);
-      state = AuthState(status: AuthStatus.authenticated, session: merged);
+      // Persist rotated credentials before the optional bootstrap request.
+      // A temporary network failure must not discard the new refresh token.
+      await _persist(refreshed);
+      if (!mounted ||
+          state.status != AuthStatus.authenticated ||
+          state.session?.refresh != session.refresh) {
+        return false;
+      }
+      state = AuthState(status: AuthStatus.authenticated, session: refreshed);
+      try {
+        final boot = await _fetchBootstrap();
+        if (!mounted || ApiClient.accessToken != refreshed.access) return true;
+        final merged = _merge(refreshed, boot);
+        await _persist(merged);
+        if (mounted &&
+            state.status == AuthStatus.authenticated &&
+            ApiClient.accessToken == refreshed.access) {
+          state = AuthState(status: AuthStatus.authenticated, session: merged);
+        }
+      } catch (_) {
+        // The authenticated APIs still enforce rights; retry bootstrap later.
+      }
       return true;
+    } on DioException catch (error) {
+      final body = error.response?.data;
+      _refreshRejected =
+          (error.response?.statusCode == 401 ||
+              error.response?.statusCode == 403) &&
+          body is Map &&
+          body['code'] == 'token_not_valid';
+      if (_refreshRejected) ApiClient.accessToken = null;
+      return false;
     } catch (_) {
-      ApiClient.accessToken = null;
       return false;
     }
   }
@@ -241,5 +302,6 @@ class AuthController extends StateNotifier<AuthState> {
   }
 }
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) => AuthController());
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
+  (ref) => AuthController(),
+);

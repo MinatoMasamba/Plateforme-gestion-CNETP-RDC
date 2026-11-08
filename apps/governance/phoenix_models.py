@@ -111,6 +111,8 @@ class PosteOrganisation(PhoenixValidatedModel, BaseModel):
     origin_label = models.CharField(max_length=250, blank=True)
     required_structure = models.ForeignKey(Structure, on_delete=models.PROTECT, null=True, blank=True)
     source_reference = models.CharField(max_length=250)
+    st_sub_role = models.CharField(max_length=60, blank=True)
+    nominated_name = models.CharField(max_length=250, blank=True)
     status = models.CharField(max_length=20, choices=OrganisationVersion.Status.choices, default='PROPOSED')
     display_created_at = models.DateTimeField(null=True, blank=True, verbose_name='Date de création affichée')
     display_updated_at = models.DateTimeField(null=True, blank=True, verbose_name='Date de modification affichée')
@@ -130,7 +132,6 @@ class GroupeCible(PhoenixValidatedModel, BaseModel):
     mission = models.TextField(blank=True)
     activity = models.CharField(max_length=20, choices=[('PRODUCTION', 'Production'), ('WATCH', 'Veille')])
     source_reference = models.CharField(max_length=250)
-    status = models.CharField(max_length=20, choices=OrganisationVersion.Status.choices, default='PROPOSED')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['sc', 'code'], name='unique_phoenix_gt_code')]
@@ -266,6 +267,7 @@ class AffectationSousCommission(PhoenixValidatedModel, BaseModel):
             ('PROFILE_CTM', 'CTM du profil'),
             ('NO_SOURCE', 'Aucune affectation source'),
             ('REPORT_PROPOSAL', 'Proposition du rapport adopté'),
+            ('NEURONNE_ASSIGNMENT', 'Ajout administratif Neuronne'),
         ],
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.REVIEW)
@@ -301,7 +303,7 @@ class AffectationSousCommission(PhoenixValidatedModel, BaseModel):
         if self.status == self.Status.MIGRATED:
             if not self.sc_id or not self.effective_from or not self.migration_reference.strip():
                 raise ValidationError('Une affectation exige une SC, une date et une référence.')
-            if not self.source_ctm_id and self.source_kind != 'REPORT_PROPOSAL':
+            if not self.source_ctm_id and self.source_kind not in ('REPORT_PROPOSAL', 'NEURONNE_ASSIGNMENT'):
                 raise ValidationError('Une affectation migrée exige une provenance CTM vérifiable.')
         if self.source_wg_id and self.source_ctm_id != self.source_wg.ctm_id:
             raise ValidationError('Le WG source doit appartenir au CTM source.')

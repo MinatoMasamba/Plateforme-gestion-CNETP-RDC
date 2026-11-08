@@ -1,0 +1,8 @@
+{% comment %}Badge de statut : couleur ET texte. `status` = {code,label,tone,motif}.{% endcomment %}
+{% if status %}
+<span class="ctc-badge ctc-badge--{{ status.tone|default:'neutral' }}" title="{{ status.motif|default:'' }}">
+    <span class="ctc-badge__dot" aria-hidden="true"></span>
+    <span>{{ status.label }}</span>
+</span>
+{% if status.motif %}<span class="block text-[11px] text-red-600 dark:text-red-400 mt-1">{{ status.motif }}</span>{% endif %}
+{% endif %}

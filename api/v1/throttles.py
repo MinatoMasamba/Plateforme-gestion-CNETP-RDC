@@ -10,3 +10,9 @@ class MobileAuthUserThrottle(UserRateThrottle):
     """10 tentatives par minute pour les utilisateurs connectés sur les endpoints auth."""
     scope = 'mobile_auth'
     rate = '10/minute'
+
+
+class MeetingJoinThrottle(UserRateThrottle):
+    """Limite la délivrance de jetons LiveKit par utilisateur."""
+
+    scope = 'meeting_join'

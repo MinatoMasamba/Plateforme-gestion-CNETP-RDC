@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ reunion.titre }} — Salle CNE-ITP</title>
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.13.0/dist/livekit-client.umd.min.js"></script>
+    <style>
+        :root { --cnetp-blue: #0095c9; --cnetp-yellow: #fff24b; --cnetp-red: #db3832; --ink: #0b1220; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: var(--ink); color: #e5edf7; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 22px; border-bottom: 1px solid #1c2942; background: #0f172a; }
+        header h1 { font-size: 15px; margin: 0; }
+        header p { margin: 3px 0 0; font-size: 11px; color: #8fa3bf; }
+        .badge { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; background: rgba(0,149,201,.14); border: 1px solid rgba(0,149,201,.35); color: #7fd6ef; }
+        main { padding: 18px 22px 110px; max-width: 1400px; margin: 0 auto; }
+        #grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+        .tile { position: relative; min-height: 190px; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 20% 0%, #1c2b46, #0a101d 65%); border: 1px solid #22304b; display: flex; align-items: center; justify-content: center; }
+        .tile video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        .tile .placeholder { font-size: 44px; font-weight: 800; color: #3b5479; }
+        .tile .name { position: absolute; left: 10px; bottom: 10px; background: rgba(3,10,22,.75); padding: 4px 8px; border-radius: 7px; font-size: 11px; font-weight: 700; }
+        .tile .role { position: absolute; right: 10px; top: 10px; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; background: rgba(0,149,201,.18); border: 1px solid rgba(0,149,201,.35); color: #9ae3f7; padding: 3px 6px; border-radius: 999px; }
+        .tile.local { border-color: rgba(255,242,75,.55); }
+        .tile.speaking { box-shadow: 0 0 0 2px var(--cnetp-yellow), 0 0 24px rgba(255,242,75,.18); }
+        .controls { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 10px; padding: 16px; background: linear-gradient(transparent, rgba(3,10,22,.96) 45%); }
+        .controls button { border: 1px solid #2a3a58; background: #13203a; color: #e5edf7; padding: 11px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; }
+        .controls button:hover { border-color: var(--cnetp-blue); }
+        .controls button.active { background: rgba(0,149,201,.2); border-color: var(--cnetp-blue); }
+        .controls button.danger { background: rgba(219,56,50,.18); border-color: rgba(219,56,50,.55); color: #ffb4b1; }
+        #status { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(3,10,22,.88); z-index: 20; text-align: center; }
+        #status.visible { display: flex; }
+        #status .card { max-width: 460px; border: 1px solid #2a3a58; background: #0f172a; border-radius: 18px; padding: 26px; }
+        #status h2 { margin: 0 0 10px; font-size: 17px; }
+        #status p { margin: 0; color: #9fb1ca; font-size: 13px; line-height: 1.5; }
+        #status a { display: inline-block; margin-top: 18px; color: #7fd6ef; font-weight: 700; text-decoration: none; }
+        .muted { opacity: .55; }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    <header>
+        <div>
+            <h1>{{ reunion.titre }}</h1>
+            <p>{{ reunion.get_type_display }}{% if reunion.wg %} · {{ reunion.wg }}{% elif reunion.ctm %} · {{ reunion.ctm }}{% endif %}</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+            <span id="presence-count" class="badge">Connexion…</span>
+            <a href="{% url 'web:app' %}" class="badge" style="text-decoration:none">Quitter</a>
+        </div>
+    </header>
+
+    <main>
+        <div id="grid"></div>
+    </main>
+
+    <div class="controls">
+        <button id="btn-mic" type="button">Micro</button>
+        <button id="btn-cam" type="button">Caméra</button>
+        <button id="btn-screen" type="button">Partager</button>
+        <button id="btn-leave" type="button" class="danger">Quitter la salle</button>
+    </div>
+
+    <div id="status">
+        <div class="card">
+            <h2 id="status-title">Connexion à la salle…</h2>
+            <p id="status-message">Préparation de votre accès sécurisé.</p>
+            <a href="{% url 'web:app' %}">Retour à l’espace de travail</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const reunionId = {{ reunion.pk }};
+            const roleLabel = "{{ participant.get_role_display|escapejs }}";
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const grid = document.getElementById('grid');
+            const statusBox = document.getElementById('status');
+            const statusTitle = document.getElementById('status-title');
+            const statusMessage = document.getElementById('status-message');
+            const presenceCount = document.getElementById('presence-count');
+            const btnMic = document.getElementById('btn-mic');
+            const btnCam = document.getElementById('btn-cam');
+            const btnScreen = document.getElementById('btn-screen');
+            const btnLeave = document.getElementById('btn-leave');
+            const tiles = new Map();
+            let room = null;
+
+            function showStatus(title, message) {
+                statusTitle.textContent = title;
+                statusMessage.textContent = message;
+                statusBox.classList.add('visible');
+            }
+
+            function hideStatus() {
+                statusBox.classList.remove('visible');
+            }
+
+            function initials(name) {
+                return (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+            }
+
+            function ensureTile(identity, name, isLocal) {
+                if (tiles.has(identity)) return tiles.get(identity);
+                const tile = document.createElement('div');
+                tile.className = 'tile' + (isLocal ? ' local' : '');
+                tile.dataset.identity = identity;
+                tile.innerHTML = `<div class="placeholder">${initials(name)}</div>
+                    <div class="name">${name || identity}${isLocal ? ' (vous)' : ''}</div>
+                    ${isLocal ? `<div class="role">${roleLabel}</div>` : ''}`;
+                grid.appendChild(tile);
+                tiles.set(identity, tile);
+                return tile;
+            }
+
+            function attachTrack(track, participant, isLocal) {
+                const tile = ensureTile(participant.identity, participant.name || participant.identity, isLocal);
+                if (track.kind === 'video') {
+                    const media = track.attach();
+                    media.autoplay = true;
+                    media.playsInline = true;
+                    media.style.width = '100%';
+                    media.style.height = '100%';
+                    media.style.objectFit = 'cover';
+                    const placeholder = tile.querySelector('.placeholder');
+                    if (placeholder) placeholder.remove();
+                    tile.appendChild(media);
+                } else if (track.kind === 'audio') {
+                    const media = track.attach();
+                    media.autoplay = true;
+                    media.style.display = 'none';
+                    tile.appendChild(media);
+                }
+            }
+
+            function removeTile(identity) {
+                const tile = tiles.get(identity);
+                if (!tile) return;
+                tile.remove();
+                tiles.delete(identity);
+            }
+
+            function updateCount() {
+                const count = room ? room.remoteParticipants.size + 1 : 0;
+                presenceCount.textContent = `${count} connecté${count > 1 ? 's' : ''}`;
+            }
+
+            async function connect() {
+                const response = await fetch(`/api/v1/reunions/${reunionId}/rejoindre/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: '{}',
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    showStatus('Accès à la salle impossible', payload.detail || 'Réessayez dans quelques instants.');
+                    return;
+                }
+
+                if (!window.LivekitClient) {
+                    showStatus('Client de visioconférence indisponible', 'Le module LiveKit n’a pas pu être chargé. Vérifiez votre connexion.');
+                    return;
+                }
+
+                const { Room, RoomEvent } = window.LivekitClient;
+                room = new Room({ adaptiveStream: true, dynacast: true });
+                room.on(RoomEvent.ParticipantConnected, updateCount);
+                room.on(RoomEvent.ParticipantDisconnected, participant => {
+                    removeTile(participant.identity);
+                    updateCount();
+                });
+                room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                    attachTrack(track, participant, false);
+                });
+                room.on(RoomEvent.LocalTrackPublished, publication => {
+                    if (publication.track) {
+                        attachTrack(publication.track, room.localParticipant, true);
+                    }
+                });
+                room.on(RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
+                    track.detach().forEach(el => el.remove());
+                });
+                room.on(RoomEvent.Disconnected, () => {
+                    showStatus('Salle fermée', 'La connexion à la salle a été interrompue.');
+                });
+                room.on(RoomEvent.ActiveSpeakersChanged, speakers => {
+                    document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('speaking'));
+                    speakers.forEach(speaker => {
+                        const tile = tiles.get(speaker.identity);
+                        if (tile) tile.classList.add('speaking');
+                    });
+                });
+
+                try {
+                    await room.connect(payload.url, payload.token);
+                } catch (error) {
+                    console.error(error);
+                    showStatus('Connexion impossible', 'La salle n’a pas pu être jointe. Vérifiez votre réseau.');
+                    return;
+                }
+
+                hideStatus();
+                ensureTile(
+                    room.localParticipant.identity,
+                    room.localParticipant.name || 'Vous',
+                    true,
+                );
+                room.localParticipant.trackPublications.forEach(publication => {
+                    if (publication.track) attachTrack(publication.track, room.localParticipant, true);
+                });
+                room.remoteParticipants.forEach(participant => {
+                    participant.trackPublications.forEach(publication => {
+                        if (publication.track) attachTrack(publication.track, participant, false);
+                    });
+                });
+                updateCount();
+
+                btnMic.addEventListener('click', async () => {
+                    const enabled = room.localParticipant.isMicrophoneEnabled;
+                    await room.localParticipant.setMicrophoneEnabled(!enabled);
+                    btnMic.classList.toggle('active', !enabled);
+                    btnMic.textContent = !enabled ? 'Micro coupé' : 'Micro';
+                });
+                btnCam.addEventListener('click', async () => {
+                    const enabled = room.localParticipant.isCameraEnabled;
+                    await room.localParticipant.setCameraEnabled(!enabled);
+                    btnCam.classList.toggle('active', !enabled);
+                    btnCam.textContent = !enabled ? 'Caméra coupée' : 'Caméra';
+                });
+                btnScreen.addEventListener('click', async () => {
+                    const enabled = room.localParticipant.isScreenShareEnabled;
+                    await room.localParticipant.setScreenShareEnabled(!enabled);
+                    btnScreen.classList.toggle('active', !enabled);
+                });
+                btnLeave.addEventListener('click', async () => {
+                    await room.disconnect();
+                    window.location.href = "{% url 'web:app' %}";
+                });
+            }
+
+            showStatus('Connexion à la salle…', 'Préparation de votre accès sécurisé.');
+            connect().catch(error => {
+                console.error(error);
+                showStatus('Erreur inattendue', 'Impossible de préparer la salle.');
+            });
+        })();
+    </script>
+</body>
+</html>

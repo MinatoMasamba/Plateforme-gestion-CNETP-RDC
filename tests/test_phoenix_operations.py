@@ -30,7 +30,7 @@ def operational(expert_factory, user_factory, monkeypatch, tmp_path):
     sc = Organe.objects.create(version=version, type='SC', code='SC-T', name='SC de recette', official_name='SC de recette', source_reference='Acte SC de recette', status='VALIDATED')
     copil = Organe.objects.create(version=version, type='COPIL', code='COPIL', name='COPIL de recette', official_name='COPIL de recette', status='VALIDATED', source_reference='Acte COPIL de recette')
     st = Organe.objects.create(version=version, type='ST', code='ST', name='ST de recette', official_name='ST de recette', status='VALIDATED', source_reference='Acte ST de recette')
-    gt = GroupeCible.objects.create(sc=sc, code='GT-TEST', name='GT de recette', activity='PRODUCTION', source_reference='Catalogue de recette', status='VALIDATED')
+    gt = GroupeCible.objects.create(sc=sc, code='GT-TEST', name='GT de recette', activity='PRODUCTION', source_reference='Catalogue de recette')
     writer = expert_factory(user=user_factory(username='phx-writer', email='phx-writer@example.test'))
     reviewer = expert_factory(user=user_factory(username='phx-reviewer', email='phx-reviewer@example.test'))
     reviewer2 = expert_factory(user=user_factory(username='phx-reviewer2', email='phx-reviewer2@example.test'))
@@ -205,8 +205,17 @@ def test_management_forms_api_and_exports_work_without_moving_old_groups(operati
     for path in ('/pilotage/organisation/gestion/', '/pilotage/organisation/configuration/gt/', '/pilotage/organisation/configuration/mandat/',
                  '/pilotage/organisation/configuration/habilitation/', '/pilotage/organisation/configuration/circuit/', '/pilotage/organisation/mise-en-service/'):
         assert client.get(path).status_code == 200, path
-    response = client.post('/api/v2/organisation/configuration/gt/', {'sc':s.sc.pk,'code':'GT-SECOND','name':'GT officiel de recette', 'activity':'WATCH','source_reference':'Catalogue de recette', 'status':'VALIDATED'}, content_type='application/json')
+    response = client.post('/api/v2/organisation/configuration/gt/', {'sc':s.sc.pk,'code':'GT-SECOND','name':'GT officiel de recette', 'activity':'WATCH','source_reference':'Catalogue de recette'}, content_type='application/json')
     assert response.status_code == 201, response.content
+    created_group=GroupeCible.objects.get(pk=response.json()['id'])
+    assert not hasattr(created_group,'status')
+    form_response=client.get('/pilotage/organisation/configuration/gt/')
+    assert b'name="status"' not in form_response.content
+    edit_response=client.get(f'/pilotage/organisation/configuration/gt/{created_group.pk}/')
+    assert edit_response.status_code==200
+    assert b'<dt>Statut</dt>' not in edit_response.content
+    listing=client.get('/api/v2/organisation/configuration/gt/').json()
+    assert all('status' not in row for row in listing)
     assert list(WG.objects.values()) == before
     assert client.get(f'/phoenix/dossiers/{s.dossier.pk}/export/').status_code == 200
     assert client.get('/phoenix/').status_code == 200

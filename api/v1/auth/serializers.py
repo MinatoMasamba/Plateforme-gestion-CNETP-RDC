@@ -84,6 +84,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     def get_is_ctc_staff(self, obj):
         """Vérifier si l'utilisateur est du staff CTC"""
+        from apps.governance.st_operations_models import STAccessPolicy
+        from apps.governance.phoenix_runtime import active_st_mandate
+        if STAccessPolicy.objects.filter(enabled=True).exists():
+            expert = getattr(obj, 'expert_profile', None)
+            return bool(expert and active_st_mandate(expert))
         return obj.is_ctc_staff
 
     def get_structure(self, obj):

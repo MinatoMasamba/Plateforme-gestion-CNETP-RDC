@@ -17,7 +17,7 @@ CONFIG_FIELDS = {
     'version': ['name', 'source_document'],
     'organe': ['code', 'name', 'official_name', 'type', 'parent', 'domain', 'composition', 'status', 'source_reference'],
     'poste': ['organe', 'code', 'category', 'title', 'origin_label', 'required_structure', 'source_reference', 'status', 'display_created_at', 'display_updated_at'],
-    'gt': ['sc', 'code', 'name', 'activity', 'source_reference', 'status'],
+    'gt': ['sc', 'code', 'name', 'activity', 'source_reference'],
     'mandat': ['expert', 'poste', 'groupe', 'function', 'capacity', 'appointment_reference', 'start_date', 'end_date', 'status'],
     'habilitation': ['mandat', 'action', 'perimeter', 'decision_reference', 'start_date', 'end_date', 'enabled', 'delegated_from'],
     'circuit': ['code', 'name', 'configuration', 'decision_reference', 'status'],
@@ -87,9 +87,8 @@ def configure(user, version, kind, data, pk=None, reason='Modification du réfé
     if kind == 'habilitation' and obj.action not in ACTIONS:
         raise ValidationError('Action d’habilitation inconnue.')
     if kind == 'mandat' and obj.status == 'ACTIVE':
-        target = obj.poste if obj.poste_id else obj.groupe
-        if target.status not in ('VALIDATED', 'ACTIVE'):
-            raise ValidationError('La fonction ou le groupe doit être validé avant la nomination.')
+        if obj.poste_id and obj.poste.status not in ('VALIDATED', 'ACTIVE'):
+            raise ValidationError('La fonction doit être validée avant la nomination.')
         organ = obj.poste.organe if obj.poste_id else obj.groupe.sc
         if organ.status not in ('VALIDATED', 'ACTIVE'):
             raise ValidationError('Confirmer l’organe de rattachement avant la nomination.')
@@ -141,8 +140,8 @@ def validate_mapping(user, kind, pk, decision_reference, sc_id=None, gt_id=None)
             obj.sc = obj.gt.sc
     if not obj.sc_id or obj.sc.status not in ('VALIDATED', 'ACTIVE'):
         raise ValidationError('La SC cible doit être confirmée.')
-    if kind == 'wg' and (not obj.gt_id or obj.gt.status not in ('VALIDATED', 'ACTIVE')):
-        raise ValidationError('Le catalogue doit fournir le GT cible confirmé.')
+    if kind == 'wg' and not obj.gt_id:
+        raise ValidationError('Le catalogue doit fournir le GT cible.')
     obj.status = 'VALIDATED'
     obj.decision_reference = decision_reference.strip()
     obj.updated_by = user
@@ -157,8 +156,8 @@ def readiness(version):
                          ('permissions_reference', 'Matrice des habilitations'), ('circuit_reference', 'Circuit approuvé')):
         if not getattr(version, field).strip():
             issues.append(label + ' : référence manquante.')
-    if not GroupeCible.objects.filter(sc__version=version, sc__status__in=['VALIDATED', 'ACTIVE'], status__in=['VALIDATED', 'ACTIVE']).exists():
-        issues.append('Aucun GT confirmé avec une SC confirmée.')
+    if not GroupeCible.objects.filter(sc__version=version, sc__status__in=['VALIDATED', 'ACTIVE']).exists():
+        issues.append('Aucun GT rattaché à une SC confirmée.')
     today = timezone.localdate()
     mandates = MandatOrganisation.objects.filter(status='ACTIVE', start_date__lte=today, expert__status='ACTIVE', expert__user__is_active=True).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)).filter(Q(poste__organe__version=version) | Q(groupe__sc__version=version))
@@ -169,7 +168,7 @@ def readiness(version):
     circuits = list(version.circuits.filter(status='VALIDATED', decision_reference=version.circuit_reference))
     if not circuits:
         issues.append('Aucun circuit validé correspondant à la référence approuvée.')
-    groups = list(GroupeCible.objects.filter(sc__version=version, sc__status__in=['VALIDATED', 'ACTIVE'], status__in=['VALIDATED', 'ACTIVE']))
+    groups = list(GroupeCible.objects.filter(sc__version=version, sc__status__in=['VALIDATED', 'ACTIVE']))
     candidates = list(mandates.select_related('expert__user', 'poste__organe', 'groupe__sc'))
     grants = list(HabilitationAction.objects.filter(mandat__in=mandates, enabled=True, start_date__lte=today).filter(Q(end_date__isnull=True) | Q(end_date__gte=today)).select_related('delegated_from__mandat__expert__user', 'perimeter'))
     for circuit in circuits:
@@ -178,10 +177,9 @@ def readiness(version):
                 eligible = set()
                 capacity = {'document.homologuer':'HOMOLOGATION', 'document.publier':'PUBLICATION'}.get(rule['action'], 'ORGANISATION')
                 for candidate in candidates:
-                    target = candidate.poste if candidate.poste_id else candidate.groupe
                     organ = candidate.poste.organe if candidate.poste_id else candidate.groupe.sc
                     kind = organ.type if candidate.poste_id else 'GT'
-                    if target.status not in ('VALIDATED', 'ACTIVE') or organ.status not in ('VALIDATED', 'ACTIVE') or candidate.capacity != capacity or kind not in rule['organe_types']:
+                    if (candidate.poste_id and candidate.poste.status not in ('VALIDATED', 'ACTIVE')) or organ.status not in ('VALIDATED', 'ACTIVE') or candidate.capacity != capacity or kind not in rule['organe_types']:
                         continue
                     if candidate.groupe_id and candidate.groupe_id != group.pk:
                         continue

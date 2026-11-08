@@ -588,7 +588,6 @@ class MobilePilotageViewSet(viewsets.ViewSet):
                         'name': group.name,
                         'mission': group.mission,
                         'activity': group.get_activity_display(),
-                        'status': group.get_status_display(),
                     }
                     for group in sc.groupes.all()
                 ],

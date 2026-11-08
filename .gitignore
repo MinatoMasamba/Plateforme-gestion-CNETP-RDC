@@ -55,3 +55,6 @@ data.json
 /.appstore_packages/
 /demo_data/
 
+
+# Enregistrements audio privés des réunions
+private/recordings/

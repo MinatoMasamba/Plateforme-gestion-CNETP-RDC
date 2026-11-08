@@ -163,7 +163,49 @@ def build_expert_directory(expert):
 
 def build_traceability(expert, limit=60):
     """Journal CTC/CTM en lecture seule, limité aux événements pertinents."""
-    logs = AuditLog.objects.filter(changes__scope__in=['ctc', 'ctm']).select_related('user').order_by('-timestamp', '-pk')[:limit]
+    from apps.governance.phoenix_runtime import active_st_mandate
+    from apps.governance.st_matrix import mandate_capabilities
+    mandate = active_st_mandate(expert)
+    capabilities = mandate_capabilities(mandate)
+    logs = AuditLog.objects.filter(changes__scope__in=['ctc', 'ctm'])
+    if capabilities:
+        from apps.governance.st_permissions import visible_st_journal
+        journal = visible_st_journal(mandate).select_related('actor', 'mandate__poste').order_by('-created_at', '-pk')[:limit]
+        entries = [{
+            'id': f'st-{entry.pk}', 'timestamp': entry.created_at,
+            'actor': entry.actor_name or 'Auteur non enregistré',
+            'action': entry.operation, 'object': entry.target,
+            'reference': entry.reason, 'title': '', 'channel': 'Secrétariat technique',
+            'model': 'JournalMigration',
+        } for entry in journal]
+        # Lecture croisée A.9 : les actions des autres postes dans le périmètre
+        # d'audit sont visibles, les siennes restent dans l'historique personnel.
+        from apps.governance.st_spaces import audit_scope_for
+        scopes = audit_scope_for(mandate.poste)
+        cross_logs = (
+            AuditLog.objects.filter(changes__scope__in=scopes)
+            .exclude(user=expert.user)
+            .select_related('user')
+            .order_by('-timestamp', '-pk')[:limit]
+        )
+        entries.extend({
+            'id': f'log-{log.pk}', 'timestamp': log.timestamp,
+            'actor': (log.user.get_full_name() or log.user.username) if log.user else 'Auteur non enregistré',
+            'action': log.get_action_display(), 'object': log.object_repr,
+            'reference': (log.changes or {}).get('reference', ''),
+            'title': '', 'channel': 'Audit croisé', 'model': log.content_type,
+        } for log in cross_logs)
+        # Les anciens journaux sans mandat attesté restent personnels. Ne pas
+        # reconstituer une habilitation historique à partir d'un poste actuel.
+        own_logs = AuditLog.objects.filter(user=expert.user).order_by('-timestamp', '-pk')[:limit]
+        entries.extend({
+            'id': f'log-{log.pk}', 'timestamp': log.timestamp,
+            'actor': expert.full_name, 'action': log.get_action_display(),
+            'object': log.object_repr, 'reference': (log.changes or {}).get('reference', ''),
+            'title': '', 'channel': 'Historique personnel', 'model': log.content_type,
+        } for log in own_logs)
+        return sorted(entries, key=lambda row: row['timestamp'], reverse=True)[:limit]
+    logs = logs.select_related('user').order_by('-timestamp', '-pk')[:limit]
     rows = []
     for log in logs:
         meta = log.changes or {}

@@ -3,6 +3,7 @@ from . import phoenix_admin  # noqa: F401
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Count
+from .forms import CTCMembershipInlineFormSet
 from .models import (CTM, WG, Affectation, ComitePilotage, PilotageMembreship,
     PosteNominatif, TechnicalCell, CTCMembership, PosteNominatifCTC,
     OriginStructure, ExecutiveLevel, CTCProcessus, NormeCadrage, Tache,
@@ -210,7 +211,12 @@ class PilotageMembershipsAdmin(admin.ModelAdmin):
 class CTCMembershipInline(admin.TabularInline):
     model = CTCMembership
     extra = 0
+    fields = ('expert', 'role', 'is_active')
     autocomplete_fields = ('expert',)
+    formset = CTCMembershipInlineFormSet
+
+    def get_queryset(self, request):
+        return CTCMembership.all_objects.select_related('expert__user')
 
 
 class PosteNominatifCTCInline(admin.TabularInline):
@@ -223,6 +229,20 @@ class PosteNominatifCTCInline(admin.TabularInline):
 
 @admin.register(TechnicalCell)
 class TechnicalCellAdmin(admin.ModelAdmin):
+    def get_inlines(self, request, obj=None):
+        from .st_operations_models import STAccessPolicy
+        if STAccessPolicy.objects.filter(enabled=True).exists():
+            # ST v3 actif : la grille nominative Phoenix remplace l'ancien
+            # référentiel, mais l'affectation directe des membres reste possible.
+            return [CTCMembershipInline]
+        return super().get_inlines(request, obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        from .st_operations_models import STAccessPolicy
+        if STAccessPolicy.objects.filter(enabled=True).exists():
+            return ['coordinator', 'vice_coordinator']
+        return super().get_readonly_fields(request, obj)
+
     list_display = ('name', 'coordinator', 'vice_coordinator', 'get_member_count')
     search_fields = ('name',)
     readonly_fields = ('get_member_count', 'get_role_distribution', 'get_members_list')
@@ -250,7 +270,7 @@ class TechnicalCellAdmin(admin.ModelAdmin):
     autocomplete_fields = ('coordinator', 'vice_coordinator')
     
     def get_member_count(self, obj):
-        return obj.members.count()
+        return CTCMembership.objects.filter(ctc=obj).count()
     get_member_count.short_description = "Nombre de membres"
     
     def get_role_distribution(self, obj):
@@ -291,6 +311,17 @@ class TechnicalCellAdmin(admin.ModelAdmin):
 
 @admin.register(PosteNominatifCTC)
 class PosteNominatifCTCAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        from .st_operations_models import STAccessPolicy
+        return not STAccessPolicy.objects.filter(enabled=True).exists() and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        from .st_operations_models import STAccessPolicy
+        return not STAccessPolicy.objects.filter(enabled=True).exists() and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     list_display = ('title', 'get_role_display', 'required_structure', 'quota_line', 'holder', 'get_statut')
     list_filter = ('role', 'ctc', 'required_structure')
     search_fields = ('title', 'required_structure__name', 'holder__full_name')
@@ -306,6 +337,20 @@ class PosteNominatifCTCAdmin(admin.ModelAdmin):
 
 @admin.register(CTCMembership)
 class CTCMembershipAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return CTCMembership.all_objects.select_related('expert__user', 'ctc')
+
+    def has_add_permission(self, request):
+        from .st_operations_models import STAccessPolicy
+        return not STAccessPolicy.objects.filter(enabled=True).exists() and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        from .st_operations_models import STAccessPolicy
+        return not STAccessPolicy.objects.filter(enabled=True).exists() and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     list_display = ('expert', 'ctc', 'get_role_display', 'expert_structure')
     search_fields = ('expert__full_name', 'expert__user__email')
     list_filter = ('role', 'ctc')
@@ -516,3 +561,28 @@ class ActivityAggregateAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+from .st_operations_models import STRecord, STRecordRevision, STConfirmation  # noqa: E402
+
+
+class STRegistryReadOnlyAdmin(admin.ModelAdmin):
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+for st_model in (STRecord, STRecordRevision, STConfirmation):
+    admin.site.register(st_model, STRegistryReadOnlyAdmin)
+
+from .st_report_models import STReportTemplate, STReport, STReportVersion, STReportDispatch  # noqa: E402
+for report_model in (STReportTemplate, STReport, STReportVersion, STReportDispatch):
+    admin.site.register(report_model, STRegistryReadOnlyAdmin)

@@ -1,0 +1,28 @@
+{% if st_post_code != 'ST-V3-11' and st_post_code != 'ST-V3-10' %}
+{% comment %}Versions et historique du pôle 2.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1400px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · Versions</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Versions et historique</h2>
+            <p class="mt-1 text-sm text-slate-500">Chaque version est conservée. La comparaison et la restauration seront ajoutées dans le lot GED.</p>
+        </div>
+        <a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+    <section class="premium-glass p-4">
+        <ul class="space-y-2">
+            {% for version in ged_versions %}
+            <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <p class="font-mono text-xs font-bold text-slate-500">{{ version.norme.reference_number }} · v{{ version.version_number }}</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ version.title }}</p>
+                    </div>
+                    <a href="{% url 'web:ctc_norme_read' version.norme_id %}" class="text-xs font-bold text-[#007ea8] underline">Comparer dans le dossier</a>
+                </div>
+            </li>
+            {% empty %}<li class="text-sm text-slate-500">Aucune version enregistrée.</li>{% endfor %}
+        </ul>
+    </section>
+</div>
+{% endif %}

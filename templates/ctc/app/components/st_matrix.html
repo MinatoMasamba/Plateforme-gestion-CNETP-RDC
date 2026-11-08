@@ -1,0 +1,13 @@
+<section class="p-4 md:p-8 space-y-5">
+  <header><p class="text-xs uppercase tracking-widest text-slate-500">CNE-ITP · Secrétariat technique</p>
+    <h1 class="text-2xl font-bold">Coordination et quatre pôles</h1>
+    <p class="text-sm text-slate-500 mt-2">Matrice v3 retenue le 31 octobre 2026 · Communiqué n° 003/CNE-ITP/ST/2026</p>
+  </header>
+  <p class="rounded-xl p-4 border border-sky-300 bg-sky-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200">19 titulaires nommés. Ce référentiel décrit les postes ; l’accès aux fonctions dépend d’un mandat confirmé. Les compétences d’examen mobilisées à la demande sont distinctes des postes permanents.</p>
+  <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+    <table class="w-full text-sm text-left"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-3">N°</th><th class="p-3">Rattachement</th><th class="p-3">Poste</th><th class="p-3">Titulaire nommé</th><th class="p-3">Institution d’origine</th></tr></thead>
+      <tbody>{% for row in st_matrix_rows %}<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-3">{{ row.number }}</td><td class="p-3">{{ row.pole }}</td><td class="p-3">{{ row.title }}{% if row.head %}<span class="block text-xs text-sky-600">{% if row.number == 13 or row.number == 14 %}Co-chef de pôle{% else %}Chef de pôle{% endif %}</span>{% endif %}</td><td class="p-3 font-semibold">{{ row.name }}</td><td class="p-3">{{ row.origin }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="text-sm text-slate-500">Le titre « 12 postes » de l’annexe n’est pas retenu : la matrice reprend ses 19 lignes. Le chef de pôle Logistique est rattaché à la coordination.</p>
+</section>

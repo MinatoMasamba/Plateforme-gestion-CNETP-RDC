@@ -351,8 +351,16 @@ class TechnicalCell(BaseModel):
         return self.name
 
 
+class ActiveCTCMembershipManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
 class CTCMembership(BaseModel):
     """Adhésion à la CTC"""
+    is_active = models.BooleanField(default=True)
+    objects = ActiveCTCMembershipManager()
+    all_objects = models.Manager()
     ctc = models.ForeignKey(TechnicalCell, on_delete=models.CASCADE)
     expert = models.ForeignKey(Expert, on_delete=models.CASCADE)
     role = models.CharField(
@@ -733,6 +741,12 @@ class CTCProcessus(BaseModel):
         ('SIGNED_OUT',   'Étape 5 — Signé & Transmis au Comité de Pilotage'),
     ]
     current_stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='RECEPTION')
+    sc_report_reference = models.CharField(max_length=500, blank=True)
+    sc_report_received_at = models.DateTimeField(null=True, blank=True)
+    sc_report_received_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='recorded_sc_reports',
+    )
 
     # ── Étape 1 : Réception & Numérisation ──────────────────────────────────
     received_by = models.ForeignKey(
@@ -804,6 +818,27 @@ class CTCProcessus(BaseModel):
         help_text="Rapporteur Général du Comité de Pilotage Élargi"
     )
     received_by_rapporteur_at = models.DateTimeField(null=True, blank=True)
+
+    # ── Décisions ST v3 : consolidation, validation et renvoi ───────────────
+    consolidation_completed_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='consolidated_norms',
+        help_text="Chef du pôle 2 ayant consolidé les avis"
+    )
+    consolidation_completed_at = models.DateTimeField(null=True, blank=True)
+    validated_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='validated_norms',
+        help_text="Coordonnateur ayant validé la norme"
+    )
+    validated_at = models.DateTimeField(null=True, blank=True)
+    returned_to_sc_by = models.ForeignKey(
+        Expert, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='returned_norms',
+        help_text="Coordonnateur ayant renvoyé la norme à la sous-commission"
+    )
+    returned_to_sc_at = models.DateTimeField(null=True, blank=True)
+    validation_comment = models.TextField(blank=True)
 
     # ── Helpers ──────────────────────────────────────────────────────────────
     def advance_to(self, stage):
@@ -1340,3 +1375,12 @@ from .activity_models import (  # noqa: E402,F401
 from .advisory_models import (  # noqa: E402,F401
     AvisConseiller, ConsultationConseiller, DemandeAnalyse, JournalAnalyse, PieceAnalyse,
 )
+
+from .st_operations_models import STAccessPolicy, STRecord, STRecordRevision, STConfirmation  # noqa: E402,F401
+
+from .st_report_models import STReportTemplate, STReport, STReportVersion, STReportDispatch  # noqa: E402,F401
+
+from .st_admin_models import STReception, STReceptionPiece, STPVVersion  # noqa: E402,F401
+from .st_ged_models import STGEDCode, STGEDFile, STGEDIndexation, STGEDConfirmation, STGEDAnomaly  # noqa: E402,F401
+from .st_legal_models import STLegalRequest, STLegalOpinion  # noqa: E402,F401
+from .st_notification_models import STNotificationRead  # noqa: E402,F401

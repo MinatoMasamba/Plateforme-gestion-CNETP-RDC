@@ -120,3 +120,15 @@ def send_artifact_email(self, artifact_id, user_id):
             raise self.retry(exc=exc)
         except Exception:
             return False
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=60)
+def send_neuronne_daily_report(self, day=None):
+    """Générer et envoyer le rapport quotidien des actions Neuronne."""
+    from .services.neuronne_admin import send_daily_report
+
+    try:
+        return send_daily_report(day=day)
+    except Exception as exc:
+        logger.exception('Erreur du rapport quotidien Neuronne')
+        raise self.retry(exc=exc)

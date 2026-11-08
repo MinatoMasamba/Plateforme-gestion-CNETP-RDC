@@ -38,12 +38,25 @@ def tool_specs(scope):
     ]
 
 
+def all_tool_specs():
+    """Tous les outils, sans filtre de scope (console d'administration)."""
+    return [
+        {
+            "name": name,
+            "description": spec["description"],
+            "input_schema": spec["input_schema"],
+        }
+        for name, spec in TOOL_REGISTRY.items()
+    ]
+
+
 def get_tool(name):
     return TOOL_REGISTRY.get(name)
 
 
 def load_tools():
     """Importe tous les modules de tools pour déclencher les @register au démarrage."""
+    from . import admin_tools  # noqa: F401
     from . import chart_tools  # noqa: F401
     from . import email_tools  # noqa: F401
     from . import expert_tools  # noqa: F401
@@ -54,3 +67,4 @@ def load_tools():
     from . import rag_tools  # noqa: F401
     from . import referential_tools  # noqa: F401
     from . import phoenix_tools  # noqa: F401
+    from . import st_tools  # noqa: F401

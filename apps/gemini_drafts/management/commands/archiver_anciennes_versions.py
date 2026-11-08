@@ -86,7 +86,6 @@ def _version_payload(version):
                     'name': groupe.name,
                     'mission': groupe.mission,
                     'activity': groupe.activity,
-                    'status': groupe.status,
                     'source_reference': groupe.source_reference,
                 }
                 for groupe in organe.groupes.all().order_by('code')

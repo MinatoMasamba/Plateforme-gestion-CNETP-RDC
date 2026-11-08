@@ -102,7 +102,7 @@ def source_suggestions(report):
         result['prochaines_actions'] = {'value': '\n'.join(f'{t.titre} · {t.get_status_display()} · {t.due_date or "sans échéance"}' for t in tasks) or 'Aucune tâche enregistrée', 'source': f'Tache norme #{norm.pk}', 'at': timezone.now().isoformat()}
     if report.sc:
         groups = GroupeCible.objects.filter(sc=report.sc).order_by('code')
-        result['groupes'] = {'value': '\n'.join(f'{g.code} — {g.name} ({g.get_status_display()})' for g in groups) or 'Aucun GT enregistré', 'source': f'GroupeCible SC #{report.sc_id}', 'at': timezone.now().isoformat()}
+        result['groupes'] = {'value': '\n'.join(f'{g.code} — {g.name}' for g in groups) or 'Aucun GT enregistré', 'source': f'GroupeCible SC #{report.sc_id}', 'at': timezone.now().isoformat()}
     if report.report_type in {'M3', 'P4', 'ITP-01', 'ITP-04'}:
         experts = Expert.objects.filter(user__is_staff=False, user__is_superuser=False)
         sessions = ActivitySession.objects.filter(user__in=experts.values('user_id'), started_at__date__gte=report.period_start, started_at__date__lte=report.period_end)

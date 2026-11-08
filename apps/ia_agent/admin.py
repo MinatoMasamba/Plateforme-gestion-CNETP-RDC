@@ -6,6 +6,7 @@ from .models import (
     AgentPosteContext,
     AgentScopeConfig,
     AgentSession,
+    NeuronneDailyReport,
     RAGChunk,
     RAGDocument,
 )
@@ -124,3 +125,17 @@ class AgentPosteContextAdmin(admin.ModelAdmin):
     @admin.display(boolean=True, description='Lien CTC')
     def has_ctc_link(self, obj):
         return obj.poste_ctc_id is not None
+
+
+@admin.register(NeuronneDailyReport)
+class NeuronneDailyReportAdmin(admin.ModelAdmin):
+    list_display = ['report_date', 'action_count', 'recipient_count', 'generated_at']
+    list_filter = ['report_date']
+    search_fields = ['text']
+    readonly_fields = ['report_date', 'generated_at', 'action_count', 'recipient_count', 'text', 'html', 'actions']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

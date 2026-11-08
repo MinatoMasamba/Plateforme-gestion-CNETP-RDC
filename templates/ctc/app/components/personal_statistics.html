@@ -1,0 +1,18 @@
+<section class="ctc-module">
+    <header class="ctc-module__head">
+        <div><p class="ctc-eyebrow">{{ poste.title }}</p><h2 class="ctc-page-title">Mes indicateurs</h2>
+        <p class="ctc-subtitle">Tâches qui vous sont explicitement affectées, comme titulaire ou remplaçant.</p></div>
+    </header>
+    <div class="st-space-kpis">
+        <a href="#assignations" class="st-space-kpi ctc-card"><span>Tâches en cours</span><strong>{{ st_space_dashboard.kpis.tasks }}</strong></a>
+        <a href="#assignations" class="st-space-kpi ctc-card"><span>En retard</span><strong>{{ st_space_dashboard.kpis.overdue }}</strong></a>
+        <a href="#assignations" class="st-space-kpi ctc-card"><span>Bloquées</span><strong>{{ st_space_dashboard.kpis.blocked }}</strong></a>
+    </div>
+    <div class="ctc-card">
+        <h3 class="font-bold">Dossiers rattachés à mon travail</h3>
+        {% for row in st_space_dashboard.distribution %}
+        <p class="mt-3 text-sm">{{ row.label }} · {{ row.count }}</p>
+        <meter class="st-status-meter" min="0" max="100" value="{{ row.percent }}">{{ row.percent }} %</meter>
+        {% empty %}<p class="ctc-subtitle">Aucun dossier affecté à votre poste.</p>{% endfor %}
+    </div>
+</section>

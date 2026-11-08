@@ -1,1 +1,100 @@
-<section class="institutional-page mx-auto max-w-4xl p-4 sm:p-6" aria-labelledby="meetings-title"><p class="text-sm institutional-muted">Outils</p><h2 id="meetings-title" class="text-2xl font-bold">Réunions</h2><div class="institutional-empty mt-5"><h3 class="font-bold">Non disponible</h3><p class="mt-2 text-sm">La création d’une réunion et l’envoi des convocations seront proposés lorsque le service d’enregistrement et d’envoi sera opérationnel.</p></div></section>
+{% comment %}Réunions administratives : convocations, présences et PV (backend existant).{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1400px] mx-auto space-y-6 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">{{ st_space_label }} · Réunions</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Réunions et convocations</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Calendrier, convocations, présences et procès-verbaux. Les salles LiveKit seront activées dans une étape ultérieure.</p>
+        </div>
+        <a href="#{{ st_space_home|default:'coordination' }}" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+
+    <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <section class="premium-glass p-4" aria-labelledby="reunions-list-title">
+            <h3 id="reunions-list-title" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Prochaines réunions</h3>
+            <ul class="mt-3 space-y-2">
+                {% for reunion in upcoming_meetings %}
+                <li class="rounded-xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p class="font-mono text-[11px] font-bold text-slate-500">{{ reunion.get_type_display }} · {{ reunion.date|date:"d/m/Y H:i" }}</p>
+                            <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{{ reunion.titre }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ reunion.lieu|default:"Lieu à confirmer" }} · {{ reunion.get_status_display }}</p>
+                            {% if reunion.ordre_jour %}<p class="mt-2 text-xs text-slate-600 dark:text-slate-300">Ordre du jour : {{ reunion.ordre_jour }}</p>{% endif %}
+                        </div>
+                        <button type="button" onclick="checkinReunion({{ reunion.pk }}, this)" class="institutional-secondary text-xs">Émarger ma présence</button>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucune réunion planifiée.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <aside class="premium-glass p-4">
+            <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Convoquer une réunion</h3>
+            <form id="reunion-create-form" class="mt-3 space-y-3" onsubmit="createReunion(event)">
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Type
+                    <select name="type" class="ctc-select mt-1 w-full" required>
+                        <option value="CTC">Coordination du ST</option>
+                        <option value="CTM">Comité technique miroir</option>
+                        <option value="WG">Groupe de travail</option>
+                        <option value="PILOTAGE">Comité de pilotage</option>
+                        <option value="ASSEMBLEE">Assemblée plénière</option>
+                    </select>
+                </label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Titre
+                    <input name="titre" required maxlength="255" class="ctc-search mt-1 w-full">
+                </label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Date et heure
+                    <input type="datetime-local" name="date" required class="ctc-search mt-1 w-full">
+                </label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Lieu
+                    <input name="lieu" maxlength="255" class="ctc-search mt-1 w-full">
+                </label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Ordre du jour
+                    <textarea name="ordre_jour" rows="3" class="ctc-search mt-1 w-full"></textarea>
+                </label>
+                <input type="hidden" name="mode" value="PRESENTIEL">
+                <button type="submit" class="institutional-primary w-full text-xs">Créer la réunion</button>
+            </form>
+            <p id="reunion-form-status" class="mt-2 hidden text-xs font-semibold" role="status"></p>
+        </aside>
+    </div>
+</div>
+
+<script>
+async function createReunion(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = document.getElementById('reunion-form-status');
+    const payload = Object.fromEntries(new FormData(form).entries());
+    payload.date = new Date(payload.date).toISOString();
+    status.classList.remove('hidden');
+    status.className = 'mt-2 text-xs font-semibold text-slate-500';
+    status.textContent = 'Enregistrement…';
+    try {
+        const response = await ctcFetchResponse('/api/v1/reunions/', { method: 'POST', body: JSON.stringify(payload) });
+        if (!response.ok) throw new Error((await response.json()).detail || 'Création refusée.');
+        status.className = 'mt-2 text-xs font-semibold text-emerald-600';
+        status.textContent = 'Réunion créée. Rechargement…';
+        setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+        status.className = 'mt-2 text-xs font-semibold text-red-600';
+        status.textContent = error.message || 'Erreur inconnue.';
+    }
+}
+
+async function checkinReunion(reunionId, button) {
+    button.disabled = true;
+    try {
+        const response = await ctcFetchResponse(`/api/v1/reunions/${reunionId}/checkin_presence/`, { method: 'POST' });
+        if (!response.ok) throw new Error((await response.json()).detail || 'Émargement refusé.');
+        window.showAppToast?.('Présence enregistrée.', 'success');
+    } catch (error) {
+        window.showAppToast?.(error.message || 'Émargement impossible.', 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+</script>

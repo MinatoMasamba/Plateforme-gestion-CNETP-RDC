@@ -20,14 +20,14 @@ Règles impératives :
 
 BASE_PROMPT = (
     "Tu es l'assistant métier de la CNE-ITP. "
-    "Le rapport de réorganisation adopté du 15 octobre 2026 est la référence institutionnelle prioritaire. "
+    "Pour le ST, la matrice v3 du 31 octobre 2026 alignée sur le communiqué 003 du 24 octobre prévaut sur la structure du rapport du 15 octobre. "
     "La plateforme comprend trois applications distinctes : Experts, Coordination du Secrétariat technique et Comité de pilotage. "
     "Le Comité de pilotage compte 22 postes, est non permanent et assure l'orientation, la supervision, l'arbitrage et la validation. "
-    "La Coordination du Secrétariat technique compte 24 postes permanents : une coordination centrale et cinq pôles de quatre postes. "
+    "Le ST comprend 19 titulaires nommés, la coordination et quatre pôles : Planification et suivi ; Documentation, codification et PTN ; Juridique, administratif et financier ; Appui techniques et Formation. Un nom dans la matrice ne signifie pas qu’un compte détient un mandat actif. "
     "Elle organise les travaux, suit les sous-commissions, contrôle les dossiers et prépare les transmissions au COPIL. "
     "Le rapport décrit sept sous-commissions (tomes 0 à 6), chacune dotée de cinq groupes de travail : "
     "Matériaux et essais, Infrastructures de transport, Géotechnique et fondations, Ouvrages hydrauliques, "
-    "Réseaux divers et équipements techniques, Environnement santé et sécurité, Bâtiments courants et spéciaux. "
+    "Équipements techniques et réseaux (SC-ETR), Environnement santé et sécurité, Bâtiments courants et spéciaux. "
     "Les anciens CTM, WG et CTC restent des références historiques et des identifiants techniques compatibles ; "
     "ils ne définissent pas seuls la nouvelle fonction ni les droits d'une personne. "
     "Les effectifs de fiches du rapport (143 et 145) divergent de la base locale vérifiée (149) ; "
@@ -138,6 +138,9 @@ def _get_role_key(session):
             pass
         return 'pilotage_observateur'
 
+    if session.scope == 'admin':
+        return 'admin_console'
+
     return None
 
 
@@ -164,6 +167,8 @@ def build_system_prompt(session):
         context = _ctc_context(expert)
     elif session.scope == 'pilotage':
         context = _pilotage_context(expert)
+    elif session.scope == 'admin':
+        context = _admin_context()
     else:
         context = ""
 
@@ -173,6 +178,35 @@ def build_system_prompt(session):
     if config and config.system_prompt_extra:
         prompt += f"\n\n## Instructions spécifiques à votre rôle\n{config.system_prompt_extra}"
 
+    if session.user.is_staff and session.user.has_perm('governance.add_nominationctc'):
+        prompt += (
+            "\nAdministration ST : cet administrateur peut attribuer les postes v3 sans détenir lui-même un poste ST. "
+            "Utilise list_st_posts pour les codes et assign_st_posts pour une liste explicitement demandée. "
+            "Chaque compte doit être identifié par son email exact ou expert_id, avec date et référence de nomination. "
+            "Un nom seul ou une correspondance approximative ne suffit jamais. "
+            "apply=false vérifie sans écrire ; apply=true réalise une attribution demandée. "
+            "Ne prétends jamais avoir activé des droits si l’outil ne renvoie pas applied=true. "
+            "Aucune attribution automatique des 19 noms du référentiel."
+        )
+    from .neuronne_admin import is_neuronne_admin
+    if session.scope == 'admin':
+        prompt += (
+            "\nConsole d'administration : tu disposes de tous les outils de la plateforme sans filtre de contexte "
+            "(administration des comptes et adhésions, nominations ST, gouvernance, documents, normes, "
+            "organisation, messages et rapports). Toute écriture reste soumise aux contrôles serveur et à l'audit. "
+            "Avant une action destructrice ou une diffusion large, rappelle précisément l'objet et demande confirmation."
+        )
+    if is_neuronne_admin(session.user):
+        prompt += (
+            "\nAdministration Neuronne : tu disposes des outils create_platform_user, "
+            "add_user_to_organisation, send_message_to_sc_gt, send_message_to_user et "
+            "generate_neuronne_daily_report. "
+            "Pour créer un compte, demande l'email exact, le prénom et le nom ; pour une fiche expert, "
+            "la structure est obligatoire. Pour ajouter à une CTC/COPIL/SC/GT, utilise un email exact "
+            "ou un identifiant numérique, jamais un nom supposé. Pour une diffusion SC/GT, fournis "
+            "sc_id/sc_code ou gt_id/gt_code et un message. Chaque action est auditée et les emails "
+            "de nomination partent automatiquement. Ne prétends jamais avoir agi sans le retour de l'outil."
+        )
     return prompt
 
 
@@ -298,4 +332,13 @@ def _pilotage_context(expert):
         "**Comité de Pilotage Stratégique CNETP** — vision transversale sur tous les CTM/WG.\n"
         "Outils : `detect_wg_overlap`, `flag_norm_overlap`, `search_external_referentials`, "
         "`propose_external_reference`, `synthesize_public_inquiry`, `get_chart_data`."
+    )
+
+
+def _admin_context():
+    return (
+        "\n\nContexte : tu assistes un administrateur de la console CNE-ITP. "
+        "Il peut consulter et modifier tous les objets autorisés par les permissions serveur. "
+        "Utilise les outils disponibles pour vérifier l'état réel avant toute affirmation ; "
+        "ne promets pas une action que l'outil n'a pas confirmée."
     )

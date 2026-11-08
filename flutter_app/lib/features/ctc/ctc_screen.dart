@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -11,6 +12,9 @@ import 'widgets/ctc_sidebar.dart';
 import 'widgets/ctc_topbar.dart';
 import 'widgets/ctc_requests_view.dart';
 import 'widgets/ctc_read_only_view.dart';
+import 'widgets/ctc_ged_view.dart';
+import 'widgets/ctc_notifications.dart';
+import 'widgets/ctc_reports.dart';
 
 class CtcScreen extends ConsumerStatefulWidget {
   const CtcScreen({super.key});
@@ -20,13 +24,19 @@ class CtcScreen extends ConsumerStatefulWidget {
 }
 
 class _CtcScreenState extends ConsumerState<CtcScreen> {
+  final _notifications = CtcNotifications();
+  Timer? _notificationTimer;
+  int? _notificationProcessId;
+  bool _reportsOpened = false;
   String _activeView = 'dashboard';
   bool _sidebarVisible = true;
+  bool _railCollapsed = false;
   bool _mobileMenuVisible = false;
 
   Map<String, int> _counts = const {};
   String? _poleLabel;
   String? _subRole;
+  String? _stPostCode;
   bool _canAdminSystem = false;
   bool _blockedPolitical = false;
   List<CtcNavSection> _navSections = ctcNavSections;
@@ -43,6 +53,18 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
   void initState() {
     super.initState();
     _load();
+    _notifications.load();
+    _notificationTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) => _notifications.load(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _notificationTimer?.cancel();
+    _notifications.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -70,6 +92,10 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
         _counts = countsRaw.map((k, v) => MapEntry(k, (v as num).toInt()));
         _poleLabel = dash['pole_label']?.toString();
         _subRole = dash['ctc_sub_role']?.toString();
+        _stPostCode = dash['st_post_code']?.toString();
+        if (_activeView == 'dashboard' && ctcSpaceRailEnabled(_stPostCode)) {
+          _activeView = 'espace_p2';
+        }
         _canAdminSystem = dash['can_admin_system'] == true;
         _blockedPolitical = dash['blocked_political'] == true;
         final nav = dash['sidebar_nav_config'];
@@ -135,32 +161,62 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            CtcTopbar(
-              poleLabel: poleLabel,
-              userName: userName,
-              onToggleSidebar: () => setState(() {
-                if (MediaQuery.sizeOf(context).width < 760) {
-                  _mobileMenuVisible = !_mobileMenuVisible;
-                } else {
-                  _sidebarVisible = !_sidebarVisible;
-                }
-              }),
-              onLogout: () =>
-                  ref.read(authControllerProvider.notifier).logout(),
+            AnimatedBuilder(
+              animation: _notifications,
+              builder: (context, _) => CtcTopbar(
+                unreadNotifications: _notifications.unread,
+                onNotifications: () {
+                  setState(() {
+                    _activeView = 'notifications';
+                    _mobileMenuVisible = false;
+                  });
+                  _notifications.back();
+                  _notifications.load();
+                },
+                poleLabel: poleLabel,
+                userName: userName,
+                onToggleSidebar: () => setState(() {
+                  if (MediaQuery.sizeOf(context).width < 768) {
+                    _mobileMenuVisible = !_mobileMenuVisible;
+                  } else {
+                    _sidebarVisible = !_sidebarVisible;
+                  }
+                }),
+                onLogout: () =>
+                    ref.read(authControllerProvider.notifier).logout(),
+              ),
             ),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, box) {
-                  final compact = box.maxWidth < 760;
+                  final compact = box.maxWidth < 768;
+                  // Miroir `sidebar_module.html` : les postes ST 10 / 11
+                  // réduisent leur barre en « rail » ; les autres la ferment
+                  // entièrement avec un bouton flottant de réouverture.
+                  final railEnabled = ctcSpaceRailEnabled(_stPostCode);
                   final sidebar = CtcSidebar(
                     activeView: _activeView,
                     onSelect: (view) => setState(() {
                       _activeView = view;
+                      if (view == 'rapports') _reportsOpened = true;
+                      _notificationProcessId = null;
                       if (compact) _mobileMenuVisible = false;
                     }),
                     poleLabel: poleLabel,
                     userName: userName,
                     sections: _navSections,
+                    stPostCode: _stPostCode,
+                    railEnabled: railEnabled,
+                    isRail: _railCollapsed,
+                    onRailToggle: () => setState(() {
+                      if (compact) {
+                        _mobileMenuVisible = false;
+                      } else if (railEnabled) {
+                        _railCollapsed = !_railCollapsed;
+                      } else {
+                        _sidebarVisible = false;
+                      }
+                    }),
                     onLogout: () =>
                         ref.read(authControllerProvider.notifier).logout(),
                   );
@@ -172,19 +228,54 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                           Expanded(
                             child: ColoredBox(
                               color: AppColors.page,
-                              child: Column(
+                              child: Stack(
                                 children: [
-                                  if (_loadError != null)
-                                    MaterialBanner(
-                                      content: Text(_loadError!),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: _load,
-                                          child: const Text('Réessayer'),
+                                  Column(
+                                    children: [
+                                      if (_loadError != null)
+                                        MaterialBanner(
+                                          content: Text(_loadError!),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: _load,
+                                              child: const Text('Réessayer'),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      Expanded(child: _buildView()),
+                                    ],
+                                  ),
+                                  // Miroir du `sidebar-reopen-btn` web : bouton
+                                  // flottant en haut à gauche quand la barre est
+                                  // fermée sur une session desktop.
+                                  if (!compact && !_sidebarVisible)
+                                    Positioned(
+                                      left: 12,
+                                      top: 12,
+                                      child: Material(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Tooltip(
+                                          message: 'Ouvrir le menu',
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            onTap: () => setState(
+                                              () => _sidebarVisible = true,
+                                            ),
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(8),
+                                              child: Icon(
+                                                Icons.view_sidebar,
+                                                size: 18,
+                                                color: AppColors.muted,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  Expanded(child: _buildView()),
                                 ],
                               ),
                             ),
@@ -196,7 +287,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                           child: GestureDetector(
                             onTap: () =>
                                 setState(() => _mobileMenuVisible = false),
-                            child: const ColoredBox(color: Color(0x66000000)),
+                            child: const ColoredBox(color: Color(0X66000000)),
                           ),
                         ),
                         Positioned(top: 0, bottom: 0, left: 0, child: sidebar),
@@ -212,7 +303,18 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
     );
   }
 
-  Widget _buildView() {
+  Widget _buildView() => IndexedStack(
+    index: _activeView == 'rapports' ? 1 : 0,
+    children: [
+      _buildActiveView(),
+      if (_reportsOpened)
+        const CtcReportsView(key: ValueKey('ctc-reports'))
+      else
+        const SizedBox.shrink(),
+    ],
+  );
+
+  Widget _buildActiveView() {
     if (_loadError != null && !_hasLoaded) {
       return const Center(child: Text('Les données CTC sont indisponibles.'));
     }
@@ -223,6 +325,18 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     switch (_activeView) {
+      case 'rapports':
+        return const SizedBox.shrink();
+      case 'notifications':
+        return CtcNotificationsView(
+          controller: _notifications,
+          onOpenDossier: (row) {
+            setState(() {
+              _notificationProcessId = (row['process_id'] as num).toInt();
+              _activeView = 'indexation';
+            });
+          },
+        );
       case 'dashboard':
         return CtcDashboardView(
           poleLabel: _poleLabel ?? 'Coordination',
@@ -258,7 +372,49 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       case 'homologations':
       case 'archives':
         return CtcNormsView(key: ValueKey(_activeView), view: _activeView);
+      case 'ged':
+      case 'indexation':
+      case 'espace_p2':
+      case 'codification':
+      case 'versions':
+      case 'ged_anomalies':
+      case 'ged_activity':
+      case 'ged_versions_todo':
+        // Poste 11 (ST-V3-11) : espace documentaire GED, miroir de
+        // `templates/ctc/app/components/ged_workspace.html`. La clé constante
+        // conserve l'état ; `didUpdateWidget` bascule le panneau au changement
+        // d'entrée de barre latérale.
+        return CtcGedWorkspace(
+          key: const ValueKey('ctc-ged'),
+          initialProcessId: _notificationProcessId,
+          showPanelTabs: false,
+          initialPanel: switch (_activeView) {
+            'indexation' => 'work',
+            'codification' => 'codes',
+            'ged_versions_todo' => 'versions_todo',
+            'versions' => 'library',
+            'ged' => 'library',
+            'ged_anomalies' => 'anomalies',
+            'ged_activity' => 'activity',
+            _ => 'dashboard',
+          },
+        );
       default:
+        // Vues ST v3 restantes : afficher un espace dédié à venir (miroir
+        // `space_module_placeholder.html`) au lieu d'un écran vide.
+        if (_stPostCode != null) {
+          String moduleTitle = 'Module de la matrice ST';
+          for (final section in _navSections) {
+            for (final item in section.items) {
+              if (item.view == _activeView) moduleTitle = item.label;
+            }
+          }
+          return CtcModulePlaceholder(
+            spaceLabel: _poleLabel ?? 'Secrétariat technique',
+            moduleTitle: moduleTitle,
+            onOpenDashboard: () => setState(() => _activeView = 'dashboard'),
+          );
+        }
         return CtcModuleView(
           view: _activeView,
           counts: _counts,

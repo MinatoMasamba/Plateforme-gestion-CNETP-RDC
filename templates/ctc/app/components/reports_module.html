@@ -1,0 +1,206 @@
+<section class="p-4 md:p-8 space-y-5" aria-labelledby="st-reports-title">
+  <header class="flex flex-wrap items-center justify-between gap-3"><div><p class="text-xs uppercase tracking-widest institutional-muted">Secrétariat technique</p><h1 id="st-reports-title" class="text-2xl font-bold">Rapports de travail</h1><p class="mt-1 text-sm institutional-muted">Rédiger, réutiliser un modèle, conserver les versions et exporter des documents de travail non approuvés.</p></div><div class="flex flex-wrap items-center gap-2"><button type="button" id="st-report-blank" class="rounded-lg border px-4 py-2 font-semibold text-sm">Page blanche</button><button type="button" id="st-report-import" class="rounded-lg border px-4 py-2 font-semibold text-sm">Importer un rapport</button><input id="st-report-import-file" type="file" accept=".json,application/json" class="hidden" aria-label="Fichier de rapport JSON à importer"></div></header>
+  <p id="st-report-message" role="status" aria-live="polite" class="hidden rounded-lg border p-3 text-sm"></p>
+  <div class="grid xl:grid-cols-[19rem_1fr] gap-5">
+    <aside class="institutional-card p-4 self-start"><h2 class="font-bold">Rapports enregistrés</h2><label class="mt-3 flex items-center gap-2 text-sm font-semibold"><input id="st-report-mine" type="checkbox"> Mon activité uniquement</label><div id="st-report-list" class="mt-3 space-y-2"><p class="text-sm institutional-muted">Chargement à l’ouverture du module.</p></div></aside>
+    <div class="space-y-5 min-w-0">
+      <div id="st-report-gallery" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="st-report-empty" class="institutional-card p-6 hidden"><h2 class="text-lg font-bold">Commencer un rapport</h2><p class="mt-2 institutional-muted">Utilisez « Importer un rapport » ou « Page blanche », puis choisissez un modèle réutilisable et ajoutez vos sections.</p></div>
+      <form id="st-report-form" class="hidden institutional-card p-4 md:p-6 space-y-4">{% csrf_token %}
+        <div class="flex flex-wrap justify-between gap-3 items-center"><h2 class="text-lg font-bold">Rédaction du rapport</h2><div class="flex items-center gap-3"><span id="st-report-reference" class="text-xs institutional-muted">Nouveau rapport</span><button type="button" id="st-report-close" class="rounded-lg border px-3 py-1.5 text-sm font-semibold">Retour à la galerie</button></div></div>
+        <div class="grid md:grid-cols-2 gap-4"><label class="block text-sm font-semibold">Modèle réutilisable<select id="st-report-template" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"><option value="">Rapport libre</option></select></label><label class="block text-sm font-semibold">Version<select id="st-report-version" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"><option value="">Nouvelle rédaction</option></select></label></div>
+        <label class="block text-sm font-semibold">Titre du rapport<input id="st-report-title" required maxlength="250" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"></label>
+        <div class="grid sm:grid-cols-2 gap-4"><label class="block text-sm font-semibold">Début de période<input id="st-report-start" type="date" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"></label><label class="block text-sm font-semibold">Fin de période<input id="st-report-end" type="date" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"></label></div>
+        <div id="st-report-sections" class="space-y-4"></div><button type="button" id="st-report-add-section" class="text-sm font-semibold text-sky-700 dark:text-sky-300">Ajouter une section</button>
+        <div class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4 dark:border-slate-700"><button type="submit" id="st-report-save" class="institutional-primary rounded-lg px-4 py-2 font-semibold">Sauvegarder</button><button type="button" id="st-report-preview" class="rounded-lg border px-4 py-2 text-sm font-semibold">Prévisualiser</button><a id="st-report-pdf" class="hidden rounded-lg border px-4 py-2 text-sm font-semibold">Exporter</a><a id="st-report-docx" class="hidden rounded-lg border px-4 py-2 text-sm font-semibold">Exporter en Word</a></div>
+      </form>
+      <div id="st-report-preview-overlay" class="hidden fixed inset-0 z-[70] bg-slate-950/60 p-4 overflow-auto" role="dialog" aria-modal="true" aria-labelledby="st-report-preview-title">
+        <div class="mx-auto max-w-[52rem] my-6 rounded-xl bg-white text-slate-900 shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-200" style="border-top:4px solid #0095c9">
+            <div><p class="text-[10px] font-bold uppercase tracking-[0.16em]" style="color:#0095c9">CNE-ITP · Secrétariat technique</p><h2 id="st-report-preview-title" class="text-lg font-bold"></h2><p id="st-report-preview-meta" class="text-xs text-slate-500"></p></div>
+            <button type="button" id="st-report-preview-close" class="rounded-lg border px-3 py-1.5 text-sm font-semibold">Fermer</button>
+          </div>
+          <div id="st-report-preview-body" class="px-6 py-5 space-y-5 text-sm leading-relaxed"></div>
+        </div>
+      </div>
+      <section id="st-report-model-tools" class="hidden institutional-card p-4 space-y-3"><h2 class="font-bold">Réutiliser cette structure</h2><p class="text-sm institutional-muted">Enregistrez les sections et leur contenu comme modèle pour un prochain rapport.</p><label class="block text-sm font-semibold">Nom du modèle<input id="st-report-model-name" maxlength="200" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"></label><button type="button" id="st-report-model-save" class="rounded-lg border px-4 py-2 text-sm font-semibold">Enregistrer comme modèle</button></section>
+      <section id="st-report-send-panel" class="hidden institutional-card p-4 space-y-3"><h2 class="font-bold">Transmettre le rapport</h2><p class="text-sm institutional-muted">La version sélectionnée est jointe en PDF. L’envoi est disponible dans la plateforme et transmis par e-mail aux membres confirmés de la cible.</p><label class="block text-sm font-semibold">SC ou GT destinataire<select id="st-report-target" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700"><option value="">Choisir une cible</option></select></label><label class="block text-sm font-semibold">Message d’accompagnement<textarea id="st-report-send-body" rows="3" class="mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700">Veuillez trouver ci-joint le rapport sélectionné.</textarea></label><button type="button" id="st-report-send" class="institutional-primary rounded-lg px-4 py-2 font-semibold">Envoyer le rapport</button><div id="st-report-sends" class="space-y-2 text-sm"></div></section>
+    </div>
+  </div>
+</section>
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+  let initialized, templates = [], allReports = [], current = null, selectedVersion = null, sendKey = null;
+  const alert = (text, error = false) => { const box = el('st-report-message'); box.textContent = text; box.classList.remove('hidden'); box.classList.toggle('text-red-700', error); };
+  async function api(url, data) {
+    const options = data === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': el('st-report-form').querySelector('[name=csrfmiddlewaretoken]').value}, body: JSON.stringify(data)};
+    const response = await fetch(url, options);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : JSON.stringify(result.detail || result));
+    return result;
+  }
+  function sectionFields(sections, readOnly = false) {
+    el('st-report-sections').replaceChildren();
+    sections.forEach(section => {
+      const block = document.createElement('fieldset'); block.className = 'space-y-2';
+      const titleLabel = document.createElement('label'); titleLabel.className = 'block text-sm font-semibold'; titleLabel.textContent = 'Titre de section';
+      const title = document.createElement('input'); title.className = 'st-section-title mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700'; title.value = section.title; title.maxLength = 150; title.required = true; title.readOnly = readOnly;
+      titleLabel.append(title);
+      const contentLabel = document.createElement('label'); contentLabel.className = 'block text-sm font-semibold'; contentLabel.textContent = 'Contenu';
+      const content = document.createElement('textarea'); content.className = 'st-section-content mt-1 w-full rounded-lg border border-slate-300 p-2 bg-white dark:bg-slate-900 dark:border-slate-700'; content.rows = 5; content.value = section.content || ''; content.readOnly = readOnly;
+      contentLabel.append(content); block.append(titleLabel, contentLabel); el('st-report-sections').append(block);
+    });
+  }
+  const sections = () => Array.from(el('st-report-sections').children).map(block => ({title: block.querySelector('input').value.trim(), content: block.querySelector('textarea').value}));
+  function templateOptions() {
+    const chosen = el('st-report-template').value;
+    el('st-report-template').replaceChildren(new Option('Rapport libre', ''));
+    templates.forEach(t => el('st-report-template').add(new Option(t.name, t.id)));
+    el('st-report-template').value = chosen;
+  }
+  function updateExports() {
+    ['pdf', 'docx'].forEach(format => {
+      const link = el('st-report-' + format); link.classList.toggle('hidden', !current);
+      if (current) link.href = `/api/v1/st/reports/${current.id}/export/?file_format=${format}&revision=${selectedVersion}`;
+    });
+  }
+  function showVersion(number) {
+    const version = current.versions.find(v => v.number === Number(number));
+    selectedVersion = version.number; sendKey = null;
+    const historical = version.number !== current.revision;
+    el('st-report-title').value = version.title;
+    el('st-report-start').value = version.period_start || ''; el('st-report-end').value = version.period_end || '';
+    sectionFields(version.sections, historical);
+    ['st-report-title', 'st-report-start', 'st-report-end', 'st-report-template', 'st-report-save', 'st-report-add-section'].forEach(id => el(id).disabled = historical);
+    el('st-report-reference').textContent = `${current.reference} · Version ${version.number}${historical ? ' · Lecture de l’historique' : ''}`;
+    updateExports();
+  }
+  function fillReport(report) {
+    current = report; selectedVersion = report.revision;
+    ['st-report-gallery', 'st-report-empty'].forEach(id => el(id).classList.add('hidden'));
+    ['st-report-form', 'st-report-model-tools', 'st-report-send-panel'].forEach(id => el(id).classList.remove('hidden'));
+    el('st-report-template').value = report.template_id || '';
+    el('st-report-version').replaceChildren();
+    report.versions.forEach(v => el('st-report-version').add(new Option(`Version ${v.number} — ${v.author_name}`, v.number)));
+    el('st-report-version').value = report.revision;
+    showVersion(report.revision);
+    el('st-report-sends').replaceChildren();
+    report.dispatches.forEach(dispatch => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'block text-sky-700 dark:text-sky-300 underline'; button.textContent = `Suivi de l’envoi v${dispatch.revision} — ${dispatch.target_code}`;
+      button.addEventListener('click', async () => {
+        try { const data = await api(`/api/v1/communications/${dispatch.id}/`); const counts = {}; data.recipients.forEach(r => counts[r.email_status] = (counts[r.email_status] || 0) + 1); alert(`Envoi ${dispatch.id} : ${data.recipient_count} destinataire(s). E-mails : ${counts.SENT || 0} acceptés, ${counts.FAILED || 0} en échec, ${(counts.PENDING || 0) + (counts.SENDING || 0)} en attente, ${counts.SKIPPED || 0} non envoyés.`); } catch (error) { alert(error.message, true); }
+      });
+      el('st-report-sends').append(button);
+    });
+  }
+  function reportPeriod(version) { const start = version.period_start, end = version.period_end; return start || end ? `${start || '…'} → ${end || '…'}` : ''; }
+  function renderGallery() {
+    const gallery = el('st-report-gallery'), list = el('st-report-list');
+    const mineOnly = el('st-report-mine').checked;
+    const reports = mineOnly ? allReports.filter(r => r.mine) : allReports;
+    gallery.replaceChildren(); list.replaceChildren();
+    if (!reports.length) {
+      const p = document.createElement('p'); p.className = 'text-sm institutional-muted';
+      p.textContent = mineOnly ? 'Aucun rapport de votre activité.' : 'Aucun rapport enregistré.';
+      list.append(p); el('st-report-empty').classList.remove('hidden'); return;
+    }
+    el('st-report-empty').classList.add('hidden');
+    reports.forEach(report => {
+      const open = () => fillReport(report);
+      const latest = report.versions[0];
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800';
+      button.textContent = `${latest.title} — v${report.revision}`;
+      button.addEventListener('click', open); list.append(button);
+      const card = document.createElement('article'); card.className = 'institutional-card p-4 flex flex-col gap-2';
+      const title = document.createElement('h3'); title.className = 'font-bold leading-snug'; title.textContent = latest.title;
+      const meta = document.createElement('p'); meta.className = 'text-xs institutional-muted';
+      meta.textContent = `${report.reference} · v${report.revision} · ${report.owner_name}`;
+      card.append(title, meta);
+      const period = reportPeriod(latest);
+      if (period) { const p = document.createElement('p'); p.className = 'text-xs institutional-muted'; p.textContent = period; card.append(p); }
+      const foot = document.createElement('div'); foot.className = 'mt-auto flex items-center justify-between gap-2 pt-2';
+      const versions = document.createElement('span'); versions.className = 'text-xs institutional-muted'; versions.textContent = `${report.versions.length} version(s) · ${report.dispatch_count} envoi(s)`;
+      const action = document.createElement('button'); action.type = 'button'; action.className = 'text-sm font-semibold text-sky-700 dark:text-sky-300'; action.textContent = 'Ouvrir';
+      action.addEventListener('click', open); foot.append(versions, action); card.append(foot);
+      gallery.append(card);
+    });
+  }
+  async function listReports() {
+    const data = await api('/api/v1/st/reports/'); allReports = data.results; renderGallery();
+  }
+  window.stReportsInit = () => initialized || (initialized = (async () => {
+    try {
+      templates = (await api('/api/v1/st/reports/templates/')).results; templateOptions();
+      await listReports();
+      const data = await api('/api/v1/communications/targets/');
+      data.results.forEach(target => { const option = new Option(`${target.type} · ${target.code} — ${target.label}${target.sendable ? '' : ' · indisponible'}`, `${target.type}:${target.id}`); option.disabled = !target.sendable; el('st-report-target').add(option); });
+    } catch (error) { initialized = null; alert(error.message, true); }
+  })());
+  function newReportForm(sections, title) {
+    current = null; selectedVersion = null; sendKey = null;
+    ['st-report-gallery', 'st-report-empty', 'st-report-send-panel'].forEach(id => el(id).classList.add('hidden'));
+    ['st-report-form', 'st-report-model-tools'].forEach(id => el(id).classList.remove('hidden'));
+    ['st-report-title', 'st-report-start', 'st-report-end', 'st-report-template', 'st-report-save', 'st-report-add-section'].forEach(id => el(id).disabled = false);
+    el('st-report-version').replaceChildren(new Option('Nouvelle rédaction', '')); el('st-report-reference').textContent = 'Nouveau rapport';
+    sectionFields(sections); el('st-report-title').value = title || ''; updateExports(); el('st-report-title').focus();
+  }
+  el('st-report-preview').addEventListener('click', () => {
+    el('st-report-preview-title').textContent = el('st-report-title').value || 'Rapport sans titre';
+    el('st-report-preview-meta').textContent = `${current ? current.reference + ' · ' : ''}Aperçu non enregistré${el('st-report-start').value || el('st-report-end').value ? ' · ' + reportPeriod({period_start: el('st-report-start').value, period_end: el('st-report-end').value}) : ''}`;
+    const body = el('st-report-preview-body'); body.replaceChildren();
+    sections().forEach(section => {
+      const h3 = document.createElement('h3'); h3.className = 'font-bold text-base border-b border-slate-200 pb-1'; h3.style.color = '#006f98'; h3.textContent = section.title;
+      const p = document.createElement('p'); p.className = 'whitespace-pre-wrap text-slate-700'; p.textContent = section.content || '—';
+      body.append(h3, p);
+    });
+    if (!sections().length) body.append(Object.assign(document.createElement('p'), {className: 'text-slate-500', textContent: 'Aucune section.'}));
+    el('st-report-preview-overlay').classList.remove('hidden');
+    el('st-report-preview-close').focus();
+  });
+  el('st-report-preview-close').addEventListener('click', () => el('st-report-preview-overlay').classList.add('hidden'));
+  el('st-report-preview-overlay').addEventListener('click', event => { if (event.target === el('st-report-preview-overlay')) el('st-report-preview-overlay').classList.add('hidden'); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') el('st-report-preview-overlay').classList.add('hidden'); });
+  el('st-report-blank').addEventListener('click', async () => {
+    await window.stReportsInit(); el('st-report-template').value = '';
+    newReportForm([{title: 'Objet', content: ''}], '');
+  });
+  el('st-report-import').addEventListener('click', () => el('st-report-import-file').click());
+  el('st-report-import-file').addEventListener('change', async () => {
+    const file = el('st-report-import-file').files[0]; el('st-report-import-file').value = '';
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const raw = Array.isArray(parsed) ? parsed : Array.isArray(parsed.sections) ? parsed.sections : null;
+      if (!raw) throw new Error('Fichier invalide : attend un tableau de sections ou un objet {"title", "sections"}.');
+      const sections = raw.map(s => ({title: String(s.title || 'Section').slice(0, 150), content: String(s.content || '')}));
+      await window.stReportsInit();
+      el('st-report-template').value = '';
+      newReportForm(sections.length ? sections : [{title: 'Objet', content: ''}], parsed.title ? String(parsed.title).slice(0, 250) : file.name.replace(/\.json$/i, ''));
+      alert('Rapport importé : vérifiez les sections puis enregistrez.');
+    } catch (error) { alert(error.message, true); }
+  });
+  el('st-report-close').addEventListener('click', () => {
+    current = null; selectedVersion = null; sendKey = null;
+    ['st-report-form', 'st-report-model-tools', 'st-report-send-panel'].forEach(id => el(id).classList.add('hidden'));
+    renderGallery();
+  });
+  el('st-report-mine').addEventListener('change', renderGallery);
+  el('st-report-template').addEventListener('change', () => { const template = templates.find(t => String(t.id) === el('st-report-template').value); if (template) sectionFields(template.sections); });
+  el('st-report-version').addEventListener('change', () => { if (current) showVersion(el('st-report-version').value); });
+  el('st-report-add-section').addEventListener('click', () => sectionFields([...sections(), {title: 'Nouvelle section', content: ''}]));
+  el('st-report-form').addEventListener('submit', async event => {
+    event.preventDefault(); el('st-report-save').disabled = true;
+    try { const data = {title: el('st-report-title').value, sections: sections(), template_id: Number(el('st-report-template').value) || null, period_start: el('st-report-start').value || null, period_end: el('st-report-end').value || null}; if (current) data.revision = current.revision; const report = await api(current ? `/api/v1/st/reports/${current.id}/revise/` : '/api/v1/st/reports/', data); fillReport(report); await listReports(); alert(`Rapport enregistré — version ${report.revision}.`); } catch (error) { alert(error.message, true); } finally { el('st-report-save').disabled = false; }
+  });
+  el('st-report-model-save').addEventListener('click', async () => {
+    try { const template = await api('/api/v1/st/reports/templates/', {name: el('st-report-model-name').value, sections: sections()}); templates.push(template); templateOptions(); el('st-report-template').value = template.id; alert('Modèle enregistré et disponible pour vos prochains rapports.'); } catch (error) { alert(error.message, true); }
+  });
+  ['st-report-target', 'st-report-send-body'].forEach(id => el(id).addEventListener('change', () => sendKey = null));
+  el('st-report-send').addEventListener('click', async () => {
+    if (!current || !el('st-report-target').value) return alert('Choisissez une SC ou un GT disponible.', true);
+    el('st-report-send').disabled = true;
+    try { const [kind, id] = el('st-report-target').value.split(':'); sendKey = sendKey || crypto.randomUUID(); const data = {revision: selectedVersion, body: el('st-report-send-body').value, request_key: sendKey}; data[kind === 'GT' ? 'gt_id' : 'sc_id'] = Number(id); const result = await api(`/api/v1/st/reports/${current.id}/send/`, data); sendKey = null; fillReport(await api(`/api/v1/st/reports/${current.id}/`)); alert(`Envoi enregistré pour ${result.recipient_count} destinataire(s). Le suivi e-mail est disponible ci-dessous.`); } catch (error) { alert(error.message, true); } finally { el('st-report-send').disabled = false; }
+  });
+})();
+</script>

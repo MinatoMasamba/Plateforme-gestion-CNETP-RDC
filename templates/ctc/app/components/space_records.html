@@ -1,0 +1,14 @@
+<section class="ctc-module">
+    <header class="ctc-module__head"><div>
+        <p class="ctc-eyebrow">{{ st_space_label }} · {{ poste.title }}</p>
+        <h2 class="ctc-page-title">Travaux enregistrés</h2>
+        <p class="ctc-subtitle">{{ st_space_dashboard.kpis.records }} enregistrement(s) dans votre périmètre. Les 100 derniers sont présentés ici.</p>
+    </div></header>
+    <div class="ctc-card ctc-table-wrap"><table class="ctc-table">
+        <thead><tr><th>Référence</th><th>Intitulé</th><th>Version</th><th>Source</th><th>État</th></tr></thead>
+        <tbody>{% for record in st_space_records %}{% with latest=record.versions.first %}
+            <tr><td>{{ record.reference }}</td><td>{{ latest.title }}</td><td>{{ latest.number }}</td><td>{{ latest.source_reference }}</td>
+            <td>{% if latest.confirmation.decision == 'CONFIRMED' %}Confirmé{% elif latest.confirmation.decision == 'REJECTED' %}À corriger{% else %}En attente de confirmation{% endif %}</td></tr>
+        {% endwith %}{% empty %}<tr><td colspan="5">Aucun travail enregistré.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</section>

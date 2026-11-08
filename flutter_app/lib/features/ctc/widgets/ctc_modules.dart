@@ -74,6 +74,71 @@ class CtcModuleView extends StatelessWidget {
   }
 }
 
+/// Écran explicite d'un module d'espace ST non encore raccordé — miroir de
+/// `ctc/app/components/space_module_placeholder.html`. Aucune donnée n'est
+/// affichée ni inventée.
+class CtcModulePlaceholder extends StatelessWidget {
+  const CtcModulePlaceholder({
+    super.key,
+    required this.spaceLabel,
+    required this.moduleTitle,
+    this.moduleNote,
+    this.onOpenDashboard,
+  });
+
+  final String spaceLabel;
+  final String moduleTitle;
+  final String? moduleNote;
+  final VoidCallback? onOpenDashboard;
+
+  @override
+  Widget build(BuildContext context) => _Page(
+    spaceLabel.toUpperCase(),
+    moduleTitle,
+    moduleNote ??
+        "Ce module est prévu par la matrice du Secrétariat technique. Il n'est "
+        "pas encore raccordé dans cette version ; aucune donnée n'est affichée "
+        "pour éviter toute valeur inventée.",
+    _Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: const Color(0xFFE7C547)),
+              ),
+              child: const Text(
+                'Module à venir',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: .4,
+                  color: Color(0xFF92400E),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (onOpenDashboard != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  onPressed: onOpenDashboard,
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Retour au tableau de bord'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 class _Page extends StatelessWidget {
   const _Page(this.eyebrow, this.title, this.subtitle, this.child);
   final String eyebrow;

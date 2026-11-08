@@ -159,3 +159,5 @@ class CommuniqueOfficiel(BaseModel):
 
     def __str__(self):
         return f"Communiqué N° {self.numero_label} du {self.date_communique:%d/%m/%Y}"
+
+from .dispatch_models import InstitutionalDispatch, DispatchRecipient, DispatchEmailAttempt  # noqa: E402,F401

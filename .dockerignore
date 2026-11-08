@@ -38,3 +38,5 @@ build_tailwind/
 doc/
 docs/
 *.pdf
+
+private/recordings/

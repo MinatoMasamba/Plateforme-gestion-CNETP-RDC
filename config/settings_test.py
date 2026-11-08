@@ -67,3 +67,9 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
+
+# --- Disable LiveKit / transcription services ------------------------------
+LIVEKIT_URL = ''
+LIVEKIT_API_URL = ''
+LIVEKIT_API_KEY = ''
+LIVEKIT_API_SECRET = ''

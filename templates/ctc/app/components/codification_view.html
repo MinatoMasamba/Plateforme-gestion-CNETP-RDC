@@ -1,0 +1,31 @@
+{% if st_post_code != 'ST-V3-11' and st_post_code != 'ST-V3-10' %}
+{% comment %}Codification : références et statuts des normes du pôle 2.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1400px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · Codification</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Codification</h2>
+            <p class="mt-1 text-sm text-slate-500">Références existantes et rattachements. Aucun code n’est attribué automatiquement.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">{% if st_post_code == 'ST-V3-10' %}<button type="button" class="institutional-primary text-xs" onclick="window.stGEDOpenMode?.('codification')">Autoriser un code</button>{% endif %}<a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a></div>
+    </header>
+    <section class="premium-glass p-4">
+        <div class="overflow-x-auto">
+            <table class="ctc-table w-full text-left text-sm">
+                <thead><tr><th>Référence</th><th>Titre</th><th>Type</th><th>Statut</th><th>Dossier</th></tr></thead>
+                <tbody>
+                    {% for norme in codification_norms %}
+                    <tr>
+                        <td class="font-mono font-bold">{{ norme.reference_number }}</td>
+                        <td>{{ norme.title }}</td>
+                        <td>{{ norme.get_norm_type_display }}</td>
+                        <td>{{ norme.get_status_display }}</td>
+                        <td><a class="font-bold text-[#007ea8] underline" href="{% url 'web:ctc_norme_read' norme.pk %}">Lire</a></td>
+                    </tr>
+                    {% empty %}<tr><td colspan="5" class="text-slate-500">Aucune norme enregistrée.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endif %}

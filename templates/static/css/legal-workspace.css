@@ -1,0 +1,30 @@
+.legal-workspace .ged-kpi-icon.ged-red{color:#b32624;background:rgba(219,56,50,.10)}
+.legal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:18px 0 22px}
+.legal-request-form{margin-bottom:22px}
+.legal-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.legal-form-grid .legal-span{grid-column:1/-1}
+.legal-meta{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:8px 18px;margin:18px 0;font-size:12px;line-height:1.7}
+.legal-meta dt{color:var(--ged-muted);font-weight:650}
+.legal-meta dd{color:var(--ged-text);overflow-wrap:anywhere}
+.legal-block{border-top:1px solid var(--ged-line);margin-top:20px;padding-top:6px}
+.legal-block h4{font-size:14px}
+.legal-piece{display:flex;flex-direction:column;gap:4px;border:1px solid var(--ged-line);border-radius:12px;padding:12px 14px;margin:10px 0;background:rgba(0,149,201,.025)}
+.legal-piece a{font-size:13px;font-weight:650;overflow-wrap:anywhere}
+.legal-piece-kind{font-size:9px;text-transform:uppercase;letter-spacing:.12em;font-weight:750;color:var(--ged-blue)}
+.legal-piece small{font-size:10px;color:var(--ged-muted);overflow-wrap:anywhere}
+.legal-opinion{border:1px solid var(--ged-line);border-radius:14px;padding:16px;margin:12px 0;background:var(--ged-surface)}
+.legal-opinion.is-pending{border-color:rgba(235,169,38,.55);box-shadow:0 0 0 3px rgba(235,169,38,.08)}
+.legal-opinion>small{display:block;margin-top:5px}
+.legal-analysis{font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
+.legal-decide{border-top:1px solid var(--ged-line);margin-top:14px;padding-top:12px}
+.legal-decide label{display:flex;flex-direction:column;gap:8px;font-size:12px;font-weight:650;margin:0 0 10px}
+.legal-opinion-form{border-top:2px solid rgba(0,149,201,.18);margin-top:22px;padding-top:12px}
+.legal-opinion-form h4{font-size:15px}
+.legal-big{font-size:26px;font-weight:750;letter-spacing:-.03em;margin:6px 0}
+.legal-confirm-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.legal-confirm-card{border:1px solid var(--ged-line);border-radius:16px;padding:18px;background:var(--ged-surface);min-width:0}
+.legal-confirm-card h4{margin:8px 0}
+.legal-workspace .ged-badge.is-pending{background:rgba(235,169,38,.13);color:#985900}
+.dark .legal-workspace .ged-badge.is-pending{color:#f8cb77}
+.legal-workspace .ged-badge.is-muted{background:rgba(86,109,128,.10);color:var(--ged-muted)}
+@media(max-width:760px){.legal-form-grid{grid-template-columns:minmax(0,1fr)}.legal-meta{grid-template-columns:minmax(0,1fr)}.legal-toolbar .ged-button{width:100%}}

@@ -26,9 +26,16 @@ def current_organisation_version():
     )
 
 
+def current_st_version():
+    """Le ST peut basculer sans activer ni remplacer toute l’organisation Phoenix."""
+    from .st_operations_models import STAccessPolicy
+    policy = STAccessPolicy.objects.select_related('version').filter(pk=1, enabled=True).first()
+    return policy.version if policy else current_organisation_version()
+
+
 def st_posts(version=None):
-    """Les 24 postes de la Coordination du Secrétariat technique (4 + 5 × 4)."""
-    version = version or current_organisation_version()
+    """Postes de la Coordination du Secrétariat technique de la version sélectionnée."""
+    version = version or current_st_version()
     if not version:
         return PosteOrganisation.objects.none()
     return (
@@ -42,7 +49,7 @@ def st_posts(version=None):
 
 def active_st_mandate(expert, version=None):
     """Mandat en cours d'un expert sur un poste de la Coordination du ST."""
-    version = version or current_organisation_version()
+    version = version or current_st_version()
     if not version:
         return None
     today = timezone.localdate()

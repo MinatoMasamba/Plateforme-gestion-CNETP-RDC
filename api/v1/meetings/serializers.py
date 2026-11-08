@@ -1,6 +1,45 @@
 from rest_framework import serializers
-from apps.meetings.models import Reunion, Presence, ProcessusVerbaux, ReunionVote
+from apps.meetings.models import (
+    Reunion, Presence, ProcessusVerbaux, ReunionVote, ReunionParticipant, PresenceSession,
+)
 from ..experts.serializers import ExpertBasicSerializer
+
+
+class ReunionParticipantSerializer(serializers.ModelSerializer):
+    """Invité d'une réunion, avec ses droits de salle."""
+
+    expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+
+    class Meta:
+        model = ReunionParticipant
+        fields = [
+            'id', 'reunion', 'expert', 'expert_name', 'role', 'role_display',
+            'peut_parler', 'peut_video', 'invite_le', 'exclu_jusqua',
+        ]
+        read_only_fields = ['id', 'expert_name', 'role_display', 'invite_le']
+
+
+class ReunionParticipantWriteSerializer(serializers.ModelSerializer):
+    """Création/mise à jour d'un invité par un gestionnaire."""
+
+    class Meta:
+        model = ReunionParticipant
+        fields = ['expert', 'role', 'peut_parler', 'peut_video', 'exclu_jusqua']
+
+
+class PresenceSessionSerializer(serializers.ModelSerializer):
+    """Session de connexion à la salle."""
+
+    expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
+
+    class Meta:
+        model = PresenceSession
+        fields = [
+            'id', 'reunion', 'expert', 'expert_name', 'livekit_sid',
+            'joined_at', 'left_at', 'left_reason',
+        ]
+        read_only_fields = ['id', 'expert_name']
 
 
 class PresenceSerializer(serializers.ModelSerializer):
@@ -36,6 +75,7 @@ class ProcessusVerbauxSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'reunion', 'reunion_info', 'titre', 'contenu',
             'nombre_presents', 'nombre_absents', 'quorum_atteint',
+            'redaction', 'points_discutes', 'decisions', 'actions', 'valide_par',
             'generated_at', 'signed_by', 'signature_date'
         ]
         read_only_fields = ['id', 'generated_at']
@@ -61,6 +101,8 @@ class ReunionBasicSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'type', 'titre', 'description', 'ctm', 'ctm_name', 'wg', 'wg_name',
             'document_reglementaire', 'date', 'lieu', 'lien_reunion_virtuelle',
+            'mode', 'room_name', 'ouverture_salle', 'cloture_salle',
+            'enregistrement_actif', 'consentement_enregistrement',
             'ordre_jour', 'status', 'presences_count', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
@@ -72,6 +114,7 @@ class ReunionBasicSerializer(serializers.ModelSerializer):
 class ReunionDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour les réunions"""
     presences = PresenceSerializer(many=True, read_only=True)
+    participants = ReunionParticipantSerializer(many=True, read_only=True)
     votes = ReunionVoteSerializer(many=True, read_only=True)
     pv = ProcessusVerbauxSerializer(read_only=True)
     ctm_name = serializers.CharField(source='ctm.name', read_only=True)
@@ -86,12 +129,14 @@ class ReunionDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'type', 'titre', 'description', 'ctm', 'ctm_name', 'wg', 'wg_name',
             'document_reglementaire', 'date', 'lieu',
-            'lien_reunion_virtuelle', 'ordre_jour', 'status',
-            'organisateur', 'organisateur_name', 'presences',
+            'lien_reunion_virtuelle', 'mode', 'room_name', 'ouverture_salle',
+            'cloture_salle', 'enregistrement_actif', 'consentement_enregistrement',
+            'ordre_jour', 'status',
+            'organisateur', 'organisateur_name', 'presences', 'participants',
             'votes', 'pv', 'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'organisateur_name', 'presences', 'votes', 'pv',
+            'id', 'organisateur_name', 'presences', 'participants', 'votes', 'pv',
             'created_at', 'updated_at'
         ]
 
@@ -102,7 +147,8 @@ class ReunionCreateUpdateSerializer(serializers.ModelSerializer):
         model = Reunion
         fields = [
             'type', 'titre', 'description', 'ctm', 'wg', 'document_reglementaire', 'date', 'lieu',
-            'lien_reunion_virtuelle', 'ordre_jour'
+            'lien_reunion_virtuelle', 'mode', 'enregistrement_actif', 'consentement_enregistrement',
+            'ordre_jour'
         ]
 
     def validate_date(self, value):

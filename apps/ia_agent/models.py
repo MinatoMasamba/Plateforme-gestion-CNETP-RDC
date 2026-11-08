@@ -13,6 +13,7 @@ class AgentSession(BaseModel):
         ('expert', 'Expert'),
         ('ctc', 'Coordination du Secrétariat technique'),
         ('pilotage', 'Comité de Pilotage'),
+        ('admin', 'Administration'),
     ]
     PROVIDER_CHOICES = [
         ('deepseek', 'Neronne de Source Académique AI'),
@@ -314,3 +315,23 @@ class AgentPosteContext(BaseModel):
             s = self.poste_ctc.holder.structure
             return s.acronym if s else None
         return None
+
+
+class NeuronneDailyReport(BaseModel):
+    """Rapport quotidien des actions d'administration effectuées par Neuronne."""
+
+    report_date = models.DateField(unique=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    action_count = models.PositiveIntegerField(default=0)
+    recipient_count = models.PositiveIntegerField(default=0)
+    text = models.TextField()
+    html = models.TextField(blank=True)
+    actions = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        verbose_name = 'Rapport quotidien Neuronne'
+        verbose_name_plural = 'Rapports quotidiens Neuronne'
+        ordering = ['-report_date', '-pk']
+
+    def __str__(self):
+        return f'Rapport Neuronne du {self.report_date:%d/%m/%Y}'

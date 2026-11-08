@@ -37,6 +37,9 @@ class MobileCTCViewSet(viewsets.ViewSet):
                 {'detail': "Accès réservé aux membres de la Coordination technique."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if ctx.get('st_matrix_v3'):
+            from apps.governance.st_permissions import visible_processus
+            ctx['active_processus'] = visible_processus(expert, ctx)
         return ctx, None
 
     def _serialize_dossier(self, processus):
@@ -48,6 +51,8 @@ class MobileCTCViewSet(viewsets.ViewSet):
             'title': norme.title if norme else '',
             'stage': processus.current_stage,
             'stage_label': processus.get_current_stage_display(),
+            'sc_report_reference': processus.sc_report_reference,
+            'sc_report_received_at': processus.sc_report_received_at.isoformat() if processus.sc_report_received_at else None,
             'updated_at': processus.updated_at.isoformat() if processus.updated_at else None,
         }
 
@@ -65,6 +70,19 @@ class MobileCTCViewSet(viewsets.ViewSet):
             .select_related('norme')
             .order_by('-updated_at')
         )
+        if ctx.get('st_matrix_v3'):
+            dossiers = ctx['active_processus']
+            metrics = ctx['st_space_dashboard']
+            stats = {
+                'norm_count': metrics['kpis']['dossiers'], 'task_count': metrics['kpis']['tasks'],
+                'overdue_count': metrics['kpis']['overdue'],
+                'sc_count': dossiers.exclude(norme__ctm=None).values('norme__ctm').distinct().count(),
+                'group_count': dossiers.exclude(norme__wg=None).values('norme__wg').distinct().count(),
+                'stage_rows': [dict(label=row['label'], count=row['count'], width=row['percent'])
+                               for row in metrics['distribution']],
+                'group_norm_rows': [],
+            }
+
 
         assignation_tasks = []
         for processus in ctx.get('active_processus', []):
@@ -79,6 +97,9 @@ class MobileCTCViewSet(viewsets.ViewSet):
             'is_ctc': True,
             'ctc_sub_role': ctx.get('ctc_sub_role'),
             'pole_label': ctx.get('pole_label'),
+            'ctc_pole': ctx.get('ctc_pole'),
+            'st_post_code': ctx.get('st_post_code'),
+            'capabilities': {k: v for k, v in ctx.items() if (k.startswith('can_') or k.startswith('st_can_') or k == 'st_is_pole_head') and isinstance(v, bool)},
             'sidebar_nav_config': ctx.get('sidebar_nav_config', {}),
             'can_admin_system': ctx.get('can_admin_system', False),
             'blocked_political': ctx.get('blocked_political', False),
@@ -109,6 +130,8 @@ class MobileCTCViewSet(viewsets.ViewSet):
             .select_related('norme')
             .order_by('-updated_at')
         )
+        if ctx.get('st_matrix_v3'):
+            qs = ctx['active_processus']
         return Response({
             'count': qs.count(),
             'results': [self._serialize_dossier(d) for d in qs],

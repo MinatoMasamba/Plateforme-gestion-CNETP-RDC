@@ -20,14 +20,38 @@ class IsExpert(permissions.BasePermission):
 
 
 class IsCTCCoordinator(permissions.BasePermission):
-    """Permission : Utilisateur est coordinateur CTC"""
-    
+    """Le titre de coordination vient du mandat courant après la bascule ST."""
     def has_permission(self, request, view):
-        return (
-            request.user and
-            request.user.is_authenticated and
-            request.user.is_ctc_staff
-        )
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        from apps.governance.st_operations_models import STAccessPolicy
+        from apps.governance.phoenix_runtime import active_st_mandate
+        if STAccessPolicy.objects.filter(enabled=True).exists():
+            expert = getattr(user, 'expert_profile', None)
+            mandate = active_st_mandate(expert) if expert else None
+            return bool(mandate and mandate.poste.st_sub_role in ('coordonnateur_principal', 'coordonnateur_adjoint'))
+        return user.is_ctc_staff
+
+
+class IsSTFinance(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        from apps.governance.st_operations_models import STAccessPolicy
+        if not STAccessPolicy.objects.filter(enabled=True).exists():
+            return IsCTCCoordinator().has_permission(request, view)
+        from apps.governance.st_operations import actor_mandate
+        from django.core.exceptions import PermissionDenied
+        try:
+            mandate = actor_mandate(request.user)
+            if mandate.poste.organe.code != 'ST-P3':
+                return False
+            if getattr(view, 'action', None) in ('confirm', 'reject', 'mark_as_paid', 'resolve_contestation', 'update', 'partial_update', 'destroy'):
+                return mandate.poste.category == 'POLE_HEAD'
+            return True
+        except PermissionDenied:
+            return False
 
 
 class IsMinister(permissions.BasePermission):
@@ -200,3 +224,112 @@ class IsMemberOfAnySharedCTM(permissions.BasePermission):
             return True
         
         return False # Par défaut, refuser l'accès si aucune des conditions n'est remplie.
+
+
+def _get_expert(user):
+    return getattr(user, 'expert_profile', None)
+
+
+def _is_staff_like(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            getattr(user, 'is_superuser', False)
+            or getattr(user, 'is_staff', False)
+            or getattr(user, 'is_ctc_staff', False)
+        )
+    )
+
+
+def _is_reunion_officer(expert, reunion):
+    """Secrétaire ou rapporteur du CTM/WG de la réunion."""
+    if expert is None or reunion is None:
+        return False
+    if reunion.ctm_id and reunion.ctm is not None:
+        if expert.pk in (reunion.ctm.secretary_id, reunion.ctm.rapporteur_id):
+            return True
+    if reunion.wg_id and reunion.wg is not None:
+        if expert.pk in (reunion.wg.secretary_id, reunion.wg.rapporteur_id):
+            return True
+    return False
+
+
+def _is_reunion_officer_anywhere(expert):
+    """Secrétaire ou rapporteur d'au moins un CTM/WG (droit de planifier)."""
+    if expert is None:
+        return False
+    from django.db.models import Q
+    from apps.governance.models import Affectation
+
+    return Affectation.objects.filter(
+        Q(ctm__secretary=expert)
+        | Q(ctm__rapporteur=expert)
+        | Q(wg__secretary=expert)
+        | Q(wg__rapporteur=expert)
+    ).exists()
+
+
+class IsReunionManager(permissions.BasePermission):
+    """Créer/administrer une réunion : CTC, organisateur ou secrétaire/rapporteur."""
+
+    def has_permission(self, request, view):
+        if _is_staff_like(request.user):
+            return True
+        if getattr(view, 'action', None) == 'create':
+            expert = _get_expert(request.user)
+            from apps.governance.phoenix_runtime import active_st_mandate
+            mandate = active_st_mandate(expert) if expert else None
+            if mandate and mandate.poste.code == 'ST-V3-07':
+                return request.data.get('type') in ('CTC', 'CTM', 'WG')
+            return _is_reunion_officer_anywhere(expert)
+        # Pour les actions sur un objet, le contrôle fin se fait dans
+        # ``has_object_permission`` (organisateur, secrétaire, rapporteur).
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        if _is_staff_like(request.user):
+            return True
+        expert = _get_expert(request.user)
+        reunion = getattr(obj, 'reunion', obj)
+        from apps.governance.phoenix_runtime import active_st_mandate
+        mandate = active_st_mandate(expert) if expert else None
+        if mandate and mandate.poste.code == 'ST-V3-07' and reunion.type in ('CTC', 'CTM', 'WG'):
+            return True
+        if getattr(reunion, 'organisateur_id', None) == getattr(expert, 'pk', None):
+            return True
+        return _is_reunion_officer(expert, reunion)
+
+
+class IsInvitedToReunion(permissions.BasePermission):
+    """Seul un invité de la réunion peut rejoindre la salle."""
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        expert = _get_expert(request.user)
+        if expert is None:
+            return False
+        reunion = getattr(obj, 'reunion', obj)
+        from apps.meetings.models import ReunionParticipant
+
+        return ReunionParticipant.objects.filter(reunion=reunion, expert=expert).exists()
+
+
+class IsReunionParticipantOrManager(permissions.BasePermission):
+    """Un invité voit le roster ; un gestionnaire peut le modifier."""
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        if IsReunionManager().has_object_permission(request, view, obj):
+            return True
+        expert = _get_expert(request.user)
+        if expert is None:
+            return False
+        reunion = getattr(obj, 'reunion', obj)
+        from apps.meetings.models import ReunionParticipant
+
+        return ReunionParticipant.objects.filter(reunion=reunion, expert=expert).exists()

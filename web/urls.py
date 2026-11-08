@@ -1,3 +1,4 @@
+from .st_report_views import report_workspace
 from django.urls import path
 from django.views.generic import RedirectView
 from .supervision_views import PilotageNormeHistoryView, PilotageActivityHistoryView
@@ -39,6 +40,8 @@ from .ctc_views import (
     CTCMethodologyActionView,
     CTCReviewActionView,
     CTCReceptionActionView,
+    CTCConsolidationActionView,
+    CTCValidationActionView,
     CTCIndustrialActionView,
     CTCTransmitPilotageView,
     CTCNormeReadView,
@@ -61,6 +64,7 @@ from .activity_views import (
     activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
 )
 from .production_views import InstructionDashboardView, instruction_create, demande_transition
+from .meeting_room_views import salle_reunion
 from .pilotage_profile_views import pilotage_profile
 from .president_sc_views import president_sc_page, president_sc_data
 from .conseiller_views import conseiller_dashboard, ctc_observation
@@ -126,6 +130,7 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('sw.js', service_worker_view, name='service_worker'),
     path('app/', App.as_view(), name='app'),
+    path('app/salle/<int:pk>/', salle_reunion, name='meeting_room'),
     path('app/manifest.json', app_manifest_view, name='app_manifest'),
     path('app/sw.js', app_service_worker_view, name='app_service_worker'),
     path('about/', AboutView.as_view(), name='about'),
@@ -198,6 +203,8 @@ urlpatterns = [
 
     # ─── Cellule Technique de Coordination ───────────────────────────────────
     path('ctc/', CTCDashboardView.as_view(), name='ctc_dashboard'),
+    path('ctc/espace/<slug:view>/', CTCDashboardView.as_view(), name='ctc_space'),
+    path('ctc/rapports/travail/', report_workspace, name='ctc_reports'),
     path('ctc/experts/', CTCDashboardView.as_view(), name='ctc_experts'),
     path('ctc/experts/<int:pk>/fiche/', ctc_expert_detail, name='ctc_expert_detail'),
     path('ctc/experts/<int:pk>/cv/', ctc_expert_cv, name='ctc_expert_cv'),
@@ -209,6 +216,8 @@ urlpatterns = [
     path('ctc/methodologie/<int:pk>/', CTCMethodologyActionView.as_view(), name='ctc_methodology_action'),
     path('ctc/revue/<str:review_type>/<int:pk>/', CTCReviewActionView.as_view(), name='ctc_review_action'),
     path('ctc/dossiers/<int:pk>/reception/', CTCReceptionActionView.as_view(), name='ctc_reception_action'),
+    path('ctc/dossiers/<int:pk>/consolidation/', CTCConsolidationActionView.as_view(), name='ctc_consolidation_action'),
+    path('ctc/dossiers/<int:pk>/validation/', CTCValidationActionView.as_view(), name='ctc_validation_action'),
     path('ctc/consultation-industrielle/<int:pk>/', CTCIndustrialActionView.as_view(), name='ctc_industrial_action'),
     path('ctc/dossiers/<int:pk>/transmettre-pilotage/', CTCTransmitPilotageView.as_view(), name='ctc_transmit_pilotage'),
     path('ctc/norme/<int:pk>/lecture/', CTCNormeReadView.as_view(), name='ctc_norme_read'),

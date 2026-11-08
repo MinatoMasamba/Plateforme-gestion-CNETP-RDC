@@ -1,0 +1,70 @@
+<section class="rx-admin-area" data-post6-admin>
+    <div class="rx-overview">
+        <article class="rx-metric"><span class="rx-icon"><i data-lucide="send"></i></span><div><p>Demandes en attente</p><strong>{{ post6_dashboard.pending_requests }}</strong><small>Décisions motivées à préparer</small></div></article>
+        <article class="rx-metric"><span class="rx-icon"><i data-lucide="notebook-pen"></i></span><div><p>PV à préparer</p><strong>{{ post6_dashboard.pv_to_prepare }}</strong><small>Réunions accessibles déjà tenues</small></div></article>
+        <article class="rx-metric"><span class="rx-icon"><i data-lucide="activity"></i></span><div><p>Opérations cette semaine</p><strong>{{ post6_dashboard.weekly_operations }}</strong><small>Réceptions, décisions et versions de PV</small></div></article>
+    </div>
+    <nav class="rx-admin-tabs" aria-label="Outils administratifs">
+        <button type="button" data-admin-tab="reception">Réceptionner</button>
+        <button type="button" onclick="window.switchView('ctc_requests')">Décider</button>
+        <button type="button" data-admin-tab="pv">Rédiger un PV</button>
+        <button type="button" data-admin-tab="registry" class="is-selected">Consulter le registre</button>
+        <button type="button" data-admin-tab="activity">Mon activité</button>
+    </nav>
+    <p data-admin-message role="status" class="rx-admin-message"></p>
+    <div data-admin-panel="reception" hidden>
+        <header class="rx-registry-heading"><div><p class="rx-section-label">Enregistrement administratif</p><h3>Nouvelle réception normative</h3></div></header>
+        <p class="rx-admin-note">Sélectionnez une transmission existante. Les normes Phoenix conservent leur moteur dédié. Aucun code normatif définitif n’est attribué ici.</p>
+        <form data-admin-reception-form class="rx-admin-form">
+            <input type="hidden" name="id"><input type="hidden" name="revision" value="0">
+            <fieldset><legend>1 · Identification</legend>
+                <label>Dossier transmis *<select name="process_id" required></select></label>
+                <label>Sous-commission / tome *<select name="sc_id" required></select></label>
+                <label>Groupe de travail *<select name="group_id" required></select></label>
+                <label>Expéditeur habilité *<select name="sender_id" required></select></label>
+                <p class="rx-admin-note">Choisissez un groupe rattaché à la sous-commission d’origine. Les expéditeurs listés ont un mandat officiel en cours dans la SC. Si une habilitation manque, conservez le brouillon et faites vérifier l’attribution.</p>
+            </fieldset>
+            <fieldset><legend>2 · Vote et contrôle</legend>
+                <label>Date du vote *<input type="date" name="vote_date" required></label>
+                <label>Résultat favorable (%) *<input type="number" name="vote_percentage" min="0" max="100" step="0.01" required></label>
+                <label class="rx-check"><input type="checkbox" name="verified"> J’ai contrôlé l’origine, le vote et la lisibilité des pièces.</label>
+                <label>Observations / motif d’anomalie<textarea name="observations" rows="3" maxlength="10000"></textarea></label>
+                <label class="rx-check"><input type="checkbox" name="anomaly"> Signaler une anomalie à l’expéditeur</label>
+            </fieldset>
+            <div class="rx-admin-actions"><button type="button" class="rx-secondary" data-save-reception>Conserver le brouillon</button><button type="button" class="rx-secondary" data-new-reception>Nouveau formulaire</button></div>
+            <fieldset><legend>3 · Pièces justificatives</legend>
+                <p class="rx-admin-note">Sauvegardez d’abord le brouillon. Projet et preuve du vote obligatoires ; rapport de revue facultatif à ce stade. Limite technique conservatoire : PDF, PNG ou JPG, 10 Mo par fichier. Les pièces restent privées.</p>
+                <label>Type de pièce<select name="piece_kind"><option value="PROJECT">Projet de norme</option><option value="VOTE">Preuve du vote / PV</option><option value="REPORT">Rapport de revue de SC</option></select></label>
+                <label>Fichier<input type="file" name="piece_file" accept=".pdf,.png,.jpg,.jpeg"></label>
+                <button type="button" class="rx-secondary" data-upload-piece>Joindre la pièce</button>
+                <ul data-reception-pieces></ul>
+            </fieldset>
+            <div class="rx-admin-actions"><button type="button" class="rx-primary" data-register-reception>Enregistrer la réception</button></div>
+            <p data-reception-outcome class="rx-admin-note"></p>
+        </form>
+    </div>
+    <div data-admin-panel="pv" hidden>
+        <header class="rx-registry-heading"><div><p class="rx-section-label">Secrétariat des réunions</p><h3>Préparer un procès-verbal</h3></div></header>
+        <p class="rx-admin-note">Le brouillon réutilise la réunion existante. La soumission fige une version ; aucune validation officielle n’est activée tant que l’autorité compétente n’est pas définie pour le type de séance.</p>
+        <form data-admin-pv-form class="rx-admin-form">
+            <label>Réunion accessible<select name="meeting_id" required></select></label><input type="hidden" name="revision" value="0">
+            <div data-meeting-context class="rx-admin-note"></div><div data-pv-exports></div>
+            <label>Synthèse des échanges *<textarea name="content" rows="7" required maxlength="100000"></textarea></label>
+            <label>Décisions, responsables et échéances<textarea name="decisions_text" rows="4" placeholder="Une décision par ligne. Précisez le responsable et l’échéance si fixée."></textarea></label>
+            <p class="rx-admin-note">Les décisions de ce brouillon ne modifient jamais le statut d’une norme et ne créent pas automatiquement de droits financiers.</p>
+            <div class="rx-admin-actions"><button type="button" class="rx-secondary" data-save-pv>Conserver le brouillon</button><button type="button" class="rx-primary" data-submit-pv>Soumettre la version</button></div>
+        </form>
+    </div>
+    <div data-admin-panel="registry">
+        <header class="rx-registry-heading"><div><p class="rx-section-label">Réceptions et décisions</p><h3>Registre administratif</h3></div><a href="/api/v1/st/receptions/export/" class="rx-secondary">Exporter les réceptions</a></header>
+        <p class="rx-admin-note">Les accusés sont consultables après enregistrement. Une rectification ajoute une trace et conserve l’accusé original. Le rapport de revue peut être joint ultérieurement.</p>
+        <div data-admin-registry class="rx-admin-registry"></div>
+        <h4>Décisions et événements accessibles</h4><div data-admin-decisions></div>
+    </div>
+    <div data-admin-panel="activity" hidden>
+        <h3>Mon activité depuis le {{ post6_dashboard.week_start|date:"d/m/Y" }}</h3>
+        <div class="rx-activity-chart" role="img" aria-label="Réceptions et demandes traitées cette semaine">
+            {% for day in post6_dashboard.daily %}<div><div class="rx-bars"><span style="height:{{ day.receipt_height }}px" title="{{ day.receipts }} réception(s)"></span><span style="height:{{ day.decision_height }}px" title="{{ day.decisions }} demande(s)"></span></div><small>{{ day.label }}</small><small>{{ day.receipts }} / {{ day.decisions }}</small></div>{% endfor %}
+        </div><p class="rx-admin-note">Bleu : réceptions personnelles enregistrées ; vert : demandes traitées. Les jours sans opération restent à zéro.</p>
+    </div>
+</section>

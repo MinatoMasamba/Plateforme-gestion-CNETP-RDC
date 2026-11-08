@@ -1,29 +1,45 @@
 {{ sidebar_nav_config|json_script:"sidebar-nav-config" }}
-<aside id="main-sidebar-aside" class="cnetp-sidebar hidden md:flex fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex-col overflow-y-auto scrollbar-none" style="width: var(--ctc-sidebar-w, 16rem)">
-  <div class="border-b border-[color:var(--ui-border)] p-5">
+<aside id="main-sidebar-aside" class="cnetp-sidebar hidden md:flex fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex-col overflow-y-auto scrollbar-none" style="width: var(--ctc-sidebar-w, 16rem)" data-sidebar-rail="{% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}true{% else %}false{% endif %}">
+  <div class="border-b border-[color:var(--ui-border)] p-4 sidebar-brand">
     <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#74b9ff] to-[#b7eaf7] flex items-center justify-center text-white shrink-0 shadow-sm">
-        <i data-lucide="network" class="w-4.5 h-4.5"></i>
-      </div>
-      <div class="min-w-0">
-        <p class="text-[10px] uppercase tracking-[0.16em] text-slate-400 font-bold">Secrétariat technique</p>
-        <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ pole_label }}</p>
-      </div>
+      <button type="button" id="sidebar-toggle-btn" class="ml-auto p-1.5 rounded-lg text-slate-500 hover:bg-white/70 hover:text-slate-900 shrink-0" title="Réduire le menu" aria-label="Réduire ou ouvrir le menu" aria-expanded="true">
+        <i data-lucide="panel-left-close" class="w-4 h-4"></i>
+      </button>
     </div>
-    {% if poste %}<p class="mt-3 text-xs text-slate-500 dark:text-slate-400">{{ poste.title }}</p>{% endif %}
   </div>
+  {% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}
+  <nav class="flex-1 p-3 space-y-1" aria-label="Navigation de l’espace documentaire">
+    <h2 class="cnetp-sidebar__heading">Pilotage</h2>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="espace_p2" title="Tableau de bord"><i data-lucide="layout-dashboard" class="h-4 w-4 shrink-0"></i><span>Tableau de bord</span></button>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="ged_activity" title="{% if st_post_code == 'ST-V3-10' %}Activité du pôle{% else %}Mon activité{% endif %}"><i data-lucide="history" class="h-4 w-4 shrink-0"></i><span>{% if st_post_code == 'ST-V3-10' %}Activité du pôle{% else %}Mon activité{% endif %}</span></button>
+    <h2 class="cnetp-sidebar__heading mt-3">Traitement</h2>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="indexation" title="Dossiers à indexer"><i data-lucide="files" class="h-4 w-4 shrink-0"></i><span>Dossiers à indexer</span><span class="sidebar-nav-badge" data-sidebar-badge="ready" hidden>0</span></button>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="ged_versions_todo" title="Versions à traiter"><i data-lucide="layers" class="h-4 w-4 shrink-0"></i><span>Versions à traiter</span><span class="sidebar-nav-badge" data-sidebar-badge="versions" hidden>0</span></button>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="ged_anomalies" title="Anomalies"><i data-lucide="file-warning" class="h-4 w-4 shrink-0"></i><span>Anomalies</span><span class="sidebar-nav-badge is-danger" data-sidebar-badge="anomalies" hidden>0</span></button>
+    <h2 class="cnetp-sidebar__heading mt-3">Référentiel GED</h2>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="ged" title="Documents GED"><i data-lucide="library" class="h-4 w-4 shrink-0"></i><span>Documents GED</span></button>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="codification" title="Codification"><i data-lucide="scan-line" class="h-4 w-4 shrink-0"></i><span>Codification</span></button>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="versions" title="Historique des versions"><i data-lucide="list-tree" class="h-4 w-4 shrink-0"></i><span>Historique des versions</span></button>
+    <h2 class="cnetp-sidebar__heading mt-3">Sorties</h2>
+    <button type="button" class="sidebar-nav-btn" data-sidebar-view="rapports" title="Rapports et exports"><i data-lucide="file-chart-column" class="h-4 w-4 shrink-0"></i><span>Rapports et exports</span></button>
+  </nav>
+  <div class="px-3 pb-2 space-y-1">
+    <button type="button" class="sidebar-nav-btn text-xs" data-sidebar-view="aide" title="Aide et mode d’emploi"><i data-lucide="circle-help" class="h-4 w-4 shrink-0"></i><span>Aide et mode d’emploi</span></button>
+    <a href="mailto:support@cnetp.cd" class="sidebar-nav-btn text-xs" title="Support"><i data-lucide="life-buoy" class="h-4 w-4 shrink-0"></i><span>Support</span></a>
+  </div>
+  {% else %}
   <nav class="flex-1 p-3 space-y-1" aria-label="Navigation du Secrétariat technique">
     <h2 class="cnetp-sidebar__heading">Travail</h2><div id="sidebar-nav-principal" class="space-y-1"></div>
-    <a href="/ctc/rapports/" class="sidebar-nav-btn flex items-center gap-3 px-3 py-2 text-sm" aria-label="Ouvrir les rapports"><i data-lucide="file-chart-column" class="h-4 w-4"></i><span>Rapports</span></a>
-    <h2 class="cnetp-sidebar__heading mt-3">Supervision</h2><div id="sidebar-nav-supervision" class="space-y-1"></div>
-    <h2 class="cnetp-sidebar__heading mt-3">Outils</h2><div id="sidebar-nav-outils" class="space-y-1"></div>
-    <h2 class="cnetp-sidebar__heading mt-3">Système</h2><div id="sidebar-nav-systeme" class="space-y-1"></div>
+    <h2 id="sidebar-heading-supervision" class="cnetp-sidebar__heading mt-3">Supervision</h2><div id="sidebar-nav-supervision" class="space-y-1"></div>
+    <h2 id="sidebar-heading-outils" class="cnetp-sidebar__heading mt-3">Outils</h2><div id="sidebar-nav-outils" class="space-y-1"></div>
+    <h2 id="sidebar-heading-systeme" class="cnetp-sidebar__heading mt-3">Système</h2><div id="sidebar-nav-systeme" class="space-y-1"></div>
   </nav>
-  <a href="{% url 'web:expert_profile' %}" class="flex items-center gap-3 border-t border-[color:var(--ui-border)] p-4 text-sm font-semibold text-slate-600 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-white/5 transition-colors">
+  {% endif %}
+  <a href="{% url 'web:expert_profile' %}" class="flex items-center gap-3 border-t border-[color:var(--ui-border)] p-4 text-sm font-semibold text-slate-600 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-white/5 transition-colors" title="{{ expert.user.get_full_name|default:expert.user.username }}">
     <span class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold uppercase shrink-0">
       {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
     </span>
-    <span class="truncate">{{ expert.user.get_full_name|default:expert.user.username }}</span>
+    <span class="truncate sidebar-brand-text">{{ expert.user.get_full_name|default:expert.user.username }}</span>
   </a>
   <div id="sidebar-resize-handle" class="cnetp-sidebar-resize hidden md:block" aria-hidden="true"></div>
 </aside>
@@ -34,8 +50,34 @@
 <script>
   const sidebarConfigEl = document.getElementById('sidebar-nav-config');
   const sidebarNavConfig = sidebarConfigEl ? JSON.parse(sidebarConfigEl.textContent) : {};
-  const sidebarAllowedViews = new Set(['dashboard', 'dossiers', 'assignations', 'ctc_requests', 'assistant_executif', 'financial', 'statistiques', 'homologations', 'archives', 'parametres', 'reunions', 'instructions', 'experts', 'tracabilite']);
+  const sidebarAllowedViews = new Set(
+    Object.values(sidebarNavConfig).flat().filter(item => item && item.view).map(item => item.view)
+  );
+  const sidebarCustomViews = new Set(
+    Array.from(document.querySelectorAll('[data-sidebar-view]')).map(button => button.dataset.sidebarView)
+  );
   let sidebarCurrentView = 'dashboard';
+  const asideEl = document.getElementById('main-sidebar-aside');
+  const railEnabled = asideEl?.dataset.sidebarRail === 'true';
+
+  function syncCustomSidebar(viewId) {
+    document.querySelectorAll('[data-sidebar-view]').forEach(button => {
+      const active = button.dataset.sidebarView === viewId;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+  }
+  document.querySelectorAll('[data-sidebar-view]').forEach(button => {
+    button.addEventListener('click', () => setSidebarViewGate(button.dataset.sidebarView));
+  });
+  document.addEventListener('st-ged-counts', event => {
+    const counts = event.detail || {};
+    document.querySelectorAll('[data-sidebar-badge]').forEach(badge => {
+      const value = Number(counts[badge.dataset.sidebarBadge] || 0);
+      badge.textContent = value;
+      badge.hidden = value <= 0;
+    });
+  });
 
   function renderSidebarButtons(containerId, items) {
     const container = document.getElementById(containerId);
@@ -48,6 +90,7 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'sidebar-nav-btn';
+      button.title = item.label;
       button.classList.toggle('is-active', sidebarCurrentView === item.view);
       button.setAttribute('aria-current', sidebarCurrentView === item.view ? 'page' : 'false');
       const icon = document.createElement('i'); icon.dataset.lucide = item.icon;
@@ -63,10 +106,15 @@
     renderSidebarButtons('sidebar-nav-supervision', sidebarNavConfig.supervision);
     renderSidebarButtons('sidebar-nav-outils', sidebarNavConfig.outils);
     renderSidebarButtons('sidebar-nav-systeme', sidebarNavConfig.system);
+    ['supervision', 'outils', 'systeme'].forEach(section => {
+      const heading = document.getElementById('sidebar-heading-' + section);
+      const container = document.getElementById('sidebar-nav-' + section);
+      if (heading && container) heading.classList.toggle('hidden', container.children.length === 0);
+    });
     if (window.lucide?.createIcons) window.lucide.createIcons();
   }
   function setSidebarViewGate(viewId) {
-    if (!sidebarAllowedViews.has(viewId)) return;
+    if (!sidebarAllowedViews.has(viewId) && !sidebarCustomViews.has(viewId)) return;
     if (typeof window.switchView === 'function') window.switchView(viewId);
     toggleDock(false);
   }
@@ -80,36 +128,84 @@
   }
   document.getElementById('mobile-dock')?.addEventListener('click', () => toggleDock(false));
   document.addEventListener('keydown', event => { if (event.key === 'Escape') toggleDock(false); });
-  window.updateSidebarForTab = function(viewId) { sidebarCurrentView = viewId; renderSidebarContent(); };
+  window.updateSidebarForTab = function(viewId) {
+    sidebarCurrentView = viewId;
+    renderSidebarContent();
+    syncCustomSidebar(viewId);
+  };
   renderSidebarContent();
+
+  function isDesktop() { return window.matchMedia('(min-width: 768px)').matches; }
+
+  function collapseSidebarRail() {
+    const aside = document.getElementById('main-sidebar-aside');
+    if (!aside || !railEnabled || !isDesktop()) return;
+    aside.classList.add('is-rail');
+    aside.classList.remove('is-closed');
+    aside.style.setProperty('--ctc-sidebar-w', '4.25rem');
+    const toggle = document.getElementById('sidebar-toggle-btn');
+    if (toggle) { toggle.setAttribute('aria-expanded', 'false'); toggle.title = 'Ouvrir le menu'; }
+    document.getElementById('sidebar-reopen-btn')?.classList.add('hidden');
+    localStorage.setItem('ctc-sidebar-rail-v2', '1');
+  }
+  function expandSidebarRail() {
+    const aside = document.getElementById('main-sidebar-aside');
+    if (!aside) return;
+    aside.classList.remove('is-rail', 'is-closed');
+    const width = Math.max(220, parseFloat(localStorage.getItem('ctc-sidebar-width')) || 256);
+    aside.style.setProperty('--ctc-sidebar-w', width + 'px');
+    const toggle = document.getElementById('sidebar-toggle-btn');
+    if (toggle) { toggle.setAttribute('aria-expanded', 'true'); toggle.title = 'Réduire le menu'; }
+    document.getElementById('sidebar-reopen-btn')?.classList.add('hidden');
+    localStorage.setItem('ctc-sidebar-rail-v2', '0');
+  }
 
   (function initSidebarResize() {
     const aside = document.getElementById('main-sidebar-aside');
     const handle = document.getElementById('sidebar-resize-handle');
     const reopen = document.getElementById('sidebar-reopen-btn');
+    const toggle = document.getElementById('sidebar-toggle-btn');
     if (!aside || !handle) return;
     const KEY = 'ctc-sidebar-width';
-    const DEFAULT = 256, MAX = 480;
-    const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
+    const DEFAULT = 256, MAX = 480, RAIL = 68;
     let width = parseFloat(localStorage.getItem(KEY));
     if (!width || width < 0) width = DEFAULT;
 
     function apply(w) {
       width = Math.max(0, Math.min(MAX, w));
-      const closed = width < 40;
+      if (railEnabled && width > 0 && width < 90) {
+        collapseSidebarRail();
+        return;
+      }
+      const closed = !railEnabled && width < 40;
       aside.classList.toggle('is-closed', closed);
-      aside.style.setProperty('--ctc-sidebar-w', width + 'px');
+      aside.classList.remove('is-rail');
+      aside.style.setProperty('--ctc-sidebar-w', (closed ? 0 : width) + 'px');
       if (reopen) reopen.classList.toggle('hidden', !closed);
-      localStorage.setItem(KEY, width);
+      if (!closed) localStorage.setItem(KEY, width);
+      localStorage.setItem('ctc-sidebar-rail-v2', '0');
     }
 
     window.reopenSidebar = function () {
+      if (railEnabled) { expandSidebarRail(); return; }
       let w = parseFloat(localStorage.getItem(KEY)) || DEFAULT;
       if (w < 40) w = DEFAULT;
       apply(w);
     };
+    window.collapseSidebarRail = collapseSidebarRail;
+    window.expandSidebarRail = expandSidebarRail;
 
-    apply(width);
+    if (railEnabled && localStorage.getItem('ctc-sidebar-rail-v2') === '1' && isDesktop()) {
+      collapseSidebarRail();
+    } else {
+      apply(width);
+    }
+
+    toggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (aside.classList.contains('is-rail') || aside.classList.contains('is-closed')) expandSidebarRail();
+      else collapseSidebarRail();
+    });
 
     let dragging = false;
     handle.addEventListener('mousedown', (e) => {

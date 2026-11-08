@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cnetp-portail-v6';
+const CACHE_NAME = 'cnetp-portail-v7';
 
 const PRECACHE_URLS = [
     '/',
@@ -25,7 +25,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
-            Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+            Promise.all(keys.filter((key) => key.startsWith('cnetp-portail-') && key !== CACHE_NAME).map((key) => caches.delete(key)))
         )
     );
     self.clients.claim();
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
 
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request)
+            fetch(request, { cache: 'no-cache' })
                 .then((response) => {
                     if (response.ok) {
                         const copy = response.clone();

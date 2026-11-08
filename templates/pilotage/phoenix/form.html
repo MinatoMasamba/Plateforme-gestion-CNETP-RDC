@@ -2,7 +2,7 @@
 <nav class="pf-breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'web:phoenix_organisation' %}">Organisation</a><span aria-hidden="true">›</span><span>{% if is_activation %}Mise en service{% else %}{{ page_title }}{% endif %}</span></nav>
 <div class="pf-head">
 <div><h1>{% if is_activation %}Mise en service CNE-ITP{% else %}{{ page_title }}{% endif %}</h1><p>{{ version.name }} · {{ version.get_status_display }}{% if instance %} · {{ instance }}{% elif is_new %} · Nouvelle fiche{% endif %}</p></div>
-{% if is_activation %}{% elif instance %}<span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span>{% else %}<span class="pf-badge pf-badge-new">Nouvelle fiche</span>{% endif %}
+{% if is_activation %}{% elif instance %}{% if kind != 'gt' %}<span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span>{% endif %}{% else %}<span class="pf-badge pf-badge-new">Nouvelle fiche</span>{% endif %}
 </div>
 {% endblock %}{% block content %}
 <style>
@@ -28,7 +28,8 @@
 .dark .pf-card{background:#0d1117;border-color:rgba(255,255,255,.08)}
 .pf-card>header h2{font-size:1rem;font-weight:700}
 .pf-card>header p{margin-top:.25rem;font-size:.78rem;color:#64748b}
-.pf-fields{display:grid;gap:1.1rem 1.4rem;margin-top:1.15rem}
+.pf-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:1.1rem 1.4rem;margin-top:1.15rem}
+.pf-field{min-width:0}
 @media(min-width:640px){.pf-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pf-field.pf-wide{grid-column:1/-1}
 .pf-label{display:flex;flex-wrap:wrap;gap:.45rem;align-items:baseline;font-size:.82rem;font-weight:600;color:#334155}
@@ -61,7 +62,7 @@
 .pf-combo-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0;pointer-events:none}
 .pf-combo-control{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;margin-top:.5rem;min-height:44px;padding:.7rem;border:1px solid #cbd5e1;border-radius:.65rem;background:transparent;text-align:left;color:inherit;cursor:pointer}
 .pf-combo-control:focus-visible{outline:2px solid #0095c9;outline-offset:1px}
-.pf-combo-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-combo-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pf-combo-value.is-placeholder{color:#94a3b8}
 .pf-combo-chevron{display:inline-flex;color:#94a3b8}
 .pf-combo-pop{position:absolute;z-index:40;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #cbd5e1;border-radius:.7rem;box-shadow:0 14px 34px rgba(15,23,42,.2);padding:.5rem;max-height:18rem;display:flex;flex-direction:column}
@@ -97,7 +98,7 @@
 <div class="pf-card pf-summary"><header><h2>Résumé</h2></header>
 {% if instance %}<dl>
 {% if kind == 'organe' %}<div><dt>Type d’organe</dt><dd>{{ instance.get_type_display }}</dd></div>{% endif %}
-<div><dt>Statut</dt><dd><span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span></dd></div>
+{% if kind != 'gt' %}<div><dt>Statut</dt><dd><span class="pf-badge pf-badge-{{ instance.status|lower }}">{{ instance.get_status_display }}</span></dd></div>{% endif %}
 {% if kind == 'organe' %}<div><dt>Postes</dt><dd>{{ summary.poste_count }}</dd></div><div><dt>Groupes de travail</dt><dd>{{ summary.groupe_count }}</dd></div>{% endif %}
 {% if kind == 'poste' %}<div><dt>Mandats</dt><dd>{{ summary.mandate_count }}</dd></div>{% endif %}
 <div><dt>Créé le{% if summary.created_date_corrected %} · date corrigée{% endif %}</dt><dd>{% if kind == 'poste' %}{{ summary.display_created_at|date:"d/m/Y à H:i" }}{% else %}{{ summary.created_at|date:"d/m/Y à H:i" }}{% endif %}</dd>{% if summary.created_date_corrected %}<p class="pf-help">Horodatage système : {{ summary.created_at|date:"d/m/Y à H:i" }}</p>{% endif %}</div>

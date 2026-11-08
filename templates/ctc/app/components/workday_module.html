@@ -1,0 +1,152 @@
+{% comment %}Accueil commun : quatre blocs de travail et colonne d'alertes.{% endcomment %}
+<section class="st-workday space-y-5" aria-labelledby="workday-title">
+    <header class="premium-hero">
+        <div class="premium-hero__body">
+            <p class="premium-eyebrow">{{ st_space_label|default:"Mon espace" }} · {{ pole_label }}</p>
+            <h2 id="workday-title" class="premium-hero__title">Mon travail du jour</h2>
+            <p class="premium-hero__subtitle">
+                {{ expert.full_name|default:expert.user.get_full_name }}
+                {% if poste %}· {{ poste.title }}{% endif %}
+                · {{ st_workday.generated_at|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+        <div class="premium-hero__aside">
+            <span class="premium-kpi__label">À traiter maintenant</span>
+            <strong class="premium-kpi__value">{{ st_workday.counts.todo }}</strong>
+        </div>
+    </header>
+
+    <div class="st-workday-body">
+        <div class="st-workday-blocks">
+            <article class="premium-glass p-4" aria-labelledby="workday-todo">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 id="workday-todo" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">À traiter maintenant</h3>
+                    <span class="premium-status premium-status--warn">{{ st_workday.counts.todo }}</span>
+                </div>
+                <ul class="mt-3 space-y-2">
+                    {% for item in st_workday.blocks.todo %}
+                    <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <a href="{{ item.url }}" class="block focus:outline-hidden focus:ring-2 focus:ring-[#0095c9]/30 rounded">
+                            <div class="st-work-item-meta">
+                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</span>
+                                <span class="ctc-badge ctc-badge--{{ item.tone }}">{{ item.status }}</span>
+                            </div>
+                            <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ item.title }}</p>
+                            {% if item.action %}<p class="mt-1 text-xs font-bold text-[#007ea8]">{{ item.action }}</p>{% endif %}
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucun élément ne vous attend.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="premium-glass p-4" aria-labelledby="workday-waiting">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 id="workday-waiting" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">En attente d’autres personnes</h3>
+                    <span class="premium-status premium-status--info">{{ st_workday.counts.waiting }}</span>
+                </div>
+                <ul class="mt-3 space-y-2">
+                    {% for item in st_workday.blocks.waiting %}
+                    <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <a href="{{ item.url }}" class="block">
+                            <div class="st-work-item-meta">
+                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</span>
+                                <span class="ctc-badge ctc-badge--{{ item.tone }}">{{ item.status }}</span>
+                            </div>
+                            <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ item.title }}</p>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucun dossier en attente.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="premium-glass p-4" aria-labelledby="workday-deadlines">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 id="workday-deadlines" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Échéances de la semaine</h3>
+                    <span class="premium-status premium-status--info">{{ st_workday.counts.deadlines }}</span>
+                </div>
+                <ul class="mt-3 space-y-2">
+                    {% for item in st_workday.blocks.deadlines %}
+                    <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <a href="{{ item.url }}" class="block">
+                            <div class="st-work-item-meta">
+                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</span>
+                                {% if item.due %}<span class="text-[11px] font-bold text-[#db3832]">{{ item.due|date:"d/m/Y" }}</span>{% endif %}
+                            </div>
+                            <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ item.title }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ item.status }}</p>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucune échéance cette semaine.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="premium-glass p-4" aria-labelledby="workday-recent">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 id="workday-recent" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Derniers éléments traités</h3>
+                    <span class="premium-status premium-status--neutral">{{ st_workday.counts.recent }}</span>
+                </div>
+                <ul class="mt-3 space-y-2">
+                    {% for item in st_workday.blocks.recent %}
+                    <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <a href="{{ item.url }}" class="block">
+                            <div class="st-work-item-meta">
+                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</span>
+                                <span class="ctc-badge ctc-badge--{{ item.tone }}">{{ item.status }}</span>
+                            </div>
+                            <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ item.title }}</p>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucune action récente.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+        </div>
+
+        <aside class="space-y-4" aria-label="Alertes et échéances">
+            <div class="premium-glass p-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Répartition par statut</h3>
+                <ul class="mt-3 space-y-3">
+                    {% for row in st_space_dashboard.distribution %}
+                    <li class="text-sm">
+                        <a href="#dossiers" class="flex items-center justify-between gap-3"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></a>
+                        <meter class="st-status-meter" min="0" max="100" value="{{ row.percent }}" aria-label="{{ row.label }} : {{ row.count }} dossier(s)">{{ row.percent }} %</meter>
+                    </li>
+                    {% empty %}<li class="text-sm text-slate-500">Aucun dossier dans votre périmètre.</li>{% endfor %}
+                </ul>
+            </div>
+            <div class="premium-glass p-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Alertes</h3>
+                <ul class="mt-3 space-y-2">
+                    {% for alert in st_workday.alerts %}
+                    <li class="rounded-xl border-l-4 {% if alert.severity == 'danger' %}border-[#db3832] bg-red-50/70{% else %}border-amber-400 bg-amber-50/70{% endif %} p-3 dark:bg-white/5">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ alert.title }}</p>
+                        <p class="mt-1 text-[11px] text-slate-500">{{ alert.status }}</p>
+                    </li>
+                    {% empty %}
+                    <li class="text-sm text-slate-500">Aucune alerte.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="premium-glass p-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Prochaines réunions</h3>
+                <ul class="mt-3 space-y-2">
+                    {% for reunion in st_space_dashboard.upcoming_meetings %}
+                    <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ reunion.titre }}</p>
+                        <p class="mt-1 text-[11px] text-slate-500">{{ reunion.date|date:"d/m/Y H:i" }} · {{ reunion.get_status_display }}</p>
+                    </li>
+                    {% empty %}
+                    <li class="text-sm text-slate-500">Aucune réunion planifiée.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+    </div>
+</section>

@@ -1,0 +1,43 @@
+{% if st_post_code == 'ST-V3-11' %}
+{% comment %}Le poste de travail GED est déplacé ici par le routeur, sans dupliquer le formulaire.{% endcomment %}
+{% elif st_post_code == 'ST-V3-10' %}
+{% include "ctc/app/components/ged_workspace.html" %}
+{% else %}
+{% comment %}Bibliothèque GED : versions documentaires enregistrées.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1400px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · GED</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Bibliothèque documentaire</h2>
+            <p class="mt-1 text-sm text-slate-500">Versions et documents enregistrés dans la plateforme. Les dépôts contrôlés relèvent du gestionnaire GED et du chef du pôle 2.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="#codification" class="institutional-secondary text-xs">Codification</a>
+            <a href="#versions" class="institutional-secondary text-xs">Versions</a>
+            <a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+        </div>
+    </header>
+    <section class="premium-glass p-4">
+        <div class="overflow-x-auto">
+            <table class="ctc-table w-full text-left text-sm">
+                <thead><tr><th>Norme</th><th>Version</th><th>Titre</th><th>Auteur</th><th>Date</th><th>Document</th></tr></thead>
+                <tbody>
+                    {% for version in ged_versions %}
+                    <tr>
+                        <td class="font-mono font-bold">{{ version.norme.reference_number }}</td>
+                        <td>v{{ version.version_number }}</td>
+                        <td>{{ version.title }}</td>
+                        <td>{{ version.version_author.get_full_name|default:"—" }}</td>
+                        <td>{{ version.created_at|date:"d/m/Y" }}</td>
+                        <td class="flex gap-2">
+                            <a class="font-bold text-[#007ea8] underline" href="{% url 'web:ctc_norme_read' version.norme_id %}">Lire</a>
+                            {% if version.document %}<a class="font-bold text-[#007ea8] underline" href="{{ version.document.url }}" target="_blank" rel="noopener">Fichier</a>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}<tr><td colspan="6" class="text-slate-500">Aucune version documentaire enregistrée.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endif %}

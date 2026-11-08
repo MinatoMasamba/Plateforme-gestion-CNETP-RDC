@@ -12,19 +12,30 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="CNE-ITP">
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/android-chrome-192x192.png' %}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/android-chrome-512x512.png' %}">
-    <link rel="shortcut icon" href="{% static 'img/favicon-32x32.png' %}">
+    {% include 'includes/brand_icons.html' %}
 
     <script src="{% static 'js/theme.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261015-3">
-    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261029">
+    <link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}?v=20261103-7">
+    <link rel="stylesheet" href="{% static 'css/ctc-supervision.css' %}?v=20261031-recette-1">
+    <link rel="stylesheet" href="{% static 'css/reception-workspace.css' %}?v=20261101-3">
+    {% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' or st_post_code == 'ST-V3-13' or st_post_code == 'ST-V3-14' %}
+    <link rel="stylesheet" href="{% static 'css/ged-workspace.css' %}?v=20261107-catalogue-2">
+    {% endif %}
+    {% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}
+    <script defer src="{% static 'vendor/echarts.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/norm-version-history.css' %}?v=20261106-1">
+    <script defer src="{% static 'js/norm-version-history.js' %}?v=20261106-3"></script>
+    <script defer src="{% static 'js/ged-workspace.js' %}?v=20261107-catalogue-2"></script>
+    {% endif %}
+    {% if st_post_code == 'ST-V3-13' or st_post_code == 'ST-V3-14' %}
+    <link rel="stylesheet" href="{% static 'css/legal-workspace.css' %}?v=20261101-2">
+    <script defer src="{% static 'js/legal-workspace.js' %}?v=20261101-2"></script>
+    {% endif %}
     <script src="{% static 'vendor/tailwindcss.js' %}"></script>
     <script src="{% static 'vendor/lucide.js' %}"></script>
     <script src="{% static 'js/network-utils.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/st-notifications.css' %}?v=20261107-1">
+    <script defer src="{% static 'js/st-notifications.js' %}?v=20261107-2"></script>
 
     <script>
         tailwind.config = {
@@ -60,6 +71,11 @@
         @media (max-width: 767px) {
             #ctc-main { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem); }
         }
+        #topbar-ia-slot #ia-agent-toggle-btn { position: static !important; }
+        #topbar-ia-slot #ia-agent-toggle-btn button {
+            height: 2.25rem; width: 2.25rem; border-radius: .65rem; box-shadow: none;
+        }
+        #topbar-ia-slot #ia-agent-toggle-btn button i { height: 1rem; width: 1rem; }
         @media (max-width: 767px) {
             #main-viewport-content h2 { font-size: 1.25rem !important; line-height: 1.35 !important; }
             #main-viewport-content h3 { font-size: 0.98rem !important; line-height: 1.35 !important; }
@@ -119,60 +135,176 @@
 
         <main id="ctc-main" class="flex-1 overflow-y-auto w-full relative z-10 bg-slate-50/50 dark:bg-[#020204]/40">
             <div id="main-viewport-content" class="w-full h-full">
+                <div id="view-aide" class="view-container hidden">{% include "ctc/app/components/help_view.html" %}</div>
+                <div id="view-notifications" class="view-container hidden">{% include "ctc/app/components/notifications_view.html" %}</div>
+                {% if st_matrix_v3 %}<div id="view-travaux" class="view-container hidden">{% include "ctc/app/components/space_records.html" %}</div>{% endif %}
 
-                <div id="view-dashboard" class="view-container">
+                {% if not st_matrix_v3 or "rapports" in st_allowed_views %}
+<div id="view-rapports" class="view-container hidden">{% include "ctc/app/components/reports_module.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "matrice_st" in st_allowed_views %}
+<div id="view-matrice_st" class="view-container hidden">{% include "ctc/app/components/st_matrix.html" %}</div>
+{% endif %}
+                {% if st_matrix_v3 %}
+<div id="view-coordination" class="view-container hidden">{% include "ctc/app/components/space_home.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "ptn" in st_allowed_views %}
+<div id="view-ptn" class="view-container hidden">{% include "ctc/app/components/ptn_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "indexation" in st_allowed_views %}
+<div id="view-indexation" class="view-container hidden">{% include "ctc/app/components/indexation_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "delays" in st_allowed_views %}
+<div id="view-delays" class="view-container hidden">{% include "ctc/app/components/delays_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "ged" in st_allowed_views %}
+<div id="view-ged" class="view-container hidden">{% include "ctc/app/components/ged_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "codification" in st_allowed_views %}
+<div id="view-codification" class="view-container hidden">{% include "ctc/app/components/codification_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "versions" in st_allowed_views %}
+<div id="view-versions" class="view-container hidden">{% include "ctc/app/components/versions_view.html" %}</div>
+{% endif %}
+{% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}
+<div id="view-ged_versions_todo" class="view-container hidden"></div>
+<div id="view-ged_anomalies" class="view-container hidden"></div>
+<div id="view-ged_activity" class="view-container hidden"></div>
+{% endif %}
+                {% if not st_matrix_v3 or "consolidation" in st_allowed_views %}
+<div id="view-consolidation" class="view-container hidden">{% include "ctc/app/components/consolidation_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "planning" in st_allowed_views %}
+<div id="view-planning" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Plan de travail du ST" module_note="Le plan de travail du pôle 1 sera développé dans le lot Planification." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "deliverables" in st_allowed_views %}
+<div id="view-deliverables" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Suivi des livrables" module_note="Le suivi des livrables des sept sous-commissions sera développé dans le lot Planification." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "alerts" in st_allowed_views %}
+<div id="view-alerts" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Alertes et relances" module_note="Les relances automatiques et proposées seront développées dans le lot Planification." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "exams" in st_allowed_views %}
+<div id="view-exams" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Pilotage des examens" module_note="L’affectation nominative des examens sera développée dans le lot Planification." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "legal" in st_allowed_views %}
+<div id="view-legal" class="view-container hidden">{% include "ctc/app/components/legal_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "contributions" in st_allowed_views %}
+<div id="view-contributions" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Cotisations et jetons de présence" module_note="Le calcul des jetons reste configurable et provisoire jusqu’à validation de la règle officielle." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "expenses" in st_allowed_views %}
+<div id="view-expenses" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Engagements et dépenses" module_note="Les engagements et dépenses réels seront raccordés au registre financier du pôle 3." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "statements" in st_allowed_views %}
+<div id="view-statements" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="États à confirmer" module_note="Les états financiers préparés par les chargés seront soumis à la confirmation des co-chefs dans le lot Pôle 3." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "accounts" in st_allowed_views %}
+<div id="view-accounts" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Comptes et accès" module_note="La gestion des comptes, pôles et sous-rôles sera développée dans le lot Pôle 4." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "backups" in st_allowed_views %}
+<div id="view-backups" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Sauvegardes et incidents" module_note="Le registre des sauvegardes, tests de restauration et incidents sera développé dans le lot Pôle 4." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "training" in st_allowed_views %}
+<div id="view-training" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Formation" module_note="Les sessions, présences et évaluations de formation seront développées dans le lot Pôle 4." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "communication" in st_allowed_views %}
+<div id="view-communication" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Communication" module_note="Le circuit de relecture et de publication des communiqués sera développé dans le lot Pôle 4." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "usagers" in st_allowed_views %}
+<div id="view-usagers" class="view-container hidden">{% include "ctc/app/components/space_module_placeholder.html" with module_title="Relations usagers" module_note="La boîte des demandes d’usagers sera développée dans le lot Pôle 4." %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "dashboard" in st_allowed_views %}
+<div id="view-dashboard" class="view-container">
                     {% include "ctc/app/components/dashboard_module.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-assistant_executif" class="view-container hidden">
+                {% if not st_matrix_v3 or "assistant_executif" in st_allowed_views %}
+<div id="view-assistant_executif" class="view-container hidden">
                     {% include "ctc/app/components/executive_assistant_module.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-ctc_requests" class="view-container hidden">
+                {% if not st_matrix_v3 or "ctc_requests" in st_allowed_views %}
+<div id="view-ctc_requests" class="view-container hidden">
                     {% include "ctc/app/components/ctc_requests_module.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-dossiers" class="view-container hidden">
+                {% if not st_matrix_v3 or "dossiers" in st_allowed_views %}
+<div id="view-dossiers" class="view-container hidden">
                     {% include "ctc/app/components/dossiers_view.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-financial" class="view-container hidden">
+                {% if not st_matrix_v3 or "financial" in st_allowed_views %}
+<div id="view-financial" class="view-container hidden">
                     {% include "ctc/app/components/financial_module.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-assignations" class="view-container hidden">
+                {% if not st_matrix_v3 or "assignations" in st_allowed_views %}
+<div id="view-assignations" class="view-container hidden">
                     {% include "ctc/app/components/assignations_view.html" %}
                 </div>
-                <div id="view-statistiques" class="view-container hidden">{% include "ctc/app/components/statistiques_view.html" %}</div>
-                <div id="view-experts" class="view-container hidden">{% include "ctc/app/components/experts_view.html" %}</div>
-                <div id="view-tracabilite" class="view-container hidden">{% include "ctc/app/components/tracabilite_view.html" %}</div>
-                <div id="view-homologations" class="view-container hidden">{% include "ctc/app/components/homologations_view.html" %}</div>
-                <div id="view-instructions" class="view-container hidden">{% include "ctc/app/components/instruction_module.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "statistiques" in st_allowed_views %}
+<div id="view-statistiques" class="view-container hidden">{% if st_matrix_v3 and not st_is_supervisor %}{% include "ctc/app/components/personal_statistics.html" %}{% else %}{% include "ctc/app/components/statistiques_view.html" %}{% endif %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "experts" in st_allowed_views %}
+<div id="view-experts" class="view-container hidden">{% include "ctc/app/components/experts_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "tracabilite" in st_allowed_views %}
+<div id="view-tracabilite" class="view-container hidden">{% include "ctc/app/components/tracabilite_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "homologations" in st_allowed_views %}
+<div id="view-homologations" class="view-container hidden">{% include "ctc/app/components/homologations_view.html" %}</div>
+{% endif %}
+                {% if not st_matrix_v3 or "instructions" in st_allowed_views %}
+<div id="view-instructions" class="view-container hidden">{% include "ctc/app/components/instruction_module.html" %}</div>
+{% endif %}
 
-                <div id="view-reunions" class="view-container hidden">
+                {% if not st_matrix_v3 or "reunions" in st_allowed_views %}
+<div id="view-reunions" class="view-container hidden">
                     {% include "ctc/app/components/reunions_view.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-drive" class="view-container hidden">
+                {% if not st_matrix_v3 or "drive" in st_allowed_views %}
+<div id="view-drive" class="view-container hidden">
                     {% include "ctc/app/components/drive_view.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-archives" class="view-container hidden">
+                {% if not st_matrix_v3 or "archives" in st_allowed_views %}
+<div id="view-archives" class="view-container hidden">
                     {% include "ctc/app/components/archives_view.html" %}
                 </div>
+{% endif %}
 
-                <div id="view-parametres" class="view-container hidden">
+                {% if not st_matrix_v3 or "parametres" in st_allowed_views %}
+<div id="view-parametres" class="view-container hidden">
                     {% include "ctc/app/components/parametres_module.html" %}
                 </div>
+{% endif %}
 
 
             </div>
         </main>
     </div>
 
+    {% include "ctc/app/components/help_bar.html" %}
+
     {% include "ctc/app/components/directory_modal.html" %}
     {% include "ctc/composants/ctc_permission_modal.html" %}
     {% include 'ia_agent/composants/agent_widget.html' with widget_scope='ctc' widget_position='bottom-6 right-6' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slot = document.getElementById('topbar-ia-slot');
+            const toggle = document.getElementById('ia-agent-toggle-btn');
+            if (slot && toggle) slot.appendChild(toggle);
+        });
+    </script>
 
     <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-800 dark:bg-[#020204]/90 dark:border-white/10 dark:text-slate-300 backdrop-blur-md transition-opacity">
         <i id="toast-icon" data-lucide="check-circle-2" class="h-5 w-5 text-blue-400"></i>
@@ -205,7 +337,7 @@
             return cookieValue;
         }
 
-        async function apiFetch(url, options = {}) {
+        async function ctcFetchResponse(url, options = {}) {
             const defaults = {
                 headers: {
                     'Content-Type': 'application/json',
@@ -217,6 +349,11 @@
                 ...options,
                 headers: { ...defaults.headers, ...options.headers }
             });
+            return response;
+        }
+
+        async function apiFetch(url, options = {}) {
+            const response = await ctcFetchResponse(url, options);
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`API Error: ${response.status} - ${errorText}`);
@@ -261,8 +398,16 @@
         // des inclus Django, on bascule simplement leur visibilité (pas d'AJAX).
         // =========================================================================
         window.switchView = function(viewId) {
-            const target = document.getElementById('view-' + viewId);
+            const allowed = window.CTC_CTX?.st_allowed_views;
+            if (Array.isArray(allowed) && !allowed.includes(viewId)) {
+                window.showAppToast('Ce module ne relève pas de votre poste.', 'warning');
+                viewId = window.CTC_CTX.st_space_home;
+            }
+            const spaceHomeViews = new Set(['coordination', 'espace_p1', 'espace_p2', 'espace_p3', 'espace_p4']);
+            const visibleId = spaceHomeViews.has(viewId) ? 'coordination' : viewId;
+            const target = document.getElementById('view-' + visibleId);
             if (!target) return;
+            if (window.stGEDActivate) window.stGEDActivate(viewId, target);
             const current = document.querySelector('.view-container:not(.hidden)');
             document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
             target.classList.remove('hidden');
@@ -271,20 +416,40 @@
                 if (viewport) viewport.scrollTop = 0;
             }
             if (window.location.hash !== '#' + viewId) {
-                window.history.replaceState(null, '', '#' + viewId);
+                window.history.pushState({ ctcView: viewId }, '', '#' + viewId);
             }
 
             if (typeof window.updateSidebarForTab === 'function') {
                 window.updateSidebarForTab(viewId);
             }
+            if (viewId === 'rapports' && window.stReportsInit) window.stReportsInit();
+            if (viewId === 'notifications') window.stNotificationsRefresh?.();
             safeCreateIcons();
         };
 
+        window.runGlobalSearch = function(value) {
+            const query = (value || '').trim();
+            if (!query) return;
+            window.switchView('dossiers');
+            window.setTimeout(() => {
+                const input = document.getElementById('dossier-search-input');
+                if (input) {
+                    input.value = query;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }, 80);
+        };
+        const defaultCtcView = () => {
+            const requested = '{{ st_initial_view|default:""|escapejs }}';
+            if (requested) return requested;
+            if (window.location.pathname === '/ctc/rapports/' || window.location.pathname === '/ctc/rapports/travail/') return 'rapports';
+            return (window.CTC_CTX && window.CTC_CTX.st_space_home) || (window.location.pathname === '/ctc/experts/' ? 'experts' : 'dashboard');
+        };
         document.addEventListener('DOMContentLoaded', () => {
             safeCreateIcons();
-            window.switchView(window.location.hash.slice(1) || (window.location.pathname === '/ctc/experts/' ? 'experts' : 'dashboard'));
+            window.switchView(window.location.hash.slice(1) || defaultCtcView());
         });
-        window.addEventListener('hashchange', () => window.switchView(window.location.hash.slice(1) || 'dashboard'));
+        window.addEventListener('hashchange', () => window.switchView(window.location.hash.slice(1) || defaultCtcView()));
     </script>
     <script>
         (() => {

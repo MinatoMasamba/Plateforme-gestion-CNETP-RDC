@@ -74,6 +74,13 @@ html.dark {
 .ctc-search { display: flex; align-items: center; gap: .5rem; flex: 1 1 260px; min-width: 180px; padding: 0 .7rem; background: var(--ctc-bg); border: 1px solid var(--ctc-border); border-radius: var(--ctc-radius-sm); }
 .ctc-search svg { width: 16px; height: 16px; color: var(--ctc-muted); }
 .ctc-search input { width: 100%; height: 40px; border: 0; background: transparent; color: var(--ctc-text); outline: none; }
+input.ctc-search, select.ctc-select { min-height: 42px; padding: .55rem .7rem; font-size: .85rem; }
+textarea.ctc-search { min-height: 96px; padding: .6rem .7rem; font-size: .85rem; }
+.cnetp-premium .institutional-primary, .cnetp-premium .institutional-secondary {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 42px; padding: .6rem 1rem; font-weight: 700;
+}
+.cnetp-premium .institutional-secondary { border: 1px solid var(--ctc-border); border-radius: 12px; background: var(--ctc-surface); color: var(--ctc-text); }
 .ctc-select { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; font-weight: 700; color: var(--ctc-muted); min-width: 150px; }
 .ctc-select select { height: 42px; border: 1px solid var(--ctc-border); border-radius: var(--ctc-radius-sm); background: var(--ctc-bg); color: var(--ctc-text); padding: 0 .6rem; }
 
@@ -151,3 +158,63 @@ html.dark {
 [data-experts-row] { cursor: pointer; }
 .ctc-expert-detail-panel .ctc-card { margin-top: 1rem; }
 .ctc-expert-detail-panel dd { overflow-wrap: anywhere; }
+
+/* Statuts ST v3 : la couleur ne porte jamais seule l'information. */
+.ctc-badge--danger { background: rgba(219, 56, 50, .12); color: #b3261e; border-color: rgba(219, 56, 50, .22); }
+.ctc-badge__dot { width: .4rem; height: .4rem; border-radius: 999px; background: currentColor; flex: 0 0 auto; }
+.dark .ctc-badge--danger { color: #fca5a5; }
+
+/* Accueils ST : grille locale, indépendante des KPI historiques. */
+.st-space-home { min-width: 0; }
+.st-workspace-tools { display: flex; flex-wrap: wrap; gap: 10px; }
+.st-tool-card { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid var(--ctc-border); border-radius: 12px; background: var(--ctc-surface); color: var(--ctc-text); font-size: .82rem; font-weight: 700; }
+.st-tool-card svg { width: 18px; height: 18px; color: #0095c9; flex-shrink: 0; }
+.st-tool-card:hover { border-color: #0095c9; }
+.st-personal-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; max-width: 640px; }
+.st-personal-kpis strong { font-size: 1.7rem; }
+.st-personal-kpis small { color: var(--ctc-muted); font-size: .72rem; }
+.st-workspace-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--ctc-border); font-size: .85rem; }
+.st-member-header { border-left: 4px solid #0095c9; padding-left: 16px; }
+.dark .st-member-header .ctc-eyebrow { color: #7dd3fc; }
+@media(max-width:767px) {
+  .st-workspace-tools { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
+  .st-tool-card { padding: 8px 10px; font-size: .72rem; flex-shrink: 0; }
+}
+.st-space-home .premium-glass { border: 1px solid var(--ctc-border); border-radius: 18px; box-shadow: var(--ctc-shadow); }
+.st-space-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.st-space-kpi { display: flex; flex-direction: column; gap: 7px; min-width: 0; padding: 16px; color: var(--ctc-text); }
+.st-space-kpi .premium-kpi__label { font-size: .76rem; font-weight: 600; }
+.st-space-kpi .premium-kpi__value { font-size: 1.75rem; line-height: 1.1; }
+.st-space-kpi .premium-kpi__hint { font-size: .72rem; color: var(--ctc-muted); }
+.st-action-link { display: inline-flex; align-items: center; padding: 9px 12px; border: 1px solid var(--ctc-border); border-radius: 10px; color: var(--ctc-text); background: var(--ctc-surface); white-space: nowrap; }
+.st-workday .premium-hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px; border: 1px solid var(--ctc-border); border-radius: 16px; }
+.st-workday .premium-eyebrow { color: var(--ctc-muted); font-size: .66rem; font-weight: 700; }
+.st-workday .premium-hero__title { font-size: 1.25rem; font-weight: 800; color: var(--ctc-text); margin: 3px 0; }
+.st-workday .premium-hero__subtitle { color: var(--ctc-muted); font-size: .75rem; }
+.st-workday .premium-hero__aside { display: flex; flex-direction: column; flex: 0 0 auto; align-items: flex-end; }
+.st-workday .premium-hero__aside span { font-size: .7rem; color: var(--ctc-muted); }
+.st-workday .premium-hero__aside strong { font-size: 1.6rem; }
+.st-workday-body { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: 20px; align-items: start; }
+.st-workday-blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.st-workday-blocks article, .st-workday-body aside { min-width: 0; }
+.st-work-item-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+.st-workday .ctc-badge { white-space: normal; }
+.st-workday li { overflow-wrap: anywhere; }
+.st-status-meter { display: block; width: 100%; height: 10px; margin-top: 5px; accent-color: #0095c9; }
+.cnetp-premium #ia-agent-toggle-btn { bottom: 3rem !important; }
+.st-space-home a:focus-visible { outline: 3px solid #0095c9; outline-offset: 3px; }
+@media (max-width: 1199px) {
+  .st-workday-body { grid-template-columns: minmax(0, 1fr); }
+  .st-workday-body aside { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .st-workday-body aside > * { margin: 0 !important; }
+}
+@media (max-width: 767px) {
+  .cnetp-premium #ia-agent-toggle-btn { bottom: 6rem !important; }
+  .st-space-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .st-space-kpi { padding: 12px; gap: 5px; }
+  .st-workday .premium-hero { padding: 12px; }
+  .st-workday .premium-eyebrow, .st-workday .premium-hero__subtitle { display: none; }
+  .st-workday .premium-hero__aside span { max-width: 85px; text-align: right; }
+  .st-workday-blocks, .st-workday-body aside { grid-template-columns: minmax(0, 1fr); }
+  .st-space-home > header { gap: 10px; }
+}

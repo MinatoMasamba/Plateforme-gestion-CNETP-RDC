@@ -1,0 +1,371 @@
+<section class="ged-workspace ged-v2" data-ged-workspace data-head="{% if st_post_code == 'ST-V3-10' %}true{% else %}false{% endif %}" aria-busy="true">
+    <div class="ged-page-back" data-ged-page-back hidden><button type="button" class="ged-button ged-back-link" data-ged-back-dashboard><i data-lucide="arrow-left"></i> Retour au tableau de bord</button></div>
+    <header class="ged-heading" data-ged-dashboard-heading>
+        <div>
+            <p class="ged-eyebrow">CNE-ITP · Pôle 2 · {% if st_post_code == 'ST-V3-10' %}Supervision{% else %}Poste 11{% endif %}</p>
+            <h2>Espace documentaire</h2>
+            <p class="ged-subtitle">Suivi et supervision documentaire</p>
+        </div>
+        <div class="ged-heading-actions">
+            <label class="ged-period-label">Période
+                <select class="ged-period" data-ged-period aria-label="Période">
+                    <option value="7">7 jours</option>
+                    <option value="30" selected>30 jours</option>
+                    <option value="90">90 jours</option>
+                    <option value="custom">Personnalisée</option>
+                </select>
+            </label>
+            <span class="ged-custom-period" data-ged-custom-period hidden>
+                <input type="date" data-ged-date-from aria-label="Début de période">
+                <input type="date" data-ged-date-to aria-label="Fin de période">
+            </span>
+            <span class="ged-updated" data-ged-updated></span>
+            <button type="button" class="ged-button" data-ged-refresh><i data-lucide="refresh-cw"></i> Actualiser</button>
+        </div>
+    </header>
+
+    <p class="ged-feedback" data-ged-message role="status" aria-live="polite"></p>
+
+    <section data-ged-panel="dashboard" class="ged-dash">
+        <section class="ged-card ged-sc-activity">
+            <header>
+                <div><h3>Activité des sous-commissions</h3></div>
+                <div class="ged-sc-legend" data-ged-sc-legend>
+                    <span class="ged-pill">Une ligne par sous-commission</span>
+                </div>
+            </header>
+            <div class="ged-sc-chart" data-ged-sc-chart role="list"></div>
+        </section>
+
+        <div class="ged-pipe-row">
+            <section class="ged-card ged-pipe-card">
+                <header><div><p class="ged-eyebrow">Poste 6</p><h3>Réceptions du secrétariat</h3></div></header>
+                <div class="ged-pipe-kpis" data-ged-upstream-kpis></div>
+                <div class="ged-pipe-latest" data-ged-upstream-latest></div>
+                <button type="button" class="ged-link-btn" data-ged-open-receptions>Voir les réceptions <i data-lucide="arrow-right"></i></button>
+            </section>
+            <section class="ged-card ged-pipe-card">
+                <header><div><p class="ged-eyebrow">Après indexation</p><h3>Suite du traitement documentaire</h3></div></header>
+                <div class="ged-pipe-kpis" data-ged-downstream-kpis></div>
+                <div class="ged-pipe-latest" data-ged-downstream-latest></div>
+                <button type="button" class="ged-link-btn" data-ged-open-followup>Voir le suivi <i data-lucide="arrow-right"></i></button>
+            </section>
+        </div>
+
+        <div class="ged-bottom-row">
+            <section class="ged-card ged-anomaly-dash">
+                <header><div><h3>Anomalies et retours</h3></div></header>
+                <div class="ged-anomaly-summary" data-ged-anomaly-summary></div>
+                <div class="ged-anomaly-mini" data-ged-anomaly-mini></div>
+                <button type="button" class="ged-link-btn" data-ged-open-all-anomalies>Voir toutes les anomalies →</button>
+            </section>
+            <section class="ged-card ged-my-activity">
+                <header><div><h3>Mon activité</h3></div></header>
+                <div class="ged-my-kpis" data-ged-my-kpis></div>
+                <div class="ged-activity-mini" data-ged-activity-feed></div>
+                <button type="button" class="ged-link-btn" data-ged-open-all-activity>Voir toute l’activité →</button>
+            </section>
+        </div>
+
+        <!-- Compteurs latents pour badges sidebar -->
+        <div class="sr-only" aria-hidden="true">
+            <span data-ged-count="documents">0</span>
+            <span data-ged-count="report">0</span>
+            <span data-ged-count="anomalies">0</span>
+            <span data-ged-count="confirmed">0</span>
+            <span data-ged-count="control">0</span>
+            <span data-ged-count="delay">0</span>
+            <span data-ged-workfile-count>0</span>
+            <span data-ged-context="documents"></span>
+            <span data-ged-circuit-note></span>
+            <span data-ged-stat-scope></span>
+            <span data-ged-missing-report></span>
+            <span data-ged-objective></span>
+            <div data-ged-circuit></div>
+            <div data-ged-week-chart></div>
+            <div data-ged-tome-chart></div>
+            <div data-ged-delay-chart></div>
+            <div data-ged-blockers-summary></div>
+            <div data-ged-conformity hidden><span data-ged-conformity-status></span><ul data-ged-conformity-list></ul></div>
+            <button type="button" data-ged-open-workfile hidden></button>
+            <button type="button" data-ged-kpi="documents" hidden></button>
+            <button type="button" data-ged-kpi="report" hidden></button>
+            <button type="button" data-ged-kpi="anomalies" hidden></button>
+            <button type="button" data-ged-kpi="confirmed" hidden></button>
+            <button type="button" data-ged-kpi="control" hidden></button>
+            <button type="button" data-ged-kpi="delay" hidden></button>
+        </div>
+    </section>
+
+    <section data-ged-panel="work" hidden>
+        <div class="ged-work-toolbar">
+            <h3>Dossiers à indexer <span class="ged-badge" data-ged-queue-count>0</span></h3>
+            <div class="ged-work-tools">
+                <button type="button" class="ged-button ged-filter-trigger" data-ged-toggle-filters aria-expanded="false" aria-controls="ged-filter-popover"><i data-lucide="sliders-horizontal"></i> Filtres <span class="ged-filter-count" data-ged-filter-count hidden>0</span></button>
+            </div>
+        </div>
+        <div class="ged-filter-backdrop" data-ged-filter-backdrop hidden></div>
+        <div class="ged-filter-popover" id="ged-filter-popover" data-ged-filters-panel hidden role="dialog" aria-label="Filtres des dossiers">
+            <div class="ged-filter-head"><strong>Filtres</strong><button type="button" class="ged-icon-btn" data-ged-close-filters aria-label="Fermer les filtres"><i data-lucide="x"></i></button></div>
+            <div class="ged-filter-body">
+                <fieldset class="ged-filter-group"><legend>État</legend>
+                    <div class="ged-filter-pills" data-ged-state-pills>
+                        <button type="button" class="ged-filter-pill" data-ged-state="READY" aria-pressed="false">À vérifier</button>
+                        <button type="button" class="ged-filter-pill" data-ged-state="REPORT" aria-pressed="false">Rapport attendu</button>
+                        <button type="button" class="ged-filter-pill" data-ged-state="BLOCKED" aria-pressed="false">Bloqués</button>
+                        <button type="button" class="ged-filter-pill" data-ged-state="CORRECTION" aria-pressed="false">Anomalies</button>
+                        <button type="button" class="ged-filter-pill" data-ged-state="INDEXED" aria-pressed="false">Indexés</button>
+                        <button type="button" class="ged-filter-pill" data-ged-state="CONFIRMED" aria-pressed="false">Confirmés</button>
+                    </div>
+                </fieldset>
+                <label class="ged-filter-field">Sous-commission · Tome<select data-ged-work-sc><option value="">Toutes les sous-commissions</option></select></label>
+                <label class="ged-filter-field">Groupe de travail<select data-ged-work-group><option value="">Tous les groupes</option></select></label>
+                <label class="ged-filter-field">Date de réception
+                    <select data-ged-work-period>
+                        <option value="">Toutes</option>
+                        <option value="7">7 derniers jours</option>
+                        <option value="30">30 derniers jours</option>
+                        <option value="90">90 derniers jours</option>
+                        <option value="custom">Personnalisée</option>
+                    </select>
+                </label>
+                <div class="ged-filter-range" data-ged-work-range hidden>
+                    <label>Du<input type="date" data-ged-work-from aria-label="Réception à partir du"></label>
+                    <label>Au<input type="date" data-ged-work-to aria-label="Réception jusqu’au"></label>
+                </div>
+                <label class="ged-filter-field">Rapport de revue
+                    <select data-ged-work-report>
+                        <option value="">Tous</option>
+                        <option value="received">Reçu</option>
+                        <option value="awaited">Attendu</option>
+                    </select>
+                </label>
+                <label class="ged-switch"><input type="checkbox" data-ged-work-anomaly> Avec anomalie uniquement</label>
+            </div>
+            <footer class="ged-filter-foot">
+                <button type="button" class="ged-button" data-ged-reset-filters>Réinitialiser</button>
+                <button type="button" class="ged-button ged-primary" data-ged-apply-filters>Afficher <span data-ged-filter-total>0</span> dossiers</button>
+            </footer>
+        </div>
+        <label class="ged-search"><i data-lucide="search"></i><span class="sr-only">Filtrer la file</span><input type="search" data-ged-search placeholder="Référence, titre, tome ou code…"></label>
+        <div class="ged-active-filters" data-ged-active-filters></div>
+
+        <div class="ged-queue-strip"><div class="ged-queue-list" data-ged-queue aria-live="polite"></div></div>
+
+        <div class="ged-reader-launch"><button type="button" class="ged-button" data-ged-reader-toggle aria-expanded="false" aria-controls="ged-document-reader"><i data-lucide="files"></i><span data-ged-reader-toggle-label>Ouvrir les documents</span></button></div>
+        <div class="ged-workbench is-reader-closed">
+            <section class="ged-card ged-reader-col" id="ged-document-reader" hidden>
+                <header class="ged-reader-head"><div><p class="ged-eyebrow">Lecture</p><h3 data-ged-preview-title>Document</h3></div><span class="ged-badge" data-ged-preview-label>Aucun fichier</span></header>
+                <div class="ged-reader-toolbar">
+                    <label class="ged-piece-picker">Pièce<select data-ged-piece-select></select></label>
+                    <div class="ged-preview-tools">
+                        <button type="button" class="ged-button" data-ged-zoom><i data-lucide="zoom-in"></i> Zoom</button>
+                        <button type="button" class="ged-button" data-ged-reader-close><i data-lucide="x"></i> Fermer les documents</button>
+                    </div>
+                </div>
+                <div class="ged-preview-frame" data-ged-preview>
+                    <p class="ged-empty">Sélectionnez un dossier pour l’afficher.</p>
+                </div>
+                <div data-ged-source-link></div>
+                <div class="ged-provenance" data-ged-provenance></div>
+            </section>
+
+            <section class="ged-card ged-index-panel" data-ged-detail>
+                <header class="ged-verify-head"><div><p class="ged-eyebrow">Vérification</p><h3 data-ged-reference>Sélectionnez un dossier</h3></div><div class="ged-verify-head-actions"><span class="ged-badge" data-ged-current-state>En attente</span></div></header>
+                <div class="ged-guide" data-ged-guide>
+                    <i data-lucide="mouse-pointer-click"></i>
+                    <p>Choisissez un dossier dans la file pour vérifier ses conditions réelles et préparer l’indexation.</p>
+                </div>
+                <div data-ged-fiche hidden>
+                    <section class="ged-verify-section">
+                        <h4 class="ged-section-title"><i data-lucide="list-checks"></i> Contrôle des pièces</h4>
+                        <ul class="ged-status-icons" data-ged-admissibility aria-label="Contrôles automatiques des pièces"></ul>
+                        <div class="ged-step-alert" data-ged-admissibility-alert hidden>
+                            <i data-lucide="triangle-alert"></i>
+                            <div><strong>Indexation verrouillée</strong><p data-ged-admissibility-reason></p></div>
+                        </div>
+                        <div class="ged-verify-flags">
+                            <label class="ged-check"><input type="checkbox" data-ged-check-pv disabled> PV consulté</label>
+                            <label class="ged-check"><input type="checkbox" data-ged-check-report disabled> Rapport de revue vérifié</label>
+                        </div>
+                    </section>
+                    <section class="ged-verify-section">
+                        <h4 class="ged-section-title"><i data-lucide="file-text"></i> Métadonnées documentaires</h4>
+                        <p class="ged-muted">Corrigez les champs avant de confirmer l’indexation. La réception d’origine reste conservée.</p>
+                        <div class="ged-metadata-fields">
+                            <label>Référence<input form="ged-index-form" name="metadata_reference" data-ged-metadata="reference" maxlength="80" required></label>
+                            <label>Version du document<input form="ged-index-form" name="metadata_version" data-ged-metadata="version" maxlength="80"></label>
+                            <label class="ged-field-wide">Titre<textarea form="ged-index-form" name="metadata_title" data-ged-metadata="title" rows="2" maxlength="500" required></textarea></label>
+                            <label>Tome<input form="ged-index-form" name="metadata_tome" data-ged-metadata="tome" maxlength="80"></label>
+                            <label>Sous-commission<input form="ged-index-form" name="metadata_sc" data-ged-metadata="sc" maxlength="120"></label>
+                            <label>Groupe de travail<input form="ged-index-form" name="metadata_group" data-ged-metadata="group" maxlength="120"></label>
+                            <label>Date du vote<input type="date" form="ged-index-form" name="metadata_vote_date" data-ged-metadata="vote_date"></label>
+                            <label>Réception<input form="ged-index-form" name="metadata_received_at" data-ged-metadata="received_at" maxlength="80"></label>
+                            <label>Émetteur<input form="ged-index-form" name="metadata_sender" data-ged-metadata="sender" maxlength="255"></label>
+                        </div>
+                        <p class="ged-muted">Ces champs sont enregistrés avec la nouvelle indexation.</p>
+                    </section>
+                    <section class="ged-verify-section">
+                        <h4 class="ged-section-title"><i data-lucide="scan-line"></i> Indexation documentaire</h4>
+                        <form id="ged-index-form" data-ged-index-form>
+                            <label>Code documentaire<select name="code_id" required></select></label>
+                            <p class="ged-muted" data-ged-code-source></p>
+                            <p class="ged-code-unique" data-ged-code-unique></p>
+                            <label>Version<input name="version_label" readonly></label>
+                            <fieldset class="ged-source"><legend>Document source</legend>
+                                <label>Fichier préparé<select name="source_id"></select></label>
+                                <label>Joindre<input type="file" name="upload" accept=".pdf,.png,.jpg,.jpeg"></label>
+                                <button type="button" class="ged-button" data-ged-upload><i data-lucide="upload"></i> Joindre</button>
+                            </fieldset>
+                            <label>Observation<textarea name="observation" rows="3" maxlength="10000" placeholder="Observation…"></textarea></label>
+                            <label class="ged-check"><input type="checkbox" name="verified"> Pièces vérifiées et lisibles</label>
+                            <p class="ged-missing" data-ged-missing></p>
+                            <button type="button" class="ged-button ged-primary" data-ged-index disabled><i data-lucide="scan-line"></i> Confirmer l’indexation</button>
+                            <dl class="ged-recap" data-ged-recap hidden></dl>
+                            <div class="ged-stepper" hidden>
+                                <button type="button" data-ged-step="1" class="is-active"><span>1</span></button>
+                                <button type="button" data-ged-step="2"><span>2</span></button>
+                                <button type="button" data-ged-step="3"><span>3</span></button>
+                                <button type="button" data-ged-step="4"><span>4</span></button>
+                            </div>
+                            <section data-ged-step-panel="1" hidden></section>
+                            <section data-ged-step-panel="2" hidden></section>
+                            <section data-ged-step-panel="3" hidden></section>
+                            <section data-ged-step-panel="4" hidden></section>
+                            <button type="button" data-ged-step-next hidden></button>
+                            <button type="button" data-ged-step-prev hidden></button>
+                        </form>
+                        <button type="button" class="ged-button" data-ged-anomaly-alt hidden><i data-lucide="file-warning"></i> Signaler une incohérence</button>
+                    </section>
+                    <section class="ged-verify-section">
+                        <h4 class="ged-section-title"><i data-lucide="folder-open"></i> Suite du dossier</h4>
+                        <div class="ged-actions"><button type="button" class="ged-button" data-ged-open-anomaly>Signaler une anomalie</button><a class="ged-button" data-ged-open-dossier hidden target="_blank" rel="noopener">Ouvrir le dossier</a></div>
+                    </section>
+                    {% if st_post_code == 'ST-V3-10' %}<section class="ged-confirmation" data-ged-head-confirm hidden><h4>Contrôle du chef de pôle</h4><label>Commentaire<textarea data-ged-confirm-comment rows="3" maxlength="10000"></textarea></label><div class="ged-actions"><button type="button" class="ged-button ged-primary" data-ged-confirm="CONFIRMED">Confirmer la version</button><button type="button" class="ged-button" data-ged-confirm="RETURNED">Demander une correction</button></div></section>{% endif %}
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <section class="ged-card" data-ged-panel="library" hidden>
+        <header><div><p class="ged-eyebrow">Bibliothèque</p><h3>Documents GED</h3></div><button type="button" class="ged-button" data-ged-library-back hidden><i data-lucide="arrow-left"></i> Retour</button></header>
+        <div data-ged-library-folders class="ged-sc-folders"></div>
+        <div data-ged-library-table-wrap hidden>
+            <div class="ged-library-filters">
+                <label>Tome<select data-ged-library-tome><option value="">Tous</option></select></label>
+                <label>Sous-commission<select data-ged-library-sc><option value="">Toutes</option></select></label>
+                <label>Type<select data-ged-library-type><option value="">Tous</option><option value="Norme / procédure">Norme / procédure</option></select></label>
+                <label>Statut<select data-ged-library-status><option value="">Tous</option><option value="CONFIRMED">Confirmé</option><option value="PENDING">À confirmer</option><option value="RETURNED">À corriger</option></select></label>
+                <label>Du<input type="date" data-ged-library-from></label>
+                <label>Au<input type="date" data-ged-library-to></label>
+            </div>
+            <label class="ged-search"><i data-lucide="search"></i><span class="sr-only">Rechercher</span><input type="search" data-ged-library-search placeholder="Code, titre…"></label>
+            <div class="ged-table-wrap"><table class="ged-table"><thead><tr><th>Code</th><th>Titre</th><th>Statut</th><th>Création</th><th>Durée</th><th>Versions</th><th>Dernière activité</th></tr></thead><tbody data-ged-library></tbody></table></div>
+        </div>
+        <aside class="ged-side-panel" data-ged-library-detail hidden></aside>
+    </section>
+
+    <section class="ged-card" data-ged-panel="versions_todo" hidden>
+        <header><div><p class="ged-eyebrow">Normes réceptionnées au CTC</p><h3>Versions à traiter</h3></div><div class="ged-actions"><span class="ged-badge" data-ged-versions-todo-count>0</span><button type="button" class="ged-button" data-ged-versions-todo-back hidden><i data-lucide="arrow-left"></i> Retour aux normes</button></div></header>
+        <p class="ged-muted">Sélectionnez une norme pour consulter ses versions et comparer les modifications.</p>
+        <p class="ged-empty" data-ged-versions-todo-empty hidden></p>
+        <div data-ged-versions-todo-catalogue>
+            <label class="ged-search"><i data-lucide="search"></i><span class="sr-only">Rechercher une norme réceptionnée</span><input type="search" data-ged-versions-todo-search placeholder="Référence, titre ou sous-commission…"></label>
+            <div class="ged-norm-list" data-ged-versions-todo-list></div>
+        </div>
+        <div data-ged-versions-todo-detail hidden>
+            <div class="ged-todo-toolbar">
+                <label>Norme<select data-ged-versions-todo-select></select></label>
+                <span class="ged-badge" data-ged-versions-todo-state></span>
+                <div class="ged-actions" data-ged-versions-todo-actions></div>
+            </div>
+            <p class="ged-muted" data-ged-versions-todo-meta></p>
+            <div data-ged-todo-history></div>
+        </div>
+    </section>
+
+    <section class="ged-card" data-ged-panel="codes" hidden>
+        <header class="ged-code-header">
+            <div><p class="ged-eyebrow">Centre de contrôle</p><h3>Contrôle des codifications</h3></div>
+            <div class="ged-code-refs">
+                <button type="button" class="ged-button" data-ged-open-ncd>Références NCD</button>
+                <button type="button" class="ged-button" data-ged-open-iso>Références ISO</button>
+            </div>
+        </header>
+        <div class="ged-code-kpis" data-ged-code-kpis></div>
+        <p class="ged-muted" data-ged-ref-status hidden></p>
+        <div class="ged-table-wrap"><table class="ged-table"><thead><tr><th>Norme</th><th>Tome</th><th>Référence</th><th>Anomalie</th><th>Suggestion</th><th>Niveau</th><th>État</th></tr></thead><tbody data-ged-code-analysis></tbody></table></div>
+        <div class="ged-code-blocks">
+            <article class="ged-code-block"><h4>Tomes / SC</h4><div class="ged-table-wrap"><table class="ged-table"><thead><tr><th>Sous-commission</th><th>Tome</th></tr></thead><tbody data-ged-nomenclature></tbody></table></div></article>
+            <article class="ged-code-block"><h4>Registre</h4><label class="ged-search"><i data-lucide="search"></i><span class="sr-only">Rechercher</span><input type="search" data-ged-code-search placeholder="Code…"></label><div data-ged-codes class="ged-code-registry"></div></article>
+            <article class="ged-code-block"><h4>Vérifier</h4><label>Code<input type="search" data-ged-code-query></label><button type="button" class="ged-button" data-ged-code-check>Vérifier</button><p class="ged-code-unique" data-ged-code-result></p></article>
+        </div>
+        {% if st_post_code == 'ST-V3-10' %}<form data-ged-code-form class="ged-code-form"><h4>Autoriser un code</h4><label>Dossier<select name="process_id" required></select></label><label>Sous-commission<select name="sc_id" required></select></label><label>Code<input name="code" maxlength="80" required></label><label>Référence officielle<input name="source_reference" maxlength="500" required></label><button type="button" class="ged-button ged-primary" data-ged-authorize-code>Enregistrer</button></form>{% endif %}
+    </section>
+
+    <section class="ged-card" data-ged-panel="versions" hidden>
+        <header><div><p class="ged-eyebrow">Traçabilité</p><h3>Historique des versions</h3></div><button type="button" class="ged-button" data-ged-versions-back hidden><i data-lucide="arrow-left"></i> <span data-ged-back-label>Retour</span></button></header>
+        <div data-ged-versions-scs class="ged-sc-folders"></div>
+        <div data-ged-versions-detail hidden>
+            <div data-ged-versions-norms class="ged-norm-list"></div>
+            <div data-ged-versions-history hidden>
+                <div class="ged-history-toolbar"><label>Dossier<select data-ged-version-process></select></label></div>
+                <div data-ged-shared-history></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ged-card" data-ged-panel="anomalies" hidden>
+        <header><div><p class="ged-eyebrow">Contrôle des pièces</p><h3>Anomalies documentaires</h3></div><button type="button" class="ged-button ged-primary" data-ged-open-anomaly-form><i data-lucide="plus"></i> Signaler</button></header>
+        <div data-ged-anomalies class="ged-anomaly-list"></div>
+        <aside class="ged-side-panel" data-ged-anomaly-panel hidden>
+            <header><h4>Signaler une anomalie</h4><button type="button" class="ged-button" data-ged-close-anomaly-form aria-label="Fermer">✕</button></header>
+            <form data-ged-anomaly-form>
+                <label>Type<select name="kind"><option value="MISSING_FILE">Fichier manquant</option><option value="CORRUPT">Fichier corrompu</option><option value="MISFILED">Pièce mal classée</option><option value="INCONSISTENT" selected>Information incohérente</option></select></label>
+                <label>Dossier<select name="process_id"></select></label>
+                <label>Pièce ou information à corriger<textarea name="comment" rows="4" maxlength="10000" required></textarea></label>
+                <label>Destinataire<select name="recipient_id"><option value="">Choisir un destinataire</option></select></label>
+                <button type="button" class="ged-button ged-primary" data-ged-anomaly-submit>Signaler et notifier</button>
+            </form>
+        </aside>
+    </section>
+
+    <section class="ged-card ged-activity-panel" data-ged-panel="activity" hidden>
+        <header class="ged-audit-header">
+            <div class="ged-audit-heading"><span class="ged-audit-heading-icon" aria-hidden="true"><i data-lucide="history"></i></span><div><p class="ged-eyebrow">Piste d’audit</p><h3>{% if st_post_code == 'ST-V3-10' %}Activité documentaire du pôle{% else %}Mon activité documentaire{% endif %}</h3><p class="ged-muted">Opérations enregistrées et suivi des dossiers documentaires.</p></div></div>
+            <button type="button" class="ged-button" data-ged-activity-export><i data-lucide="download"></i> Exporter CSV</button>
+        </header>
+        <div class="ged-activity-filters" role="group" aria-label="Filtrer le journal d’activité">
+            <label>Type d’action<select data-ged-activity-action><option value="">Toutes les actions</option></select></label>
+            <label>Du<input type="date" data-ged-activity-from></label>
+            <label>Au<input type="date" data-ged-activity-to></label>
+            <button type="button" class="ged-button ged-audit-reset" data-ged-activity-reset><i data-lucide="rotate-ccw"></i> Réinitialiser</button>
+        </div>
+        <div class="ged-audit-list-head"><h4>Journal des opérations</h4><span class="ged-badge" data-ged-activity-count aria-live="polite">Chargement…</span></div>
+        <div class="ged-audit-log" data-ged-history aria-live="polite"></div>
+        <section class="ged-my-reports" data-ged-my-reports-section>
+            <div class="ged-audit-reports-heading"><div><h4><i data-lucide="file-chart-column" aria-hidden="true"></i> Mes rapports</h4><p class="ged-muted">Brouillons enregistrés et rapports envoyés.</p></div><button type="button" class="ged-button" data-ged-activity-reports><i data-lucide="arrow-up-right"></i> Ouvrir Rapports</button></div>
+            <div data-ged-my-reports aria-live="polite"><p class="ged-muted">Chargement…</p></div>
+        </section>
+    </section>
+
+    <section class="ged-card" data-ged-panel="delays" hidden>
+        <header><div><p class="ged-eyebrow">Délais</p><h3>Détail des délais d’indexation</h3></div></header>
+        <p class="ged-muted">Délai mesuré entre l’admissibilité (réception du rapport de revue) et l’enregistrement de l’indexation, par tome.</p>
+        <button type="button" class="ged-button" data-ged-back-dashboard>← Retour au tableau de bord</button>
+        <div data-ged-delay-detail></div>
+    </section>
+
+    <section class="ged-card" data-ged-panel="search" hidden>
+        <header><div><p class="ged-eyebrow">Utilisateurs finaux</p><h3>Recherche avancée</h3></div></header>
+        <form class="ged-advanced-search" data-ged-advanced-form>
+            <label>Référence ou titre<input type="search" name="q" placeholder="NCD, titre, extrait…"></label>
+            <label>Code documentaire<input type="search" name="code" placeholder="Code autorisé"></label>
+            <label>Tome / SC<input type="search" name="origin" placeholder="Tome 1, SC-IT…"></label>
+            <label>État<select name="state"><option value="">Tous</option><option value="READY">À vérifier</option><option value="BLOCKED">Bloqués / à corriger</option><option value="CONFIRMED">Confirmés</option><option value="INDEXED">Indexés</option></select></label>
+            <label>Auteur d’indexation<input type="search" name="author" placeholder="Nom ou identifiant"></label>
+            <div class="ged-actions"><button type="button" class="ged-button ged-primary" data-ged-advanced-run>Lancer la recherche</button><button type="reset" class="ged-button">Réinitialiser</button></div>
+        </form>
+        <div data-ged-advanced-results class="ged-document-grid"></div>
+    </section>
+</section>

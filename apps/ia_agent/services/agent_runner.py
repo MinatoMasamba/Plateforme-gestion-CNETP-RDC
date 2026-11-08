@@ -239,17 +239,36 @@ class AgentRunner:
 
     def _get_tools_spec(self):
         from .prompts import get_scope_config
+        from ..tools import all_tool_specs
+        from ..tools.admin_tools import NEURONNE_ADMIN_TOOLS
+        from .neuronne_admin import is_neuronne_admin
+
+        if self.session.scope == 'admin':
+            return all_tool_specs()
         all_tools = tool_specs(self.session.scope)
+        if not is_neuronne_admin(self.session.user):
+            all_tools = [t for t in all_tools if t['name'] not in NEURONNE_ADMIN_TOOLS]
         config = get_scope_config(self.session)
         if config and config.allowed_tools is not None:
             allowed = set(config.allowed_tools)
+            if is_neuronne_admin(self.session.user):
+                allowed.update(NEURONNE_ADMIN_TOOLS)
+            if self.session.user.is_staff and self.session.user.has_perm('governance.add_nominationctc'):
+                allowed.update({'list_st_posts', 'assign_st_posts'})
             return [t for t in all_tools if t['name'] in allowed]
         return all_tools
 
     def _execute_tool(self, name: str, tool_input: dict):
+        from ..tools.admin_tools import NEURONNE_ADMIN_TOOLS
+        from .neuronne_admin import is_neuronne_admin
+
         tool_spec = get_tool(name)
-        if tool_spec is None or self.session.scope not in tool_spec["scopes"]:
+        if tool_spec is None or (
+            self.session.scope != 'admin' and self.session.scope not in tool_spec["scopes"]
+        ):
             return {"error": f"Outil '{name}' non disponible pour ce contexte."}
+        if name in NEURONNE_ADMIN_TOOLS and not is_neuronne_admin(self.session.user):
+            return {"error": "Outil réservé à Neuronne, l’assistant d’administration."}
         try:
             return tool_spec["handler"](session=self.session, **tool_input)
         except Exception as exc:

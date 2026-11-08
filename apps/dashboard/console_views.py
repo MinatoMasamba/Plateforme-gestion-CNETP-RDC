@@ -3,6 +3,7 @@ import json
 from datetime import date, datetime
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.exceptions import DisallowedModelAdminLookup
 from django.contrib.admin.models import LogEntry
@@ -64,6 +65,11 @@ MONTHS_FR = [
     'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.',
 ]
 SENSITIVE_FIELDS = {'password', 'code', 'token', 'secret'}
+NEURONNE_MANAGED_MODELS = {
+    'core.user', 'experts.expert', 'governance.ctcmembership',
+    'governance.pilotagemembreship', 'governance.affectation',
+    'governance.affectationsouscommission', 'governance.mandatorganisation',
+}
 
 
 def _get_model_or_404(app_label, model_name):
@@ -448,6 +454,14 @@ def model_create(request, app_label, model_name):
     model = _get_model_or_404(app_label, model_name)
     if model is User:
         return redirect('console:user_create')
+    if (
+        request.method == 'POST'
+        and getattr(settings, 'NEURONNE_CONSOLE_WRITE_LOCK', False)
+        and model._meta.label_lower in NEURONNE_MANAGED_MODELS
+    ):
+        raise PermissionDenied(
+            'La création de ce type de compte ou d’adhésion est réservée à Neuronne.'
+        )
     model_admin = get_model_admin(model)
     if not model_admin.has_add_permission(request):
         raise PermissionDenied
@@ -765,6 +779,10 @@ def user_detail(request, pk):
 def user_create(request):
     if not request.user.has_perm('core.add_user'):
         raise PermissionDenied
+    if request.method == 'POST' and getattr(settings, 'NEURONNE_CONSOLE_WRITE_LOCK', False):
+        raise PermissionDenied(
+            'La création d’un utilisateur est réservée à Neuronne, l’assistant d’administration.'
+        )
     form = ConsoleUserCreationForm(request.POST or None, actor=request.user)
     if request.method == 'POST' and form.is_valid():
         user_obj = form.save()

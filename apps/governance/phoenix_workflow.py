@@ -53,10 +53,9 @@ def require_action(user, mandate, action, dossier=None, groupe=None):
     if not has_organisation_action(user, mandate, action, norme, groupe):
         raise PermissionDenied('Cette action n’est pas habilitée pour le mandat et le périmètre sélectionnés.')
     mandate = MandatOrganisation.objects.select_related('poste__organe', 'groupe__sc').get(pk=mandate.pk)
-    target = mandate.poste if mandate.poste_id else mandate.groupe
     organ = mandate.poste.organe if mandate.poste_id else mandate.groupe.sc
-    if action != 'document.consulter' and (target.status not in ('VALIDATED', 'ACTIVE') or organ.status not in ('VALIDATED', 'ACTIVE')):
-        raise PermissionDenied('Le poste ou le groupe et son organe doivent être confirmés avant toute opération.')
+    if action != 'document.consulter' and ((mandate.poste_id and mandate.poste.status not in ('VALIDATED', 'ACTIVE')) or organ.status not in ('VALIDATED', 'ACTIVE')):
+        raise PermissionDenied('Le poste et l’organe de rattachement doivent être confirmés avant toute opération.')
     if dossier:
         if dossier.circuit.status != 'VALIDATED' or dossier.suspended:
             raise PermissionDenied('Le circuit de ce dossier est suspendu ou non validé.')
@@ -78,8 +77,8 @@ def create_dossier(user, mandate, circuit, gt, reference_number, title, content,
     version = OrganisationVersion.objects.select_for_update().get(pk=circuit.version_id)
     circuit = CircuitOrganisation.objects.get(pk=circuit.pk, version=version, status='VALIDATED')
     gt = GroupeCible.objects.get(pk=gt.pk, sc__version=version)
-    if version.status != 'ACTIVE' or gt.status not in ('VALIDATED', 'ACTIVE') or gt.sc.status not in ('VALIDATED', 'ACTIVE'):
-        raise ValidationError('La création exige une organisation, un circuit et un groupe confirmés.')
+    if version.status != 'ACTIVE' or gt.sc.status not in ('VALIDATED', 'ACTIVE'):
+        raise ValidationError('La création exige une organisation active, un circuit approuvé et une SC confirmée.')
     if circuit.decision_reference != version.circuit_reference:
         raise ValidationError('Ce circuit n’est pas celui mis en service pour les nouveaux dossiers.')
     require_action(user, mandate, 'document.creer', groupe=gt)

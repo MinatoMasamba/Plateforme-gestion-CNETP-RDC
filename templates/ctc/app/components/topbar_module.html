@@ -1,5 +1,5 @@
 {% load static %}
-<header class="bg-white border-b border-slate-200 shrink-0 sticky top-0 z-40 text-slate-800 transition-colors duration-200">
+<header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shrink-0 sticky top-0 z-40 text-slate-800 dark:text-slate-200 transition-colors duration-200">
 
     <div class="flex h-1">
         <div class="flex-1 bg-[#0095c9]"></div>
@@ -7,11 +7,11 @@
         <div class="flex-1 bg-[#db3832]"></div>
     </div>
     <div class="bg-[#05050b] text-white px-4 py-1 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest select-none">
-        <span class="truncate">RDC - Cabinet Interministériel de Co-Gouvernance</span>
-        <span class="text-white/80 font-mono hidden sm:inline">Secrétariat National CNE-ITP</span>
+        <span class="truncate">RDC · Ministère des Infrastructures et Travaux publics</span>
+        <span class="text-white/80 font-mono hidden sm:inline">CNE-ITP · Secrétariat technique</span>
     </div>
 
-    <div class="px-4 md:px-6 py-3 flex items-center justify-between">
+    <div class="px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-y-2">
 
         <div class="flex min-w-0 items-center gap-3 md:gap-4">
             <button id="mobile-menu-btn" onclick="toggleDock()" aria-label="Ouvrir le menu"
@@ -30,64 +30,77 @@
                 </div>
             </div>
             <div class="min-w-0">
-                <h1 class="text-sm md:text-base font-bold text-slate-900 leading-tight">Coordination du Secrétariat technique</h1>
+                <h1 class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight md:whitespace-nowrap">Coordination du Secrétariat technique</h1>
                 <p class="text-[10px] md:text-xs text-slate-500 font-medium leading-snug">Gestion et suivi des travaux de normalisation</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-3 md:gap-6">
+        <div class="flex items-center gap-3 md:gap-4">
 
-            <div class="hidden lg:flex items-center gap-2 border-r border-slate-200 pr-6">
+            <div class="hidden xl:flex items-center gap-2">
+                <label for="global-search" class="sr-only">Recherche globale</label>
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input id="global-search" type="search" placeholder="Rechercher un dossier, une norme…"
+                           class="pl-9 pr-3 py-1.5 w-64 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-[#0095c9]/20 dark:bg-black/40 dark:border-white/10 dark:text-slate-200"
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();window.runGlobalSearch?.(this.value);}">
+                </div>
+            </div>
+
+            <div class="hidden lg:flex shrink-0 items-center gap-2 border-r border-slate-200 pr-6">
                 <button
                     onclick="handleTopbarOpenDirectory()"
-                    class="px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                    class="px-2 py-1.5 flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                     title="Annuaire et Messagerie Interne"
                 >
                     <i data-lucide="mail" class="w-4 h-4"></i>
-                    <span>Annuaire & Mail</span>
+                    <span class="hidden whitespace-nowrap 2xl:inline">Annuaire & Mail</span>
                 </button>
                 <button
+                    title="Réunion Meet"
                     onclick="handleTopbarSetView('reunions')"
-                    class="px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                    class="px-2 py-1.5 flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
                 >
                     <i data-lucide="video" class="w-4 h-4"></i>
-                    <span>Réunion Meet</span>
+                    <span class="hidden whitespace-nowrap 2xl:inline">Réunion Meet</span>
                 </button>
                 <button
+                    title="Espace Drive"
                     onclick="handleTopbarSetView('drive')"
-                    class="px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors cursor-pointer"
+                    class="px-2 py-1.5 flex items-center gap-2 text-xs font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors cursor-pointer"
                 >
                     <i data-lucide="hard-drive" class="w-4 h-4"></i>
-                    <span>Espace Drive</span>
+                    <span class="hidden whitespace-nowrap 2xl:inline">Espace Drive</span>
                 </button>
             </div>
 
-            {% if pending_ctc_requests_count or my_pending_reviews_count %}
+            <div id="topbar-ia-slot" class="hidden lg:flex shrink-0 items-center"></div>
+
             <button
-                onclick="handleTopbarSetView('{% if pending_ctc_requests_count %}assistant_executif{% else %}assignations{% endif %}')"
+                type="button" data-st-notifications-button
+                onclick="if(document.getElementById('view-notifications')){handleTopbarSetView('notifications');}else{window.location.href='{% url 'web:ctc_dashboard' %}#notifications';}"
                 class="relative p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                title="Notifications opérationnelles"
+                title="Notifications" aria-label="Notifications"
             >
                 <i data-lucide="bell" class="w-5 h-5"></i>
-                <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                    {{ pending_ctc_requests_count|add:my_pending_reviews_count }}
+                <span data-st-notifications-count class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none" aria-live="polite">
+                    0
                 </span>
             </button>
-            {% endif %}
 
-            <div class="relative">
-                <button
-                    onclick="handleTopbarDropdownToggle(event)"
+            <div class="relative flex items-center gap-1">
+                <a href="{% url 'web:expert_profile' %}" aria-label="Ouvrir mon profil"
                     class="flex items-center gap-2 md:gap-3 text-left focus:outline-hidden bg-slate-50 hover:bg-slate-100 px-2 py-1.5 md:px-3 rounded-lg border border-slate-200 transition-colors cursor-pointer select-none"
                 >
                     <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs md:text-sm font-bold uppercase shrink-0">
                         {{ expert.user.first_name|first|upper }}{{ expert.user.last_name|first|upper }}
                     </div>
-                    <div class="hidden sm:block">
-                        <p class="text-sm font-bold text-slate-800 leading-none">{{ expert.user.get_full_name }}</p>
-                        <p class="text-[10px] uppercase font-mono font-bold text-slate-500 tracking-wider mt-1">{{ pole_label }}</p>
+                    <div class="hidden min-w-0 max-w-[220px] 2xl:max-w-[260px] sm:block">
+                        <p class="truncate text-sm font-bold text-slate-800 leading-none">{{ expert.user.get_full_name }}</p>
+                        <p class="mt-1 truncate text-[10px] uppercase font-mono font-bold text-slate-500 tracking-wider">{{ pole_label }}</p>
                     </div>
-                </button>
+                </a>
+                <button type="button" onclick="handleTopbarDropdownToggle(event)" aria-label="Menu du compte" title="Menu du compte" class="p-1 rounded text-slate-500 hover:bg-slate-100"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
 
                 <div
                     id="topbar-profile-switcher-panel"

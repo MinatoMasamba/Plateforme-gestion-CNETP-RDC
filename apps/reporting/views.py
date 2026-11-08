@@ -40,11 +40,25 @@ def _event(report, actor, action, old, comment=''):
 
 @login_required(login_url='/se-connecter/')
 def index(request):
+    # Les brouillons ST restent distincts du circuit institutionnel habilité.
+    def work_reports():
+        from apps.governance.st_operations import actor_mandate
+        try:
+            actor_mandate(request.user)
+        except PermissionDenied:
+            return None
+        return redirect('web:ctc_reports')
     version = active_version()
     if not version:
+        draft_redirect = work_reports()
+        if draft_redirect:
+            return draft_redirect
         return render(request, 'reporting/unavailable.html', {'reason': 'Aucun référentiel d’organisation en vigueur.'})
     actions = ('rapport.consulter', 'rapport.rediger', 'rapport.controler', 'rapport.approuver', 'rapport.transmettre')
     if not any(reporting_mandates(request.user, action, version).exists() for action in actions):
+        draft_redirect = work_reports()
+        if draft_redirect:
+            return draft_redirect
         raise PermissionDenied
     reports = [report for report in Report.objects.filter(version=version).select_related('pole', 'prepared_by') if _visible(report, request.user)]
     code = request.GET.get('type', '')

@@ -95,6 +95,7 @@ button, input, select, textarea { font: inherit; }
 .console-topbar-actions { gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .console-text-link { gap: 6px; color: var(--console-muted); font-size: 12px; font-weight: 700; padding: 7px 9px; border-radius: 9px; }
 .console-text-link:hover { color: var(--console-blue); background: color-mix(in srgb, var(--console-blue) 9%, transparent); }
+button.console-text-link { background: none; border: 0; font-family: inherit; cursor: pointer; }
 .console-text-link svg, .console-icon-btn svg { width: 16px; height: 16px; }
 
 .console-icon-btn {

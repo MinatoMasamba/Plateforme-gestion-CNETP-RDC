@@ -66,7 +66,6 @@ def get_organisation_mapping(session, version_code=None):
                     'code': gt.code,
                     'name': gt.name,
                     'mission': gt.mission,
-                    'status': gt.get_status_display(),
                 }
                 for gt in sc.groupes.all().order_by('code')
             ],

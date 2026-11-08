@@ -56,6 +56,15 @@ class CTCMembershipSerializer(serializers.ModelSerializer):
 
 
 class TechnicalCellSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        from apps.governance.st_operations_models import STAccessPolicy
+        if STAccessPolicy.objects.filter(enabled=True).exists():
+            data['coordinator'] = None
+            data['vice_coordinator'] = None
+            data['reference_status'] = 'HISTORICAL'
+        return data
+
     """Serialize Technical Cell"""
     coordinator = ExpertBasicSerializer(read_only=True)
     vice_coordinator = ExpertBasicSerializer(read_only=True)

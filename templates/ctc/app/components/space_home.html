@@ -1,0 +1,182 @@
+{% if st_post_code == 'ST-V3-11' %}
+{% include "ctc/app/components/ged_workspace.html" %}
+{% elif st_is_supervisor %}
+{% comment %}Tableau de bord générique d'un espace : chef (vue pôle) ou membre.{% endcomment %}
+<div class="st-space-home p-4 md:p-6 max-w-[1500px] mx-auto space-y-6 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">{{ st_space_label }} · {{ st_space_long_label }}</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">
+                {{ st_workspace.title }}
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                {% if st_is_supervisor %}
+                    {{ st_workspace.mission }} · Vue générale du pôle
+                {% else %}
+                    Vos dossiers, vos échéances et vos statistiques personnelles.
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="#tracabilite" class="st-action-link text-xs">Audit de l’espace</a>
+            <a href="#assignations" class="st-action-link text-xs">Mes demandes</a>
+        </div>
+    </header>
+
+    <nav class="st-workspace-tools" aria-label="Outils de supervision">
+        {% for tool in st_workspace_tools %}<a href="#{{ tool.view }}" class="st-tool-card"><i data-lucide="{{ tool.icon }}"></i><span>{{ tool.label }}</span><span aria-hidden="true">→</span></a>{% endfor %}
+    </nav>
+    <div class="st-space-kpis">
+        <a href="{% if "dossiers" in st_allowed_views %}#dossiers{% else %}#assignations{% endif %}" class="st-space-kpi premium-glass">
+            <span class="premium-kpi__label">{% if st_is_supervisor %}Dossiers suivis{% else %}Dossiers du poste{% endif %}</span>
+            <strong class="premium-kpi__value">{{ st_space_dashboard.kpis.dossiers }}</strong>
+            <span class="premium-kpi__hint">Ouvrir le circuit</span>
+        </a>
+        <a href="#assignations" class="st-space-kpi premium-glass">
+            <span class="premium-kpi__label">Tâches en cours</span>
+            <strong class="premium-kpi__value">{{ st_space_dashboard.kpis.tasks }}</strong>
+            <span class="premium-kpi__hint">{{ st_space_dashboard.kpis.overdue }} en retard · {{ st_space_dashboard.kpis.blocked }} bloquée(s)</span>
+        </a>
+        <a href="{% if 'ptn' in st_allowed_views %}#ptn{% else %}#travaux{% endif %}" class="st-space-kpi premium-glass">
+            <span class="premium-kpi__label">{% if st_space == 'ST-P2' %}Fiches PTN{% else %}Travaux enregistrés{% endif %}</span>
+            <strong class="premium-kpi__value">{{ st_space_dashboard.kpis.records }}</strong>
+            <span class="premium-kpi__hint">{{ st_space_dashboard.kpis.confirmed }} confirmé(s)</span>
+        </a>
+        <a href="#reunions" class="st-space-kpi premium-glass">
+            <span class="premium-kpi__label">Réunions à venir</span>
+            <strong class="premium-kpi__value">{{ st_space_dashboard.kpis.meetings }}</strong>
+            <span class="premium-kpi__hint">{{ st_space_dashboard.kpis.members }} membre(s) dans le pôle</span>
+        </a>
+    </div>
+
+    <div>
+        <div class="space-y-5">
+            {% include "ctc/app/components/workday_module.html" %}
+
+            {% if st_space == 'ST' and st_is_supervisor %}
+            <section class="premium-glass p-4" aria-labelledby="coordination-validation">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 id="coordination-validation" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">File de validation</h3>
+                    <a href="#dossiers" class="text-xs font-bold text-[#007ea8]">Ouvrir le circuit</a>
+                </div>
+                <div class="mt-3 overflow-x-auto">
+                    <table class="ctc-table w-full text-left text-sm">
+                        <thead><tr><th>Référence</th><th>Dossier</th><th>Statut</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for p in coordination_queue %}
+                            <tr>
+                                <td class="font-mono font-bold">{{ p.norme.reference_number }}</td>
+                                <td>{{ p.norme.title }}</td>
+                                <td>{% include "ctc/app/components/status_badge.html" with status=p.display_status %}</td>
+                                <td>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <a class="font-bold text-[#007ea8] underline" href="{% url 'web:ctc_norme_read' p.norme_id %}">Lire</a>
+                                        {% if ctc_sub_role == 'coordonnateur_principal' or ctc_sub_role == 'coordonnateur_adjoint' %}
+                                        {% if p.current_stage == 'RECEPTION' and not p.intake_validated_at %}
+                                        <button type="button" class="institutional-primary text-[11px]" onclick="validateDossier({{ p.pk }}, 'validate', this)">Valider l’entrée</button>
+                                        {% else %}
+                                        <span class="text-xs text-slate-500">Décision finale en attente du circuit de commentaire du pôle 1.</span>
+                                        {% endif %}
+                                        <button type="button" class="institutional-secondary text-[11px]" onclick="validateDossier({{ p.pk }}, 'return', this)">Renvoyer</button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}<tr><td colspan="4" class="text-slate-500">Aucun dossier en attente de validation.</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="grid gap-5 md:grid-cols-2">
+                <article class="premium-glass p-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Retards à arbitrer</h3>
+                    <ul class="mt-3 space-y-2">
+                        {% for p in coordination_delays %}
+                        <li class="rounded-xl border border-red-200 bg-red-50/70 p-3 dark:border-red-500/20 dark:bg-red-500/10">
+                            <a href="{% url 'web:ctc_norme_read' p.norme_id %}" class="text-sm font-bold text-red-700 dark:text-red-300">{{ p.norme.reference_number }} · {{ p.norme.title }}</a>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-300">Reçu le {{ p.received_at|date:"d/m/Y" }}</p>
+                        </li>
+                        {% empty %}<li class="text-sm text-slate-500">Aucun retard signalé.</li>{% endfor %}
+                    </ul>
+                </article>
+                <article class="premium-glass p-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Demandes en attente</h3>
+                    <ul class="mt-3 space-y-2">
+                        {% for d in pending_ctc_requests_all|slice:":6" %}
+                        <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ d.requester.user.get_full_name|default:d.requester.user.username }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ d.motif|default:d.resource }}</p>
+                        </li>
+                        {% empty %}<li class="text-sm text-slate-500">Aucune demande en attente.</li>{% endfor %}
+                    </ul>
+                </article>
+            </section>
+            {% endif %}
+
+            {% if st_space == 'ST-P2' and can_fast_entry %}
+            <section class="premium-glass p-4" aria-labelledby="p2-indexation">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 id="p2-indexation" class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Dossiers à indexer</h3>
+                    <a href="#indexation" class="text-xs font-bold text-[#007ea8]">Ouvrir l’indexation</a>
+                </div>
+                <ul class="mt-3 grid gap-2 md:grid-cols-2">
+                    {% for p in indexation_queue %}
+                        {% if p.display_status.code == 'RAPPORT_RECU' %}
+                        <li class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ p.norme.reference_number }}</span>
+                                {% include "ctc/app/components/status_badge.html" with status=p.display_status %}
+                            </div>
+                            <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ p.norme.title }}</p>
+                        </li>
+                        {% endif %}
+                    {% empty %}<li class="text-sm text-slate-500">Aucun dossier à indexer.</li>{% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            {% if st_is_supervisor and st_space_dashboard.members %}
+            <section class="premium-glass p-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Membres du pôle</h3>
+                <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for member in st_space_dashboard.members %}
+                    <div class="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ member.name }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ member.title }}</p>
+                        <p class="mt-2 text-xs font-semibold">{{ member.tasks }} tâche(s) en cours</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% else %}
+{% include "ctc/app/components/member_workspace.html" %}
+{% endif %}
+<script>
+async function validateDossier(processusId, action, button) {
+    const label = action === 'return' ? 'Motif du renvoi à la sous-commission' : 'Commentaire de validation';
+    const comment = window.prompt(label + ' (obligatoire) :');
+    if (!comment || !comment.trim()) return;
+    button.disabled = true;
+    try {
+        const response = await ctcFetchResponse(`/ctc/dossiers/${processusId}/validation/`, {
+            method: 'POST',
+            body: new URLSearchParams({ action, comment: comment.trim() }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Décision refusée.');
+        window.showAppToast?.('Décision enregistrée.', 'success');
+        setTimeout(() => window.location.reload(), 400);
+    } catch (error) {
+        window.showAppToast?.(error.message || 'Décision impossible.', 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+</script>

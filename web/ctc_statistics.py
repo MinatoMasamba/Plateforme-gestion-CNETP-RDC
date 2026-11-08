@@ -138,8 +138,7 @@ def build_ctc_statistics():
             group_performance = _performance(tasks)
             groups.append({'id': f'wg-{wg.pk}', 'code': wg.catalogue_code, 'name': wg.name,
                            'performance': group_performance, 'color': _performance_color(group_performance),
-                           'tasks': tasks, 'norms': norms,
-                           'status': 'Actif'})
+                           'tasks': tasks, 'norms': norms})
             for norm in norms:
                 if norm.pk not in source_norm_ids:
                     stages[norm.get_status_display()] += 1

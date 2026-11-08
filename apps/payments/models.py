@@ -118,6 +118,8 @@ class JetonPresence(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     payment_date = models.DateField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    presence_secondes = models.PositiveIntegerField(null=True, blank=True)
+    calcul_automatique = models.BooleanField(default=False)
 
     contestation_status = models.CharField(
         max_length=20, choices=CONTESTATION_CHOICES, default='NONE',

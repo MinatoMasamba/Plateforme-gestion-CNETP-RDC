@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import Expert, Structure, ProfileUpdate, ProfileUpdateEvent
+from apps.governance.forms import CTCMembershipInlineFormSet
 from apps.governance.models import Affectation, PilotageMembreship, CTCMembership, ExecutiveLevel
 
 
@@ -19,6 +20,11 @@ class PilotageMembreshipInline(admin.TabularInline):
 class CTCMembershipInline(admin.TabularInline):
     model = CTCMembership
     extra = 0
+    fields = ('ctc', 'role', 'is_active')
+    formset = CTCMembershipInlineFormSet
+
+    def get_queryset(self, request):
+        return CTCMembership.all_objects.select_related('ctc')
 
 
 class ExecutiveLevelInline(admin.TabularInline):

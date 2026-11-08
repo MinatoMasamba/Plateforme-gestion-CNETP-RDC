@@ -1,3 +1,6 @@
+{% if st_post_code == "ST-V3-06" %}
+{% include "ctc/app/components/reception_workspace.html" %}
+{% else %}
 <div class="p-6 text-slate-800 dark:text-slate-300 transition-colors duration-200 w-full h-full">
     <div class="mb-6 animate-slideIn">
         <div class="flex items-center gap-3 mb-2">
@@ -5,13 +8,18 @@
                 <i data-lucide="inbox" class="w-5 h-5"></i>
             </div>
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Assistant Exécutif</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">Assistant de direction et secrétaire de séance</h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400">Gestion des réceptions, arbitrage des demandes et suivi des transmissions.</p>
             </div>
         </div>
         <p class="text-sm text-slate-600 dark:text-slate-400 max-w-3xl">
             Ce poste centralise les demandes opérationnelles adressées à la Direction des Opérations et supervise la réception initiale des dossiers du Secrétariat Technique.
         </p>
+        <nav class="mt-4 flex flex-wrap gap-3" aria-label="Actions de réception">
+            <a href="#dossiers" class="st-action-link">Ouvrir les dossiers à réceptionner</a>
+            <a href="#ctc_requests" class="st-action-link">Traiter les demandes</a>
+            <a href="#reunions" class="st-action-link">Consulter les réunions</a>
+        </nav>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -102,3 +110,5 @@
         </aside>
     </div>
 </div>
+
+{% endif %}

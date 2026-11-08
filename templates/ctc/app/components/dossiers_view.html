@@ -152,6 +152,12 @@
                                     <i data-lucide="book-open" class="w-4 h-4"></i>
                                 </a>
 
+                                {% if p.current_stage == 'RECEPTION' and p.received_at %}
+                                    {% if p.sc_report_received_at %}<span class="text-xs text-emerald-600">Rapport SC : {{ p.sc_report_reference }}</span>
+                                    {% elif ctc_sub_role == 'assistant_executif' or st_can_follow %}
+                                        <button type="button" onclick="handleReceptionAction({{ p.id }}, 'record_sc_report', this)" class="text-xs font-bold text-blue-600">Enregistrer le rapport de SC</button>
+                                    {% endif %}
+                                {% endif %}
                                 {% if p.current_stage == 'RECEPTION' and ctc_sub_role == 'assistant_executif' %}
                                     {% if p.received_at %}
                                         <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
@@ -162,15 +168,19 @@
                                             <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Réceptionner
                                         </button>
                                     {% endif %}
-                                {% elif p.current_stage == 'RECEPTION' and ctc_sub_role == 'operateur_saisie' %}
+                                {% elif p.current_stage == 'RECEPTION' and can_fast_entry %}
                                     {% if p.indexed_at %}
                                         <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                                             <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Indexé
                                         </span>
                                     {% elif p.received_at %}
+                                        {% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}
+                                        <button onclick="window.switchView('{% if st_post_code == 'ST-V3-10' %}ged{% else %}indexation{% endif %}'); window.stGEDSelect?.({{ p.id }});" class="institutional-primary text-xs">Ouvrir la fiche GED</button>
+                                        {% else %}
                                         <button onclick="handleReceptionAction({{ p.id }}, 'index', this)" class="ctc-reception-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition cursor-pointer">
                                             <i data-lucide="layout-list" class="w-3.5 h-3.5"></i> Finaliser indexation
                                         </button>
+                                        {% endif %}
                                     {% else %}
                                         <span class="text-slate-400 dark:text-slate-500 italic text-xs">En attente de réception</span>
                                     {% endif %}
@@ -237,13 +247,19 @@
     }
 
     function handleReceptionAction(processusId, action, btn) {
+        const payload = { action };
+        if (action === 'record_sc_report') {
+            const reference = window.prompt('Référence du rapport de revue déposé par la sous-commission :');
+            if (!reference || !reference.trim()) return;
+            payload.reference = reference.trim();
+        }
         window.withButtonLoading(btn, () => window.fetchWithTimeout(`/ctc/dossiers/${processusId}/reception/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: new URLSearchParams({ action })
+            body: new URLSearchParams(payload)
         })
         .then(r => r.json())
         .then(data => {

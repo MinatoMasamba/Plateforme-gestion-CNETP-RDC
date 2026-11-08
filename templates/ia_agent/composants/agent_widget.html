@@ -2,10 +2,10 @@
 {% comment %}
 Widget flottant "Assistant IA CNE-ITP" — position fixe, ne bouge pas au scroll.
 Paramètres d'inclusion :
-  - widget_scope    : 'expert' | 'ctc' | 'pilotage'
+  - widget_scope    : 'expert' | 'ctc' | 'pilotage' | 'admin'
   - widget_position : classes Tailwind de positionnement (défaut 'bottom-6 right-6')
 {% endcomment %}
-<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
     #ia-agent-toggle-btn, #ia-agent-panel { position: fixed !important; }
     .ia-md p { margin: .2em 0; }
@@ -87,7 +87,7 @@ Paramètres d'inclusion :
 <script>
 (function() {
     const IA_SCOPE = "{{ widget_scope }}";
-    const IA_SCOPE_LABELS = {expert: "Espace Expert", ctc: "Espace CTC", pilotage: "Comité de Pilotage"};
+    const IA_SCOPE_LABELS = {expert: "Espace Expert", ctc: "Espace CTC", pilotage: "Comité de Pilotage", admin: "Administration"};
     const IA_STORAGE_KEY = "ia_agent_session_" + IA_SCOPE;
     const IA_PROVIDER_KEY = IA_STORAGE_KEY + "_provider";
 

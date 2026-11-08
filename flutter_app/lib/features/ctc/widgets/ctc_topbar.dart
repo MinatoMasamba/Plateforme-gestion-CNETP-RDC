@@ -8,16 +8,22 @@ class CtcTopbar extends StatelessWidget {
     required this.userName,
     required this.onToggleSidebar,
     this.onLogout,
+    this.onNotifications,
+    this.unreadNotifications,
   });
 
   final String poleLabel;
   final String userName;
   final VoidCallback onToggleSidebar;
   final VoidCallback? onLogout;
+  final VoidCallback? onNotifications;
+  final int? unreadNotifications;
 
   @override
   Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 760;
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 768;
+    final showTools = width >= 1024;
     return Container(
       color: Colors.white,
       child: Column(
@@ -32,7 +38,7 @@ class CtcTopbar extends StatelessWidget {
               children: [
                 const Flexible(
                   child: Text(
-                    'RDC - CABINET INTERMINISTÉRIEL DE CO-GOUVERNANCE',
+                    'RDC · MINISTÈRE DES INFRASTRUCTURES ET TRAVAUX PUBLICS',
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Colors.white,
@@ -44,7 +50,7 @@ class CtcTopbar extends StatelessWidget {
                 ),
                 if (!compact)
                   const Text(
-                    'Secrétariat National CNE-ITP',
+                    'CNE-ITP · SECRÉTARIAT TECHNIQUE',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 9,
@@ -63,13 +69,16 @@ class CtcTopbar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                IconButton(
-                  onPressed: onToggleSidebar,
-                  icon: const Icon(Icons.menu, size: 20),
-                  color: AppColors.muted,
-                  tooltip: 'Ouvrir le menu',
-                ),
-                const SizedBox(width: 4),
+                if (compact) ...[
+                  IconButton(
+                    onPressed: onToggleSidebar,
+                    icon: const Icon(Icons.menu, size: 20),
+                    color: AppColors.muted,
+                    tooltip: 'Ouvrir le menu',
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 if (!compact)
                   Container(
                     width: 38,
@@ -111,33 +120,71 @@ class CtcTopbar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                if (!compact)
+                if (showTools)
                   _TopAction(
                     icon: Icons.mail_outline,
                     label: 'Annuaire & Mail',
                   ),
-                if (!compact) const SizedBox(width: 6),
-                if (!compact)
+                if (showTools) const SizedBox(width: 6),
+                if (showTools)
                   _TopAction(
                     icon: Icons.videocam_outlined,
                     label: 'Réunion Meet',
                     color: AppColors.rdcBlue,
                   ),
-                if (!compact) const SizedBox(width: 6),
-                if (!compact)
+                if (showTools) const SizedBox(width: 6),
+                if (showTools)
                   _TopAction(
                     icon: Icons.storage_outlined,
                     label: 'Espace Drive',
                     color: AppColors.success,
                   ),
-                if (!compact) const SizedBox(width: 10),
-                if (!compact)
-                  const Icon(
-                    Icons.notifications_none,
-                    size: 20,
-                    color: AppColors.muted,
-                  ),
-                if (!compact) const SizedBox(width: 14),
+                if (showTools) const SizedBox(width: 10),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      key: const ValueKey('ctc-notifications-button'),
+                      onPressed: onNotifications,
+                      tooltip: unreadNotifications == null
+                          ? 'Notifications'
+                          : 'Notifications · $unreadNotifications non lue(s)',
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        size: 20,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    if ((unreadNotifications ?? 0) > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: IgnorePointer(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.danger,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              unreadNotifications! > 99
+                                  ? '99+'
+                                  : '$unreadNotifications',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (!compact) const SizedBox(width: 6),
                 if (!compact && onLogout != null) ...[
                   InkWell(
                     onTap: onLogout,
@@ -268,15 +315,17 @@ class _TopAction extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 15, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
+          if (MediaQuery.sizeOf(context).width >= 1536)
+            const SizedBox(width: 6),
+          if (MediaQuery.sizeOf(context).width >= 1536)
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
             ),
-          ),
         ],
       ),
     );

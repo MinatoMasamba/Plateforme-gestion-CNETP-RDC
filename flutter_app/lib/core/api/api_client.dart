@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../network/network_failover_manager.dart';
@@ -37,14 +38,28 @@ class ApiClient {
 
   /// Access token courant, posé par le AuthController après login/refresh.
   static String? accessToken;
+  static Future<bool> Function()? refreshAccessToken;
+  static Future<bool>? _refreshInFlight;
 
-  static final NetworkFailoverManager networkFailover =
-      NetworkFailoverManager(
-        directBaseUrl: directBaseUrl,
-        relayBaseUrl: _relayBaseUrl.isEmpty ? null : _relayBaseUrl,
-        proxyPort: _localProxyPort,
-        directRetryInterval: Duration(minutes: _directRetryMinutes),
-      );
+  static Future<bool> _refreshOnce() async {
+    if (_refreshInFlight != null) return _refreshInFlight!;
+    final refresh = refreshAccessToken;
+    if (refresh == null) return false;
+    final future = refresh();
+    _refreshInFlight = future;
+    try {
+      return await future;
+    } finally {
+      _refreshInFlight = null;
+    }
+  }
+
+  static final NetworkFailoverManager networkFailover = NetworkFailoverManager(
+    directBaseUrl: directBaseUrl,
+    relayBaseUrl: _relayBaseUrl.isEmpty ? null : _relayBaseUrl,
+    proxyPort: _localProxyPort,
+    directRetryInterval: Duration(minutes: _directRetryMinutes),
+  );
 
   static final Dio dio = _buildDio();
 
@@ -66,11 +81,52 @@ class ApiClient {
           final publicRequest =
               options.path.startsWith('/api/v1/expert-registration/') ||
               options.path.startsWith('/api/v1/mobile/auth/password-reset/') ||
-              options.path == '/api/v1/mobile/auth/login/';
+              options.path == '/api/v1/mobile/auth/login/' ||
+              options.path == '/api/v1/mobile/auth/refresh/';
+          if (publicRequest) options.headers.remove('Authorization');
           if (!publicRequest && token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           handler.next(options);
+        },
+        onError: (error, handler) async {
+          final options = error.requestOptions;
+          dynamic body = error.response?.data;
+          // Protected downloads also return JSON errors, even when the caller
+          // requested a binary response.
+          if (body is List<int> && body.length < 65536) {
+            try {
+              body = jsonDecode(utf8.decode(body));
+            } catch (_) {
+              /* Non-JSON response. */
+            }
+          }
+          final expiredToken = body is Map && body['code'] == 'token_not_valid';
+          final eligible =
+              (error.response?.statusCode == 401 ||
+                  error.response?.statusCode == 403) &&
+              expiredToken &&
+              !options.path.startsWith('/api/v1/mobile/auth/') &&
+              options.extra['auth_retried'] != true;
+          if (eligible) {
+            try {
+              // Another concurrent request may already have renewed this token.
+              final tokenChanged =
+                  options.headers['Authorization'] != 'Bearer $accessToken';
+              if ((accessToken != null && tokenChanged) ||
+                  await _refreshOnce()) {
+                options.extra['auth_retried'] = true;
+                handler.resolve(await dio.fetch<dynamic>(options));
+                return;
+              }
+            } on DioException catch (retryError) {
+              handler.next(retryError);
+              return;
+            } catch (_) {
+              // Keep the original authentication failure visible to the caller.
+            }
+          }
+          handler.next(error);
         },
       ),
     );

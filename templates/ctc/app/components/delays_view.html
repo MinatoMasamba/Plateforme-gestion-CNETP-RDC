@@ -1,0 +1,32 @@
+{% comment %}Arbitrage des retards : dossiers reçus sans progression depuis 14 jours.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1300px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Coordination · Arbitrage</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Retards à arbitrer</h2>
+            <p class="mt-1 text-sm text-slate-500">Dossiers reçus depuis au moins 14 jours et non transmis au Pilotage.</p>
+        </div>
+        <a href="#coordination" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+    <section class="premium-glass p-4">
+        <ul class="space-y-2">
+            {% for p in coordination_delays %}
+            <li class="rounded-xl border border-red-200 bg-red-50/70 p-4 dark:border-red-500/20 dark:bg-red-500/10">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="font-mono text-xs font-bold text-red-700 dark:text-red-300">{{ p.norme.reference_number }}</p>
+                        <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{{ p.norme.title }}</p>
+                        <p class="mt-1 text-xs text-slate-500">Reçu le {{ p.received_at|date:"d/m/Y" }} · {{ p.get_current_stage_display }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'web:ctc_norme_read' p.norme_id %}" class="institutional-secondary text-xs">Lire</a>
+                        <a href="#dossiers" class="institutional-primary text-xs">Décider</a>
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucun retard à arbitrer.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>

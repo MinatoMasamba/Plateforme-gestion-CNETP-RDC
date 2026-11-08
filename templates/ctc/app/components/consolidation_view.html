@@ -1,0 +1,55 @@
+{% comment %}Consolidation des avis par le chef du pôle 2.{% endcomment %}
+<div class="p-4 md:p-6 max-w-[1300px] mx-auto space-y-5 text-slate-800 dark:text-slate-300">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.28em] text-[#0095c9]">Pôle 2 · Consolidation</p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Consolidation des avis</h2>
+            <p class="mt-1 text-sm text-slate-500">Rassembler les avis et verser le commentaire de consolidation au dossier. La décision de faire monter ou redescendre la norme reste réservée à la Coordination.</p>
+        </div>
+        <a href="#espace_p2" class="institutional-secondary text-xs">Retour au tableau de bord</a>
+    </header>
+    <section class="premium-glass p-4">
+        <ul class="space-y-2">
+            {% for p in consolidation_queue %}
+            <li class="rounded-xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="font-mono text-xs font-bold text-slate-500">{{ p.norme.reference_number }}</p>
+                        <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{{ p.norme.title }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ p.get_current_stage_display }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'web:ctc_norme_read' p.norme_id %}" class="institutional-secondary text-xs">Lire</a>
+                        {% if st_is_pole_head %}
+                        <button type="button" class="institutional-primary text-xs" onclick="consolidateDossier({{ p.pk }}, this)">Consolider</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">Aucun dossier à consolider.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+<script>
+async function consolidateDossier(processusId, button) {
+    const comment = window.prompt('Commentaire de consolidation (obligatoire) :');
+    if (!comment || !comment.trim()) return;
+    button.disabled = true;
+    try {
+        const response = await ctcFetchResponse(`/ctc/dossiers/${processusId}/consolidation/`, {
+            method: 'POST',
+            body: new URLSearchParams({ comment: comment.trim() }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Consolidation refusée.');
+        window.showAppToast?.('Consolidation enregistrée.', 'success');
+        setTimeout(() => window.location.reload(), 400);
+    } catch (error) {
+        window.showAppToast?.(error.message || 'Consolidation impossible.', 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+</script>

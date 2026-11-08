@@ -1,0 +1,122 @@
+{% load static %}
+<section class="rx-workspace" data-reception-workspace>
+    <header class="rx-registry-card">
+        <p class="rx-eyebrow"><span class="rx-dot"></span> Circuit normatif · 7 étapes RDC</p>
+        <div class="rx-registry-title-row">
+            <div class="rx-registry-title-copy">
+                <h2>Registre &amp; circuit des normes <span>(7 Tomes)</span></h2>
+                <p class="rx-intro">Réception ST — le poste 06 enregistre les dossiers transmis, contrôle les pièces et délivre l’accusé daté. Les étapes suivantes restent hors de cette file.</p>
+            </div>
+            <span class="rx-count-chip"><i data-lucide="files" aria-hidden="true"></i><strong data-rx-total>{{ reception_dossiers|length }}</strong> dossier{{ reception_dossiers|length|pluralize }} dans la file</span>
+        </div>
+        <ol class="rx-steps" aria-label="Étapes du circuit normatif">
+            <li class="rx-step rx-step--done"><span class="rx-step-icon"><i data-lucide="check-square" aria-hidden="true"></i></span><span><strong>Vote GT</strong><small>&gt; 75 % requis</small></span></li>
+            <li class="rx-step rx-step--current" aria-current="step"><span class="rx-step-icon"><i data-lucide="inbox" aria-hidden="true"></i></span><span><strong>Réception ST</strong><small>Poste 06 · accusé daté</small></span></li>
+            <li class="rx-step rx-step--next"><span class="rx-step-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span><span><strong>Revue SC</strong><small>Rapport de revue</small></span></li>
+            <li class="rx-step rx-step--next"><span class="rx-step-icon"><i data-lucide="folder-tree" aria-hidden="true"></i></span><span><strong>Indexation GED</strong><small>Code &amp; tome</small></span></li>
+            <li class="rx-step rx-step--next"><span class="rx-step-icon"><i data-lucide="scan-search" aria-hidden="true"></i></span><span><strong>Examens</strong><small>Expertise technique</small></span></li>
+            <li class="rx-step rx-step--next"><span class="rx-step-icon"><i data-lucide="git-merge" aria-hidden="true"></i></span><span><strong>Consolidation</strong><small>Synthèse pôle</small></span></li>
+            <li class="rx-step rx-step--next"><span class="rx-step-icon"><i data-lucide="badge-check" aria-hidden="true"></i></span><span><strong>Validation ST</strong><small>Décision finale</small></span></li>
+        </ol>
+    </header>
+
+    <div class="rx-reception-summary" role="group" aria-label="Filtrer la file de réception">
+        <button type="button" class="rx-summary-chip rx-summary-chip--pending" data-rx-set-state="pending"><i data-lucide="inbox" aria-hidden="true"></i><span><strong>{{ reception_pending_count }}</strong> à réceptionner</span></button>
+        <button type="button" class="rx-summary-chip" data-rx-set-state="draft"><i data-lucide="pencil-line" aria-hidden="true"></i><span><strong>{{ reception_draft_count }}</strong> brouillon{{ reception_draft_count|pluralize }}</span></button>
+        <button type="button" class="rx-summary-chip rx-summary-chip--anomaly" data-rx-set-state="anomaly"><i data-lucide="triangle-alert" aria-hidden="true"></i><span><strong>{{ reception_anomaly_count }}</strong> anomalie{{ reception_anomaly_count|pluralize }}</span></button>
+        <button type="button" class="rx-summary-chip rx-summary-chip--done" data-rx-set-state="done"><i data-lucide="circle-check" aria-hidden="true"></i><span><strong>{{ reception_done_count }}</strong> enregistrée{{ reception_done_count|pluralize }}</span></button>
+        <p class="rx-scope-note"><i data-lucide="shield-check" aria-hidden="true"></i> Une étape, une responsabilité : l’indexation et la validation d’entrée relèvent des postes habilités.</p>
+    </div>
+
+    <section class="rx-registry-card rx-registry" aria-labelledby="rx-registry-title" data-rx-registry>
+        <div class="rx-registry-heading">
+            <div><p class="rx-section-label">File de réception</p><h3 id="rx-registry-title">Dossiers reçus au Secrétariat technique</h3></div>
+            <span class="rx-journal-note"><i data-lucide="history" aria-hidden="true"></i> Historique conservé</span>
+        </div>
+        <div class="rx-toolbar">
+            <label class="rx-search"><i data-lucide="search" aria-hidden="true"></i><span class="sr-only">Rechercher une référence, un titre ou un groupe</span><input type="search" placeholder="Rechercher une référence, un titre…" data-rx-search></label>
+            <div class="rx-toolbar-selects">
+                <label class="rx-select"><span class="sr-only">Filtrer par tome</span><select data-rx-tome><option value="">Tous les tomes (0–6)</option><option value="Tome 0">Tome 0 · SC-SOCLE</option><option value="Tome 1">Tome 1 · SC-IT</option><option value="Tome 2">Tome 2 · SC-GF</option><option value="Tome 3">Tome 3 · SC-OH</option><option value="Tome 4">Tome 4 · SC-ETR / SC-VRD</option><option value="Tome 5">Tome 5 · SC-ENV</option><option value="Tome 6">Tome 6 · SC-BAT</option><option value="Tome à confirmer">Tome à confirmer</option></select></label>
+                <label class="rx-select"><span class="sr-only">Filtrer par statut de réception</span><select data-rx-status><option value="">Tous les statuts</option><option value="pending">À réceptionner</option><option value="draft">Brouillons</option><option value="anomaly">Anomalies</option><option value="done">Réceptions enregistrées</option></select></label>
+                <button type="button" class="rx-reset" data-rx-reset><i data-lucide="rotate-ccw" aria-hidden="true"></i> Réinitialiser</button>
+            </div>
+        </div>
+        <p class="rx-result-count" data-rx-count aria-live="polite"></p>
+        <div class="rx-table-wrap">
+            <table class="rx-table">
+                <thead>
+                    <tr><th scope="col">Code &amp; Tome</th><th scope="col">Intitulé du projet</th><th scope="col">Groupe de travail</th><th scope="col">Version</th><th scope="col">Étape du circuit</th><th scope="col">Documents &amp; avis</th><th scope="col">Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for p in reception_dossiers %}
+                    <tr data-reception-id="{{ p.pk }}" data-rx-state="{{ p.reception_state }}" data-rx-tome="{{ p.reception_tome }}" data-rx-text="{{ p.norme.reference_number }} {{ p.norme.title }} {{ p.reception_group }} {{ p.reception_tome }} {{ p.reception_sc }} {{ p.reception_status }}">
+                        <td data-label="Code &amp; Tome"><span class="rx-code">{{ p.norme.reference_number }}</span><span class="rx-sub">{{ p.reception_tome }} · {{ p.reception_sc }}</span></td>
+                        <td data-label="Intitulé du projet"><strong class="rx-row-title">{{ p.norme.title }}</strong><small class="rx-sub">{{ p.norme.ctm.name|default:"CTM à préciser" }}</small></td>
+                        <td data-label="Groupe de travail"><span>{{ p.reception_group }}</span></td>
+                        <td data-label="Version"><span class="rx-version">{{ p.reception_version }}</span></td>
+                        <td data-label="Étape du circuit"><span class="rx-pill rx-pill--{{ p.reception_state }}">{{ p.reception_status }}</span><small class="rx-sub">Réception ST</small></td>
+                        <td data-label="Documents &amp; avis"><span>{{ p.reception_piece_count }} pièce{{ p.reception_piece_count|pluralize }}</span><small class="rx-sub">{{ p.reception_ged_count }} fichier{{ p.reception_ged_count|pluralize }} GED</small></td>
+                        <td data-label="Actions">
+                            <div class="rx-row-actions">
+                                <a href="{% url 'web:ctc_norme_read' p.norme_id %}" target="_blank" rel="noopener" class="rx-table-link"><i data-lucide="eye" aria-hidden="true"></i> Voir</a>
+                                {% if p.reception_state == 'done' and p.administrative_reception %}
+                                <a href="/api/v1/st/receptions/{{ p.administrative_reception.id }}/acknowledgement/" target="_blank" rel="noopener" class="rx-table-link"><i data-lucide="file-down" aria-hidden="true"></i> Accusé</a>
+                                {% else %}
+                                <button type="button" class="rx-table-primary" data-start-process="{{ p.pk }}"><i data-lucide="stamp" aria-hidden="true"></i> {% if p.reception_state == 'draft' or p.reception_state == 'anomaly' %}Reprendre la réception{% else %}Préparer la réception{% endif %}</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="rx-table-empty"><td colspan="7"><div class="rx-empty"><i data-lucide="inbox" aria-hidden="true"></i><strong>Votre file est vide</strong><p>Aucun dossier du circuit historique à réceptionner ou à suivre dans cette étape.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="rx-empty rx-empty--inline" data-rx-no-result hidden>Aucun dossier ne correspond aux filtres sélectionnés.</p>
+        <p class="rx-table-footnote"><i data-lucide="info" aria-hidden="true"></i> Les actions « Valider », « Envoyer » et « Renvoyer » appartiennent aux étapes suivantes ; elles ne sont pas disponibles depuis la réception.</p>
+    </section>
+
+    {% include "ctc/app/components/post6_admin.html" %}
+</section>
+<script src="{% static 'js/post6-admin.js' %}?v=20261101-2"></script>
+<script>
+(() => {
+    const root = document.querySelector('[data-reception-workspace]');
+    if (!root) return;
+    const rows = [...root.querySelectorAll('[data-reception-id]')];
+    const search = root.querySelector('[data-rx-search]');
+    const tome = root.querySelector('select[data-rx-tome]');
+    const status = root.querySelector('select[data-rx-status]');
+    const count = root.querySelector('[data-rx-count]');
+    const empty = root.querySelector('[data-rx-no-result]');
+    const apply = () => {
+        const query = search.value.trim().toLocaleLowerCase('fr');
+        let visible = 0;
+        rows.forEach(row => {
+            const match = (!query || row.dataset.rxText.toLocaleLowerCase('fr').includes(query))
+                && (!tome.value || row.dataset.rxTome === tome.value)
+                && (!status.value || row.dataset.rxState === status.value);
+            row.hidden = !match;
+            if (match) visible++;
+        });
+        count.textContent = `${visible} dossier${visible > 1 ? 's' : ''} affiché${visible > 1 ? 's' : ''} sur ${rows.length}`;
+        empty.hidden = visible > 0 || rows.length === 0;
+    };
+    search.addEventListener('input', apply);
+    tome.addEventListener('change', apply);
+    status.addEventListener('change', apply);
+    root.querySelector('[data-rx-reset]').addEventListener('click', () => {
+        search.value = '';
+        tome.value = '';
+        status.value = '';
+        apply();
+    });
+    root.querySelectorAll('[data-rx-set-state]').forEach(button => button.addEventListener('click', () => {
+        status.value = button.dataset.rxSetState;
+        apply();
+        root.querySelector('[data-rx-registry]').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start'});
+    }));
+    apply();
+})();
+</script>

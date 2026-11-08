@@ -23,7 +23,7 @@ from .serializers import (
     JetonPresenceCreateSerializer, PaymentDashboardSerializer,
     JetonSummarySerializer, PaymentStatsSerializer
 )
-from ..permissions import IsCTCCoordinator
+from ..permissions import IsSTFinance as IsCTCCoordinator
 
 
 class CotisationViewSet(viewsets.ModelViewSet):
@@ -274,7 +274,7 @@ class JetonPresenceViewSet(viewsets.ModelViewSet):
         """Permissions granulaires"""
         if self.action in [
             'create', 'update', 'partial_update', 'destroy',
-            'resolve_contestation', 'sepa_export',
+            'resolve_contestation', 'sepa_export', 'mark_as_paid',
         ]:
             return [IsCTCCoordinator()]
         return [IsAuthenticated()]
