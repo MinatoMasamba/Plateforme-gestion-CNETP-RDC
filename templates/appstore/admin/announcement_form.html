@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Modifier annonce — Admin App Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    {% include "appstore/admin/_nav.html" %}
+    <section class="appstore-panel">
+      <h1 style="font-size:1.4rem;font-weight:720;margin-bottom:1rem;">{{ announcement.title }}</h1>
+      <form method="post" enctype="multipart/form-data" class="appstore-form-grid appstore-form-grid--2">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="appstore-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+        {% endfor %}
+        <div><button class="appstore-btn appstore-btn--primary" type="submit">Enregistrer</button></div>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

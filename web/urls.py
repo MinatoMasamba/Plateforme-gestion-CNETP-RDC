@@ -69,10 +69,37 @@ from .conseiller_analysis_views import (
     analysis_list, analysis_create, analysis_detail, analysis_transition, analysis_piece,
 )
 from .president_sc_views import president_sc_observation_page, president_sc_observation_data
+from . import appstore_views
 
 app_name = 'web'
 
 urlpatterns = [
+    # ─── App Store CNE-ITP ───────────────────────────────────────────────────
+    path('app-store/', appstore_views.catalog, name='appstore_catalog'),
+    path('app-store/annonces/', appstore_views.announcements, name='appstore_announcements'),
+    path('app-store/apps/<slug:slug>/', appstore_views.app_detail, name='appstore_detail'),
+    path('app-store/telecharger/<int:file_id>/', appstore_views.download_release, name='appstore_download'),
+    path('app-store/administration/', appstore_views.admin_home, name='appstore_admin_home'),
+    path('app-store/administration/applications/nouvelle/', appstore_views.admin_app_edit, name='appstore_admin_app_new'),
+    path('app-store/administration/applications/<int:pk>/', appstore_views.admin_app_edit, name='appstore_admin_app'),
+    path('app-store/administration/applications/<int:pk>/retirer/', appstore_views.admin_app_withdraw, name='appstore_admin_app_withdraw'),
+    path('app-store/administration/applications/<int:pk>/captures/', appstore_views.admin_screenshot_add, name='appstore_admin_screenshot_add'),
+    path('app-store/administration/applications/<int:pk>/captures/<int:shot_id>/supprimer/', appstore_views.admin_screenshot_delete, name='appstore_admin_screenshot_delete'),
+    path('app-store/administration/applications/<int:app_id>/versions/nouvelle/', appstore_views.admin_version_edit, name='appstore_admin_version_new'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:pk>/', appstore_views.admin_version_edit, name='appstore_admin_version'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:pk>/publier/', appstore_views.admin_version_publish, name='appstore_admin_version_publish'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:pk>/retirer/', appstore_views.admin_version_withdraw, name='appstore_admin_version_withdraw'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:pk>/recommander/', appstore_views.admin_set_recommended, name='appstore_admin_set_recommended'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:version_id>/fichiers/', appstore_views.admin_file_upload, name='appstore_admin_file_upload'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:version_id>/fichiers/<int:file_id>/approuver/', appstore_views.admin_file_approve, name='appstore_admin_file_approve'),
+    path('app-store/administration/applications/<int:app_id>/versions/<int:version_id>/fichiers/<int:file_id>/rejeter/', appstore_views.admin_file_reject, name='appstore_admin_file_reject'),
+    path('app-store/administration/categories/', appstore_views.admin_categories, name='appstore_admin_categories'),
+    path('app-store/administration/categories/<int:pk>/', appstore_views.admin_category_edit, name='appstore_admin_category_edit'),
+    path('app-store/administration/annonces/', appstore_views.admin_announcements, name='appstore_admin_announcements'),
+    path('app-store/administration/annonces/<int:pk>/', appstore_views.admin_announcement_edit, name='appstore_admin_announcement_edit'),
+    path('app-store/administration/annonces/<int:pk>/publier/', appstore_views.admin_announcement_publish, name='appstore_admin_announcement_publish'),
+    path('app-store/administration/annonces/<int:pk>/archiver/', appstore_views.admin_announcement_archive, name='appstore_admin_announcement_archive'),
+    path('app-store/administration/statistiques/', appstore_views.admin_stats, name='appstore_admin_stats'),
     path('pilotage/profil/', pilotage_profile, name='pilotage_profile'),
     path('pilotage/organisation/gestion/', PhoenixManagementView.as_view(), name='phoenix_management'),
     path('pilotage/organisation/configuration/<str:kind>/', PhoenixConfigurationView.as_view(), name='phoenix_config_create'),

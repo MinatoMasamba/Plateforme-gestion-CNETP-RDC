@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.dashboard.apps.DashboardConfig',
     'apps.gemini_drafts.apps.GeminiDraftsConfig',
     'apps.reporting.apps.ReportingConfig',
+    'apps.appstore.apps.AppstoreConfig',
 ]
 
 MIDDLEWARE = [

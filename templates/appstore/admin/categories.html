@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catégories — Admin App Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    {% include "appstore/admin/_nav.html" %}
+    <div class="appstore-detail-grid">
+      <section class="appstore-panel">
+        <h1 style="font-size:1.4rem;font-weight:720;margin-bottom:1rem;">Nouvelle catégorie</h1>
+        <form method="post" class="appstore-form-grid">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="appstore-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+          </div>
+          {% endfor %}
+          <button class="appstore-btn appstore-btn--primary" type="submit">Créer</button>
+        </form>
+      </section>
+      <section class="appstore-panel">
+        <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Catégories existantes</h2>
+        <table class="appstore-table">
+          <thead><tr><th>Nom</th><th>Ordre</th><th>Active</th><th></th></tr></thead>
+          <tbody>
+            {% for category in categories %}
+            <tr>
+              <td>{{ category.name }}</td>
+              <td>{{ category.sort_order }}</td>
+              <td>{% if category.is_active %}Oui{% else %}Non{% endif %}</td>
+              <td><a href="{% url 'web:appstore_admin_category_edit' pk=category.pk %}">Modifier</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Aucune catégorie.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

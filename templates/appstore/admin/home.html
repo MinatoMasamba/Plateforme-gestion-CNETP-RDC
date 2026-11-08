@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Administration — App Store CNE-ITP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    <section class="appstore-hero">
+      <p class="premium-eyebrow">Espace réservé</p>
+      <h1>Administration App Store</h1>
+      <p>Publiez des applications, des versions, des fichiers et des annonces. Les téléchargements réels sont comptabilisés séparément des simples consultations.</p>
+    </section>
+    {% include "appstore/admin/_nav.html" %}
+
+    <div class="appstore-grid" style="margin-bottom:1.5rem;">
+      <div class="appstore-panel"><div class="appstore-label">Applications</div><strong style="font-size:1.8rem;">{{ apps|length }}</strong></div>
+      <div class="appstore-panel"><div class="appstore-label">Téléchargements (30 j)</div><strong style="font-size:1.8rem;">{{ stats.total }}</strong></div>
+      <div class="appstore-panel"><div class="appstore-label">Annonces</div><strong style="font-size:1.8rem;">{{ announcement_count }}</strong></div>
+      <div class="appstore-panel"><div class="appstore-label">Catégories</div><strong style="font-size:1.8rem;">{{ category_count }}</strong></div>
+    </div>
+
+    {% if pending_files %}
+    <section class="appstore-panel" style="margin-bottom:1.25rem;">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Fichiers en quarantaine</h2>
+      <table class="appstore-table">
+        <thead><tr><th>Application</th><th>Version</th><th>Plateforme</th><th></th></tr></thead>
+        <tbody>
+          {% for file in pending_files %}
+          <tr>
+            <td>{{ file.version.application.name }}</td>
+            <td>{{ file.version.version_number }}</td>
+            <td>{{ file.get_platform_display }}</td>
+            <td><a href="{% url 'web:appstore_admin_version' app_id=file.version.application_id pk=file.version_id %}">Examiner</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endif %}
+
+    <section class="appstore-panel">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Applications</h2>
+      {% if apps %}
+      <table class="appstore-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Publiée</th>
+            <th>Mise en avant</th>
+            <th>Version recommandée</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in apps %}
+          <tr>
+            <td>{{ app.name }}</td>
+            <td>{{ app.category.name|default:"—" }}</td>
+            <td>{% if app.is_published %}Oui{% else %}Non{% endif %}</td>
+            <td>{% if app.is_featured %}Oui{% else %}Non{% endif %}</td>
+            <td>{% if app.recommended_version %}{{ app.recommended_version.version_number }}{% else %}—{% endif %}</td>
+            <td><a class="appstore-btn appstore-btn--soft" href="{% url 'web:appstore_admin_app' pk=app.pk %}">Modifier</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="appstore-empty">Aucune application. Créez-en une pour commencer.</div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

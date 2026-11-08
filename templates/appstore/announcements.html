@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Actualités et annonces — App Store CNE-ITP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    <section class="appstore-hero">
+      <p class="premium-eyebrow">App Store CNE-ITP</p>
+      <h1>Actualités et annonces</h1>
+      <p>Sorties d’applications, mises à jour, correctifs, maintenances et instructions officielles d’installation.</p>
+      <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem;">
+        <a class="appstore-btn appstore-btn--soft" href="{% url 'web:appstore_catalog' %}">Retour au catalogue</a>
+        {% if can_admin %}
+        <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_admin_announcements' %}">Gérer les annonces</a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="appstore-section" style="display:grid;gap:1rem;">
+      {% for item in announcements %}
+      <article class="appstore-panel" id="annonce-{{ item.pk }}">
+        <div class="appstore-meta" style="margin-bottom:.65rem;">
+          {% if item.is_pinned %}<span class="appstore-chip">Épinglée</span>{% endif %}
+          <span class="appstore-chip">{{ item.get_kind_display }}</span>
+          {% if item.published_at %}<span class="appstore-chip">{{ item.published_at|date:"d/m/Y H:i" }}</span>{% endif %}
+        </div>
+        <h2 style="font-size:1.25rem;font-weight:720;margin-bottom:.55rem;">{{ item.title }}</h2>
+        {% if item.image %}
+        <img src="{{ item.image.url }}" alt="" style="width:100%;max-height:280px;object-fit:cover;border-radius:18px;margin-bottom:.85rem;">
+        {% endif %}
+        <p style="white-space:pre-wrap;color:var(--ui-muted);line-height:1.55;">{{ item.body }}</p>
+        {% if item.application %}
+        <div style="margin-top:1rem;">
+          {% if item.version %}
+          <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_detail' slug=item.application.slug %}?version={{ item.version.version_number|urlencode }}">
+            Ouvrir {{ item.application.name }} {{ item.version.version_number }}
+          </a>
+          {% else %}
+          <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_detail' slug=item.application.slug %}">
+            Ouvrir {{ item.application.name }}
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </article>
+      {% empty %}
+      <div class="appstore-empty">Aucune annonce publiée pour le moment.</div>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}

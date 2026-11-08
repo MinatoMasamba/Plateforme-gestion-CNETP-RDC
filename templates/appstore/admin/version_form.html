@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Version — {{ app.name }} — Admin App Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    {% include "appstore/admin/_nav.html" %}
+    <section class="appstore-hero" style="margin-bottom:1.25rem;">
+      <p class="premium-eyebrow">{{ app.name }}</p>
+      <h1>{% if version %}Version {{ version.version_number }}{% else %}Nouvelle version{% endif %}</h1>
+    </section>
+
+    <form method="post" class="appstore-panel" style="margin-bottom:1.25rem;">
+      {% csrf_token %}
+      <div class="appstore-form-grid appstore-form-grid--2">
+        {% for field in form %}
+        <div class="appstore-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:1rem;">
+        <button class="appstore-btn appstore-btn--primary" type="submit">Enregistrer la version</button>
+        <a class="appstore-btn appstore-btn--ghost" href="{% url 'web:appstore_admin_app' pk=app.pk %}">Retour à l’application</a>
+      </div>
+    </form>
+
+    {% if version %}
+    <section class="appstore-panel" style="margin-bottom:1.25rem;">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Actions de publication</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+        <form method="post" action="{% url 'web:appstore_admin_version_publish' app_id=app.pk pk=version.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="set_recommended" value="1">
+          <button class="appstore-btn appstore-btn--primary" type="submit">Publier et recommander</button>
+        </form>
+        <form method="post" action="{% url 'web:appstore_admin_version_publish' app_id=app.pk pk=version.pk %}">
+          {% csrf_token %}
+          <button class="appstore-btn appstore-btn--soft" type="submit">Publier</button>
+        </form>
+        <form method="post" action="{% url 'web:appstore_admin_set_recommended' app_id=app.pk pk=version.pk %}">
+          {% csrf_token %}
+          <button class="appstore-btn appstore-btn--ghost" type="submit">Définir comme recommandée</button>
+        </form>
+        <form method="post" action="{% url 'web:appstore_admin_version_withdraw' app_id=app.pk pk=version.pk %}">
+          {% csrf_token %}
+          <button class="appstore-btn appstore-btn--ghost" type="submit">Retirer</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="appstore-panel">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Fichiers de distribution</h2>
+      <form method="post" enctype="multipart/form-data" action="{% url 'web:appstore_admin_file_upload' app_id=app.pk version_id=version.pk %}" class="appstore-form-grid appstore-form-grid--2" style="margin-bottom:1rem;">
+        {% csrf_token %}
+        {% for field in file_form %}
+        <div class="appstore-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+        {% endfor %}
+        <div><button class="appstore-btn appstore-btn--primary" type="submit">Téléverser le fichier</button></div>
+      </form>
+
+      {% if files %}
+      <table class="appstore-table">
+        <thead>
+          <tr>
+            <th>Plateforme</th>
+            <th>Archi</th>
+            <th>Taille</th>
+            <th>SHA-256</th>
+            <th>Quarantaine</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for file in files %}
+          <tr>
+            <td>{{ file.get_platform_display }}</td>
+            <td>{{ file.get_architecture_display }}</td>
+            <td>{{ file.human_size }}</td>
+            <td style="word-break:break-all;font-size:.75rem;">{{ file.sha256|default:"—" }}</td>
+            <td>{{ file.get_quarantine_status_display }}</td>
+            <td style="display:flex;gap:.35rem;flex-wrap:wrap;">
+              {% if file.quarantine_status != 'approved' %}
+              <form method="post" action="{% url 'web:appstore_admin_file_approve' app_id=app.pk version_id=version.pk file_id=file.pk %}">
+                {% csrf_token %}<button class="appstore-btn appstore-btn--soft" type="submit">Approuver</button>
+              </form>
+              {% endif %}
+              {% if file.quarantine_status != 'rejected' %}
+              <form method="post" action="{% url 'web:appstore_admin_file_reject' app_id=app.pk version_id=version.pk file_id=file.pk %}">
+                {% csrf_token %}<button class="appstore-btn appstore-btn--ghost" type="submit">Rejeter</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="appstore-empty">Aucun fichier pour cette version.</div>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

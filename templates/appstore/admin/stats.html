@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Statistiques — Admin App Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    {% include "appstore/admin/_nav.html" %}
+    <section class="appstore-hero" style="margin-bottom:1.25rem;">
+      <h1>Statistiques de téléchargement</h1>
+      <p>Compteurs basés uniquement sur les téléchargements réellement démarrés côté serveur.</p>
+    </section>
+    <div class="appstore-grid" style="margin-bottom:1.25rem;">
+      <div class="appstore-panel"><div class="appstore-label">30 derniers jours</div><strong style="font-size:1.8rem;">{{ stats_30.total }}</strong></div>
+      <div class="appstore-panel"><div class="appstore-label">Total</div><strong style="font-size:1.8rem;">{{ stats_all.total }}</strong></div>
+    </div>
+    <section class="appstore-panel" style="margin-bottom:1.25rem;">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Par application (30 j)</h2>
+      <table class="appstore-table">
+        <thead><tr><th>Application</th><th>Téléchargements</th></tr></thead>
+        <tbody>
+          {% for row in stats_30.by_app %}
+          <tr><td>{{ row.application__name }}</td><td>{{ row.total }}</td></tr>
+          {% empty %}
+          <tr><td colspan="2">Aucun téléchargement.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <section class="appstore-panel">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Par version (total)</h2>
+      <table class="appstore-table">
+        <thead><tr><th>Application</th><th>Version</th><th>Téléchargements</th></tr></thead>
+        <tbody>
+          {% for row in stats_all.by_version %}
+          <tr><td>{{ row.application__name }}</td><td>{{ row.version__version_number }}</td><td>{{ row.total }}</td></tr>
+          {% empty %}
+          <tr><td colspan="3">Aucun téléchargement.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>
+{% endblock %}

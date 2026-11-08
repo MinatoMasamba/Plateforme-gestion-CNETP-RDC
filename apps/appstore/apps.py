@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class AppstoreConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.appstore'
+    verbose_name = 'App Store CNE-ITP'

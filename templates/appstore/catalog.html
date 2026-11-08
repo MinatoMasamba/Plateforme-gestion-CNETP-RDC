@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}App Store CNE-ITP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    <section class="appstore-hero">
+      <p class="premium-eyebrow">Plateforme CNE-ITP</p>
+      <h1>App Store CNE-ITP</h1>
+      <p>Découvrez les applications et logiciels professionnels de la Commission, consultez les versions disponibles et téléchargez le fichier exact pour votre appareil.</p>
+      <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem;">
+        <a class="appstore-btn appstore-btn--soft" href="{% url 'web:appstore_announcements' %}">Actualités et annonces</a>
+        {% if can_admin %}
+        <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_admin_home' %}">Administration</a>
+        {% endif %}
+      </div>
+      <form method="get" class="appstore-toolbar" action="{% url 'web:appstore_catalog' %}">
+        <div>
+          <label class="appstore-label" for="q">Recherche</label>
+          <input class="appstore-input" id="q" name="q" value="{{ search }}" placeholder="Nom, éditeur, description…">
+        </div>
+        <div>
+          <label class="appstore-label" for="category">Catégorie</label>
+          <select class="appstore-input" id="category" name="category">
+            <option value="">Toutes</option>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="appstore-label" for="platform">Plateforme</label>
+          <select class="appstore-input" id="platform" name="platform">
+            <option value="">Toutes</option>
+            {% for value, label in platforms %}
+            <option value="{{ value }}" {% if selected_platform == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="appstore-btn appstore-btn--primary" type="submit">Filtrer</button>
+      </form>
+    </section>
+
+    {% if featured %}
+    <section class="appstore-section">
+      <h2>Applications mises en avant</h2>
+      <div class="appstore-grid">
+        {% for app in featured %}
+        <article class="appstore-card">
+          <div class="appstore-card__top">
+            {% if app.icon %}
+            <img class="appstore-icon" src="{{ app.icon.url }}" alt="">
+            {% else %}
+            <div class="appstore-icon">{{ app.name|slice:":1"|upper }}</div>
+            {% endif %}
+            <div>
+              <h3>{{ app.name }}</h3>
+              <p>{{ app.short_description }}</p>
+            </div>
+          </div>
+          <div class="appstore-card__actions">
+            <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_detail' slug=app.slug %}">Voir les détails</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="appstore-section">
+      <h2>Catalogue</h2>
+      {% if cards %}
+      <div class="appstore-grid">
+        {% for card in cards %}
+        <article class="appstore-card">
+          <div class="appstore-card__top">
+            {% if card.app.icon %}
+            <img class="appstore-icon" src="{{ card.app.icon.url }}" alt="">
+            {% else %}
+            <div class="appstore-icon">{{ card.app.name|slice:":1"|upper }}</div>
+            {% endif %}
+            <div style="min-width:0;">
+              <h3>{{ card.app.name }}</h3>
+              <p>{{ card.app.short_description }}</p>
+            </div>
+          </div>
+          <div class="appstore-meta">
+            {% if card.app.category %}<span class="appstore-chip">{{ card.app.category.name }}</span>{% endif %}
+            {% for platform in card.platforms %}
+            <span class="appstore-chip">{{ platform|upper }}</span>
+            {% empty %}
+            <span class="appstore-chip">Aucune plateforme</span>
+            {% endfor %}
+            {% if card.recommended %}
+            <span class="appstore-chip">v{{ card.recommended.version_number }}</span>
+            {% if card.recommended.published_at %}
+            <span class="appstore-chip">{{ card.recommended.published_at|date:"d/m/Y" }}</span>
+            {% endif %}
+            {% endif %}
+          </div>
+          <div class="appstore-card__actions">
+            <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_detail' slug=card.app.slug %}">Voir les détails</a>
+            {% if card.download_file %}
+            <a class="appstore-btn appstore-btn--soft" href="{% url 'web:appstore_download' file_id=card.download_file.id %}">Télécharger</a>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="appstore-empty">
+        Aucune application publiée ne correspond à votre recherche.
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -52,5 +52,6 @@ staticfiles/
 data.json
 /.local_backups/
 /.phoenix_documents/
+/.appstore_packages/
 /demo_data/
 

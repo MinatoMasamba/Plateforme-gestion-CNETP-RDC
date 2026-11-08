@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ app.name }} — App Store CNE-ITP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    <p style="margin-bottom:1rem;">
+      <a class="appstore-btn appstore-btn--ghost" href="{% url 'web:appstore_catalog' %}">← Catalogue</a>
+      <a class="appstore-btn appstore-btn--soft" href="{% url 'web:appstore_announcements' %}">Annonces</a>
+      {% if can_admin %}
+      <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_admin_app' pk=app.pk %}">Gérer</a>
+      {% endif %}
+    </p>
+
+    <section class="appstore-hero">
+      <div class="appstore-card__top">
+        {% if app.icon %}
+        <img class="appstore-icon" src="{{ app.icon.url }}" alt="" style="width:72px;height:72px;border-radius:20px;">
+        {% else %}
+        <div class="appstore-icon" style="width:72px;height:72px;border-radius:20px;font-size:1.4rem;">{{ app.name|slice:":1"|upper }}</div>
+        {% endif %}
+        <div>
+          <p class="premium-eyebrow">{% if app.category %}{{ app.category.name }}{% else %}Application{% endif %}</p>
+          <h1 style="margin:0;">{{ app.name }}</h1>
+          <p style="margin-top:.55rem;">{{ app.short_description }}</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="appstore-detail-grid appstore-section">
+      <div style="display:grid;gap:1rem;">
+        <section class="appstore-panel">
+          <h2 style="font-size:1.2rem;font-weight:720;margin-bottom:.75rem;">Présentation</h2>
+          <p style="color:var(--ui-muted);white-space:pre-wrap;line-height:1.55;">{{ app.full_description|default:app.short_description }}</p>
+          {% if features %}
+          <ul style="margin-top:1rem;padding-left:1.1rem;color:var(--ui-muted);display:grid;gap:.35rem;">
+            {% for feature in features %}
+            <li>{{ feature }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if screenshots %}
+          <div class="appstore-shots" style="margin-top:1.1rem;">
+            {% for shot in screenshots %}
+            <figure>
+              <img src="{{ shot.image.url }}" alt="{{ shot.caption|default:app.name }}">
+              {% if shot.caption %}<figcaption style="font-size:.75rem;color:var(--ui-muted);margin-top:.35rem;">{{ shot.caption }}</figcaption>{% endif %}
+            </figure>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </section>
+
+        <section class="appstore-panel">
+          <h2 style="font-size:1.2rem;font-weight:720;margin-bottom:.75rem;">Historique des versions</h2>
+          {% if versions %}
+          <div class="appstore-version-list">
+            {% for version in versions %}
+            <a class="appstore-version-item {% if selected_version and selected_version.pk == version.pk %}is-active{% endif %}"
+               href="{% url 'web:appstore_detail' slug=app.slug %}?version={{ version.version_number|urlencode }}">
+              <div>
+                <strong>{{ version.version_number }}</strong>
+                <div class="appstore-meta" style="margin-top:.35rem;">
+                  <span class="appstore-chip">{{ version.get_channel_display }}</span>
+                  <span class="appstore-chip">{{ version.get_status_display }}</span>
+                  {% if version.published_at %}<span class="appstore-chip">{{ version.published_at|date:"d/m/Y" }}</span>{% endif %}
+                </div>
+              </div>
+              <span style="color:#0095c9;font-weight:700;font-size:.8rem;">Sélectionner</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="appstore-empty">Aucune version accessible pour votre compte.</div>
+          {% endif %}
+        </section>
+
+        {% if selected_version and selected_version.release_notes %}
+        <section class="appstore-panel">
+          <h2 style="font-size:1.2rem;font-weight:720;margin-bottom:.75rem;">Notes de publication — {{ selected_version.version_number }}</h2>
+          <p style="white-space:pre-wrap;color:var(--ui-muted);line-height:1.55;">{{ selected_version.release_notes }}</p>
+          {% if selected_version.known_issues %}
+          <p style="margin-top:1rem;font-weight:700;">Problèmes connus</p>
+          <p style="white-space:pre-wrap;color:var(--ui-muted);">{{ selected_version.known_issues }}</p>
+          {% endif %}
+        </section>
+        {% endif %}
+      </div>
+
+      <aside style="display:grid;gap:1rem;">
+        <section class="appstore-panel">
+          <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Informations techniques</h2>
+          <dl style="display:grid;gap:.65rem;font-size:.92rem;">
+            <div><dt class="appstore-label">Éditeur</dt><dd>{{ app.publisher }}</dd></div>
+            {% if selected_version %}
+            <div><dt class="appstore-label">Version sélectionnée</dt><dd>{{ selected_version.version_number }} ({{ selected_version.get_channel_display }})</dd></div>
+            {% if selected_version.published_at %}
+            <div><dt class="appstore-label">Date</dt><dd>{{ selected_version.published_at|date:"d/m/Y H:i" }}</dd></div>
+            {% endif %}
+            {% if selected_version.min_os_version %}
+            <div><dt class="appstore-label">Système minimal</dt><dd>{{ selected_version.min_os_version }}</dd></div>
+            {% endif %}
+            {% if selected_version.compatibility_notes %}
+            <div><dt class="appstore-label">Compatibilité</dt><dd style="white-space:pre-wrap;">{{ selected_version.compatibility_notes }}</dd></div>
+            {% endif %}
+            {% endif %}
+          </dl>
+        </section>
+
+        <section class="appstore-panel">
+          <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Téléchargement</h2>
+          {% if login_required_for_download %}
+          <p style="color:var(--ui-muted);margin-bottom:.85rem;">Connectez-vous pour télécharger une version.</p>
+          <a class="appstore-btn appstore-btn--primary" href="{% url 'web:expert_login' %}?next={{ request.get_full_path|urlencode }}">Se connecter</a>
+          {% elif selected_version and files %}
+          <div style="display:grid;gap:.75rem;">
+            {% for file in files %}
+            <div style="border:1px solid var(--ui-border);border-radius:16px;padding:.85rem;">
+              <div class="appstore-meta" style="margin-bottom:.55rem;">
+                <span class="appstore-chip">{{ file.get_platform_display }}</span>
+                <span class="appstore-chip">{{ file.get_architecture_display }}</span>
+                <span class="appstore-chip">{{ file.human_size }}</span>
+              </div>
+              <p style="font-size:.78rem;color:var(--ui-muted);word-break:break-all;margin-bottom:.55rem;">SHA-256 : {{ file.sha256 }}</p>
+              {% if file.install_notes %}
+              <p style="font-size:.85rem;color:var(--ui-muted);margin-bottom:.55rem;white-space:pre-wrap;">{{ file.install_notes }}</p>
+              {% endif %}
+              <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_download' file_id=file.id %}">
+                Télécharger {{ selected_version.version_number }} — {{ file.get_platform_display }}
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="appstore-empty" style="padding:1.25rem;">
+            Aucun fichier téléchargeable pour cette version.
+          </div>
+          {% endif %}
+        </section>
+
+        {% if announcements %}
+        <section class="appstore-panel">
+          <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Annonces liées</h2>
+          <div style="display:grid;gap:.65rem;">
+            {% for item in announcements %}
+            <a href="{% url 'web:appstore_announcements' %}#annonce-{{ item.pk }}" style="text-decoration:none;color:inherit;">
+              <strong>{{ item.title }}</strong>
+              <div style="font-size:.8rem;color:var(--ui-muted);">{{ item.published_at|date:"d/m/Y" }}</div>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}

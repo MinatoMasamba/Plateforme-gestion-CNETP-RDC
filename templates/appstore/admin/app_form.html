@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if app %}{{ app.name }}{% else %}Nouvelle application{% endif %} — Admin App Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/institutional-ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/appstore.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appstore-shell">
+  <div class="appstore-wrap">
+    {% include "appstore/admin/_nav.html" %}
+    <section class="appstore-hero" style="margin-bottom:1.25rem;">
+      <h1>{% if app %}Modifier {{ app.name }}{% else %}Nouvelle application{% endif %}</h1>
+    </section>
+
+    <form method="post" enctype="multipart/form-data" class="appstore-panel" style="margin-bottom:1.25rem;">
+      {% csrf_token %}
+      <div class="appstore-form-grid appstore-form-grid--2">
+        {% for field in form %}
+        <div class="appstore-field {% if field.name == 'full_description' or field.name == 'features' %}style-full{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="helptext">{{ field.help_text }}</div>{% endif %}
+          {{ field.errors }}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem;">
+        <button class="appstore-btn appstore-btn--primary" type="submit">Enregistrer</button>
+        {% if app %}
+        <button class="appstore-btn appstore-btn--ghost" type="submit" form="withdraw-form">Retirer du catalogue</button>
+        {% endif %}
+      </div>
+    </form>
+    {% if app %}
+    <form id="withdraw-form" method="post" action="{% url 'web:appstore_admin_app_withdraw' pk=app.pk %}">{% csrf_token %}</form>
+
+    <section class="appstore-panel" style="margin-bottom:1.25rem;">
+      <div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;">
+        <h2 style="font-size:1.15rem;font-weight:720;">Versions</h2>
+        <a class="appstore-btn appstore-btn--primary" href="{% url 'web:appstore_admin_version_new' app_id=app.pk %}">Ajouter une version</a>
+      </div>
+      {% if versions %}
+      <table class="appstore-table">
+        <thead><tr><th>Numéro</th><th>Canal</th><th>État</th><th>Fichiers</th><th></th></tr></thead>
+        <tbody>
+          {% for version in versions %}
+          <tr>
+            <td>{{ version.version_number }}{% if app.recommended_version_id == version.pk %} ★{% endif %}</td>
+            <td>{{ version.get_channel_display }}</td>
+            <td>{{ version.get_status_display }}</td>
+            <td>{{ version.files.count }}</td>
+            <td><a href="{% url 'web:appstore_admin_version' app_id=app.pk pk=version.pk %}">Gérer</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="appstore-empty">Aucune version. Ajoutez-en au moins une.</div>
+      {% endif %}
+    </section>
+
+    <section class="appstore-panel">
+      <h2 style="font-size:1.15rem;font-weight:720;margin-bottom:.75rem;">Captures d’écran</h2>
+      <form method="post" enctype="multipart/form-data" action="{% url 'web:appstore_admin_screenshot_add' pk=app.pk %}" class="appstore-form-grid appstore-form-grid--2" style="margin-bottom:1rem;">
+        {% csrf_token %}
+        {% for field in screenshot_form %}
+        <div class="appstore-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </div>
+        {% endfor %}
+        <div><button class="appstore-btn appstore-btn--soft" type="submit">Ajouter</button></div>
+      </form>
+      {% for shot in screenshots %}
+      <div style="display:flex;gap:.75rem;align-items:center;margin-bottom:.65rem;">
+        <img src="{{ shot.image.url }}" alt="" style="width:96px;height:64px;object-fit:cover;border-radius:10px;">
+        <span>{{ shot.caption|default:"Sans légende" }}</span>
+        <form method="post" action="{% url 'web:appstore_admin_screenshot_delete' pk=app.pk shot_id=shot.pk %}">
+          {% csrf_token %}
+          <button class="appstore-btn appstore-btn--ghost" type="submit">Supprimer</button>
+        </form>
+      </div>
+      {% empty %}
+      <div class="appstore-empty">Aucune capture.</div>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

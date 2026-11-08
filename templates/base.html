@@ -48,6 +48,7 @@
                 <div class="hidden md:flex items-center gap-8">
                     <a href="{% url 'web:home' %}" class="text-xs font-bold tracking-wider uppercase text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-white">Accueil</a>
                     <a href="{% url 'web:about' %}" class="text-xs font-bold tracking-wider uppercase text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-white">À Propos</a>
+                    <a href="{% url 'web:appstore_catalog' %}" class="text-xs font-bold tracking-wider uppercase text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-white">App Store</a>
                     <a href="{% url 'web:contact' %}" class="text-xs font-bold tracking-wider uppercase text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-white">Contact</a>
                     {% if console_access %}
                     <a href="{% url 'console:home' %}" class="text-xs font-bold tracking-wider uppercase text-[#0095c9] transition-colors hover:text-[#007ea8]">Administration</a>
@@ -85,6 +86,7 @@
                 <button id="theme-toggle-mobile" type="button" data-theme-toggle class="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold uppercase text-slate-600 dark:border-white/10 dark:text-slate-200" aria-label="Changer le thème" title="Changer le thème">Changer le thème</button>
                 <a href="{% url 'web:home' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-slate-600 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10">Accueil</a>
                 <a href="{% url 'web:about' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-slate-600 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10">À Propos</a>
+                <a href="{% url 'web:appstore_catalog' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-slate-600 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10">App Store</a>
                 <a href="{% url 'web:contact' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-slate-600 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10">Contact</a>
                 {% if console_access %}
                 <a href="{% url 'console:home' %}" class="block px-3 py-2 rounded-lg text-sm font-bold uppercase text-[#0095c9] hover:bg-slate-100 dark:hover:bg-white/10">Administration</a>
