@@ -62,9 +62,6 @@ class MobileCTCViewSet(viewsets.ViewSet):
         if error:
             return error
 
-        from web.ctc_statistics import build_ctc_statistics
-        stats = build_ctc_statistics()
-
         dossiers = (
             CTCProcessus.objects
             .select_related('norme')
@@ -82,6 +79,12 @@ class MobileCTCViewSet(viewsets.ViewSet):
                                for row in metrics['distribution']],
                 'group_norm_rows': [],
             }
+        else:
+            # Le calcul CTC historique parcourt tous les CTM, groupes et
+            # tâches. Il est inutile pour les postes ST v3, dont les KPI
+            # viennent déjà du périmètre de mandat ci-dessus.
+            from web.ctc_statistics import build_ctc_statistics
+            stats = build_ctc_statistics()
 
 
         assignation_tasks = []

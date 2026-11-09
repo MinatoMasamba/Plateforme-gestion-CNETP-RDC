@@ -28,7 +28,7 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body class="cnetp-premium min-h-screen flex flex-col bg-white text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+<body class="cnetp-premium min-h-screen flex flex-col bg-white text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 {% block body_class %}{% endblock %}">
 
     <!-- ═══════════════════════════════════════════════════════════════════
          NAVBAR — charte graphique gouvernementale (fond blanc, bouton jaune)

@@ -14,6 +14,8 @@ from apps.messaging.dispatch_services import send_dispatch, visible_dispatches
 
 
 class ReportInput(serializers.Serializer):
+    source_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    document = serializers.JSONField(required=False)
     title = serializers.CharField(max_length=250)
     sections = serializers.JSONField(required=False)
     template_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
@@ -32,7 +34,7 @@ def report_data(report, user, dispatch_links=()):
         'owner_name': report.owner.get_full_name() or report.owner.username, 'pole_code': report.pole_code,
         'mine': report.owner_id == user.pk, 'dispatch_count': len(links),
         'updated_at': report.updated_at.isoformat(),
-        'versions': [{'number': v.number, 'title': v.title, 'sections': v.sections,
+        'versions': [{'number': v.number, 'title': v.title, 'sections': v.sections, 'source_id': v.source_id, 'document': v.document,
             'period_start': v.period_start.isoformat() if v.period_start else None,
             'period_end': v.period_end.isoformat() if v.period_end else None,
             'author_name': v.author_name, 'created_at': v.created_at.isoformat()} for v in versions],
@@ -79,11 +81,60 @@ class STReportViewSet(viewsets.ViewSet):
             class Input(serializers.Serializer):
                 name = serializers.CharField(max_length=200)
                 sections = serializers.JSONField()
+                source_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+                document = serializers.JSONField(required=False)
             serializer = Input(data=request.data)
             serializer.is_valid(raise_exception=True)
             template = create_report_template(request.user, **serializer.validated_data)
-            return Response({'id': template.pk, 'name': template.name, 'sections': template.sections}, status=201)
-        return Response({'results': [{'id': t.pk, 'name': t.name, 'sections': t.sections, 'builtin': bool(t.system_code)} for t in STReportTemplate.objects.all()]})
+            return Response({'id': template.pk, 'name': template.name, 'sections': template.sections, 'source_id': template.source_id, 'document': template.document}, status=201)
+        return Response({'results': [{'id': t.pk, 'name': t.name, 'sections': t.sections, 'builtin': bool(t.system_code), 'source_id': t.source_id, 'document': t.document, 'collection': 'page_bleue' if (t.system_code or '').startswith('pack-blue-') else 'reference'} for t in STReportTemplate.objects.all()]})
+
+    @action(detail=False, methods=['post'], url_path='cover-preview')
+    def cover_preview(self, request):
+        from apps.governance.st_report_cover import cover_png
+        actor_mandate(request.user)
+        response = HttpResponse(cover_png(request.data), content_type='image/png')
+        response['Cache-Control'] = 'private, no-store'
+        return response
+
+    @action(detail=False, methods=['post'], url_path='import-document')
+    def import_document(self, request):
+        from apps.governance.st_report_documents import import_source, source_data
+        from apps.governance.st_operations import writable
+        actor_mandate(request.user)
+        writable()
+        upload = request.FILES.get('file')
+        if upload is None:
+            raise ValidationError('Choisissez un document à importer.')
+        return Response(source_data(import_source(upload, request.user)), status=201)
+
+    @action(detail=False, methods=['get'], url_path=r'sources/(?P<source_id>[^/.]+)')
+    def source(self, request, source_id=None):
+        from django.shortcuts import get_object_or_404
+        from apps.governance.st_report_documents import accessible_sources, report_storage, source_data
+        actor_mandate(request.user)
+        source = get_object_or_404(accessible_sources(request.user), pk=source_id)
+        storage = report_storage()
+        if request.query_params.get('original') == '1':
+            from django.http import FileResponse
+            response = FileResponse(storage.open(source.original, 'rb'), as_attachment=True, filename=source.name)
+        elif 'page' in request.query_params:
+            import fitz
+            try:
+                number = int(request.query_params['page'])
+            except ValueError:
+                raise ValidationError('Page invalide.')
+            if not 0 <= number < len(source.pages):
+                raise ValidationError('Page invalide.')
+            with storage.open(source.preview, 'rb') as stream, fitz.open(stream=stream.read(), filetype='pdf') as pdf:
+                page = pdf[number]
+                limit = 240 if request.query_params.get('thumbnail') == '1' else 1400
+                scale = min(1.5, limit / max(page.rect.width, page.rect.height))
+                response = HttpResponse(page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False).tobytes('png'), content_type='image/png')
+        else:
+            return Response(source_data(source))
+        response['Cache-Control'] = 'private, no-store'
+        return response
 
     @action(detail=True, methods=['get'])
     def export(self, request, pk=None):

@@ -5,6 +5,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'report_fixed_editor.dart';
+import 'report_cover_editor.dart';
+import 'report_tables_editor.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../theme/app_colors.dart';
@@ -16,16 +20,28 @@ typedef ReportFileSaver =
 class _Section {
   _Section(Map<String, dynamic> data)
     : title = TextEditingController(text: '${data['title'] ?? ''}'),
-      content = TextEditingController(text: '${data['content'] ?? ''}');
+      content = TextEditingController(text: '${data['content'] ?? ''}'),
+      rich = quill.QuillController(
+        document: data['delta'] is List
+            ? quill.Document.fromJson(data['delta'] as List)
+            : (quill.Document()..insert(0, '${data['content'] ?? ''}')),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
   final TextEditingController title;
   final TextEditingController content;
-  Map<String, String> get data => {
+  final quill.QuillController rich;
+  bool formatted = false;
+  Map<String, dynamic> get data => {
     'title': title.text.trim(),
-    'content': content.text,
+    'content': formatted
+        ? rich.document.toPlainText().replaceFirst(RegExp(r'\n$'), '')
+        : content.text,
+    if (formatted) 'delta': rich.document.toDelta().toJson(),
   };
   void dispose() {
     title.dispose();
     content.dispose();
+    rich.dispose();
   }
 }
 
@@ -52,7 +68,19 @@ class _CtcReportsViewState extends State<CtcReportsView> {
   List<_Section> _sections = [];
   List<Map<String, dynamic>> _reports = [], _templates = [];
   Map<String, dynamic>? _current;
-  int? _version, _template;
+  int? _version, _template, _sourceId;
+  Map<String, dynamic>? _source;
+  String _mode = 'free';
+  Map<String, dynamic> _cover = {};
+  int _sourceStart = 0;
+  final _modelImages = <int, Future<Uint8List>>{};
+  List<Map<String, dynamic>> _fields = [];
+  Map<String, dynamic> get _document => {
+    'mode': _mode,
+    'fields': _fields,
+    'cover': _cover,
+    'source_start_page': _sourceStart,
+  };
   bool _loading = true,
       _busy = false,
       _editing = false,
@@ -60,7 +88,7 @@ class _CtcReportsViewState extends State<CtcReportsView> {
       _mine = false;
   String? _message, _error;
   bool get _historical => _current != null && _version != _current!['revision'];
-  List<Map<String, String>> get _sectionData =>
+  List<Map<String, dynamic>> get _sectionData =>
       _sections.map((s) => s.data).toList();
 
   @override
@@ -231,6 +259,17 @@ class _CtcReportsViewState extends State<CtcReportsView> {
     // Old text fields can still be mounted until the next frame.
     final previous = _sections;
     _sections = sections.map(_Section.new).toList();
+    for (final section in _sections) {
+      section.formatted =
+          _sourceId != null ||
+          section.data.containsKey('delta') ||
+          sections[_sections.indexOf(section)]['delta'] != null;
+      section.rich.addListener(() {
+        if (mounted && section.formatted && !section.rich.readOnly) {
+          setState(() => _dirty = true);
+        }
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (final s in previous) {
         s.dispose();
@@ -264,6 +303,16 @@ class _CtcReportsViewState extends State<CtcReportsView> {
 
   void _fill(Map<String, dynamic>? report, Map<String, dynamic> version) {
     setState(() {
+      _sourceId = (version['source_id'] as num?)?.toInt();
+      _source = null;
+      final doc = version['document'] as Map?;
+      _mode = '${doc?['mode'] ?? 'free'}';
+      _cover = (jsonDecode(jsonEncode(doc?['cover'] ?? {})) as Map)
+          .cast<String, dynamic>();
+      _sourceStart = (doc?['source_start_page'] as num?)?.toInt() ?? 0;
+      _fields = rowsOf(
+        doc?['fields'],
+      ).map((f) => Map<String, dynamic>.from(f)).toList();
       _current = report;
       _sendKey = null;
       _version = (version['number'] as num?)?.toInt();
@@ -276,6 +325,72 @@ class _CtcReportsViewState extends State<CtcReportsView> {
       _dirty = false;
       _error = null;
       _message = null;
+    });
+    if (_sourceId != null) _loadSource(_sourceId!);
+  }
+
+  Future<void> _loadSource(int id) async {
+    try {
+      final result = await _api.get('/api/v1/st/reports/sources/$id/');
+      if (mounted && _sourceId == id) {
+        setState(() => _source = (result.data as Map).cast<String, dynamic>());
+      }
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<String?> _chooseMode() => showDialog<String>(
+    context: context,
+    builder: (context) => SimpleDialog(
+      title: const Text('Comment utiliser ce document ?'),
+      children: [
+        SimpleDialogOption(
+          onPressed: () => Navigator.pop(context, 'fixed'),
+          child: const ListTile(
+            leading: Icon(Icons.edit_document),
+            title: Text('Conserver la présentation'),
+            subtitle: Text(
+              'Ajouter des champs sur les pages du modèle original.',
+            ),
+          ),
+        ),
+        SimpleDialogOption(
+          onPressed: () => Navigator.pop(context, 'free'),
+          child: const ListTile(
+            leading: Icon(Icons.format_align_left),
+            title: Text('Rédaction libre'),
+            subtitle: Text(
+              'Reprendre le texte et modifier la structure et la mise en forme.',
+            ),
+          ),
+        ),
+        SimpleDialogOption(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+      ],
+    ),
+  );
+
+  Future<void> _useModel(Map<String, dynamic> model) async {
+    if (!await _discard() || !mounted) return;
+    final sourceId = (model['source_id'] as num?)?.toInt();
+    final mode = sourceId == null ? 'free' : await _chooseMode();
+    if (mode == null || !mounted) return;
+    _fill(null, {
+      'title': '${model['name']}'.replaceAll('_', ' '),
+      'sections': model['sections'],
+      'source_id': sourceId,
+      'document': {
+        ...?model['document'] as Map?,
+        'mode': mode,
+        'fields': model['document']?['fields'] ?? [],
+      },
+    });
+    setState(() {
+      _template = (model['id'] as num).toInt();
+      _dirty = true;
     });
   }
 
@@ -315,7 +430,10 @@ class _CtcReportsViewState extends State<CtcReportsView> {
     if (_sections.any((s) => s.title.text.trim().isEmpty)) {
       return 'Chaque section doit avoir un titre.';
     }
-    if (_sections.fold<int>(0, (sum, s) => sum + s.content.text.length) >
+    if (_sectionData.fold<int>(
+          0,
+          (sum, s) => sum + (s['content'] as String).length,
+        ) >
         100000) {
       return 'Le rapport dépasse 100 000 caractères.';
     }
@@ -353,6 +471,8 @@ class _CtcReportsViewState extends State<CtcReportsView> {
           'title': _title.text.trim(),
           'sections': _sectionData,
           'template_id': _template,
+          'source_id': _sourceId,
+          'document': _document,
           'period_start': _start.text.isEmpty ? null : _start.text,
           'period_end': _end.text.isEmpty ? null : _end.text,
           if (_current != null) 'revision': _current!['revision'],
@@ -427,12 +547,60 @@ class _CtcReportsViewState extends State<CtcReportsView> {
     try {
       final file = await openFile(
         acceptedTypeGroups: [
-          const XTypeGroup(label: 'Rapport JSON', extensions: ['json']),
+          const XTypeGroup(
+            label: 'Documents',
+            extensions: [
+              'pdf',
+              'doc',
+              'docx',
+              'odt',
+              'rtf',
+              'txt',
+              'md',
+              'png',
+              'jpg',
+              'jpeg',
+              'json',
+            ],
+          ),
         ],
       );
       if (file == null) return;
-      if (await file.length() > 2000000) {
-        throw const FormatException('Fichier trop volumineux (2 Mo maximum).');
+      if (await file.length() > 20 * 1024 * 1024) {
+        throw const FormatException('Fichier trop volumineux (20 Mo maximum).');
+      }
+      if (!file.name.toLowerCase().endsWith('.json')) {
+        final mode = await _chooseMode();
+        if (mode == null || !mounted) return;
+        setState(() => _busy = true);
+        final response = await _api.post(
+          '/api/v1/st/reports/import-document/',
+          options: Options(
+            receiveTimeout: const Duration(seconds: 150),
+            sendTimeout: const Duration(seconds: 60),
+          ),
+          data: FormData.fromMap({
+            'file': MultipartFile.fromBytes(
+              await file.readAsBytes(),
+              filename: file.name,
+            ),
+          }),
+        );
+        if (!mounted) return;
+        final source = (response.data as Map).cast<String, dynamic>();
+        _fill(null, {
+          'title': file.name.replaceFirst(RegExp(r'\.[^.]+$'), ''),
+          'sections': source['sections'],
+          'source_id': source['id'],
+          'document': {'mode': mode, 'fields': []},
+        });
+        setState(() {
+          _source = source;
+          _dirty = true;
+          _message =
+              'Document importé. Original conservé. Vérifiez puis sauvegardez une version.';
+        });
+        return;
       }
       final parsed = jsonDecode(await file.readAsString());
       final raw = parsed is List
@@ -470,6 +638,8 @@ class _CtcReportsViewState extends State<CtcReportsView> {
       });
     } catch (error) {
       _showError(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -485,7 +655,12 @@ class _CtcReportsViewState extends State<CtcReportsView> {
     try {
       final response = await _api.post(
         '/api/v1/st/reports/templates/',
-        data: {'name': _modelName.text.trim(), 'sections': _sectionData},
+        data: {
+          'name': _modelName.text.trim(),
+          'sections': _sectionData,
+          'source_id': _sourceId,
+          'document': _document,
+        },
       );
       if (!mounted) return;
       final template = (response.data as Map).cast<String, dynamic>();
@@ -517,15 +692,25 @@ class _CtcReportsViewState extends State<CtcReportsView> {
               ),
               if (_dirty)
                 const Text('Aperçu des modifications non enregistrées.'),
-              for (final section in _sections) ...[
-                const SizedBox(height: 18),
-                Text(
-                  section.title.text,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              if (_mode == 'fixed' && _source != null)
+                ReportFixedEditor(
+                  api: _api,
+                  source: _source!,
+                  fields: _fields,
+                  startPage: _sourceStart,
+                  readOnly: true,
+                  onChanged: () {},
                 ),
-                const SizedBox(height: 8),
-                SelectableText(section.content.text),
-              ],
+              if (_mode == 'free')
+                for (final section in _sections) ...[
+                  const SizedBox(height: 18),
+                  Text(
+                    section.title.text,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText('${section.data['content']}'),
+                ],
             ],
           ),
         ),
@@ -538,6 +723,216 @@ class _CtcReportsViewState extends State<CtcReportsView> {
       ],
     ),
   );
+
+  Future<void> _previewCover() async {
+    try {
+      final now = DateTime.now();
+      final data = <String, dynamic>{
+        'organization': 'CNE-ITP',
+        'department': 'Coordination du Secrétariat technique',
+        'title': _title.text,
+        'subtitle': 'Document de travail non approuvé',
+        'issuer': 'E. Luwenga',
+        'footer': 'Consultant Emmany Luwenga',
+        'brand': 'CNE-ITP',
+        'date':
+            '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}',
+        'reference': _current == null
+            ? 'Brouillon'
+            : '${_current!['reference']} · Version $_version',
+        ...Map.fromEntries(_cover.entries.where((e) => e.value != '')),
+      };
+      final result = await _api.post<List<int>>(
+        '/api/v1/st/reports/cover-preview/',
+        data: data,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Page zéro · aperçu'),
+          content: SizedBox(
+            width: 595,
+            child: SingleChildScrollView(
+              child: Image.memory(Uint8List.fromList(result.data!)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fermer'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Widget _modelThumbnail(Map<String, dynamic> model) {
+    final id = (model['source_id'] as num).toInt();
+    final future = _modelImages.putIfAbsent(id, () async {
+      final result = await _api.get<List<int>>(
+        '/api/v1/st/reports/sources/$id/',
+        queryParameters: {'page': 0, 'thumbnail': 1},
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(result.data!);
+    });
+    return SizedBox(
+      width: 90,
+      height: 130,
+      child: FutureBuilder<Uint8List>(
+        future: future,
+        builder: (context, snapshot) => snapshot.hasData
+            ? Image.memory(
+                snapshot.data!,
+                fit: BoxFit.contain,
+                errorBuilder: (_, error, stack) =>
+                    const Icon(Icons.description_outlined),
+              )
+            : const Icon(Icons.description_outlined),
+      ),
+    );
+  }
+
+  Future<void> _downloadModel(Map<String, dynamic> model) async {
+    try {
+      final meta = await _api.get(
+        '/api/v1/st/reports/sources/${model['source_id']}/',
+      );
+      final result = await _api.get<List<int>>(
+        '/api/v1/st/reports/sources/${model['source_id']}/',
+        queryParameters: {'original': 1},
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final name = '${meta.data['name']}';
+      final bytes = Uint8List.fromList(result.data!);
+      if (widget.saveFile != null) {
+        await widget.saveFile!(bytes, name, 'application/octet-stream');
+      } else {
+        final location = await getSaveLocation(suggestedName: name);
+        if (location != null) {
+          await XFile.fromData(bytes, name: name).saveTo(location.path);
+        }
+      }
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> _downloadOriginal() async {
+    try {
+      final result = await _api.get<List<int>>(
+        '/api/v1/st/reports/sources/$_sourceId/',
+        queryParameters: {'original': 1},
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final name = '${_source?['name'] ?? 'original.pdf'}';
+      final location = await getSaveLocation(suggestedName: name);
+      if (location != null) {
+        await XFile.fromData(
+          Uint8List.fromList(result.data!),
+          name: name,
+        ).saveTo(location.path);
+      }
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Widget _richSection(_Section section, int index) {
+    section.rich.readOnly = _historical || _busy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (section.formatted &&
+            !_historical &&
+            !_busy &&
+            reportTables(section.rich.document.toPlainText()).isNotEmpty)
+          OutlinedButton.icon(
+            onPressed: () async {
+              final tables = await editReportTables(
+                context,
+                section.rich.document.toPlainText(),
+              );
+              if (tables == null || !mounted) return;
+              for (final table in tables.reversed) {
+                section.rich.replaceText(
+                  table.start,
+                  table.end - table.start,
+                  table.text,
+                  TextSelection.collapsed(offset: table.start),
+                );
+              }
+            },
+            icon: const Icon(Icons.table_chart_outlined),
+            label: const Text('Modifier les tableaux'),
+          ),
+
+        if (!section.formatted) ...[
+          TextButton.icon(
+            onPressed: _historical || _busy
+                ? null
+                : () => setState(() {
+                    section.rich.document = quill.Document()
+                      ..insert(0, section.content.text);
+                    section.formatted = true;
+                    _dirty = true;
+                  }),
+            icon: const Icon(Icons.format_bold),
+            label: const Text('Activer la mise en forme'),
+          ),
+          _field('Contenu de section ${index + 1}', section.content, lines: 5),
+        ] else
+          Localizations.override(
+            context: context,
+            locale: const Locale('fr'),
+            delegates: quill.FlutterQuillLocalizations.localizationsDelegates,
+            child: Column(
+              children: [
+                if (!_historical && !_busy)
+                  quill.QuillSimpleToolbar(
+                    controller: section.rich,
+                    config: const quill.QuillSimpleToolbarConfig(
+                      showFontFamily: false,
+                      showFontSize: false,
+                      showColorButton: false,
+                      showBackgroundColorButton: false,
+                      showInlineCode: false,
+                      showCodeBlock: false,
+                      showLink: false,
+                      showSearchButton: false,
+                      showSubscript: false,
+                      showSuperscript: false,
+                      showListCheck: false,
+                      showAlignmentButtons: true,
+                    ),
+                  ),
+                Container(
+                  constraints: const BoxConstraints(minHeight: 180),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xffcbd5e1)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: quill.QuillEditor.basic(
+                    controller: section.rich,
+                    config: const quill.QuillEditorConfig(
+                      scrollable: false,
+                      padding: EdgeInsets.zero,
+                      placeholder: 'Rédigez votre contenu…',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 
   Widget _field(
     String label,
@@ -594,7 +989,7 @@ class _CtcReportsViewState extends State<CtcReportsView> {
                     OutlinedButton.icon(
                       onPressed: _loading || _busy ? null : _import,
                       icon: const Icon(Icons.upload_file),
-                      label: const Text('Importer un rapport JSON'),
+                      label: const Text('Importer un document'),
                     ),
                     OutlinedButton.icon(
                       onPressed: _loading || _busy ? null : _load,
@@ -644,6 +1039,125 @@ class _CtcReportsViewState extends State<CtcReportsView> {
             ),
           const SizedBox(height: 16),
           if (!_editing) ...[
+            if (_templates.any((t) => t['source_id'] != null))
+              GedCard(
+                child: Material(
+                  color: Colors.transparent,
+                  child: ExpansionTile(
+                    initiallyExpanded: true,
+                    tilePadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Modèles Page bleue',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text(
+                      'Choisissez une référence, puis votre mode de rédaction.',
+                    ),
+                    children: [
+                      SizedBox(
+                        height: 248,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: _templates
+                              .where(
+                                (t) =>
+                                    t['source_id'] != null &&
+                                    (!_templates.any(
+                                          (m) =>
+                                              m['collection'] == 'page_bleue',
+                                        ) ||
+                                        t['collection'] == 'page_bleue'),
+                              )
+                              .length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final models = _templates
+                                .where(
+                                  (t) =>
+                                      t['source_id'] != null &&
+                                      (!_templates.any(
+                                            (m) =>
+                                                m['collection'] == 'page_bleue',
+                                          ) ||
+                                          t['collection'] == 'page_bleue'),
+                                )
+                                .toList();
+                            final model = models[index];
+                            return SizedBox(
+                              width: 184,
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                margin: EdgeInsets.zero,
+                                child: InkWell(
+                                  onTap: _busy ? null : () => _useModel(model),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          12,
+                                          12,
+                                          12,
+                                          52,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Center(
+                                                child: _modelThumbnail(model),
+                                              ),
+                                            ),
+                                            Text(
+                                              '${model['name']}'.replaceAll(
+                                                '_',
+                                                ' ',
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            const Text(
+                                              'Modèle de rapport',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: AppColors.muted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 8,
+                                        bottom: 8,
+                                        child: IconButton.filledTonal(
+                                          tooltip:
+                                              'Télécharger le modèle original',
+                                          icon: const Icon(
+                                            Icons.download_outlined,
+                                          ),
+                                          onPressed: _busy
+                                              ? null
+                                              : () => _downloadModel(model),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             CheckboxListTile(
               title: const Text('Mon activité uniquement'),
               value: _mine,
@@ -783,7 +1297,38 @@ class _CtcReportsViewState extends State<CtcReportsView> {
                         ? null
                         : (value) async {
                             if (_dirty && !await _discard() || !mounted) return;
+                            final model = value == null
+                                ? null
+                                : _templates.firstWhere(
+                                    (t) => t['id'] == value,
+                                  );
+                            final sourceId = (model?['source_id'] as num?)
+                                ?.toInt();
+                            final mode = sourceId == null
+                                ? 'free'
+                                : await _chooseMode();
+                            if (mode == null || !mounted) return;
                             setState(() {
+                              _sourceId = sourceId;
+                              _source = null;
+                              _mode = mode;
+                              _cover =
+                                  (jsonDecode(
+                                            jsonEncode(
+                                              model?['document']?['cover'] ??
+                                                  {},
+                                            ),
+                                          )
+                                          as Map)
+                                      .cast<String, dynamic>();
+                              _sourceStart =
+                                  (model?['document']?['source_start_page']
+                                          as num?)
+                                      ?.toInt() ??
+                                  0;
+                              _fields = rowsOf(model?['document']?['fields'])
+                                  .map((f) => Map<String, dynamic>.from(f))
+                                  .toList();
                               _template = value;
                               _dirty = true;
                               if (value != null) {
@@ -796,62 +1341,123 @@ class _CtcReportsViewState extends State<CtcReportsView> {
                                 );
                               }
                             });
+                            if (sourceId != null) await _loadSource(sourceId);
                           },
                   ),
                   const SizedBox(height: 16),
                   _field('Titre du rapport', _title, limit: 250),
                   _field('Début de période (AAAA-MM-JJ)', _start),
                   _field('Fin de période (AAAA-MM-JJ)', _end),
-                  for (var i = 0; i < _sections.length; i++)
-                    Padding(
-                      key: ObjectKey(_sections[i]),
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Section ${i + 1}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                  ReportCoverEditor(
+                    key: ObjectKey(_cover),
+                    cover: _cover,
+                    readOnly: _historical || _busy,
+                    onChanged: () => setState(() => _dirty = true),
+                    preview: _previewCover,
+                  ),
+                  const SizedBox(height: 16),
+                  if (_sourceId != null) ...[
+                    if (_source?['note'] != null &&
+                        '${_source!['note']}'.isNotEmpty)
+                      Text('${_source!['note']}'),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Présentation conservée'),
+                          selected: _mode == 'fixed',
+                          onSelected: _historical || _busy
+                              ? null
+                              : (_) => setState(() {
+                                  _mode = 'fixed';
+                                  _dirty = true;
+                                }),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Rédaction libre'),
+                          selected: _mode == 'free',
+                          onSelected: _historical || _busy
+                              ? null
+                              : (_) => setState(() {
+                                  _mode = 'free';
+                                  _dirty = true;
+                                }),
+                        ),
+                        TextButton.icon(
+                          onPressed: _busy || _source == null
+                              ? null
+                              : _downloadOriginal,
+                          icon: const Icon(Icons.download),
+                          label: const Text('Original'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (_mode == 'fixed' && _source == null) ...[
+                      if (_error == null) const LinearProgressIndicator(),
+                      TextButton(
+                        onPressed: _busy ? null : () => _loadSource(_sourceId!),
+                        child: const Text('Recharger le modèle'),
+                      ),
+                    ],
+                    if (_mode == 'fixed' && _source != null)
+                      ReportFixedEditor(
+                        key: ValueKey(_sourceId),
+                        api: _api,
+                        source: _source!,
+                        fields: _fields,
+                        startPage: _sourceStart,
+                        readOnly: _historical || _busy,
+                        onChanged: () => setState(() => _dirty = true),
+                      ),
+                  ],
+                  if (_mode == 'free')
+                    for (var i = 0; i < _sections.length; i++)
+                      Padding(
+                        key: ObjectKey(_sections[i]),
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Section ${i + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (!_historical && _sections.length > 1)
-                                IconButton(
-                                  tooltip: 'Retirer la section ${i + 1}',
-                                  onPressed: _busy
-                                      ? null
-                                      : () {
-                                          final removed = _sections[i];
-                                          setState(() {
-                                            _sections.removeAt(i);
-                                            _dirty = true;
-                                          });
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback(
-                                                (_) => removed.dispose(),
-                                              );
-                                        },
-                                  icon: const Icon(Icons.close, size: 18),
-                                ),
-                            ],
-                          ),
-                          _field(
-                            'Titre de section ${i + 1}',
-                            _sections[i].title,
-                            limit: 150,
-                          ),
-                          _field(
-                            'Contenu de section ${i + 1}',
-                            _sections[i].content,
-                            lines: 5,
-                          ),
-                        ],
+                                if (!_historical && _sections.length > 1)
+                                  IconButton(
+                                    tooltip: 'Retirer la section ${i + 1}',
+                                    onPressed: _busy
+                                        ? null
+                                        : () {
+                                            final removed = _sections[i];
+                                            setState(() {
+                                              _sections.removeAt(i);
+                                              _dirty = true;
+                                            });
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback(
+                                                  (_) => removed.dispose(),
+                                                );
+                                          },
+                                    icon: const Icon(Icons.close, size: 18),
+                                  ),
+                              ],
+                            ),
+                            _field(
+                              'Titre de section ${i + 1}',
+                              _sections[i].title,
+                              limit: 150,
+                            ),
+                            _richSection(_sections[i], i),
+                          ],
+                        ),
                       ),
-                    ),
                   if (_current == null)
                     const Padding(
                       padding: EdgeInsets.only(bottom: 12),
@@ -864,7 +1470,7 @@ class _CtcReportsViewState extends State<CtcReportsView> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (!_historical)
+                      if (!_historical && _mode == 'free')
                         OutlinedButton(
                           onPressed: _busy || _sections.length >= 20
                               ? null

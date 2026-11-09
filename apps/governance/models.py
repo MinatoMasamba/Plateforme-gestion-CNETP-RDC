@@ -1378,7 +1378,7 @@ from .advisory_models import (  # noqa: E402,F401
 
 from .st_operations_models import STAccessPolicy, STRecord, STRecordRevision, STConfirmation  # noqa: E402,F401
 
-from .st_report_models import STReportTemplate, STReport, STReportVersion, STReportDispatch  # noqa: E402,F401
+from .st_report_models import STReportSource, STReportTemplate, STReport, STReportVersion, STReportDispatch  # noqa: E402,F401
 
 from .st_admin_models import STReception, STReceptionPiece, STPVVersion  # noqa: E402,F401
 from .st_ged_models import STGEDCode, STGEDFile, STGEDIndexation, STGEDConfirmation, STGEDAnomaly  # noqa: E402,F401

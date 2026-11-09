@@ -58,3 +58,6 @@ data.json
 
 # Enregistrements audio privés des réunions
 private/recordings/
+
+# Sources privées des modèles de rapports
+private/report_sources/

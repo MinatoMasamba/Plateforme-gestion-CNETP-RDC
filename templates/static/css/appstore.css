@@ -1,48 +1,214 @@
-/* App Store CNE-ITP — soft glass on institutional tokens */
+/* App Store CNE-ITP — Airy Minimalism + Soft Glassmorphism (clair) */
 .appstore-shell {
-  --as-accent: #0095c9;
-  --as-accent-soft: rgba(0, 149, 201, .12);
-  --as-glass: rgba(255, 255, 255, .72);
-  --as-glass-border: rgba(227, 235, 242, .9);
+  --as-bg: #f6f9fc;
+  --as-text: #0f172a;
+  --as-muted: #475569;
+  --as-accent: #2563eb;
+  --as-accent-hover: #1d4ed8;
+  --as-accent-soft: #dbeafe;
+  --as-cyan: #0095c9;
+  --as-glass: rgba(255, 255, 255, .78);
+  --as-glass-strong: rgba(255, 255, 255, .92);
+  --as-border: rgba(148, 163, 184, .22);
+  --as-shadow: 0 18px 48px rgba(15, 23, 42, .06);
+  --as-radius: 24px;
+  color: var(--as-text);
   background:
-    radial-gradient(circle at 12% 0%, rgba(0, 149, 201, .14), transparent 34%),
-    radial-gradient(circle at 88% 8%, rgba(183, 234, 247, .28), transparent 30%),
-    var(--ui-page, #f4f8fc);
+    radial-gradient(circle at 8% -10%, rgba(37, 99, 235, .10), transparent 36%),
+    radial-gradient(circle at 92% 0%, rgba(0, 149, 201, .10), transparent 32%),
+    linear-gradient(180deg, #f8fbff 0%, var(--as-bg) 42%, #eef5fb 100%);
   min-height: 100%;
 }
+
+/* Forcer le rendu clair même si le portail est en mode sombre */
+html.dark .appstore-shell,
 .dark .appstore-shell {
-  --as-glass: rgba(17, 29, 45, .78);
-  --as-glass-border: rgba(51, 65, 85, .9);
+  --as-glass: rgba(255, 255, 255, .86);
+  --as-glass-strong: #ffffff;
+  --as-text: #0f172a;
+  --as-muted: #475569;
+  color: #0f172a;
 }
-.appstore-wrap { max-width: 1120px; margin: 0 auto; padding: 2rem 1rem 3.5rem; }
+html.dark body.appstore-page,
+body.appstore-page.dark,
+html.dark body.appstore-page .appstore-shell {
+  color-scheme: light;
+}
+
+body.appstore-page {
+  background: #f6f9fc !important;
+}
+body.appstore-page > nav {
+  background: rgba(255, 255, 255, .88) !important;
+  border-bottom-color: rgba(148, 163, 184, .18) !important;
+  backdrop-filter: blur(16px);
+}
+body.appstore-page > nav a.bg-\[\#fff24b\],
+body.appstore-page > nav a[href="/app/"] {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid rgba(37, 99, 235, .18);
+  box-shadow: none !important;
+}
+body.appstore-page > nav a.bg-\[\#fff24b\]:hover,
+body.appstore-page > nav a[href="/app/"]:hover {
+  background: #dbeafe !important;
+}
+
+.appstore-wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 1.75rem 1rem 4rem;
+}
+
+.appstore-glass {
+  border: 1px solid var(--as-border);
+  background: var(--as-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--as-radius);
+  box-shadow: var(--as-shadow);
+}
+
 .appstore-hero {
-  border: 1px solid var(--as-glass-border);
-  background: linear-gradient(135deg, var(--as-glass), rgba(255,255,255,.55));
-  backdrop-filter: blur(14px);
-  border-radius: 28px;
-  padding: 1.75rem 1.5rem;
-  box-shadow: var(--ui-shadow, 0 14px 40px rgba(15, 27, 45, .055));
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.6rem 1.4rem;
   animation: appstore-fade .45s ease both;
 }
-.dark .appstore-hero {
-  background: linear-gradient(135deg, var(--as-glass), rgba(8, 19, 33, .55));
+@media (min-width: 900px) {
+  .appstore-hero {
+    grid-template-columns: 1.15fr .85fr;
+    align-items: center;
+    padding: 1.85rem 1.75rem;
+  }
+}
+.appstore-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .28rem .7rem;
+  border-radius: 999px;
+  background: var(--as-accent-soft);
+  color: #1d4ed8;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 .appstore-hero h1 {
-  font-size: clamp(1.8rem, 3.4vw, 2.55rem);
-  letter-spacing: -.035em;
-  font-weight: 750;
-  color: var(--ui-text, #0f172a);
-  margin: .35rem 0 .55rem;
+  margin: .7rem 0 .55rem;
+  font-size: clamp(1.85rem, 3.5vw, 2.7rem);
+  line-height: 1.12;
+  letter-spacing: -.04em;
+  font-weight: 760;
+  color: var(--as-text);
 }
-.appstore-hero p { color: var(--ui-muted, #475569); max-width: 46rem; line-height: 1.55; }
-.appstore-toolbar {
+.appstore-hero__lead {
+  color: var(--as-muted);
+  max-width: 36rem;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+.appstore-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: 1.15rem;
+}
+.appstore-hero__stats {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .75rem;
   margin-top: 1.25rem;
 }
-@media (min-width: 720px) {
-  .appstore-toolbar { grid-template-columns: 1.5fr 1fr 1fr auto; align-items: end; }
+.appstore-stat {
+  border: 1px solid var(--as-border);
+  background: rgba(255,255,255,.65);
+  border-radius: 18px;
+  padding: .85rem .9rem;
 }
+.appstore-stat strong {
+  display: block;
+  font-size: 1.35rem;
+  letter-spacing: -.03em;
+  color: var(--as-text);
+}
+.appstore-stat span {
+  display: block;
+  margin-top: .2rem;
+  color: var(--as-muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.appstore-hero__vitrine {
+  border: 1px solid var(--as-border);
+  background:
+    linear-gradient(160deg, rgba(219,234,254,.85), rgba(255,255,255,.7)),
+    #fff;
+  border-radius: 22px;
+  padding: 1rem;
+  min-height: 220px;
+  display: grid;
+  gap: .75rem;
+  align-content: start;
+}
+.appstore-hero__vitrine-title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #356590;
+}
+.appstore-hero__preview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--as-border);
+  background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+}
+
+.appstore-filters {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+}
+.appstore-toolbar {
+  display: grid;
+  gap: .75rem;
+}
+@media (min-width: 860px) {
+  .appstore-toolbar {
+    grid-template-columns: 1.6fr 1fr 1fr auto auto;
+    align-items: end;
+  }
+}
+.appstore-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: .85rem;
+}
+.appstore-chip-link {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .38rem .8rem;
+  font-size: .75rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #1e3a5f;
+  background: rgba(255,255,255,.8);
+  border: 1px solid var(--as-border);
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.appstore-chip-link:hover,
+.appstore-chip-link.is-active {
+  background: var(--as-accent-soft);
+  border-color: rgba(37, 99, 235, .28);
+  color: #1d4ed8;
+}
+
 .appstore-label {
   display: block;
   font-size: .72rem;
@@ -55,103 +221,166 @@
 .appstore-input,
 .appstore-file {
   width: 100%;
-  border: 1px solid var(--ui-border, #e3ebf2);
-  background: rgba(255,255,255,.9);
-  color: var(--ui-text, #0f172a);
+  border: 1px solid var(--as-border);
+  background: rgba(255,255,255,.95);
+  color: var(--as-text);
   border-radius: 14px;
-  padding: .7rem .9rem;
+  padding: .72rem .9rem;
   font-size: .92rem;
 }
-.dark .appstore-input,
-.dark .appstore-file {
-  background: rgba(15, 23, 42, .55);
-  border-color: #334155;
-  color: #f8fafc;
+.appstore-input:focus {
+  outline: 3px solid rgba(37, 99, 235, .22);
+  border-color: rgba(37, 99, 235, .45);
 }
+
 .appstore-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .4rem;
   border-radius: 14px;
-  padding: .7rem 1.1rem;
-  font-size: .82rem;
+  padding: .72rem 1.15rem;
+  font-size: .8rem;
   font-weight: 700;
   letter-spacing: .03em;
   text-transform: uppercase;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
   transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
 }
 .appstore-btn:active { transform: translateY(1px); }
 .appstore-btn--primary {
   background: var(--as-accent);
   color: #fff;
-  box-shadow: 0 10px 24px rgba(0, 149, 201, .22);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, .2);
 }
-.appstore-btn--primary:hover { background: #007ea8; }
+.appstore-btn--primary:hover { background: var(--as-accent-hover); }
 .appstore-btn--ghost {
   background: transparent;
-  border: 1px solid var(--ui-border, #e3ebf2);
-  color: var(--ui-text, #0f172a);
+  border: 1px solid var(--as-border);
+  color: var(--as-text);
 }
 .appstore-btn--soft {
   background: var(--as-accent-soft);
-  color: #007ea8;
+  color: #1d4ed8;
 }
 .appstore-btn:disabled,
 .appstore-btn.is-disabled {
   opacity: .45;
   pointer-events: none;
 }
-.appstore-section { margin-top: 2.25rem; }
-.appstore-section h2 {
-  font-size: clamp(1.25rem, 2vw, 1.65rem);
-  font-weight: 720;
-  letter-spacing: -.02em;
+
+.appstore-section { margin-top: 2.4rem; }
+.appstore-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
+.appstore-section h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.1vw, 1.7rem);
+  font-weight: 740;
+  letter-spacing: -.025em;
+}
+.appstore-section__head p {
+  margin: .35rem 0 0;
+  color: var(--as-muted);
+  font-size: .92rem;
+}
+
 .appstore-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
-@media (min-width: 640px) { .appstore-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 980px) { .appstore-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 700px) { .appstore-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1020px) { .appstore-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
 .appstore-card {
-  border: 1px solid var(--as-glass-border);
+  border: 1px solid var(--as-border);
   background: var(--as-glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   border-radius: 22px;
-  padding: 1.15rem;
-  box-shadow: var(--ui-shadow, 0 14px 40px rgba(15, 27, 45, .055));
+  overflow: hidden;
+  box-shadow: var(--as-shadow);
   display: flex;
   flex-direction: column;
-  gap: .75rem;
   min-width: 0;
   animation: appstore-rise .4s ease both;
 }
 .appstore-card:nth-child(2) { animation-delay: .04s; }
 .appstore-card:nth-child(3) { animation-delay: .08s; }
+.appstore-card--featured {
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(239,246,255,.78));
+}
+.appstore-card__preview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background:
+    linear-gradient(145deg, rgba(37,99,235,.12), rgba(0,149,201,.08)),
+    #e8eef7;
+  overflow: hidden;
+}
+.appstore-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.appstore-card__preview-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  font-size: .85rem;
+  font-weight: 650;
+}
+.appstore-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  flex: 1;
+}
 .appstore-card__top { display: flex; gap: .85rem; align-items: flex-start; min-width: 0; }
 .appstore-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
   object-fit: cover;
-  background: linear-gradient(145deg, #0095c9, #74b9ff);
+  background: linear-gradient(145deg, #2563eb, #0095c9);
   flex: none;
   display: grid;
   place-items: center;
   color: #fff;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, .18);
 }
 .appstore-card h3 {
+  margin: 0;
   font-size: 1.05rem;
-  font-weight: 720;
+  font-weight: 730;
   letter-spacing: -.02em;
   overflow-wrap: anywhere;
 }
-.appstore-card p { color: var(--ui-muted, #475569); font-size: .9rem; line-height: 1.45; }
+.appstore-card__publisher {
+  margin-top: .15rem;
+  color: #64748b;
+  font-size: .78rem;
+  font-weight: 650;
+}
+.appstore-card p {
+  margin: 0;
+  color: var(--as-muted);
+  font-size: .9rem;
+  line-height: 1.45;
+}
 .appstore-meta {
   display: flex;
   flex-wrap: wrap;
@@ -164,23 +393,152 @@
   padding: .22rem .65rem;
   font-size: .72rem;
   font-weight: 700;
-  background: #e8f6fb;
-  color: #0b5f7a;
+  background: #eff6ff;
+  color: #1d4ed8;
 }
-.dark .appstore-chip { background: #1e3a4a; color: #b7eaf7; }
 .appstore-card__actions {
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
 }
-.appstore-empty {
-  border: 1px dashed var(--ui-border, #e3ebf2);
-  border-radius: 22px;
-  padding: 2.5rem 1.25rem;
-  text-align: center;
-  color: var(--ui-muted, #475569);
+
+.appstore-layout {
+  display: grid;
+  gap: 1.25rem;
 }
+@media (min-width: 980px) {
+  .appstore-layout {
+    grid-template-columns: 1.55fr .75fr;
+    align-items: start;
+  }
+}
+
+.appstore-news {
+  display: grid;
+  gap: .75rem;
+}
+.appstore-news-item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--as-border);
+  background: rgba(255,255,255,.78);
+  border-radius: 18px;
+  padding: .95rem 1rem;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.appstore-news-item:hover {
+  border-color: rgba(37, 99, 235, .3);
+  transform: translateY(-1px);
+}
+.appstore-news-item strong {
+  display: block;
+  margin-top: .35rem;
+  font-size: .95rem;
+}
+.appstore-news-item p {
+  margin: .35rem 0 0;
+  color: var(--as-muted);
+  font-size: .85rem;
+  line-height: 1.4;
+}
+
+.appstore-empty {
+  border: 1px dashed rgba(148, 163, 184, .45);
+  border-radius: 22px;
+  padding: 2.4rem 1.4rem;
+  text-align: center;
+  background: rgba(255,255,255,.7);
+}
+.appstore-empty__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto .9rem;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: var(--as-accent-soft);
+  color: #1d4ed8;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.appstore-empty h3 {
+  margin: 0 0 .4rem;
+  font-size: 1.15rem;
+}
+.appstore-empty p {
+  margin: 0 auto 1rem;
+  max-width: 28rem;
+  color: var(--as-muted);
+}
+.appstore-empty__actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.appstore-footer {
+  margin-top: 3rem;
+  border: 1px solid var(--as-border);
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(239,246,255,.75));
+  border-radius: 28px;
+  padding: 1.6rem 1.3rem 1.3rem;
+  box-shadow: var(--as-shadow);
+}
+.appstore-footer__grid {
+  display: grid;
+  gap: 1.25rem;
+}
+@media (min-width: 800px) {
+  .appstore-footer__grid {
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  }
+}
+.appstore-footer h3 {
+  margin: 0 0 .65rem;
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #356590;
+}
+.appstore-footer p,
+.appstore-footer a,
+.appstore-footer li {
+  color: var(--as-muted);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+.appstore-footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .4rem;
+}
+.appstore-footer a {
+  text-decoration: none;
+}
+.appstore-footer a:hover { color: var(--as-accent); }
+.appstore-footer__brand strong {
+  display: block;
+  color: var(--as-text);
+  font-size: 1.05rem;
+  margin-bottom: .35rem;
+}
+.appstore-footer__bottom {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--as-border);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem;
+  color: #64748b;
+  font-size: .8rem;
+}
+
 .appstore-detail-grid {
   display: grid;
   gap: 1.25rem;
@@ -189,32 +547,33 @@
   .appstore-detail-grid { grid-template-columns: 1.4fr .9fr; align-items: start; }
 }
 .appstore-panel {
-  border: 1px solid var(--as-glass-border);
+  border: 1px solid var(--as-border);
   background: var(--as-glass);
   backdrop-filter: blur(12px);
   border-radius: 22px;
   padding: 1.25rem;
-  box-shadow: var(--ui-shadow, 0 14px 40px rgba(15, 27, 45, .055));
+  box-shadow: var(--as-shadow);
   animation: appstore-fade .35s ease both;
 }
 .appstore-shots {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(180px, 240px);
+  grid-auto-columns: minmax(220px, 280px);
   gap: .75rem;
   overflow-x: auto;
   padding-bottom: .35rem;
 }
 .appstore-shots img {
   width: 100%;
-  height: 140px;
+  height: 160px;
   object-fit: cover;
   border-radius: 16px;
-  border: 1px solid var(--ui-border, #e3ebf2);
+  border: 1px solid var(--as-border);
+  background: #eef2ff;
 }
 .appstore-version-list { display: grid; gap: .65rem; }
 .appstore-version-item {
-  border: 1px solid var(--ui-border, #e3ebf2);
+  border: 1px solid var(--as-border);
   border-radius: 16px;
   padding: .85rem 1rem;
   display: flex;
@@ -228,7 +587,7 @@
 .appstore-version-item:hover,
 .appstore-version-item.is-active {
   background: var(--as-accent-soft);
-  border-color: rgba(0, 149, 201, .35);
+  border-color: rgba(37, 99, 235, .35);
 }
 .appstore-admin-nav {
   display: flex;
@@ -241,12 +600,12 @@
 .appstore-table td {
   text-align: left;
   padding: .75rem .55rem;
-  border-bottom: 1px solid var(--ui-border, #e3ebf2);
+  border-bottom: 1px solid var(--as-border);
   vertical-align: top;
   font-size: .9rem;
 }
 .appstore-table th {
-  color: var(--ui-muted, #475569);
+  color: var(--as-muted);
   font-size: .72rem;
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -259,10 +618,11 @@
 .appstore-field .helptext,
 .appstore-field .errorlist {
   font-size: .78rem;
-  color: var(--ui-muted, #475569);
+  color: var(--as-muted);
   margin-top: .25rem;
 }
 .appstore-field .errorlist { color: #db3832; list-style: none; padding: 0; }
+
 @keyframes appstore-fade {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -272,7 +632,8 @@
   to { opacity: 1; transform: none; }
 }
 @media (max-width: 639px) {
-  .appstore-wrap { padding: 1.25rem .85rem 2.5rem; }
-  .appstore-hero { border-radius: 22px; padding: 1.25rem 1rem; }
+  .appstore-wrap { padding: 1.1rem .85rem 2.5rem; }
+  .appstore-hero { border-radius: 22px; }
   .appstore-table { display: block; overflow-x: auto; }
+  .appstore-hero__stats { grid-template-columns: 1fr; }
 }

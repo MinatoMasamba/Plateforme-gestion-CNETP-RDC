@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:cnetp_app/features/ctc/widgets/ctc_reports.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:cnetp_app/features/ctc/widgets/report_fixed_editor.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> report() => {
@@ -61,6 +63,17 @@ class _Adapter implements HttpClientAdapter {
       final body = options.data is String
           ? jsonDecode(options.data)
           : options.data;
+      if (path.endsWith('/cover-preview/')) {
+        return ResponseBody.fromBytes(
+          base64Decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL1kAAAAASUVORK5CYII=',
+          ),
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['image/png'],
+          },
+        );
+      }
       if (path.endsWith('/templates/')) {
         return json({
           'id': 8,
@@ -105,14 +118,63 @@ class _Adapter implements HttpClientAdapter {
         ],
       });
     }
+    if (path.endsWith('/sources/99/')) {
+      if (options.queryParameters['original'] == 1) {
+        return ResponseBody.fromBytes(
+          [80, 75, 3, 4],
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['application/octet-stream'],
+          },
+        );
+      }
+      if (options.queryParameters.containsKey('page')) {
+        return ResponseBody.fromBytes(
+          base64Decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL1kAAAAASUVORK5CYII=',
+          ),
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['image/png'],
+          },
+        );
+      }
+      return json({
+        'id': 99,
+        'name': 'modele.pdf',
+        'pages': [
+          {'width': 595, 'height': 842},
+          {'width': 595, 'height': 842},
+        ],
+        'sections': [
+          {'title': 'Synthèse', 'content': 'Texte du modèle'},
+        ],
+        'note': '',
+      });
+    }
     if (path.endsWith('/templates/')) {
       return json({
         'results': [
           {
             'id': 1,
             'name': 'Rapport mensuel',
+            'source_id': 99,
+            'collection': 'page_bleue',
+            'document': {
+              'source_start_page': 1,
+              'cover': {'recipient': 'COPIL'},
+            },
             'sections': [
               {'title': 'Synthèse', 'content': 'Structure réutilisable'},
+            ],
+          },
+          {
+            'id': 2,
+            'name': 'Référence documentaire',
+            'source_id': 98,
+            'collection': 'reference',
+            'sections': [
+              {'title': 'Objet', 'content': ''},
             ],
           },
         ],
@@ -132,7 +194,9 @@ Finder field(String label) => find.byWidgetPredicate(
   (w) => w is TextField && w.decoration?.labelText == label,
 );
 Future<void> tap(WidgetTester tester, String label) async {
+  await tester.pumpAndSettle();
   await tester.ensureVisible(find.text(label));
+  await tester.pumpAndSettle();
   await tester.tap(find.text(label));
   await tester.pumpAndSettle();
 }
@@ -281,4 +345,132 @@ void main() {
       );
     },
   );
+  testWidgets('Rich formatting is retained in a saved version', (tester) async {
+    await pump(tester);
+    await tap(tester, 'Ouvrir le rapport');
+    await tap(tester, 'Activer la mise en forme');
+    final editor = tester.widget<quill.QuillEditor>(
+      find.byType(quill.QuillEditor),
+    );
+    editor.controller.document.insert(0, 'Nouveau ');
+    editor.controller.formatText(0, 7, quill.Attribute.bold);
+    await tester.pumpAndSettle();
+    await tap(tester, 'Sauvegarder une version');
+    final section = adapter.posts.last.data['sections'][0] as Map;
+    expect(section['content'], startsWith('Nouveau '));
+    expect(
+      (section['delta'] as List).any((op) => op['attributes']?['bold'] == true),
+      true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Template offers both modes and preserves the source on save', (
+    tester,
+  ) async {
+    await pump(tester, width: 390);
+    await tap(tester, 'Page blanche');
+    final models = find.byType(DropdownButtonFormField<int>).first;
+    await tester.ensureVisible(models);
+    await tester.pumpAndSettle();
+    await tester.tap(models);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rapport mensuel').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Conserver la présentation'), findsOneWidget);
+    expect(find.text('Rédaction libre'), findsOneWidget);
+    await tester.tap(find.text('Conserver la présentation'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReportFixedEditor), findsOneWidget);
+    await tester.enterText(field('Titre du rapport'), 'Modèle rempli');
+    await tap(tester, 'Sauvegarder une version');
+    expect(adapter.posts.last.data['source_id'], 99);
+    expect(adapter.posts.last.data['document']['mode'], 'fixed');
+    expect(adapter.posts.last.data['document']['source_start_page'], 1);
+    expect(
+      adapter.reads.any(
+        (r) =>
+            r.uri.path.endsWith('/sources/99/') &&
+            r.queryParameters['page'] == 1,
+      ),
+      true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('Catalogue shows pack models and downloads the source original', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.text('Rapport mensuel'), findsOneWidget);
+    expect(find.text('Référence documentaire'), findsNothing);
+    final button = find.byTooltip('Télécharger le modèle original');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(files.single, 'modele.pdf');
+    expect(adapter.posts, isEmpty);
+    expect(
+      adapter.reads.any((r) => r.uri.path.endsWith('/sources/98/')),
+      false,
+    );
+  });
+
+  testWidgets(
+    'Cover fields are previewed and saved with the selected version',
+    (tester) async {
+      await pump(tester);
+      await tap(tester, 'Ouvrir le rapport');
+      await tap(tester, 'Page zéro · couverture bleue');
+      await tester.enterText(
+        field('À l’attention de'),
+        'Destinataire personnalisé',
+      );
+      await tap(tester, 'Voir la page de couverture');
+      expect(
+        adapter.posts.single.uri.path,
+        '/api/v1/st/reports/cover-preview/',
+      );
+      expect(
+        adapter.posts.single.data['recipient'],
+        'Destinataire personnalisé',
+      );
+      await tap(tester, 'Fermer');
+      await tap(tester, 'Sauvegarder une version');
+      expect(
+        adapter.posts.last.data['document']['cover']['recipient'],
+        'Destinataire personnalisé',
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('Model table cells remain editable and versioned', (
+    tester,
+  ) async {
+    await pump(tester, width: 390);
+    await tap(tester, 'Ouvrir le rapport');
+    await tap(tester, 'Activer la mise en forme');
+    final editor = tester.widget<quill.QuillEditor>(
+      find.byType(quill.QuillEditor),
+    );
+    editor.controller.replaceText(
+      0,
+      0,
+      'Indicateur | Valeur\nDossiers | À remplir\n',
+      const TextSelection.collapsed(offset: 0),
+    );
+    await tester.pumpAndSettle();
+    await tap(tester, 'Modifier les tableaux');
+    await tester.enterText(field('Ligne 1 · colonne 2'), '12');
+    await tap(tester, 'Ajouter une ligne');
+    await tester.enterText(field('Ligne 2 · colonne 1'), 'Versions');
+    await tester.enterText(field('Ligne 2 · colonne 2'), '5');
+    await tap(tester, 'Appliquer les tableaux');
+    await tap(tester, 'Sauvegarder une version');
+    final content = adapter.posts.last.data['sections'][0]['content'] as String;
+    expect(content, contains('Dossiers | 12'));
+    expect(content, contains('Versions | 5'));
+    expect(content, contains('Contenu de la version 2'));
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 from datetime import timedelta
 from pathlib import PurePosixPath
 
@@ -21,6 +22,61 @@ from .models import (
     AppVersion,
     SoftwareApp,
 )
+
+_VERSION_CORE_RE = re.compile(
+    r'^(?P<core>\d+(?:\.\d+){0,3})(?P<suffix>(?:[-_+][0-9A-Za-z.-]+)?)$'
+)
+
+
+def parse_version_tuple(version_number: str) -> tuple[tuple[int, ...], str]:
+    """Retourne ((majeur, mineur, …), suffixe) pour tri / incrément."""
+    raw = (version_number or '').strip()
+    match = _VERSION_CORE_RE.match(raw)
+    if not match:
+        return ((0,), '')
+    parts = tuple(int(p) for p in match.group('core').split('.'))
+    return parts, match.group('suffix') or ''
+
+
+def format_version_tuple(parts: tuple[int, ...], suffix: str = '') -> str:
+    return '.'.join(str(p) for p in parts) + (suffix or '')
+
+
+def bump_patch_version(version_number: str) -> str:
+    """Incrémente le dernier segment numérique (1.2.0 → 1.2.1, 1.0 → 1.1)."""
+    parts, suffix = parse_version_tuple(version_number)
+    if not parts or parts == (0,) and not _VERSION_CORE_RE.match((version_number or '').strip()):
+        return '1.0.0'
+    bumped = list(parts)
+    bumped[-1] += 1
+    # Conserver au moins major.minor.patch pour la lisibilité.
+    while len(bumped) < 3:
+        bumped.append(0)
+    return format_version_tuple(tuple(bumped), '')
+
+
+def latest_version_for(application: SoftwareApp) -> AppVersion | None:
+    versions = list(application.versions.all())
+    if not versions:
+        return None
+
+    def sort_key(item: AppVersion):
+        parts, _suffix = parse_version_tuple(item.version_number)
+        return (parts, item.published_at or item.created_at)
+
+    return max(versions, key=sort_key)
+
+
+def suggest_next_version(application: SoftwareApp) -> str:
+    """Prochaine version par auto-incrémentation (patch)."""
+    latest = latest_version_for(application)
+    if not latest:
+        return '1.0.0'
+    candidate = bump_patch_version(latest.version_number)
+    existing = set(application.versions.values_list('version_number', flat=True))
+    while candidate in existing:
+        candidate = bump_patch_version(candidate)
+    return candidate
 
 ALLOWED_EXTENSIONS = {
     '.apk', '.aab', '.ipa',
@@ -194,7 +250,7 @@ def published_apps_queryset(search: str = '', category: str = '', platform: str 
     qs = (
         SoftwareApp.objects.filter(is_published=True, withdrawn_at__isnull=True)
         .select_related('category', 'recommended_version')
-        .prefetch_related('versions__files')
+        .prefetch_related('versions__files', 'screenshots')
     )
     if search:
         qs = qs.filter(

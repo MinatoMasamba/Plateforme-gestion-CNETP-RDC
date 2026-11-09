@@ -1,17 +1,9 @@
-# cnetp_app
+# cnetp_app — CNE-ITP
 
-A new Flutter project.
+Application Flutter du portail CNE-ITP (CNETP, RDC). Run it with:
 
-## Getting Started
+```
+flutter run -d chrome --web-port 8082
+```
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+L'API par défaut est `http://127.0.0.1:1111`, à surcharger avec `--dart-define=API_BASE_URL=http://127.0.0.1:8000`.

@@ -37,6 +37,7 @@ from apps.appstore.services import (
     published_apps_queryset,
     reject_release_file,
     serve_download,
+    suggest_next_version,
     visible_versions_for,
     withdraw_version,
 )
@@ -66,17 +67,7 @@ def catalog(request):
     category = (request.GET.get('category') or '').strip()
     platform = (request.GET.get('platform') or '').strip()
     apps = list(published_apps_queryset(search=search, category=category, platform=platform))
-    featured = [app for app in apps if app.is_featured][:6]
-    categories = AppCategory.objects.filter(is_active=True, applications__is_published=True).distinct()
-    used_platforms = (
-        AppReleaseFile.objects.filter(
-            version__application__is_published=True,
-            version__status=AppVersion.Status.PUBLISHED,
-            quarantine_status=AppReleaseFile.QuarantineStatus.APPROVED,
-        )
-        .values_list('platform', flat=True)
-        .distinct()
-    )
+    featured_cards = []
     cards = []
     for app in apps:
         platforms = app.visible_platforms()
@@ -87,21 +78,43 @@ def catalog(request):
                 if can_download_file(request.user, release):
                     download_file = release
                     break
-        cards.append({
+        card = {
             'app': app,
             'platforms': platforms,
             'recommended': recommended,
             'download_file': download_file,
-        })
+        }
+        cards.append(card)
+        if app.is_featured and len(featured_cards) < 4:
+            featured_cards.append(card)
+    categories = AppCategory.objects.filter(is_active=True).order_by('sort_order', 'name')
+    used_platforms = (
+        AppReleaseFile.objects.filter(
+            version__application__is_published=True,
+            version__status=AppVersion.Status.PUBLISHED,
+            quarantine_status=AppReleaseFile.QuarantineStatus.APPROVED,
+        )
+        .order_by('platform')
+        .values_list('platform', flat=True)
+        .distinct()
+    )
+    latest_announcements = AppAnnouncement.objects.filter(
+        status=AppAnnouncement.Status.PUBLISHED,
+    ).select_related('application', 'version')[:4]
+    filters_active = bool(search or category or platform)
     return render(request, 'appstore/catalog.html', {
         'cards': cards,
-        'featured': featured,
+        'featured_cards': featured_cards,
         'categories': categories,
         'platforms': [(p, _platform_labels().get(p, p)) for p in used_platforms],
         'search': search,
         'selected_category': category,
         'selected_platform': platform,
+        'filters_active': filters_active,
+        'latest_announcements': latest_announcements,
         'can_admin': can_manage_appstore(request.user),
+        'app_count': len(cards),
+        'category_count': categories.filter(applications__is_published=True).distinct().count(),
     })
 
 
@@ -261,15 +274,24 @@ def admin_screenshot_delete(request, pk, shot_id):
 def admin_version_edit(request, app_id, pk=None):
     app = get_object_or_404(SoftwareApp, pk=app_id)
     instance = get_object_or_404(AppVersion, pk=pk, application=app) if pk else None
-    form = AppVersionForm(request.POST or None, instance=instance)
+    suggested = suggest_next_version(app) if not instance else (instance.version_number or '')
+    form = AppVersionForm(
+        request.POST or None,
+        instance=instance,
+        application=app,
+        suggested_version=suggested,
+    )
     if request.method == 'POST' and form.is_valid():
         version = form.save(commit=False)
         version.application = app
         if not instance:
             version.created_by = request.user
+            # Recalcule au moment de la sauvegarde pour éviter les courses.
+            if form.cleaned_data.get('version_mode') == AppVersionForm.MODE_AUTO:
+                version.version_number = suggest_next_version(app)
         version.updated_by = request.user
         version.save()
-        messages.success(request, 'Version enregistrée.')
+        messages.success(request, f'Version {version.version_number} enregistrée.')
         return redirect('web:appstore_admin_version', app_id=app.pk, pk=version.pk)
     file_form = AppReleaseFileForm() if instance else None
     files = instance.files.all() if instance else []
@@ -279,6 +301,7 @@ def admin_version_edit(request, app_id, pk=None):
         'version': instance,
         'file_form': file_form,
         'files': files,
+        'suggested_version': suggested,
     })
 
 

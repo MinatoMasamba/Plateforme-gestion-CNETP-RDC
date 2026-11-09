@@ -49,6 +49,12 @@ def save_report(user, data, report_id=None):
     if sections is None and template:
         sections = copy.deepcopy(template.sections)
     validate_report_sections(sections)
+    from .st_report_documents import accessible_sources, validate_document
+    previous = report.versions.order_by('-number').first() if report else None
+    source_id = data.get('source_id', previous.source_id if previous else template.source_id if template else None)
+    source = get_object_or_404(accessible_sources(user), pk=source_id) if source_id else None
+    defaults = previous.document if previous else template.document if template else {}
+    document = validate_document(copy.deepcopy(data.get('document', defaults)), source)
     start, end = data.get('period_start'), data.get('period_end')
     try:
         start = date.fromisoformat(start) if isinstance(start, str) else start
@@ -61,7 +67,7 @@ def save_report(user, data, report_id=None):
         report = STReport.objects.create(owner=user, pole_code=mandate.poste.organe.code, template=template,
             reference='RAP-ST-' + uuid.uuid4().hex[:12].upper())
     version = STReportVersion(report=report, number=report.revision + 1, title=title,
-        sections=copy.deepcopy(sections), period_start=start, period_end=end, author=user,
+        sections=copy.deepcopy(sections), source=source, document=document, period_start=start, period_end=end, author=user,
         author_name=user.get_full_name() or user.username, mandate=mandate)
     version.full_clean()
     version.save()
@@ -80,11 +86,13 @@ def get_report_version(user, report_id, number=None):
     return get_object_or_404(report.versions.select_related('report', 'author'), number=number or report.revision)
 
 
-def create_report_template(user, name, sections):
+def create_report_template(user, name, sections, source_id=None, document=None):
     actor_mandate(user)
     writable()
     validate_report_sections(sections)
-    template = STReportTemplate(name=name, sections=copy.deepcopy(sections), creator=user)
+    from .st_report_documents import accessible_sources, validate_document
+    source = get_object_or_404(accessible_sources(user), pk=source_id) if source_id else None
+    template = STReportTemplate(name=name, sections=copy.deepcopy(sections), creator=user, source=source, document=validate_document(document, source))
     template.full_clean()
     template.save()
     return template

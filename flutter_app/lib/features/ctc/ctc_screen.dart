@@ -392,7 +392,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
             'indexation' => 'work',
             'codification' => 'codes',
             'ged_versions_todo' => 'versions_todo',
-            'versions' => 'library',
+            'versions' => 'history',
             'ged' => 'library',
             'ged_anomalies' => 'anomalies',
             'ged_activity' => 'activity',

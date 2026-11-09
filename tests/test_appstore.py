@@ -15,7 +15,12 @@ from apps.appstore.models import (
     AppVersion,
     SoftwareApp,
 )
-from apps.appstore.services import attach_package, publish_version
+from apps.appstore.services import (
+    attach_package,
+    bump_patch_version,
+    publish_version,
+    suggest_next_version,
+)
 from apps.dashboard.console_permissions import console_group_name, sync_console_group
 
 
@@ -239,3 +244,45 @@ def test_admin_can_create_app_via_web(user_factory):
     })
     assert response.status_code == 302
     assert SoftwareApp.objects.filter(slug='outil-st', is_published=True).exists()
+
+
+def test_bump_patch_version_helpers():
+    assert bump_patch_version('1.2.0') == '1.2.1'
+    assert bump_patch_version('1.1.5') == '1.1.6'
+    assert bump_patch_version('') == '1.0.0'
+
+
+@pytest.mark.django_db
+def test_version_auto_increment_and_manual_override(user_factory, tmp_path):
+    with override_settings(MEDIA_ROOT=tmp_path / 'media'):
+        admin = _admin(user_factory)
+        app, *_ = _published_app_with_two_versions(admin)
+        assert suggest_next_version(app) == '1.2.1'
+
+        client = Client()
+        client.force_login(admin)
+        auto = client.post(reverse('web:appstore_admin_version_new', kwargs={'app_id': app.pk}), {
+            'version_mode': 'auto',
+            'version_number': '',
+            'channel': 'stable',
+            'release_notes': 'Patch auto',
+            'known_issues': '',
+            'min_os_version': '',
+            'compatibility_notes': '',
+            'status': 'draft',
+        })
+        assert auto.status_code == 302
+        assert AppVersion.objects.filter(application=app, version_number='1.2.1').exists()
+
+        manual = client.post(reverse('web:appstore_admin_version_new', kwargs={'app_id': app.pk}), {
+            'version_mode': 'manual',
+            'version_number': '1.3.0-beta',
+            'channel': 'beta',
+            'release_notes': 'Canal test',
+            'known_issues': '',
+            'min_os_version': '',
+            'compatibility_notes': '',
+            'status': 'draft',
+        })
+        assert manual.status_code == 302
+        assert AppVersion.objects.filter(application=app, version_number='1.3.0-beta').exists()
