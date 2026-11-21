@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/app_colors.dart';
+import 'ctc_completion.dart';
 
 /// Vues CTC secondaires, structurées d'après les écrans Django de référence.
 /// Les valeurs métier absentes de l'API restent explicitement indisponibles :
@@ -13,6 +14,7 @@ class CtcModuleView extends StatelessWidget {
     required this.dossiers,
     this.stageRows = const [],
     this.groupNormRows = const [],
+    this.performance,
   });
 
   final String view;
@@ -20,6 +22,9 @@ class CtcModuleView extends StatelessWidget {
   final List<Map<String, dynamic>> dossiers;
   final List<Map<String, dynamic>> stageRows;
   final List<Map<String, dynamic>> groupNormRows;
+
+  /// Pourcentage de complétion renvoyé par `dashboard.performance`.
+  final Map<String, dynamic>? performance;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,7 @@ class CtcModuleView extends StatelessWidget {
       case 'financial':
         return const _Financial();
       case 'statistiques':
-        return _Statistics(counts, stageRows, groupNormRows);
+        return _Statistics(counts, stageRows, groupNormRows, performance);
       case 'experts':
         return const _SimpleTable(
           eyebrow: 'Supervision',
@@ -398,81 +403,138 @@ class _Financial extends StatelessWidget {
 }
 
 class _Statistics extends StatelessWidget {
-  const _Statistics(this.counts, this.stageRows, this.groupNormRows);
+  const _Statistics(this.counts, this.stageRows, this.groupNormRows, this.performance);
   final Map<String, int> counts;
   final List<Map<String, dynamic>> stageRows;
   final List<Map<String, dynamic>> groupNormRows;
+  final Map<String, dynamic>? performance;
   int get norms => counts['normes_suivies'] ?? 0;
 
   @override
-  Widget build(BuildContext context) => _Page(
-    'SUPERVISION · COORDINATION DU SECRÉTARIAT TECHNIQUE',
-    'Suivi statistique',
-    'Une vue des sous-commissions, groupes et normes rattachés explicitement.',
-    Column(
-      children: [
-        _Card(
-          tint: const Color(0xFFF5FCFF),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Label("VUE D'ENSEMBLE"),
-              const Text(
-                'Statistique globale',
-                style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Les mesures de progression utilisent seulement les tâches affectées explicitement. Aucun classement automatique.',
-                style: TextStyle(color: AppColors.muted),
-              ),
-              const SizedBox(height: 22),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final columns = constraints.maxWidth >= 780 ? 4 : 2;
-                  final itemWidth = constraints.maxWidth / columns;
-                  return Wrap(
-                    runSpacing: 20,
-                    children: [
-                      SizedBox(
-                        width: itemWidth,
-                        child: _Stat(
-                          'Normes rattachées',
-                          '$norms',
-                          'Dans les groupes suivis',
-                        ),
+  Widget build(BuildContext context) {
+    final performance = this.performance;
+    final perfValue = performance?['value'];
+    double? perf;
+    if (perfValue is num) perf = perfValue.toDouble();
+    return _Page(
+      'SUPERVISION · COORDINATION DU SECRÉTARIAT TECHNIQUE',
+      'Suivi statistique',
+      'Une vue des sous-commissions, groupes et normes rattachés explicitement.',
+      Column(
+        children: [
+          _Card(
+            tint: const Color(0xFFF5FCFF),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _Label("VUE D'ENSEMBLE"),
+                const Text(
+                  'Statistique globale',
+                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Les mesures de progression utilisent seulement les tâches affectées explicitement. Aucun classement automatique.',
+                  style: TextStyle(color: AppColors.muted),
+                ),
+                const SizedBox(height: 18),
+                // Miroir `statistiques_view.html` : KPI « Avancement des
+                // tâches » + donut animé en boucle, valeur du serveur web.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CtcCompletionDonut(value: perf, colorHex: performance?['color']?.toString()),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Avancement des tâches',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            perf == null
+                                ? 'Aucune tâche pondérée'
+                                : perf % 1 == 0
+                                    ? '${perf.toInt()} %'
+                                    : '$perf %',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: perf == null
+                                  ? AppColors.muted
+                                  : CtcCompletionDonut.donutColor(
+                                      performance?['color']?.toString(),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Σ poids × progression ÷ Σ poids planifiés',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.muted,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(
-                        width: itemWidth,
-                        child: _Stat(
-                          'Sous-commissions et CTM',
-                          '${counts['sous_commissions'] ?? 0}',
-                          'Référentiel courant et historique',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final columns = constraints.maxWidth >= 780 ? 4 : 2;
+                    final itemWidth = constraints.maxWidth / columns;
+                    return Wrap(
+                      runSpacing: 20,
+                      children: [
+                        SizedBox(
+                          width: itemWidth,
+                          child: _Stat(
+                            'Normes rattachées',
+                            '$norms',
+                            'Dans les groupes suivis',
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: itemWidth,
-                        child: _Stat(
-                          'Groupes de travail',
-                          '${counts['groupes'] ?? 0}',
-                          'Avec rattachement explicite',
+                        SizedBox(
+                          width: itemWidth,
+                          child: _Stat(
+                            'Sous-commissions et CTM',
+                            '${counts['sous_commissions'] ?? 0}',
+                            'Référentiel courant et historique',
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: itemWidth,
-                        child: _Stat(
-                          'Tâches suivies',
-                          '${counts['taches'] ?? 0}',
-                          '${counts['taches_en_retard'] ?? 0} en retard',
+                        SizedBox(
+                          width: itemWidth,
+                          child: _Stat(
+                            'Groupes de travail',
+                            '${counts['groupes'] ?? 0}',
+                            'Avec rattachement explicite',
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
+                        SizedBox(
+                          width: itemWidth,
+                          child: _Stat(
+                            'Tâches suivies',
+                            '${counts['taches'] ?? 0}',
+                            '${counts['taches_en_retard'] ?? 0} en retard',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
         const SizedBox(height: 18),
         _Card(
           child: Column(
@@ -506,6 +568,7 @@ class _Statistics extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _StatisticBars extends StatelessWidget {

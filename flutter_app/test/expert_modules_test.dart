@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _Adapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];
@@ -18,6 +19,8 @@ class _Adapter implements HttpClientAdapter {
       failAdmission = false,
       read = false,
       present = false,
+      meetingClosed = false,
+      meetingNotification = false,
       contested = false;
   String? choice, jetonDecision;
   @override
@@ -93,7 +96,18 @@ class _Adapter implements HttpClientAdapter {
       ];
     } else if (path.endsWith('/messages/contacts/')) {
       data = [];
-    } else if (path.endsWith('/reunions/')) {
+    } else if (path.endsWith('/meetings/capabilities/')) {
+      data = {
+        'can_plan': leader || staff,
+        'can_plan_ctm_ids': leader || staff ? [1] : [],
+        'ctms': [
+          {'id': 1, 'name': 'SC Qualité'},
+        ],
+        'workgroups': [
+          {'id': 11, 'ctm_id': 1, 'name': 'WG Qualité'},
+        ],
+      };
+    } else if (path.endsWith('/reunions/') || path.endsWith('/meetings/')) {
       data = [
         {
           'id': 3,
@@ -107,7 +121,15 @@ class _Adapter implements HttpClientAdapter {
       data = {
         'id': 3,
         'titre': 'Session qualité',
-        'status': 'PLANNED',
+        'status': meetingClosed ? 'COMPLETED' : 'PLANNED',
+        'question_vote': 'Approuver les conclusions de la séance ?',
+        'capabilities': {
+          'can_manage': leader || staff,
+          'can_validate_pv': staff,
+          'can_participate': true,
+          'can_checkin': !present,
+          'can_vote': present,
+        },
         'presences': present
             ? [
                 {
@@ -123,7 +145,16 @@ class _Adapter implements HttpClientAdapter {
             : [
                 {'expert': 7, 'expert_name': 'Amina Expert', 'choix': choice},
               ],
-        'pv': null,
+        'pv': meetingClosed
+            ? {
+                'id': 4,
+                'contenu': 'Compte rendu de la séance',
+                'points_discutes': 'Projet examiné',
+                'decisions': 'Projet approuvé',
+                'redaction': 'BROUILLON',
+                'revision': 1,
+              }
+            : null,
       };
     } else if (path.endsWith('/checkin_presence/')) {
       present = true;
@@ -131,6 +162,15 @@ class _Adapter implements HttpClientAdapter {
       choice = options.data['choix'];
     } else if (path.endsWith('/notifications/')) {
       data = [
+        if (meetingNotification)
+          {
+            'id': 9,
+            'title': 'Invitation à une réunion : Session qualité',
+            'body': 'Votre séance est planifiée demain.',
+            'notification_type': 'REUNION_INVITE',
+            'data': {'reunion_id': '3'},
+            'is_read': read,
+          },
         {
           'id': 4,
           'title': 'Nouvelle norme',
@@ -278,6 +318,7 @@ void main() {
   late HttpClientAdapter previous;
   late _Adapter adapter;
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     previous = ApiClient.dio.httpClientAdapter;
     adapter = _Adapter();
     ApiClient.dio.httpClientAdapter = adapter;
@@ -375,7 +416,8 @@ void main() {
   ) async {
     await tester.pumpWidget(_wrap(const ExpertMeetingsTab()));
     await _flush(tester);
-    await _tap(tester, find.text('Ouvrir : présences, votes et PV'));
+    await _tap(tester, find.text('Toutes'));
+    await _tap(tester, find.text('Détails et participation'));
     await _flush(tester);
     expect(find.text('Voter POUR'), findsNothing);
     await _tap(tester, find.text('Émarger ma présence'));
@@ -384,6 +426,60 @@ void main() {
       'choix': 'POUR',
     });
     expect(find.text('Votre vote : POUR'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('réunions : actions de gestion masquées pour un invité', (
+    tester,
+  ) async {
+    adapter.leader = false;
+    await tester.pumpWidget(_wrap(const ExpertMeetingsTab()));
+    await _flush(tester);
+    expect(find.text('Planifier une session'), findsNothing);
+    await _tap(tester, find.text('Toutes'));
+    await _tap(tester, find.text('Détails et participation'));
+    await _flush(tester);
+    for (final label in [
+      'Préparer la séance',
+      'Clore le scrutin et générer le PV',
+      'Rédiger le PV',
+      'Valider le PV',
+    ]) {
+      expect(find.text(label), findsNothing);
+    }
+    expect(find.byTooltip('Modifier la présence'), findsNothing);
+    expect(find.text('Émarger ma présence'), findsOneWidget);
+    expect(find.text('Signaler mon absence'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('réunions : PV en lecture seule pour un invité', (tester) async {
+    adapter.leader = false;
+    adapter.meetingClosed = true;
+    await tester.pumpWidget(_wrap(const ExpertMeetingsTab()));
+    await _flush(tester);
+    await _tap(tester, find.text('Toutes'));
+    await _tap(tester, find.text('Détails et participation'));
+    await _flush(tester);
+    expect(find.text('Compte rendu de la séance'), findsOneWidget);
+    expect(find.text('Rédiger le PV'), findsNothing);
+    expect(find.text('Valider le PV'), findsNothing);
+    expect(find.text('Émarger ma présence'), findsNothing);
+    expect(find.text('Voter POUR'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('réunions : semaine vide puis accès à toutes les sessions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const ExpertMeetingsTab()));
+    await _flush(tester);
+    expect(find.text('Cette semaine'), findsOneWidget);
+    expect(find.text('Aujourd’hui'), findsOneWidget);
+    await _tap(tester, find.text('Toutes'));
+    expect(find.text('Session qualité'), findsOneWidget);
+    expect(find.byTooltip('Ajouter à mon agenda'), findsOneWidget);
+    expect(find.text('2027'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -458,6 +554,33 @@ void main() {
     await _tap(tester, find.text('Marquer comme lu'));
     expect(find.text('Nouvelle norme'), findsOneWidget);
     expect(find.text('Marquer comme lu'), findsNothing);
+  });
+
+  testWidgets('notifications : filtre réunions et ouverture marquée lue', (
+    tester,
+  ) async {
+    adapter.meetingNotification = true;
+    String? opened;
+    await tester.pumpWidget(
+      _wrap(ExpertNotificationsTab(onOpenMeeting: (id) => opened = id)),
+    );
+    await _flush(tester);
+    await _tap(tester, find.text('Réunions'));
+    expect(find.text('● Nouvelle norme'), findsNothing);
+    expect(
+      find.text('● Invitation à une réunion : Session qualité'),
+      findsOneWidget,
+    );
+    await _tap(tester, find.text('Ouvrir la réunion'));
+    expect(opened, '3');
+    expect(adapter.read, isTrue);
+    expect(
+      adapter.requests.any(
+        (r) => r.path.endsWith('/notifications/9/mark_as_read/'),
+      ),
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('ISO : statut réel et mutation réservée CTC', (tester) async {

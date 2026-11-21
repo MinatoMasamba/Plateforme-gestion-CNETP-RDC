@@ -155,31 +155,6 @@ def notify_payment_received(sender, instance, created, **kwargs):
         logger.exception(f'Error notifying payment received: {e}')
 
 
-# ========== RÉUNIONS ==========
-
-@receiver(post_save, sender='meetings.Reunion', dispatch_uid='notify_reunion_created')
-def notify_reunion_created(sender, instance, created, **kwargs):
-    """Notifier les experts concernés lors de la création d'une réunion."""
-    if not created:
-        return
-    try:
-        for expert in _experts_for_ctm_or_wg(ctm_id=instance.ctm_id, wg_id=instance.wg_id):
-            create_notification_for_user(
-                expert.user,
-                title=f'Réunion planifiée : {instance.titre}',
-                body=f"Vous êtes invité à la réunion « {instance.titre} » le {instance.date:%d/%m/%Y %H:%M}.",
-                notification_type='REUNION_INVITE',
-                priority='HIGH',
-                data={
-                    'reunion_id': instance.id,
-                    'titre': instance.titre,
-                    'date': instance.date.isoformat() if instance.date else None,
-                },
-            )
-    except Exception as e:
-        logger.exception(f'Error notifying meeting: {e}')
-
-
 # ========== MESSAGES ==========
 
 @receiver(post_save, sender='messaging.Message', dispatch_uid='notify_new_message')

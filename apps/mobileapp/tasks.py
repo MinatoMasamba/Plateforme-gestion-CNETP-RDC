@@ -93,6 +93,24 @@ def dispatch_notification(self, notification_id):
         logger.exception(f"Notification {notification_id} introuvable")
         return False
 
+    if notification.notification_type in ('MEETING_REMINDER', 'REUNION_INVITE', 'REUNION_UPDATE', 'REUNION_CANCELLED'):
+        from apps.meetings.models import ReunionParticipant
+        allowed_statuses = ('CANCELLED',) if notification.notification_type == 'REUNION_CANCELLED' else ('PLANNED', 'IN_PROGRESS')
+        if not ReunionParticipant.objects.filter(
+            expert__user=notification.user,
+            reunion_id=notification.data.get('reunion_id'),
+            reunion__date=notification.data.get('date'),
+            reunion__status__in=allowed_statuses,
+        ).exists():
+            return False
+        if notification.notification_type == 'MEETING_REMINDER':
+            from apps.meetings.models import Presence
+            if Presence.objects.filter(
+                reunion_id=notification.data.get('reunion_id'),
+                expert__user=notification.user, status='EXCUSED',
+            ).exists():
+                return False
+
     push_tokens = PushToken.objects.filter(user=notification.user, is_active=True)
     
     # Vérifier les préférences de l'utilisateur
@@ -106,6 +124,8 @@ def dispatch_notification(self, notification_id):
             'EXPERT_INVITE': 'enable_system',
             'EXPERT_ADDED_TO_WG': 'enable_system',
             'REUNION_INVITE': 'enable_reunion_invites',
+            'REUNION_UPDATE': 'enable_reunion_invites',
+            'REUNION_CANCELLED': 'enable_reunion_invites',
             'MEETING_REMINDER': 'enable_reunion_invites',
             'VOTE_OPEN': 'enable_votes',
             'VOTE_REMINDER': 'enable_votes',
@@ -143,8 +163,8 @@ def dispatch_notification(self, notification_id):
         logger.warning(f'Could not check notification preferences: {e}')
 
     # Init firebase if available
-    firebase_ready = init_firebase_app() if FIREBASE_AVAILABLE else False
     fcm_enabled = getattr(settings, 'NOTIFICATION_SETTINGS', {}).get('FCM_ENABLED', True)
+    firebase_ready = init_firebase_app() if FIREBASE_AVAILABLE and fcm_enabled else False
 
     if firebase_ready and fcm_enabled and push_tokens.exists():
         for token in push_tokens:
@@ -158,7 +178,7 @@ def dispatch_notification(self, notification_id):
                     'notification_id': str(notification.id),
                     'type': notification.notification_type,
                     'priority': notification.priority,
-                    **(notification.data or {})
+                    **{str(k): str(v) for k, v in (notification.data or {}).items()}
                 },
                 android=messaging.AndroidConfig(
                     priority='high' if notification.priority in ('HIGH', 'URGENT') else 'normal',

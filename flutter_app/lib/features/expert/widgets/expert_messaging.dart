@@ -314,7 +314,7 @@ class _ExpertMessagingState extends State<ExpertMessaging> {
                                 style: TextStyle(
                                   color: p.blue,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                                  fontSize: 13,
                                 ),
                               ),
                               SelectableText(
@@ -323,7 +323,7 @@ class _ExpertMessagingState extends State<ExpertMessaging> {
                               ),
                               Text(
                                 '${DateTime.tryParse('${m['timestamp']}')?.toLocal() ?? ''}',
-                                style: TextStyle(color: p.subtle, fontSize: 10),
+                                style: TextStyle(color: p.subtle, fontSize: 12),
                               ),
                             ],
                           ),

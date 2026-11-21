@@ -39,6 +39,9 @@ class GedWorkPanel extends StatelessWidget {
     required this.queue,
     required this.queueTotal,
     required this.detailId,
+    this.detail,
+    this.onLoadMore,
+    this.onBackToQueue,
     required this.states,
     required this.search,
     required this.busy,
@@ -53,6 +56,9 @@ class GedWorkPanel extends StatelessWidget {
   final List<Map<String, dynamic>> queue;
   final int queueTotal;
   final int? detailId;
+  final Map<String, dynamic>? detail;
+  final VoidCallback? onLoadMore;
+  final VoidCallback? onBackToQueue;
   final Set<String> states;
   final TextEditingController search;
   final bool busy;
@@ -63,6 +69,7 @@ class GedWorkPanel extends StatelessWidget {
   final void Function(GedAction action) onAction;
 
   Map<String, dynamic>? get detailRow {
+    if (detail != null) return detail;
     final id = detailId;
     if (id == null) return null;
     for (final row in queue) {
@@ -73,8 +80,7 @@ class GedWorkPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasFilter =
-        states.isNotEmpty || search.text.isNotEmpty;
+    final hasFilter = states.isNotEmpty || search.text.isNotEmpty;
     final selected = detailRow;
     return LayoutBuilder(
       builder: (context, box) {
@@ -99,7 +105,10 @@ class GedWorkPanel extends StatelessWidget {
                         ),
                       ),
                       if (hasFilter)
-                        TextButton(onPressed: onClearFilters, child: const Text('Réinitialiser les filtres')),
+                        TextButton(
+                          onPressed: onClearFilters,
+                          child: const Text('Réinitialiser les filtres'),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -108,38 +117,81 @@ class GedWorkPanel extends StatelessWidget {
                     decoration: InputDecoration(
                       isDense: true,
                       prefixIcon: const Icon(Icons.search, size: 18),
+                      suffixIcon: IconButton(
+                        tooltip: 'Rechercher dans la file',
+                        icon: const Icon(Icons.arrow_forward, size: 18),
+                        onPressed: onSearch,
+                      ),
                       hintText: 'Référence, titre, tome ou code…',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     onSubmitted: (_) => onSearch(),
                   ),
                   const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final entry in _queueStateLabels.entries)
-                        FilterChip(
-                          label: Text(
-                            entry.value,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: states.contains(entry.key) ? Colors.white : AppColors.muted,
-                            ),
-                          ),
-                          selected: states.contains(entry.key),
-                          selectedColor: AppColors.rdcBlue,
-                          showCheckmark: false,
-                          side: const BorderSide(color: AppColors.border),
-                          onSelected: (_) => onToggleState(entry.key),
+                  Theme(
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: ExpansionTile(
+                        tilePadding: EdgeInsets.zero,
+                        childrenPadding: const EdgeInsets.only(bottom: 8),
+                        initiallyExpanded: states.isNotEmpty,
+                        leading: const Icon(
+                          Icons.filter_list,
+                          size: 18,
+                          color: AppColors.muted,
                         ),
-                    ],
+                        title: Text(
+                          states.isEmpty
+                              ? 'Filtrer par état'
+                              : 'États sélectionnés · ${states.length}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        children: [
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              for (final entry in _queueStateLabels.entries)
+                                FilterChip(
+                                  label: Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: states.contains(entry.key)
+                                          ? Colors.white
+                                          : AppColors.muted,
+                                    ),
+                                  ),
+                                  selected: states.contains(entry.key),
+                                  selectedColor: AppColors.rdcBlue,
+                                  showCheckmark: false,
+                                  side: const BorderSide(
+                                    color: AppColors.border,
+                                  ),
+                                  onSelected: (_) => onToggleState(entry.key),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '${queue.length} dossier(s) affiché(s) · file du poste 11',
-                    style: const TextStyle(fontSize: 11, color: AppColors.subtle),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.subtle,
+                    ),
                   ),
                 ],
               ),
@@ -150,11 +202,23 @@ class GedWorkPanel extends StatelessWidget {
                 child: GedEmpty('Aucun dossier dans la file pour ces filtres.'),
               )
             else
-              for (final row in queue.take(14))
+              for (final row in queue)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _QueueRowCard(row: row, selected: selected != null && row['id'] == selected['id'], onTap: () => onSelect(row)),
+                  child: _QueueRowCard(
+                    row: row,
+                    selected: selected != null && row['id'] == selected['id'],
+                    onTap: () => onSelect(row),
+                  ),
                 ),
+            if (queue.length < queueTotal)
+              OutlinedButton.icon(
+                onPressed: busy ? null : onLoadMore,
+                icon: const Icon(Icons.expand_more),
+                label: Text(
+                  'Afficher la suite (${queue.length} / $queueTotal)',
+                ),
+              ),
           ],
         );
         final fiche = selected == null
@@ -164,12 +228,19 @@ class GedWorkPanel extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.touch_app_outlined, size: 17, color: AppColors.rdcBlue),
+                        const Icon(
+                          Icons.touch_app_outlined,
+                          size: 17,
+                          color: AppColors.rdcBlue,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Choisissez un dossier dans la file pour vérifier ses conditions réelles et préparer l’indexation.',
-                            style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.muted,
+                            ),
                           ),
                         ),
                       ],
@@ -177,15 +248,23 @@ class GedWorkPanel extends StatelessWidget {
                     const SizedBox(height: 10),
                     const Text(
                       'Étapes de vérification du poste 11',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.text),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                      ),
                     ),
                     const SizedBox(height: 6),
-                    const GedEmpty('1. Contrôler les pièces  2. Corriger les métadonnées  3. Enregistrer l’indexation.'),
+                    const GedEmpty(
+                      '1. Contrôler les pièces  2. Corriger les métadonnées  3. Enregistrer l’indexation.',
+                    ),
                   ],
                 ),
               )
             : _WorkFiche(
-                key: ValueKey('fiche-${(selected['id'] as num).toInt()}-${selected['base_version_id'] ?? 0}'),
+                key: ValueKey(
+                  'fiche-${(selected['id'] as num).toInt()}-${selected['base_version_id'] ?? 0}',
+                ),
                 row: selected,
                 data: data,
                 busy: busy,
@@ -201,14 +280,24 @@ class GedWorkPanel extends StatelessWidget {
             ],
           );
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            queueColumn,
-            const SizedBox(height: 16),
-            fiche,
-          ],
-        );
+        if (selected != null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: busy ? null : onBackToQueue,
+                  icon: const Icon(Icons.arrow_back, size: 18),
+                  label: const Text('Retour à la file des dossiers'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              fiche,
+            ],
+          );
+        }
+        return queueColumn;
       },
     );
   }
@@ -229,10 +318,14 @@ class _QueueRowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = (row['queue_state'] ?? 'READY').toString();
     final age = row['age_days'];
-    final ageLabel = age is num && age > 0 ? ' · ${age.toStringAsFixed(0)} j' : '';
+    final ageLabel = age is num && age > 0
+        ? ' · ${age.toStringAsFixed(0)} j'
+        : '';
     final origin = gedOrigin(row['sc'], row['tome'], row['group']);
     return Material(
-      color: selected ? AppColors.rdcBlue.withValues(alpha: 0.06) : Colors.white,
+      color: selected
+          ? AppColors.rdcBlue.withValues(alpha: 0.06)
+          : Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -272,7 +365,11 @@ class _QueueRowCard extends StatelessWidget {
                 (row['title'] ?? '').toString(),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                ),
               ),
               const SizedBox(height: 3),
               Text(
@@ -347,15 +444,17 @@ class _WorkFicheState extends State<_WorkFiche> {
       'sc': TextEditingController(text: _metadataDefault('sc')),
       'group': TextEditingController(text: _metadataDefault('group')),
       'vote_date': TextEditingController(text: _metadataDefault('vote_date')),
-      'received_at': TextEditingController(text: _metadataDefault('received_at')),
+      'received_at': TextEditingController(
+        text: _metadataDefault('received_at'),
+      ),
       'sender': TextEditingController(text: _metadataDefault('sender')),
     };
   }
 
   int? _initialCodeId() {
-    final codes = rowsOf(widget.data['codes']).where(
-      (item) => item['norme_id'] == widget.row['norme_id'],
-    );
+    final codes = rowsOf(
+      widget.data['codes'],
+    ).where((item) => item['norme_id'] == widget.row['norme_id']);
     if (codes.isEmpty) return null;
     return (codes.first['id'] as num).toInt();
   }
@@ -376,36 +475,56 @@ class _WorkFicheState extends State<_WorkFiche> {
     super.dispose();
   }
 
+  String get _queueState {
+    final explicit = widget.row['queue_state'];
+    if (explicit != null) return explicit.toString();
+    final latest = widget.row['latest'] as Map?;
+    final confirmation = latest?['confirmation'] as Map?;
+    if (confirmation?['decision'] == 'CONFIRMED') return 'CONFIRMED';
+    if (confirmation?['decision'] == 'RETURNED') return 'CORRECTION';
+    return (widget.row['state'] ?? (latest == null ? 'READY' : 'INDEXED')).toString();
+  }
+
   String get _stateLabel {
-    final state = (widget.row['queue_state'] ?? 'READY').toString();
+    final state = _queueState;
     return _queueStateLabels[state] ?? state;
   }
 
   Color get _stateColor {
-    final state = (widget.row['queue_state'] ?? 'READY').toString();
+    final state = _queueState;
     return _queueStateColors[state] ?? AppColors.warning;
   }
 
-  List<String> get _blockers =>
-      [for (final item in widget.row['blockers'] as List? ?? const []) item.toString()];
+  List<String> get _blockers => [
+    for (final item in widget.row['blockers'] as List? ?? const [])
+      item.toString(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final stateKey = (widget.row['queue_state'] ?? 'READY').toString();
+    final stateKey = _queueState;
     final indexed = stateKey == 'INDEXED' || stateKey == 'CONFIRMED';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _FicheHeader(row: widget.row, stateLabel: _stateLabel, stateColor: _stateColor),
+        _FicheHeader(
+          row: widget.row,
+          stateLabel: _stateLabel,
+          stateColor: _stateColor,
+        ),
         const SizedBox(height: 12),
         _PiecesCard(
+          readOnly: indexed,
           blockers: _blockers,
           pvPresent: widget.row['pv_present'] == true,
-          report: widget.row['report'] is Map ? (widget.row['report'] as Map).cast<String, dynamic>() : null,
+          report: widget.row['report'] is Map
+              ? (widget.row['report'] as Map).cast<String, dynamic>()
+              : null,
           pvChecked: _pvChecked,
           reportChecked: _reportChecked,
           onPvChanged: (value) => setState(() => _pvChecked = value ?? false),
-          onReportChanged: (value) => setState(() => _reportChecked = value ?? false),
+          onReportChanged: (value) =>
+              setState(() => _reportChecked = value ?? false),
         ),
         const SizedBox(height: 12),
         if (!indexed) ...[
@@ -437,7 +556,8 @@ class _WorkFicheState extends State<_WorkFiche> {
 
   void setVerified(bool value) => setState(() => _verified = value);
 
-  void toggleAnomalyForm() => setState(() => _anomalyFormOpen = !_anomalyFormOpen);
+  void toggleAnomalyForm() =>
+      setState(() => _anomalyFormOpen = !_anomalyFormOpen);
 
   void selectAnomalyKind(String? value) =>
       setState(() => _anomalyKind = value ?? 'INCONSISTENT');
@@ -485,10 +605,15 @@ class _WorkFicheState extends State<_WorkFiche> {
           controller: controller,
           autofocus: true,
           maxLines: 3,
-          decoration: const InputDecoration(hintText: 'Commentaire de résolution…'),
+          decoration: const InputDecoration(
+            hintText: 'Commentaire de résolution…',
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Annuler'),
+          ),
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
@@ -509,7 +634,11 @@ class _WorkFicheState extends State<_WorkFiche> {
 }
 
 class _FicheHeader extends StatelessWidget {
-  const _FicheHeader({required this.row, required this.stateLabel, required this.stateColor});
+  const _FicheHeader({
+    required this.row,
+    required this.stateLabel,
+    required this.stateColor,
+  });
 
   final Map<String, dynamic> row;
   final String stateLabel;
@@ -517,45 +646,73 @@ class _FicheHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GedCard(
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
+    child: LayoutBuilder(
+      builder: (context, box) {
+        final compact = box.maxWidth < 520;
+        final reference = Text(
+          (row['reference'] ?? '').toString(),
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: AppColors.rdcBlue,
+          ),
+        );
+        final badge = GedBadge(label: stateLabel, color: stateColor);
+        final title = Text(
+          (row['title'] ?? '').toString(),
+          maxLines: compact ? null : 2,
+          overflow: compact ? null : TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.text,
+          ),
+        );
+        final origin = Text(
+          '${gedOrigin(row['sc'], row['tome'], row['group'])} · émetteur ${row['sender'] ?? '—'}',
+          maxLines: compact ? 3 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 11, color: AppColors.muted),
+        );
+        if (compact) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                (row['reference'] ?? '').toString(),
-                style: const TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.rdcBlue,
-                ),
+              Row(
+                children: [
+                  Expanded(child: reference),
+                  const SizedBox(width: 8),
+                  badge,
+                ],
               ),
-              Text(
-                (row['title'] ?? '').toString(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.text),
-              ),
-              Text(
-                '${gedOrigin(row['sc'], row['tome'], row['group'])} · émetteur ${row['sender'] ?? '—'}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: AppColors.muted),
-              ),
+              const SizedBox(height: 8),
+              title,
+              const SizedBox(height: 6),
+              origin,
             ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        GedBadge(label: stateLabel, color: stateColor),
-      ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [reference, title, origin],
+              ),
+            ),
+            const SizedBox(width: 8),
+            badge,
+          ],
+        );
+      },
     ),
   );
 }
 
 class _PiecesCard extends StatelessWidget {
   const _PiecesCard({
+    this.readOnly = false,
     required this.blockers,
     required this.pvPresent,
     required this.report,
@@ -565,6 +722,7 @@ class _PiecesCard extends StatelessWidget {
     required this.onReportChanged,
   });
 
+  final bool readOnly;
   final List<String> blockers;
   final bool pvPresent;
   final Map<String, dynamic>? report;
@@ -575,11 +733,44 @@ class _PiecesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (readOnly) {
+      return GedCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const GedSectionTitle(
+              'Pièces du dossier indexé',
+              Icons.folder_copy_outlined,
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'L’indexation est enregistrée. Les pièces restent consultables pour le suivi documentaire.',
+              style: TextStyle(fontSize: 12, color: AppColors.muted),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              pvPresent ? 'PV disponible' : 'PV non joint',
+              style: const TextStyle(fontSize: 12, color: AppColors.text),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              report == null
+                  ? 'Rapport de revue non disponible'
+                  : 'Rapport de revue · ${asText(report!['name']) ?? '—'}',
+              style: const TextStyle(fontSize: 12, color: AppColors.text),
+            ),
+          ],
+        ),
+      );
+    }
     return GedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const GedSectionTitle('Contrôle des pièces', Icons.fact_check_outlined),
+          const GedSectionTitle(
+            'Contrôle des pièces',
+            Icons.fact_check_outlined,
+          ),
           const SizedBox(height: 10),
           if (blockers.isEmpty)
             Container(
@@ -591,7 +782,11 @@ class _PiecesCard extends StatelessWidget {
               ),
               child: const Text(
                 'Toutes les conditions documentaires sont réunies ; préparez l’indexation.',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF166534),
+                ),
               ),
             )
           else ...[
@@ -607,11 +802,19 @@ class _PiecesCard extends StatelessWidget {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.lock_outline, size: 15, color: AppColors.danger),
+                      Icon(
+                        Icons.lock_outline,
+                        size: 15,
+                        color: AppColors.danger,
+                      ),
                       SizedBox(width: 6),
                       Text(
                         'Indexation verrouillée',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.danger),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.danger,
+                        ),
                       ),
                     ],
                   ),
@@ -619,7 +822,10 @@ class _PiecesCard extends StatelessWidget {
                   for (final blocker in blockers)
                     Text(
                       '· $blocker',
-                      style: const TextStyle(fontSize: 12, color: AppColors.danger),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.danger,
+                      ),
                     ),
                 ],
               ),
@@ -684,11 +890,15 @@ class _MetadataCard extends StatelessWidget {
         ),
       );
     }
+
     return GedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const GedSectionTitle('Métadonnées documentaires', Icons.edit_note_outlined),
+          const GedSectionTitle(
+            'Métadonnées documentaires',
+            Icons.edit_note_outlined,
+          ),
           const SizedBox(height: 4),
           const Text(
             'Corrigez les champs avant de confirmer l’indexation. La réception d’origine reste conservée.',
@@ -745,30 +955,48 @@ class _IndexCard extends StatelessWidget {
     final row = state.widget.row;
     final data = state.widget.data;
     final normeId = row['norme_id'];
-    final codes = rowsOf(data['codes']).where((item) => item['norme_id'] == normeId).toList();
+    final codes = rowsOf(
+      data['codes'],
+    ).where((item) => item['norme_id'] == normeId).toList();
     final files = rowsOf(row['files']);
-    final report = row['report'] is Map ? (row['report'] as Map).cast<String, dynamic>() : null;
+    final report = row['report'] is Map
+        ? (row['report'] as Map).cast<String, dynamic>()
+        : null;
     return GedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const GedSectionTitle('Indexation documentaire', Icons.document_scanner_outlined),
+          const GedSectionTitle(
+            'Indexation documentaire',
+            Icons.document_scanner_outlined,
+          ),
           const SizedBox(height: 10),
           DropdownButtonFormField<int?>(
+            isExpanded: true,
             initialValue: codeId,
             isDense: true,
             decoration: InputDecoration(
               isDense: true,
               labelText: 'Code documentaire',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('Choisir un code autorisé', style: TextStyle(fontSize: 13))),
+              const DropdownMenuItem(
+                value: null,
+                child: Text(
+                  'Choisir un code autorisé',
+                  style: TextStyle(fontSize: 13),
+                ),
+              ),
               for (final code in codes)
                 DropdownMenuItem(
                   value: (code['id'] as num).toInt(),
                   child: Text(
                     '${code['code']} · autorisé par ${code['author']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
@@ -785,30 +1013,40 @@ class _IndexCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Version v${(row['next_version'] as num?)?.toInt() ?? 1} · nouvelle version',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.text),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+            ),
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<int?>(
+            isExpanded: true,
             initialValue: sourceId,
             isDense: true,
             decoration: InputDecoration(
               isDense: true,
               labelText: 'Fichier préparé',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('Choisir un fichier', style: TextStyle(fontSize: 13))),
+              const DropdownMenuItem(
+                value: null,
+                child: Text(
+                  'Choisir un fichier',
+                  style: TextStyle(fontSize: 13),
+                ),
+              ),
               for (final file in files)
                 DropdownMenuItem(
                   value: (file['id'] as num).toInt(),
-                  child: SizedBox(
-                    width: 320,
-                    child: Text(
-                      '${file['name']} · ${file['author']}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13),
-                    ),
+                  child: Text(
+                    '${file['name']} · ${file['author']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
                   ),
                 ),
             ],
@@ -824,14 +1062,19 @@ class _IndexCard extends StatelessWidget {
                 icon: Icons.upload_outlined,
                 secondary: true,
                 busy: busy,
-                onTap: () => state.widget.onAction(GedUploadAction(processId: state._processId)),
+                onTap: () => state.widget.onAction(
+                  GedUploadAction(processId: state._processId),
+                ),
               ),
               if (report != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     'Rapport de revue : ${report['name'] ?? '—'}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
                   ),
                 ),
             ],
@@ -845,7 +1088,9 @@ class _IndexCard extends StatelessWidget {
             decoration: InputDecoration(
               isDense: true,
               labelText: 'Observation',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -857,7 +1102,10 @@ class _IndexCard extends StatelessWidget {
               onChanged: (value) => state.setVerified(value ?? false),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Pièces vérifiées et lisibles', style: TextStyle(fontSize: 12)),
+              title: const Text(
+                'Pièces vérifiées et lisibles',
+                style: TextStyle(fontSize: 12),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -908,8 +1156,12 @@ class _SuiteCard extends StatelessWidget {
             runSpacing: 8,
             children: [
               GedButton(
-                label: state._anomalyFormOpen ? 'Fermer le formulaire' : 'Signaler une anomalie',
-                icon: state._anomalyFormOpen ? Icons.close : Icons.report_problem_outlined,
+                label: state._anomalyFormOpen
+                    ? 'Fermer le formulaire'
+                    : 'Signaler une anomalie',
+                icon: state._anomalyFormOpen
+                    ? Icons.close
+                    : Icons.report_problem_outlined,
                 secondary: true,
                 onTap: _openAnomalyForm,
               ),
@@ -923,25 +1175,42 @@ class _SuiteCard extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 labelText: 'Type d’anomalie',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               items: [
                 for (final entry in _anomalyKinds.entries)
-                  DropdownMenuItem(value: entry.key, child: Text(entry.value, style: const TextStyle(fontSize: 13))),
+                  DropdownMenuItem(
+                    value: entry.key,
+                    child: Text(
+                      entry.value,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
               ],
               onChanged: state.selectAnomalyKind,
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<int?>(
+              isExpanded: true,
               initialValue: state._recipientId,
               isDense: true,
               decoration: InputDecoration(
                 isDense: true,
                 labelText: 'Destinataire',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Choisir un destinataire', style: TextStyle(fontSize: 13))),
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text(
+                    'Choisir un destinataire',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ),
                 for (final recipient in recipients)
                   DropdownMenuItem(
                     value: (recipient['id'] as num).toInt(),
@@ -962,7 +1231,9 @@ class _SuiteCard extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 labelText: 'Pièce ou information à corriger',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -979,7 +1250,11 @@ class _SuiteCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Anomalies du dossier (${anomalies.length})',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.text),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.text,
+            ),
           ),
           const SizedBox(height: 6),
           if (anomalies.isEmpty)
@@ -1011,33 +1286,52 @@ class _SuiteCard extends StatelessWidget {
                             ),
                           ),
                           GedBadge(
-                            label: anomaly['status_label'] ?? (anomaly['status'] == 'RESOLVED' ? 'Résolue' : 'Ouverte'),
-                            color: anomaly['status'] == 'RESOLVED' ? AppColors.success : AppColors.danger,
+                            label:
+                                anomaly['status_label'] ??
+                                (anomaly['status'] == 'RESOLVED'
+                                    ? 'Résolue'
+                                    : 'Ouverte'),
+                            color: anomaly['status'] == 'RESOLVED'
+                                ? AppColors.success
+                                : AppColors.danger,
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         (anomaly['comment'] ?? '').toString(),
-                        style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Signalée par ${anomaly['author'] ?? '—'} · ${frDate(anomaly['date'])} · ancienneté ${anomaly['age_days']?.toInt() ?? 0} j',
-                        style: const TextStyle(fontSize: 11, color: AppColors.subtle),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.subtle,
+                        ),
                       ),
                       if (anomaly['status'] != 'RESOLVED')
                         Align(
                           alignment: Alignment.centerLeft,
                           child: TextButton(
-                            onPressed: busy ? null : () => state._resolveAnomaly((anomaly['id'] as num).toInt()),
+                            onPressed: busy
+                                ? null
+                                : () => state._resolveAnomaly(
+                                    (anomaly['id'] as num).toInt(),
+                                  ),
                             child: const Text('Résoudre'),
                           ),
                         ),
                       if (asText(anomaly['resolution']) != null)
                         Text(
                           'Résolution : ${anomaly['resolution']}',
-                          style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.muted,
+                          ),
                         ),
                     ],
                   ),

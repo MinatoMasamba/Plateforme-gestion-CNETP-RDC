@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:file_selector/file_selector.dart';
 
 import '../../../core/api/api_client.dart';
 import 'expert_theme.dart';
@@ -44,9 +45,65 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
   final _affiliationKey = GlobalKey();
   String _payout = 'Equity BCDC';
   String _roleId = 'EXPERT';
+  static const _notificationKeys = [
+    'enable_reunion_invites',
+    'enable_votes',
+    'enable_amendments',
+    'enable_norm_updates',
+    'enable_system',
+    'enable_payments',
+  ];
+  final Map<String, bool> _notificationPrefs = {
+    for (final key in _notificationKeys) key: true,
+  };
   bool _loading = true;
   bool _dirty = false;
-  bool _notifications = true;
+  bool _preferencesReady = false;
+  bool _savingPreferences = false;
+  bool _uploadingCv = false;
+
+  Future<void> _loadPreferences() async {
+    try {
+      final response = await ApiClient.dio.get(
+        '/api/v1/mobile/notification-preferences/list/',
+      );
+      if (mounted) {
+        setState(() {
+          for (final key in _notificationKeys) {
+            _notificationPrefs[key] = response.data[key] != false;
+          }
+          _preferencesReady = true;
+        });
+      }
+    } catch (_) {
+      /* Le profil reste accessible ; le réglage n'est pas modifiable sans réponse serveur. */
+    }
+  }
+
+  Future<void> _setNotification(String key, bool value) async {
+    final previous = _notificationPrefs[key] ?? true;
+    setState(() {
+      _notificationPrefs[key] = value;
+      _savingPreferences = true;
+    });
+    try {
+      await ApiClient.dio.patch(
+        '/api/v1/mobile/notification-preferences/update/',
+        data: {key: value},
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() => _notificationPrefs[key] = previous);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Préférence non enregistrée. Réessayez.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingPreferences = false);
+    }
+  }
 
   @override
   void initState() {
@@ -54,6 +111,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
     _name.text = widget.fallbackName;
     _email.text = widget.fallbackEmail;
     _load();
+    _loadPreferences();
   }
 
   @override
@@ -221,16 +279,42 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Center(
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 16 : 24),
+      child: Align(
+        alignment: Alignment.topLeft,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 896),
+          constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _header(p),
               const SizedBox(height: 14),
               _cvButton(p),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _uploadingCv ? null : _uploadCv,
+                    icon: Icon(
+                      _uploadingCv
+                          ? Icons.hourglass_top
+                          : Icons.upload_file_outlined,
+                      size: 16,
+                    ),
+                    label: Text(
+                      _uploadingCv ? 'Téléversement…' : 'Téléverser mon CV',
+                    ),
+                  ),
+                  if ('${_expert['cv'] ?? ''}'.isNotEmpty)
+                    Text(
+                      'CV enregistré',
+                      style: TextStyle(fontSize: 13, color: p.green),
+                    ),
+                ],
+              ),
               const SizedBox(height: 22),
               if (_loading)
                 Padding(
@@ -303,7 +387,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                       label: const Text(
                         'SAUVEGARDER',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
                         ),
@@ -349,7 +433,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               const SizedBox(height: 3),
               Text(
                 'Mettez à jour vos informations personnelles et professionnelles.',
-                style: TextStyle(fontSize: 10.5, color: p.muted),
+                style: TextStyle(fontSize: 12, color: p.muted),
               ),
             ],
           ),
@@ -358,9 +442,47 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
     );
   }
 
+  Future<void> _uploadCv() async {
+    final id = _expert['id'];
+    if (id == null || _uploadingCv) return;
+    final file = await openFile(
+      acceptedTypeGroups: const [
+        XTypeGroup(label: 'CV', extensions: ['pdf', 'doc', 'docx']),
+      ],
+    );
+    if (file == null) return;
+    setState(() => _uploadingCv = true);
+    try {
+      final form = FormData.fromMap({
+        'cv': MultipartFile.fromBytes(
+          await file.readAsBytes(),
+          filename: file.name,
+        ),
+      });
+      final response = await ApiClient.dio.patch(
+        '/api/v1/experts/$id/',
+        data: form,
+      );
+      if (!mounted) return;
+      setState(() => _expert = Map<String, dynamic>.from(response.data as Map));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('CV téléversé.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Téléversement du CV impossible. Réessayez.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingCv = false);
+    }
+  }
+
   Widget _cvButton(ExpertPalette p) {
     return Material(
-      color: p.isDark ? const Color(0xFF1D4ED8) : const Color(0xFF1D4ED8),
+      color: p.isDark ? const Color(0xFF007CA7) : const Color(0xFF007CA7),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () {
@@ -383,7 +505,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                 child: Text(
                   'Choisir ma sous-commission et mon groupe de travail',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     decoration: TextDecoration.underline,
@@ -479,7 +601,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               dense: true,
               title: Text(
                 '${wg['name']}',
-                style: TextStyle(color: p.text, fontSize: 11.5),
+                style: TextStyle(color: p.text, fontSize: 14),
               ),
               value: _selectedWgs.contains('${wg['id']}'),
               onChanged: _saving
@@ -583,7 +705,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           child: Text(
             "Le rôle réglementaire est attribué par l'administrateur du CNE-ITP et ne peut être modifié depuis cette interface.",
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 13,
               height: 1.6,
               color: p.isDark ? p.amber : const Color(0xFF92400E),
             ),
@@ -592,11 +714,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
         const SizedBox(height: 16),
         _sectionTitle(p, '4', 'STATISTIQUES ET RÉMUNÉRATION', p.teal),
         const SizedBox(height: 12),
-        _readOnlyField(
-          p,
-          label: 'Taux journalier :',
-          value: 'Non renseigné',
-        ),
+        _readOnlyField(p, label: 'Taux journalier :', value: 'Non renseigné'),
         _readOnlyField(
           p,
           label: 'Allocation mensuelle de recherche :',
@@ -621,18 +739,41 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           label: 'Thème',
           trailing: _themeSwitch(p),
         ),
-        const SizedBox(height: 8),
-        _preferenceTile(
-          p,
-          icon: Icons.notifications_none,
-          label: 'Recevoir des notifications',
-          trailing: Switch(
-            value: _notifications,
-            onChanged: (value) => setState(() => _notifications = value),
-            activeTrackColor: p.green,
-            activeThumbColor: Colors.white,
+        for (final entry in [
+          (
+            'enable_reunion_invites',
+            'Invitations aux réunions',
+            Icons.event_outlined,
           ),
-        ),
+          ('enable_votes', 'Votes et scrutins', Icons.how_to_vote_outlined),
+          ('enable_amendments', 'Amendements', Icons.edit_note_outlined),
+          (
+            'enable_norm_updates',
+            'Mises à jour des normes',
+            Icons.description_outlined,
+          ),
+          ('enable_system', 'Messages système', Icons.info_outline),
+          (
+            'enable_payments',
+            'Cotisations et indemnités',
+            Icons.account_balance_outlined,
+          ),
+        ]) ...[
+          const SizedBox(height: 8),
+          _preferenceTile(
+            p,
+            icon: entry.$3,
+            label: entry.$2,
+            trailing: Switch(
+              value: _notificationPrefs[entry.$1] ?? true,
+              onChanged: _preferencesReady && !_savingPreferences
+                  ? (value) => _setNotification(entry.$1, value)
+                  : null,
+              activeTrackColor: p.green,
+              activeThumbColor: Colors.white,
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         _sectionTitle(p, '6', 'APPLICATION', p.sky),
         const SizedBox(height: 12),
@@ -651,26 +792,42 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                 children: [
                   Icon(Icons.smartphone, size: 16, color: p.sky),
                   const SizedBox(width: 8),
-                  Text(
-                    "Installer l'application",
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: p.text,
+                  Expanded(
+                    child: Text(
+                      "Installer l'application",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: p.text,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                "Ajoutez CNE-ITP à votre écran d'accueil pour un accès rapide et une utilisation hors ligne.",
-                style: TextStyle(fontSize: 10.5, height: 1.6, color: p.muted),
+                "Ajoutez CNE-ITP à votre écran d’accueil. La consultation des données et les contributions nécessitent une connexion.",
+                style: TextStyle(fontSize: 12, height: 1.6, color: p.muted),
               ),
               const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Ajouter l’application'),
+                      content: const Text(
+                        'Dans Chrome ou Edge, ouvrez le menu du navigateur puis choisissez « Installer » ou « Ajouter à l’écran d’accueil » si cette option est proposée. Sur ordinateur, vous pouvez aussi créer un raccourci vers cette page.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Fermer'),
+                        ),
+                      ],
+                    ),
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF0095C9),
                     foregroundColor: Colors.white,
@@ -681,9 +838,9 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                   ),
                   icon: const Icon(Icons.download, size: 14),
                   label: const Text(
-                    "INSTALLER L'APPLICATION",
+                    "COMMENT INSTALLER",
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
@@ -791,7 +948,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                           controller: controller,
                           onChanged: onChanged,
                           style: TextStyle(
-                            fontSize: 11.5,
+                            fontSize: 14,
                             fontFamily: monospace ? 'monospace' : null,
                             fontWeight: FontWeight.w600,
                             color: p.text,
@@ -800,7 +957,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                             isDense: true,
                             border: InputBorder.none,
                             hintText: hint,
-                            hintStyle: TextStyle(fontSize: 11, color: p.subtle),
+                            hintStyle: TextStyle(fontSize: 13, color: p.subtle),
                             contentPadding: const EdgeInsets.symmetric(
                               vertical: 9,
                             ),
@@ -813,7 +970,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 11.5,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: p.subtle,
                           ),
@@ -866,7 +1023,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: p.muted,
               ),
@@ -926,13 +1083,13 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                       dropdownColor: p.card,
                       icon: Icon(Icons.expand_more, size: 16, color: p.subtle),
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: enabled ? p.text : p.muted,
                       ),
                       hint: Text(
                         'Sélectionnez',
-                        style: TextStyle(fontSize: 11, color: p.subtle),
+                        style: TextStyle(fontSize: 13, color: p.subtle),
                       ),
                       items: [
                         for (final item in cleaned)
@@ -982,7 +1139,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: p.text,
               ),

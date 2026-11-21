@@ -1,5 +1,9 @@
+import 'package:dio/dio.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/auth/auth_controller.dart';
@@ -9,6 +13,7 @@ import 'widgets/expert_messaging.dart';
 import 'widgets/expert_other_tabs.dart';
 import 'widgets/expert_profile_tab.dart';
 import 'widgets/expert_theme.dart';
+import 'widgets/expert_module.dart';
 
 class ExpertScreen extends ConsumerStatefulWidget {
   const ExpertScreen({super.key, this.initialTab = 0});
@@ -19,7 +24,40 @@ class ExpertScreen extends ConsumerStatefulWidget {
   ConsumerState<ExpertScreen> createState() => _ExpertScreenState();
 }
 
-class _ExpertScreenState extends ConsumerState<ExpertScreen> {
+class _ExpertScreenState extends ConsumerState<ExpertScreen>
+    with WidgetsBindingObserver {
+  Timer? _activityTimer;
+  DateTime _lastInteraction = DateTime.now();
+  final String _deviceId = 'flutter-${DateTime.now().microsecondsSinceEpoch}';
+  bool _visible = true;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _visible = state == AppLifecycleState.resumed;
+    if (_visible) _loadUnread();
+  }
+
+  Future<void> _heartbeat() async {
+    try {
+      await ApiClient.dio.post(
+        '/api/v1/mobile/expert/activity/heartbeat/',
+        data: {
+          'device_id': _deviceId,
+          'visible':
+              _visible &&
+              DateTime.now().difference(_lastInteraction).inSeconds < 120,
+          'interacted':
+              DateTime.now().difference(_lastInteraction).inSeconds < 30,
+          if (_doc != null) 'norme_id': _doc!['id'],
+        },
+      );
+      await _loadActivity();
+    } catch (_) {
+      /* La saisie reste possible si le compteur est indisponible. */
+    }
+  }
+
+  static const _themeKey = 'expert.theme.dark';
   int _tab = 0;
   bool _dark = true;
   List<Map<String, dynamic>> _documents = [];
@@ -31,6 +69,161 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
   final Map<String, ExpertDraft> _drafts = {};
   int _documentRequest = 0;
   int? _pendingCount;
+  int? _unreadCount;
+  String? _meetingToOpen;
+  String? _documentsError;
+
+  Future<void> _createNorm() async {
+    final palette = _dark ? ExpertPalette.dark : ExpertPalette.light;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ExpertPageTheme(
+          palette: palette,
+          child: Scaffold(
+            backgroundColor: palette.bg,
+            appBar: AppBar(title: const Text('Nouveau projet de norme')),
+            body: ExpertModule(
+              title: 'Créer un projet',
+              endpoints: const {
+                'Affiliation': '/api/v1/experts/my-affiliation/',
+              },
+              builder: (s) {
+                final affiliation = s.map('Affiliation');
+                final ctms = expertRows(affiliation['ctms']);
+                final groups = expertRows(affiliation['workgroups']);
+
+                Future<void> openForm({
+                  String title = '',
+                  String content = '',
+                  String comment = '',
+                }) => expertForm(
+                  s,
+                  'Nouveau projet de norme',
+                  [
+                    ExpertField('title', 'Titre', initial: title),
+                    const ExpertField('description', 'Description', lines: 4),
+                    ExpertField(
+                      'ctm',
+                      'Sous-commission',
+                      choices: {
+                        for (final c in ctms) '${c['id']}': '${c['name']}',
+                      },
+                    ),
+                    ExpertField(
+                      'wg',
+                      'Groupe de travail',
+                      choices: {
+                        for (final g in groups) '${g['id']}': '${g['name']}',
+                      },
+                    ),
+                    if (content.isNotEmpty)
+                      ExpertField(
+                        'content',
+                        'Contenu extrait',
+                        initial: content,
+                        lines: 12,
+                      ),
+                  ],
+                  (values) async {
+                    if (!groups.any(
+                      (g) =>
+                          '${g['id']}' == values['wg'] &&
+                          '${g['ctm_id']}' == values['ctm'],
+                    )) {
+                      s.notify(
+                        'Le groupe doit appartenir à la sous-commission choisie.',
+                      );
+                      return false;
+                    }
+                    try {
+                      final created = await ApiClient.dio.post(
+                        '/api/v1/norms/',
+                        data: {
+                          'title': values['title'],
+                          'description': values['description'],
+                          'ctm': int.parse(values['ctm']!),
+                          'wg': int.parse(values['wg']!),
+                        },
+                      );
+                      final id = (created.data as Map)['id'];
+                      if (content.isNotEmpty) {
+                        await ApiClient.dio.post(
+                          '/api/v1/norms/$id/create_version/',
+                          data: {
+                            'title': values['title'],
+                            'content': content,
+                            'comment': comment,
+                          },
+                        );
+                      }
+                      if (mounted) _loadDocuments();
+                      return true;
+                    } catch (error) {
+                      s.notify(expertError(error));
+                      return false;
+                    }
+                  },
+                );
+
+                Future<void> importDocument() async {
+                  final file = await openFile(
+                    acceptedTypeGroups: const [
+                      XTypeGroup(
+                        label: 'Document',
+                        extensions: ['pdf', 'doc', 'docx', 'txt', 'md'],
+                      ),
+                    ],
+                  );
+                  if (file == null) return;
+                  try {
+                    final response = await ApiClient.dio.post(
+                      '/api/v1/norms/extract_document/',
+                      data: FormData.fromMap({
+                        'document': MultipartFile.fromBytes(
+                          await file.readAsBytes(),
+                          filename: file.name,
+                        ),
+                      }),
+                    );
+                    final content = '${(response.data as Map)['content'] ?? ''}'
+                        .trim();
+                    if (content.isEmpty) {
+                      s.notify('Aucun texte exploitable dans ce document.');
+                      return;
+                    }
+                    await openForm(
+                      title: file.name.replaceFirst(RegExp(r'\.[^.]+$'), ''),
+                      content: content,
+                      comment: 'Import initial : ${file.name}',
+                    );
+                  } catch (error) {
+                    s.notify(expertError(error));
+                  }
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    s.button(
+                      'Renseigner le projet',
+                      () => openForm(),
+                      icon: Icons.edit_note_outlined,
+                    ),
+                    const SizedBox(height: 8),
+                    s.button(
+                      'Importer un PDF / DOCX',
+                      importDocument,
+                      icon: Icons.upload_file_outlined,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   static const _tabs = <(IconData, String)>[
     (Icons.description_outlined, 'Éditeur de Normes'),
@@ -46,29 +239,60 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
   void initState() {
     super.initState();
     _tab = widget.initialTab;
+    _loadTheme();
     _loadDocuments();
     _loadActivity();
     _loadPending();
+    _loadUnread();
+    WidgetsBinding.instance.addObserver(this);
+    _activityTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) {
+        _heartbeat();
+        if (_visible) _loadUnread();
+      },
+    );
+    _heartbeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpertScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      _tab = widget.initialTab.clamp(0, 9);
+    }
   }
 
   @override
   void dispose() {
+    _activityTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadDocuments() async {
     try {
-      final resp = await ApiClient.dio.get('/api/v1/sidebar/documents/');
+      final resp = await ApiClient.dio.get(
+        '/api/v1/sidebar/documents/',
+        queryParameters: {'page_size': 100},
+      );
       final data = resp.data as Map<String, dynamic>;
       final results = (data['results'] as List? ?? [])
           .map((e) => e as Map<String, dynamic>)
           .toList();
       if (!mounted) return;
-      setState(() => _documents = results);
+      setState(() {
+        _documents = results;
+        _documentsError = null;
+      });
       if (results.isNotEmpty) _selectDocument(results.first);
     } catch (_) {
-      if (mounted) setState(() => _documents = []);
+      if (mounted) {
+        setState(
+          () => _documentsError = 'Impossible de charger vos documents.',
+        );
+      }
     }
   }
 
@@ -92,6 +316,36 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
       }
     } catch (_) {
       if (mounted) setState(() => _pendingCount = null);
+    }
+  }
+
+  Future<void> _loadTheme() async {
+    final preferences = await SharedPreferences.getInstance();
+    final saved = preferences.getBool(_themeKey);
+    if (saved != null && mounted) setState(() => _dark = saved);
+  }
+
+  Future<void> _setTheme(bool value) async {
+    setState(() => _dark = value);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_themeKey, value);
+  }
+
+  Future<void> _loadUnread() async {
+    try {
+      final response = await ApiClient.dio.get(
+        '/api/v1/mobile/notifications/unread_count/',
+      );
+      if (!mounted) return;
+      final raw = response.data;
+      final count = raw is Map ? raw['unread_count'] : raw;
+      setState(
+        () => _unreadCount = count is num
+            ? count.toInt()
+            : int.tryParse('${count ?? ''}'),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _unreadCount = null);
     }
   }
 
@@ -142,7 +396,10 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
       case 2:
         return ExpertExpertsTab(onAdhesions: () => setState(() => _tab = 9));
       case 3:
-        return const ExpertMeetingsTab();
+        return ExpertMeetingsTab(
+          key: ValueKey(_meetingToOpen),
+          meetingId: _meetingToOpen,
+        );
       case 4:
         return const ExpertFinancialTab();
       case 5:
@@ -150,7 +407,14 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
       case 6:
         return const ExpertLegistiqueTab();
       case 7:
-        return ExpertNotificationsTab(onOpenNorm: _openNorm);
+        return ExpertNotificationsTab(
+          onOpenNorm: _openNorm,
+          onOpenMeeting: (id) => setState(() {
+            _meetingToOpen = id;
+            _tab = 3;
+          }),
+          onChanged: _loadUnread,
+        );
       case 9:
         return ExpertAdhesionsTab(onChanged: _loadPending);
       case 8:
@@ -158,7 +422,7 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
           dark: _dark,
           fallbackName: userName,
           fallbackEmail: userEmail,
-          onThemeChanged: (value) => setState(() => _dark = value),
+          onThemeChanged: _setTheme,
           onAffiliationSaved: () {
             setState(() {
               _doc = null;
@@ -193,102 +457,136 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen> {
 
     return ExpertTheme(
       palette: palette,
-      child: Scaffold(
-        backgroundColor: palette.bg,
-        drawer: Drawer(
-          child: _ExpertSidebar(
-            width: 280,
-            tab: _tab,
-            documents: _filteredDocuments,
-            selectedId: _doc?['id']?.toString(),
-            searchController: _searchController,
-            onSearch: (value) => setState(() => _search = value),
-            onSelect: (doc) {
-              Navigator.of(context).pop();
-              _selectDocument(doc);
-              setState(() => _tab = 0);
-            },
-            onProfile: () {
-              Navigator.of(context).pop();
-              setState(() => _tab = 8);
-            },
-            onCreate: () => _showInfo(
-              context,
-              'La création de norme se fait depuis le portail web.',
+      child: Theme(
+        data: expertMaterialTheme(context, palette),
+        child: Scaffold(
+          backgroundColor: palette.bg,
+          drawer: Drawer(
+            child: _ExpertSidebar(
+              width: 280,
+              tab: _tab,
+              documents: _filteredDocuments,
+              selectedId: _doc?['id']?.toString(),
+              searchController: _searchController,
+              onSearch: (value) => setState(() => _search = value),
+              onSelect: (doc) {
+                Navigator.of(context).pop();
+                _selectDocument(doc);
+                setState(() => _tab = 0);
+              },
+              onProfile: () {
+                Navigator.of(context).pop();
+                setState(() => _tab = 8);
+              },
+              onCreate: _createNorm,
+              userName: userName,
+              activity: _activity,
             ),
-            userName: userName,
-            activity: _activity,
           ),
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final mobile = constraints.maxWidth < 700;
-              final sidebarWidth = constraints.maxWidth < 900 ? 268.0 : 320.0;
-              return Stack(
-                children: [
-                  Row(
+          body: Listener(
+            onPointerDown: (_) => _lastInteraction = DateTime.now(),
+            onPointerSignal: (_) => _lastInteraction = DateTime.now(),
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final mobile = constraints.maxWidth < 700;
+                  final sidebarWidth = constraints.maxWidth < 900
+                      ? 248.0
+                      : 280.0;
+                  return Stack(
                     children: [
-                      if (!mobile)
-                        _ExpertSidebar(
-                          width: sidebarWidth,
-                          tab: _tab,
-                          documents: _filteredDocuments,
-                          selectedId: _doc?['id']?.toString(),
-                          searchController: _searchController,
-                          onSearch: (value) => setState(() => _search = value),
-                          onSelect: (doc) {
-                            _selectDocument(doc);
-                            if (_tab != 1) setState(() => _tab = 0);
-                          },
-                          onProfile: () => setState(() => _tab = 8),
-                          onCreate: () => _showInfo(
-                            context,
-                            'La création de norme se fait depuis le portail web.',
-                          ),
-                          userName: userName,
-                          activity: _activity,
-                        ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _ExpertTopbar(
-                              pendingCount: _pendingCount,
-                              mobile: mobile,
+                      Row(
+                        children: [
+                          if (!mobile)
+                            _ExpertSidebar(
+                              width: sidebarWidth,
                               tab: _tab,
-                              dark: _dark,
-                              onTab: (i) => setState(() => _tab = i),
-                              onTheme: () => setState(() => _dark = !_dark),
-                              onNotifications: () => setState(() => _tab = 7),
-                              onLogout: () => ref
-                                  .read(authControllerProvider.notifier)
-                                  .logout(),
+                              documents: _filteredDocuments,
+                              selectedId: _doc?['id']?.toString(),
+                              searchController: _searchController,
+                              onSearch: (value) =>
+                                  setState(() => _search = value),
+                              onSelect: (doc) {
+                                _selectDocument(doc);
+                                if (_tab != 1) setState(() => _tab = 0);
+                              },
+                              onProfile: () => setState(() => _tab = 8),
+                              onCreate: _createNorm,
+                              userName: userName,
+                              activity: _activity,
                             ),
-                            Expanded(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: palette.backgroundGradient,
+                          Expanded(
+                            child: Column(
+                              children: [
+                                if (_documentsError != null)
+                                  MaterialBanner(
+                                    content: Text(_documentsError!),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: _loadDocuments,
+                                        child: const Text('Réessayer'),
+                                      ),
+                                    ],
+                                  ),
+                                _ExpertTopbar(
+                                  pendingCount: _pendingCount,
+                                  unreadCount: _unreadCount,
+                                  mobile: mobile,
+                                  tab: _tab,
+                                  dark: _dark,
+                                  onTab: (i) {
+                                    setState(() => _tab = i);
+                                    if (i == 7) _loadUnread();
+                                  },
+                                  onTheme: () => _setTheme(!_dark),
+                                  onNotifications: () {
+                                    setState(() => _tab = 7);
+                                    _loadUnread();
+                                  },
+                                  onLogout: () => ref
+                                      .read(authControllerProvider.notifier)
+                                      .logout(),
+                                ),
+                                Expanded(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: palette.backgroundGradient,
+                                      ),
+                                    ),
+                                    child: _content(
+                                      palette,
+                                      userName,
+                                      userEmail,
+                                    ),
                                   ),
                                 ),
-                                child: _content(palette, userName, userEmail),
-                              ),
+                                Container(
+                                  height: 58,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  alignment: Alignment.centerRight,
+                                  decoration: BoxDecoration(
+                                    color: palette.nav,
+                                    border: Border(
+                                      top: BorderSide(color: palette.border),
+                                    ),
+                                  ),
+                                  child: _MessagingButton(palette: palette),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                  Positioned(
-                    right: 24,
-                    bottom: 20,
-                    child: _MessagingButton(palette: palette),
-                  ),
-                ],
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -312,6 +610,7 @@ class _ExpertTopbar extends StatelessWidget {
     required this.onLogout,
     this.mobile = false,
     this.pendingCount,
+    this.unreadCount,
   });
 
   final int tab;
@@ -322,10 +621,25 @@ class _ExpertTopbar extends StatelessWidget {
   final VoidCallback onLogout;
   final bool mobile;
   final int? pendingCount;
+  final int? unreadCount;
+
+  static const _compactLabels = [
+    'Éditeur',
+    'Historique',
+    'Experts',
+    'Réunions',
+    'Cotisations',
+    'ISO',
+    'Légistique',
+    'Notifications',
+    'Profil',
+    'Adhésions',
+  ];
 
   @override
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
+    final compactNavigation = mobile || MediaQuery.sizeOf(context).width < 1700;
     return Container(
       height: 72,
       decoration: BoxDecoration(
@@ -343,29 +657,85 @@ class _ExpertTopbar extends StatelessWidget {
               ),
             ),
           Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  for (int i = 0; i < _ExpertScreenState._tabs.length; i++)
-                    _NavTab(
-                      icon: _ExpertScreenState._tabs[i].$1,
-                      label: _ExpertScreenState._tabs[i].$2,
-                      active: tab == i,
-                      onTap: () => onTab(i),
+            child: compactNavigation
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        isExpanded: true,
+                        value: tab.clamp(0, 9),
+                        dropdownColor: p.nav,
+                        style: TextStyle(color: p.text, fontSize: 14),
+                        items: [
+                          for (
+                            var i = 0;
+                            i < _ExpertScreenState._tabs.length;
+                            i++
+                          )
+                            DropdownMenuItem(
+                              value: i,
+                              child: Text(
+                                _ExpertScreenState._tabs[i].$2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          const DropdownMenuItem(
+                            value: 7,
+                            child: Text('Notifications'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 8,
+                            child: Text('Mon profil'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 9,
+                            child: Text('Adhésions'),
+                          ),
+                        ],
+                        selectedItemBuilder: (context) => [
+                          for (var i = 0; i < 10; i++)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _compactLabels[i],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) onTab(value);
+                        },
+                      ),
                     ),
-                  _NavTab(
-                    icon: Icons.person_add_alt,
-                    label: pendingCount == null
-                        ? 'Adhésions'
-                        : 'Adhésions ($pendingCount)',
-                    active: tab == 9,
-                    onTap: () => onTab(9),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        for (
+                          int i = 0;
+                          i < _ExpertScreenState._tabs.length;
+                          i++
+                        )
+                          _NavTab(
+                            icon: _ExpertScreenState._tabs[i].$1,
+                            label: _ExpertScreenState._tabs[i].$2,
+                            active: tab == i,
+                            onTap: () => onTab(i),
+                          ),
+                        _NavTab(
+                          icon: Icons.person_add_alt,
+                          label: pendingCount == null
+                              ? 'Adhésions'
+                              : 'Adhésions ($pendingCount)',
+                          active: tab == 9,
+                          onTap: () => onTab(9),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
           ),
           IconButton(
             tooltip: 'Adhésions des membres',
@@ -390,18 +760,36 @@ class _ExpertTopbar extends StatelessWidget {
               icon: Icons.notifications_none,
               label: 'Notifications',
               active: tab == 7,
+              badgeCount: unreadCount,
               onTap: onNotifications,
+            ),
+          if (mobile)
+            IconButton(
+              tooltip: 'Notifications',
+              onPressed: onNotifications,
+              icon: Badge(
+                isLabelVisible: (unreadCount ?? 0) > 0,
+                label: Text('$unreadCount'),
+                child: Icon(
+                  Icons.notifications_none,
+                  color: tab == 7 ? p.blue : p.muted,
+                ),
+              ),
             ),
           if (mobile)
             PopupMenuButton<String>(
               tooltip: 'Actions',
               onSelected: (value) =>
                   value == 'theme' ? onTheme() : onNotifications(),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'theme', child: Text('Thème')),
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'theme', child: Text('Thème')),
                 PopupMenuItem(
                   value: 'notifications',
-                  child: Text('Notifications'),
+                  child: Text(
+                    (unreadCount ?? 0) > 0
+                        ? 'Notifications ($unreadCount)'
+                        : 'Notifications',
+                  ),
                 ),
               ],
             ),
@@ -481,12 +869,14 @@ class _TopbarAction extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.active = false,
+    this.badgeCount,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool active;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -500,7 +890,11 @@ class _TopbarAction extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: active ? p.blue : p.muted),
+              Badge(
+                isLabelVisible: (badgeCount ?? 0) > 0,
+                label: Text('$badgeCount'),
+                child: Icon(icon, size: 18, color: active ? p.blue : p.muted),
+              ),
               const SizedBox(width: 6),
               Text(
                 label.toUpperCase(),
@@ -650,11 +1044,10 @@ class _ExpertSidebar extends StatelessWidget {
         names.add(name);
       }
     }
-    if (names.isEmpty) names.add('Eddy Masamba  mpaka-yoka');
     return [
-      (userName, 'Membre CTM / Membre WG'),
+      (userName, 'Compte connecté'),
       for (final name in names.take(2))
-        if (name != userName) (name, 'Membre CTM / Membre WG'),
+        if (name != userName) (name, 'Contributeur du document'),
     ];
   }
 }
@@ -718,7 +1111,7 @@ class _SidebarBrand extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'ESPACE DE TRAVAIL',
+                  'EXPERT · BÊTA',
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w900,
@@ -975,7 +1368,7 @@ class _SidebarFooter extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: p.border)),
-        color: p.isDark ? const Color(0xFF030307) : p.surface,
+        color: p.sidebar,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -983,7 +1376,7 @@ class _SidebarFooter extends StatelessWidget {
           Row(
             children: [
               Text(
-                'ISO COMPLIANCE MODE',
+                'ACTIVITÉ PERSONNELLE',
                 style: TextStyle(
                   fontSize: 8.5,
                   fontFamily: 'monospace',
@@ -1006,16 +1399,13 @@ class _SidebarFooter extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Text('SYNC', style: TextStyle(fontSize: 9, color: p.muted)),
+              Text('SERVEUR', style: TextStyle(fontSize: 9, color: p.muted)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Text(
-                'POSTE ACTIF :',
-                style: TextStyle(fontSize: 9, color: p.subtle),
-              ),
+              Text('COMPTE :', style: TextStyle(fontSize: 9, color: p.subtle)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -1025,7 +1415,7 @@ class _SidebarFooter extends StatelessWidget {
                   border: Border.all(color: p.amber.withValues(alpha: 0.3)),
                 ),
                 child: Text(
-                  'RAPPORTEUR CTM',
+                  'PROFIL EXPERT',
                   style: TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.w800,
@@ -1214,17 +1604,16 @@ class _MessagingButton extends StatelessWidget {
     final p = palette;
     return Material(
       color: p.card,
-      elevation: 8,
-      shadowColor: Colors.black.withValues(alpha: 0.35),
-      borderRadius: BorderRadius.circular(999),
+      elevation: 0,
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () => openExpertMessaging(context),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           height: 42,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: p.border),
           ),
           child: Row(

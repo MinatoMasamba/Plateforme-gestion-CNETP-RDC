@@ -61,3 +61,6 @@ private/recordings/
 
 # Sources privées des modèles de rapports
 private/report_sources/
+/.client_diagnostics/
+/.private_build/
+/external_redaction/releases/

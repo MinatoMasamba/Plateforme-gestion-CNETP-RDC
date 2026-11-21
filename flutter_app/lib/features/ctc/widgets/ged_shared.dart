@@ -8,7 +8,11 @@ import '../../../theme/app_colors.dart';
 /// `ctc/app/components/ged_workspace.html`.
 
 class GedCard extends StatelessWidget {
-  const GedCard({super.key, required this.child, this.padding = const EdgeInsets.all(20)});
+  const GedCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+  });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -21,7 +25,13 @@ class GedCard extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.border),
-      boxShadow: const [BoxShadow(color: Color(0x0A0F1B2D), blurRadius: 18, offset: Offset(0, 6))],
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A0F1B2D),
+          blurRadius: 18,
+          offset: Offset(0, 6),
+        ),
+      ],
     ),
     child: child,
   );
@@ -72,7 +82,9 @@ class GedKpi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = value is num ? '${(value as num).toInt()}' : (value ?? '—').toString();
+    final text = value is num
+        ? '${(value as num).toInt()}'
+        : (value ?? '—').toString();
     return SizedBox(
       width: 132,
       child: Column(
@@ -141,12 +153,15 @@ class GedButton extends StatelessWidget {
     final background = secondary ? Colors.white : AppColors.rdcBlue;
     final foreground = secondary ? AppColors.rdcBlue : Colors.white;
     return Material(
-      color: enabled ? background : (secondary ? background : background.withValues(alpha: 0.5)),
+      color: enabled
+          ? background
+          : (secondary ? background : background.withValues(alpha: 0.5)),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(10),
-        child: Padding(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -155,14 +170,25 @@ class GedButton extends StatelessWidget {
                 SizedBox(
                   width: 14,
                   height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: foreground,
+                  ),
                 )
               else
                 Icon(icon, size: 15, color: foreground),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: foreground),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: foreground,
+                  ),
+                ),
               ),
             ],
           ),
@@ -187,15 +213,20 @@ String? asText(Object? value) {
 /// Date fr (jj/mm/aaaa) à partir d'un ISO `YYYY-MM-DD…`.
 String frDate(Object? value) {
   final text = value?.toString() ?? '';
-  if (text.length >= 10) return '${text.substring(8, 10)}/${text.substring(5, 7)}/${text.substring(0, 4)}';
+  if (text.length >= 10) {
+    return '${text.substring(8, 10)}/${text.substring(5, 7)}/${text.substring(0, 4)}';
+  }
   return '—';
 }
 
 /// Date + heure fr (jj/mm hh:mm) pour les journaux.
 String frDateTime(Object? value) {
   final text = value?.toString() ?? '';
-  if (text.length >= 16) {
-    return '${text.substring(8, 10)}/${text.substring(5, 7)} · ${text.substring(11, 16)}';
+  final parsed = DateTime.tryParse(text);
+  if (parsed != null && text.length >= 16) {
+    final local = parsed.toLocal();
+    String two(int value) => value.toString().padLeft(2, '0');
+    return '${two(local.day)}/${two(local.month)} · ${two(local.hour)}:${two(local.minute)}';
   }
   return frDate(value);
 }
@@ -204,13 +235,11 @@ String frDateTime(Object? value) {
 String gedOrigin(Object? sc, Object? tome, Object? group) {
   final scText = asText(sc);
   final tone = asText(tome);
-  final tomeText = tone == null ? null : (tone.startsWith('Tome') ? tone : 'Tome $tone');
+  final tomeText = tone == null
+      ? null
+      : (tone.startsWith('Tome') ? tone : 'Tome $tone');
   final groupText = asText(group);
-  final parts = [
-    ?scText,
-    ?tomeText,
-    ?groupText,
-  ];
+  final parts = [?scText, ?tomeText, ?groupText];
   return parts.isEmpty ? 'Origine à compléter' : parts.join(' · ');
 }
 
@@ -218,7 +247,8 @@ String gedOrigin(Object? sc, Object? tome, Object? group) {
 String? errorDetail(DioException error) {
   final data = error.response?.data;
   if (data is Map) {
-    final detail = data['detail'] ?? data['reasons'] ?? data['non_field_errors'];
+    final detail =
+        data['detail'] ?? data['reasons'] ?? data['non_field_errors'];
     return flattenDetail(detail);
   }
   if (data is List) return flattenDetail(data);
@@ -302,7 +332,12 @@ class GedCodeCheckAction extends GedAction {
 
 /// Écran d'échec explicite avec relance (aucun faux état).
 class GedFailed extends StatelessWidget {
-  const GedFailed({super.key, required this.title, required this.detail, required this.onRetry});
+  const GedFailed({
+    super.key,
+    required this.title,
+    required this.detail,
+    required this.onRetry,
+  });
 
   final String title;
   final String detail;
@@ -319,18 +354,29 @@ class GedFailed extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.cloud_off_outlined, color: AppColors.danger, size: 20),
+                const Icon(
+                  Icons.cloud_off_outlined,
+                  color: AppColors.danger,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.text),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(detail, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+            Text(
+              detail,
+              style: const TextStyle(fontSize: 12, color: AppColors.muted),
+            ),
             const SizedBox(height: 14),
             GedButton(
               label: 'Réessayer',

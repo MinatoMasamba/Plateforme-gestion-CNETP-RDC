@@ -10,6 +10,17 @@ from apps.experts.models import Expert
 from .managers import LegacyNormeManager, LegacyVersionManager
 
 
+class ExpertResource(models.Model):
+    """Ressources personnelles synchronisées, limitées au compte et à la norme."""
+    user = models.ForeignKey('core.User', on_delete=models.PROTECT)
+    norme = models.ForeignKey('Norme', on_delete=models.PROTECT)
+    data = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'norme'], name='unique_expert_resources')]
+
+
 class Norme(BaseModel):
     """Un projet de norme"""
     STANDARD_FAMILY_CHOICES = [

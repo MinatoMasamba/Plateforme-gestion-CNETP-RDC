@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/files/android_file_save.dart';
 import 'expert_messaging.dart';
 import 'expert_theme.dart';
 
@@ -23,6 +24,26 @@ Future<List<Map<String, dynamic>>> expertList(String path) async {
     next = value is String && value.isNotEmpty ? value : null;
   }
   return result;
+}
+
+Future<void> expertDownload(String path, String name) async {
+  final response = await ApiClient.dio.get<List<int>>(
+    path,
+    options: Options(responseType: ResponseType.bytes),
+  );
+  final bytes = Uint8List.fromList(response.data ?? []);
+  if (kIsWeb) {
+    await XFile.fromData(bytes, name: name).saveTo(name);
+  } else if (defaultTargetPlatform == TargetPlatform.android) {
+    if (!await saveAndroidFile(bytes, name)) {
+      throw StateError('Enregistrement annulé.');
+    }
+  } else {
+    final location = await getSaveLocation(suggestedName: name);
+    if (location != null) {
+      await XFile.fromData(bytes, name: name).saveTo(location.path);
+    }
+  }
 }
 
 class ExpertModule extends StatefulWidget {
@@ -152,21 +173,7 @@ class ExpertModuleState extends State<ExpertModule> {
 
   Future<void> download(String path, String name) async {
     await run(
-      () async {
-        final response = await ApiClient.dio.get<List<int>>(
-          path,
-          options: Options(responseType: ResponseType.bytes),
-        );
-        final bytes = Uint8List.fromList(response.data ?? []);
-        if (kIsWeb) {
-          await XFile.fromData(bytes, name: name).saveTo(name);
-        } else {
-          final location = await getSaveLocation(suggestedName: name);
-          if (location != null) {
-            await XFile.fromData(bytes, name: name).saveTo(location.path);
-          }
-        }
-      },
+      () => expertDownload(path, name),
       success: 'Téléchargement terminé.',
       reload: false,
     );
@@ -175,7 +182,7 @@ class ExpertModuleState extends State<ExpertModule> {
   Widget card(String title, List<Widget> children) => Container(
     width: double.infinity,
     margin: const EdgeInsets.only(bottom: 14),
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: p.card,
       border: Border.all(color: p.border),
@@ -189,7 +196,7 @@ class ExpertModuleState extends State<ExpertModule> {
           style: TextStyle(
             color: p.title,
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 16,
           ),
         ),
         const SizedBox(height: 12),
@@ -214,9 +221,9 @@ class ExpertModuleState extends State<ExpertModule> {
 
   @override
   Widget build(BuildContext context) => DefaultTextStyle(
-    style: TextStyle(color: p.text, fontSize: 12),
+    style: TextStyle(color: p.text, fontSize: 14, height: 1.5),
     child: SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -249,10 +256,70 @@ class ExpertModuleState extends State<ExpertModule> {
               ),
             ),
           const SizedBox(height: 16),
-          if (!loading || data.isNotEmpty) widget.builder(this),
-          const SizedBox(height: 70),
+          if (loading && data.isEmpty)
+            for (var i = 0; i < 3; i++) _ExpertSkeletonCard(palette: p)
+          else if (!loading || data.isNotEmpty)
+            widget.builder(this),
+          const SizedBox(height: 24),
         ],
       ),
+    ),
+  );
+}
+
+class _ExpertSkeletonCard extends StatelessWidget {
+  const _ExpertSkeletonCard({required this.palette});
+  final ExpertPalette palette;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: palette.card,
+      border: Border.all(color: palette.border),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ExpertSkeletonLine(
+          palette: palette,
+          width: 180,
+          height: 14,
+          color: palette.borderStrong,
+        ),
+        const SizedBox(height: 14),
+        _ExpertSkeletonLine(palette: palette, width: double.infinity),
+        const SizedBox(height: 8),
+        _ExpertSkeletonLine(palette: palette, width: 260),
+        const SizedBox(height: 8),
+        _ExpertSkeletonLine(palette: palette, width: 140),
+      ],
+    ),
+  );
+}
+
+class _ExpertSkeletonLine extends StatelessWidget {
+  const _ExpertSkeletonLine({
+    required this.palette,
+    required this.width,
+    this.height = 10,
+    this.color,
+  });
+  final ExpertPalette palette;
+  final double width;
+  final double height;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: color ?? palette.surface,
+      borderRadius: BorderRadius.circular(height / 2),
     ),
   );
 }

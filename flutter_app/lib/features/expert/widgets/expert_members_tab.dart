@@ -122,6 +122,9 @@ class ExpertExpertsTab extends StatelessWidget {
       final group = s.values['wg'];
       final groups = s.rows('Groupes');
       final selected = groups.where((g) => '${g['id']}' == group).firstOrNull;
+      final canManage = ['ADMIN', 'COORD_CTC'].contains(
+        '${s.map('Profil')['role_id']}',
+      );
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -237,6 +240,28 @@ class ExpertExpertsTab extends StatelessWidget {
                           .firstWhere((c) => '${c['id']}' == '${expert['id']}'),
                     ),
                     icon: Icons.chat_bubble_outline,
+                  ),
+                if (canManage && '${expert['status']}' == 'ACTIVE')
+                  s.button(
+                    'Désactiver',
+                    () => s.run(
+                      () => ApiClient.dio.post(
+                        '/api/v1/experts/${expert['id']}/deactivate/',
+                      ),
+                      success: 'Expert désactivé.',
+                    ),
+                    icon: Icons.person_off_outlined,
+                  ),
+                if (canManage && '${expert['status']}' == 'INACTIVE')
+                  s.button(
+                    'Réactiver',
+                    () => s.run(
+                      () => ApiClient.dio.post(
+                        '/api/v1/experts/${expert['id']}/activate/',
+                      ),
+                      success: 'Expert réactivé.',
+                    ),
+                    icon: Icons.person_add_alt_1_outlined,
                   ),
               ]),
             ]),

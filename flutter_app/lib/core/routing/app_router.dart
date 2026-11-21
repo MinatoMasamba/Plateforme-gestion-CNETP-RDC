@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,14 +8,10 @@ import '../../features/auth/login_screen.dart';
 import '../../features/auth/password_reset_screen.dart';
 import '../../features/auth/registration_screen.dart';
 import '../../features/splash/splash_screen.dart';
-import '../../features/pilotage/console/copil_console_screen.dart';
-import '../../features/pilotage/directoire/directoire_screen.dart';
-import '../../features/pilotage/directoire/directoire_board_screen.dart';
-import '../../features/pilotage/organisation/organisation_screen.dart';
-import '../../features/ctc/ctc_screen.dart';
 import '../../features/expert/expert_screen.dart';
 
 String spacePath(String space) {
+  if (space == 'ctc' || space.startsWith('pilotage')) return '/acces-restreint';
   switch (space) {
     case 'pilotage_directoire':
       return '/pilotage/directoire';
@@ -62,6 +58,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loc = state.matchedLocation;
       final loggedIn = auth.status == AuthStatus.authenticated;
 
+      // Bêta Expert : aucune route de supervision n'est accessible,
+      // même par lien direct ou depuis une session mémorisée.
+      if (loc == '/ctc' ||
+          loc.startsWith('/ctc/') ||
+          loc == '/pilotage' ||
+          loc.startsWith('/pilotage/')) {
+        return '/acces-restreint';
+      }
+
       // 1) Session en cours de restauration : on attend avant d'appliquer
       //    les règles d'accès (évite la redirection parasite vers /login).
       if (auth.status == AuthStatus.unknown) {
@@ -90,6 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/acces-restreint',
+        builder: (_, _) => const _BetaRestrictedScreen(),
+      ),
       GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(
@@ -101,24 +110,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const PasswordResetScreen(),
       ),
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
-      GoRoute(path: '/pilotage', builder: (_, _) => const CopilConsoleScreen()),
+      GoRoute(
+        path: '/pilotage',
+        builder: (_, _) => const _BetaRestrictedScreen(),
+      ),
       GoRoute(
         path: '/pilotage/organisation',
-        builder: (_, _) => const CopilOrganisationScreen(),
+        builder: (_, _) => const _BetaRestrictedScreen(),
       ),
       GoRoute(
         path: '/pilotage/directoire',
-        builder: (_, _) => const DirectoireBoardScreen(),
+        builder: (_, _) => const _BetaRestrictedScreen(),
       ),
       GoRoute(
         path: '/pilotage/conseillers',
-        builder: (_, _) => const DirectoireScreen(conseillers: true),
+        builder: (_, _) => const _BetaRestrictedScreen(),
       ),
       GoRoute(
         path: '/pilotage/atf',
-        builder: (_, _) => const CopilConsoleScreen(),
+        builder: (_, _) => const _BetaRestrictedScreen(),
       ),
-      GoRoute(path: '/ctc', builder: (_, _) => const CtcScreen()),
+      GoRoute(path: '/ctc', builder: (_, _) => const _BetaRestrictedScreen()),
       GoRoute(
         path: '/expert',
         builder: (context, state) {
@@ -129,3 +141,37 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _BetaRestrictedScreen extends StatelessWidget {
+  const _BetaRestrictedScreen();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline, size: 40),
+            const SizedBox(height: 16),
+            const Text(
+              'Bêta Expert',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Les espaces CTC et Pilotage ne sont pas accessibles dans cette version.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () => context.go('/'),
+              child: const Text('Retour à l’accueil'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

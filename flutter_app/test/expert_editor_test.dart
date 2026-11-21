@@ -18,6 +18,8 @@ class _Adapter implements HttpClientAdapter {
   List<Map<String, dynamic>> votes = [];
   bool failSave = false;
   Completer<void>? aiGate;
+  Map<String, dynamic> resources = {};
+  int resourceRevision = 0;
 
   @override
   Future<ResponseBody> fetch(
@@ -29,7 +31,13 @@ class _Adapter implements HttpClientAdapter {
     dynamic result = <String, dynamic>{};
     final path = options.uri.path;
     var status = 200;
-    if (path.endsWith('/experts/me/')) {
+    if (path.endsWith('/resources/')) {
+      if (options.method == 'PUT') {
+        resources = Map<String, dynamic>.from(options.data['data'] as Map);
+        resourceRevision++;
+      }
+      result = {'revision': resourceRevision, 'data': resources};
+    } else if (path.endsWith('/experts/me/')) {
       result = {'id': 7};
     } else if (path.endsWith('/contacts/')) {
       result = [
@@ -337,7 +345,7 @@ void main() {
     await _flush(tester);
   });
 
-  testWidgets('ressources locales persistantes et isolées par compte', (
+  testWidgets('ressources synchronisées et restaurées depuis le serveur', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -356,7 +364,7 @@ void main() {
       field('Google Drive'),
       'https://drive.google.com/drive/folders/test',
     );
-    await _tap(tester, find.text('Enregistrer les liens localement'));
+    await _tap(tester, find.text('Synchroniser mes liens'));
     await tester.pumpWidget(const SizedBox());
     await tester.pumpWidget(
       _wrap(
@@ -372,6 +380,8 @@ void main() {
       contains('/folders/test'),
     );
     await tester.pumpWidget(const SizedBox());
+    adapter.resources = {};
+    adapter.resourceRevision = 0;
     await tester.pumpWidget(
       _wrap(
         const SingleChildScrollView(

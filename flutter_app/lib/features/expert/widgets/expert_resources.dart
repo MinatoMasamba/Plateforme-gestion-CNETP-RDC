@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'expert_theme.dart';
+import '../../../core/api/api_client.dart';
 
 /// Parité des ressources web, avec persistance locale explicite.
 class ExpertResources extends StatefulWidget {
@@ -27,6 +28,7 @@ class _ExpertResourcesState extends State<ExpertResources> {
       _description = TextEditingController();
   List<Map<String, dynamic>> _references = [];
   bool _ready = false, _saving = false;
+  int _revision = 0;
   String? _error;
   String get _key =>
       'expert.resources.${widget.userScope}.${widget.documentId}';
@@ -41,7 +43,13 @@ class _ExpertResourcesState extends State<ExpertResources> {
     try {
       final preferences = await SharedPreferences.getInstance();
       final raw = preferences.getString(_key);
-      final data = raw == null ? <String, dynamic>{} : jsonDecode(raw) as Map;
+      final local = raw == null ? <String, dynamic>{} : jsonDecode(raw) as Map;
+      final response = await ApiClient.dio.get(
+        '/api/v1/mobile/expert/norms/${widget.documentId}/resources/',
+      );
+      _revision = response.data['revision'] as int;
+      final remote = response.data['data'] as Map;
+      final data = remote.isEmpty ? local : remote;
       if (!mounted) return;
       _drive.text = data['drive'] as String? ?? '';
       _meet.text = data['meet'] as String? ?? '';
@@ -53,7 +61,9 @@ class _ExpertResourcesState extends State<ExpertResources> {
       if (mounted) {
         setState(() {
           _ready = true;
-          _error = 'Impossible de charger les ressources locales.';
+          _error =
+              'Impossible de charger les ressources. Réessayez avant de modifier.';
+          _ready = false;
         });
       }
     }
@@ -92,6 +102,16 @@ class _ExpertResourcesState extends State<ExpertResources> {
       _error = null;
     });
     try {
+      final payload = {
+        'drive': _drive.text.trim(),
+        'meet': _meet.text.trim(),
+        'references': references,
+      };
+      final response = await ApiClient.dio.put(
+        '/api/v1/mobile/expert/norms/${widget.documentId}/resources/',
+        data: {'revision': _revision, 'data': payload},
+      );
+      _revision = response.data['revision'] as int;
       final prefs = await SharedPreferences.getInstance();
       final saved = await prefs.setString(
         _key,
@@ -111,11 +131,16 @@ class _ExpertResourcesState extends State<ExpertResources> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Ressources enregistrées sur cet appareil.'),
+          content: Text('Ressources synchronisées avec votre compte.'),
         ),
       );
     } catch (_) {
-      if (mounted) setState(() => _error = 'Enregistrement local impossible.');
+      if (mounted) {
+        setState(
+          () => _error =
+              'Synchronisation impossible. Votre saisie est conservée. Rechargez si un autre appareil a modifié ces ressources.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -195,19 +220,21 @@ class _ExpertResourcesState extends State<ExpertResources> {
             style: TextStyle(color: p.title, fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
-            'Liens et références enregistrés uniquement sur cet appareil',
+            'Vos liens personnels synchronisés entre vos appareils',
             style: TextStyle(color: p.muted, fontSize: 11),
           ),
           childrenPadding: const EdgeInsets.all(16),
           children: [
-            if (!_ready) const LinearProgressIndicator(),
+            if (!_ready && _error == null) const LinearProgressIndicator(),
+            if (!_ready && _error != null)
+              TextButton(onPressed: _load, child: const Text('Réessayer')),
             if (_error != null) Text(_error!, style: TextStyle(color: p.red)),
             if (_ready) ...[
               _field(_drive, 'Google Drive', link: true),
               _field(_meet, 'Google Meet', link: true),
               TextButton(
                 onPressed: _saving ? null : _save,
-                child: const Text('Enregistrer les liens localement'),
+                child: const Text('Synchroniser mes liens'),
               ),
               const Divider(),
               Text(
@@ -238,7 +265,7 @@ class _ExpertResourcesState extends State<ExpertResources> {
               FilledButton.icon(
                 onPressed: _saving ? null : () => _save(add: true),
                 icon: const Icon(Icons.link),
-                label: const Text('Lier la pièce localement'),
+                label: const Text('Ajouter la référence'),
               ),
             ],
           ],

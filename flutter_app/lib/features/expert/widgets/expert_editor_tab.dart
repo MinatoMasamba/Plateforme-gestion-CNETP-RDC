@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import 'expert_messaging.dart';
+import 'expert_module.dart' show expertDownload;
 import 'expert_resources.dart';
 import 'expert_theme.dart';
 
@@ -46,7 +47,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   final _shareKey = GlobalKey();
   final _editorKey = GlobalKey();
   bool _right = true, _voteOpen = true, _saving = false, _voting = false;
-  bool _analyzing = false, _sharing = false;
+  bool _analyzing = false, _sharing = false, _downloading = false;
   int _generation = 0, _aiRequest = 0;
   String _base = '';
   String? _recipient, _voteError, _contactsError;
@@ -187,6 +188,12 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   Future<void> _save() async {
     final id = _id;
     if (id == null || _saving) return;
+    if (_closed) {
+      _notify(
+        'Cette norme est publiée ou archivée : elle est en lecture seule.',
+      );
+      return;
+    }
     final text = _text.text, comment = _comment.text.trim();
     if (text.trim().isEmpty || comment.isEmpty) {
       _notify('Le contenu et le commentaire de version sont obligatoires.');
@@ -221,7 +228,23 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     }
   }
 
+  Future<void> _downloadPdf() async {
+    final id = _id;
+    if (id == null || _downloading) return;
+    setState(() => _downloading = true);
+    try {
+      final reference = '${widget.doc?['reference_number'] ?? 'norme'}';
+      await expertDownload('/api/v1/norms/$id/pdf/', '$reference.pdf');
+      _notify('PDF téléchargé.');
+    } catch (error) {
+      _notify(expertError(error));
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
   Future<void> _castVote(String choice) async {
+    if (_closed) return;
     final generation = _generation;
     setState(() => _voting = true);
     try {
@@ -291,6 +314,12 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   }
 
   void _applyAdvice() {
+    if (_closed) {
+      _notify(
+        'Cette norme est publiée ou archivée : elle est en lecture seule.',
+      );
+      return;
+    }
     if (_text.text != _analyzedText) {
       _notify('Le texte a changé. Relancez l’analyse avant d’appliquer.');
       return;
@@ -415,7 +444,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                   style: TextStyle(
                     color: p.title,
                     fontWeight: FontWeight.w800,
-                    fontSize: 12,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -453,12 +482,19 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
       return Center(
         child: widget.loading
             ? const CircularProgressIndicator()
-            : const Text('Aucun document sélectionné'),
+            : Text(
+                'Aucun document sélectionné',
+                style: TextStyle(color: p.muted),
+              ),
       );
     }
     final words = _text.text.trim().isEmpty
         ? 0
         : _text.text.trim().split(RegExp(r'\s+')).length;
+    final latestVersion = widget.doc?['latest_version'];
+    final latestComment = latestVersion is Map
+        ? '${latestVersion['comment'] ?? ''}'.trim()
+        : '';
     final updated = DateTime.tryParse(
       '${widget.doc?['updated_at']}',
     )?.toLocal();
@@ -480,7 +516,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                   key: const ValueKey('norm-editor-text'),
                   controller: _text,
                   focusNode: _focus,
-                  readOnly: widget.loading,
+                  readOnly: widget.loading || _closed,
                   expands: true,
                   maxLines: null,
                   minLines: null,
@@ -539,61 +575,80 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
         ),
         const SizedBox(height: 16),
         if (_voteOpen) ...[_votePanel(), const SizedBox(height: 16)],
-        _panel(
-          'JOURNAL DES VERSIONS / COMMENTAIRE',
-          Column(
-            children: [
-              TextField(
-                key: const ValueKey('norm-editor-comment'),
-                controller: _comment,
-                style: TextStyle(color: p.text),
-                decoration: _input('Commentaire obligatoire'),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                alignment: WrapAlignment.spaceBetween,
-                children: [
-                  TextButton.icon(
-                    onPressed: !_dirty || _saving
-                        ? null
-                        : () {
-                            _text.text = _base;
-                            _comment.clear();
-                            setState(() => _advice = null);
-                          },
-                    icon: const Icon(Icons.rotate_left),
-                    label: const Text('Réinitialiser'),
-                  ),
-                  FilledButton.icon(
-                    onPressed:
-                        _saving ||
-                            widget.loading ||
-                            !_dirty ||
-                            _text.text.trim().isEmpty ||
-                            _comment.text.trim().isEmpty
-                        ? null
-                        : _save,
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text(
-                      _saving ? 'Sauvegarde…' : 'Sauvegarder la version',
-                    ),
-                  ),
+        if (_closed)
+          _panel(
+            'VERSION PUBLIÉE — LECTURE SEULE',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Le contenu et les votes sont figés. Vous pouvez consulter, partager ou télécharger le PDF.',
+                ),
+                if (latestComment.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SelectableText('Dernier commentaire : $latestComment'),
                 ],
-              ),
-            ],
+              ],
+            ),
+          )
+        else
+          _panel(
+            'JOURNAL DES VERSIONS / COMMENTAIRE',
+            Column(
+              children: [
+                TextField(
+                  key: const ValueKey('norm-editor-comment'),
+                  controller: _comment,
+                  style: TextStyle(color: p.text),
+                  decoration: _input('Commentaire obligatoire'),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: !_dirty || _saving
+                          ? null
+                          : () {
+                              _text.text = _base;
+                              _comment.clear();
+                              setState(() => _advice = null);
+                            },
+                      icon: const Icon(Icons.rotate_left),
+                      label: const Text('Réinitialiser'),
+                    ),
+                    FilledButton.icon(
+                      onPressed:
+                          _saving ||
+                              widget.loading ||
+                              !_dirty ||
+                              _text.text.trim().isEmpty ||
+                              _comment.text.trim().isEmpty
+                          ? null
+                          : _save,
+                      icon: const Icon(Icons.save_outlined),
+                      label: Text(
+                        _saving ? 'Sauvegarde…' : 'Sauvegarder la version',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
     final right = Column(
       children: [_aiPanel(), const SizedBox(height: 16), _sharePanel()],
     );
     return DefaultTextStyle(
-      style: TextStyle(color: p.text, fontSize: 12),
+      style: TextStyle(color: p.text, fontSize: 14, height: 1.5),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(
+          MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -615,6 +670,21 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: SelectableText('${widget.doc?['description']}'),
               ),
+            if (_closed)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 4, bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: p.amber.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: p.amber.withValues(alpha: .45)),
+                ),
+                child: Text(
+                  '${widget.doc?['status'] == 'ARCHIVED' ? 'Norme archivée' : 'Norme publiée'} : consultation en lecture seule.',
+                  style: TextStyle(color: p.amber, fontWeight: FontWeight.w600),
+                ),
+              ),
             Wrap(
               spacing: 16,
               runSpacing: 8,
@@ -634,6 +704,11 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 TextButton(
                   onPressed: widget.onOpenProfile,
                   child: Text('Éditeur : ${widget.userName}'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _id == null || _downloading ? null : _downloadPdf,
+                  icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                  label: Text(_downloading ? 'PDF…' : 'Télécharger le PDF'),
                 ),
               ],
             ),
@@ -671,7 +746,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
               documentId: _id!,
               userScope: widget.userScope,
             ),
-            const SizedBox(height: 70),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -743,6 +818,19 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 ('ABSTAIN', 'ABS.'),
               ])
                 ChoiceChip(
+                  color: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.disabled)) return p.surface;
+                    if (states.contains(WidgetState.selected)) {
+                      return p.blueSoft;
+                    }
+                    return p.field;
+                  }),
+                  side: BorderSide(color: p.borderStrong),
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  pressElevation: 0,
+                  checkmarkColor: p.isDark ? p.text : p.blueDeep,
+                  labelStyle: TextStyle(color: p.text),
                   label: Text('${choice.$2} (${counts[choice.$1]})'),
                   selected: mine?['vote'] == choice.$1,
                   onSelected: _voting || _closed || widget.loading
@@ -858,7 +946,8 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
               children: [
                 FilledButton(
                   onPressed:
-                      _advice!['fallback'] == true ||
+                      _closed ||
+                          _advice!['fallback'] == true ||
                           _analyzedText != _text.text ||
                           !edits.any((e) => e['applied'] == true)
                       ? null

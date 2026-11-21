@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../network/network_failover_manager.dart';
+import '../diagnostics/client_diagnostics.dart';
 
 /// Client HTTP unique vers l'API Django CNE-ITP.
 ///
@@ -131,6 +132,9 @@ class ApiClient {
       ),
     );
     d.interceptors.add(NetworkFailoverInterceptor(networkFailover));
+    d.interceptors.add(
+      DiagnosticInterceptor(() => networkFailover.activeRoute.name),
+    );
     return d;
   }
 

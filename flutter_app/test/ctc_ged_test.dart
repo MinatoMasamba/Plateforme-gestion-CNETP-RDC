@@ -14,6 +14,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// Adapters factice pour l'espace GED du poste 11 (`/api/v1/st/ged/…`).
 class _GedAdapter implements HttpClientAdapter {
   bool failSummary = false;
+  bool indexedQueue = false;
+  bool paginatedQueue = false;
+  bool longScLabels = false;
   final List<String> posts = [];
   final List<RequestOptions> reads = [];
 
@@ -50,6 +53,13 @@ class _GedAdapter implements HttpClientAdapter {
       }
       final summary = _gedSummary();
       final activity = summary['sc_activity'] as Map;
+      if (longScLabels) {
+        for (final row in activity['results'] as List) {
+          row['name'] =
+              'Réseaux Divers, Équipements et Fluides (Proposition d’expert) - ' *
+              3;
+        }
+      }
       if (options.queryParameters['days'] == 7) {
         activity['period_start'] = '2026-10-26';
       }
@@ -58,10 +68,26 @@ class _GedAdapter implements HttpClientAdapter {
       }
       return _json(summary);
     }
-    if (RegExp(r'/st/ged/11/$').hasMatch(path)) return _json(_queueRow());
+    if (RegExp(r'/st/ged/11/$').hasMatch(path)) return _json({..._queueRow(), if (indexedQueue) 'queue_state': null, if (indexedQueue) 'state': 'INDEXED'});
     if (path.endsWith(queuePath)) {
+      if (paginatedQueue) {
+        final page = int.parse(options.queryParameters['page'].toString());
+        return _json({
+          'results': page == 1
+              ? List.generate(
+                  15,
+                  (i) => {..._queueRow(), 'id': i + 20, 'reference': 'GED-$i'},
+                )
+              : [
+                  {..._queueRow(), 'id': 99, 'reference': 'GED-suite'},
+                ],
+          'total': 16,
+        });
+      }
       return _json({
-        'results': [_queueRow()],
+        'results': [
+          {..._queueRow(), if (indexedQueue) 'queue_state': 'INDEXED'},
+        ],
         'total': 1,
       });
     }
@@ -397,10 +423,47 @@ void main() {
     );
     await tester.tap(find.text('Voir le suivi'));
     await tester.pumpAndSettle();
+    expect(find.text('Aucune norme réceptionnée au CTC.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Long SC labels fit the mobile legend without overflow', (
+    tester,
+  ) async {
+    adapter.longScLabels = true;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pumpWorkspace(tester);
+    expect(find.byType(InputChip), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Custom period sends the selected dates to the GED API', (
+    tester,
+  ) async {
+    await _pumpWorkspace(tester);
+    await tester.tap(find.text('30 jours'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Personnalisée').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(DateRangePickerDialog), findsOneWidget);
+    await tester.tap(find.text('15').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('16').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Appliquer'));
+    await tester.pumpAndSettle();
     expect(
-      find.text('Aucune version en attente de contrôle documentaire.'),
-      findsOneWidget,
+      adapter.reads.any(
+        (request) =>
+            request.uri.path.endsWith(gedPath) &&
+            request.queryParameters.containsKey('date_from') &&
+            request.queryParameters.containsKey('date_to'),
+      ),
+      isTrue,
     );
+    expect(find.text('Personnalisée'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -424,6 +487,71 @@ void main() {
         find.textContaining('période précédente conservée'),
         findsOneWidget,
       );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Queue exposes every loaded dossier and the next server page', (
+    tester,
+  ) async {
+    adapter.paginatedQueue = true;
+    await _pumpWorkspace(tester, initialPanel: 'work');
+    expect(find.text('GED-14'), findsOneWidget);
+    await tester.ensureVisible(find.text('Afficher la suite (15 / 16)'));
+    await tester.tap(find.text('Afficher la suite (15 / 16)'));
+    await tester.pumpAndSettle();
+    expect(find.text('GED-suite'), findsOneWidget);
+    expect(
+      adapter.reads.any(
+        (r) =>
+            r.uri.path.endsWith(queuePath) && r.queryParameters['page'] == '2',
+      ),
+      isTrue,
+    );
+    expect(find.textContaining('Afficher la suite'), findsNothing);
+  });
+
+  testWidgets('Mobile GED opens the selected fiche and returns to its queue', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: CtcGedWorkspace(initialPanel: 'work')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Imprimer'), findsNothing);
+    expect(find.text('Filtrer par état'), findsOneWidget);
+    await tester.ensureVisible(find.text('ARS 1:2014'));
+    await tester.tap(find.text('ARS 1:2014'));
+    await tester.pumpAndSettle();
+    expect(find.text('Retour à la file des dossiers'), findsOneWidget);
+    expect(find.text('Indexation documentaire'), findsOneWidget);
+    expect(find.text('Filtrer par état'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Retour à la file des dossiers'));
+    await tester.pumpAndSettle();
+    expect(find.text('Filtrer par état'), findsOneWidget);
+    expect(find.text('Indexation documentaire'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'Indexed dossier shows follow-up instead of a new indexation checklist',
+    (tester) async {
+      adapter.indexedQueue = true;
+      await _pumpWorkspace(tester, initialPanel: 'work');
+      await tester.tap(find.text('ARS 1:2014'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Actualiser'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pièces du dossier indexé'), findsOneWidget);
+      expect(find.text('PV disponible'), findsOneWidget);
+      expect(find.text('Confirmer l’indexation'), findsNothing);
+      expect(find.text('PV consulté'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -535,6 +663,25 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'CTC waits for a usable browser viewport before rendering its header',
+    (tester) async {
+      tester.view.physicalSize = const Size(1, 1);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      ApiClient.dio.httpClientAdapter = _MobileCtcAdapter();
+      await tester.pumpWidget(
+        const ProviderScope(child: MaterialApp(home: CtcScreen())),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      tester.view.physicalSize = const Size(390, 844);
+      await tester.pumpAndSettle();
+      expect(find.text('Espace documentaire'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Report draft survives switching sidebar sections', (
     tester,

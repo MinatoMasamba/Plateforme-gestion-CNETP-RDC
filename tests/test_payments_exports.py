@@ -97,7 +97,7 @@ def test_payment_receipt_is_limited_to_the_structure(
         structure=other_structure,
     )
     response = _client(other.user).get(f'{PAIEMENTS}{paiement.pk}/receipt/')
-    assert response.status_code == 403
+    assert response.status_code == 404
 
 
 def test_jeton_receipt_is_limited_to_owner_or_staff(
@@ -111,7 +111,7 @@ def test_jeton_receipt_is_limited_to_owner_or_staff(
     url = f'{JETONS}{jeton.pk}/receipt/'
 
     assert APIClient().get(url).status_code in (401, 403)
-    assert _client(other.user).get(url).status_code == 403
+    assert _client(other.user).get(url).status_code == 404
 
     own = _client(owner.user).get(url)
     assert own.status_code == 200
@@ -176,7 +176,7 @@ def test_contest_requires_owner_and_motif(expert_factory, user_factory, ctm_fact
         f'{JETONS}{jeton.pk}/contest/',
         {'motif': 'Cette indemnité ne me revient pas'},
         format='json',
-    ).status_code == 403
+    ).status_code == 404
     assert _client(owner.user).post(
         f'{JETONS}{jeton.pk}/contest/',
         {'motif': 'court'},
@@ -324,3 +324,109 @@ def test_sepa_export_requires_debtor_configuration(
     assert response.status_code == 400
     assert 'CNETP_SEPA_DEBTOR_IBAN' in response.data['detail']
     assert 'CNETP_SEPA_DEBTOR_BIC' in response.data['detail']
+
+
+def _rows(payload):
+    return payload['results'] if isinstance(payload, dict) and 'results' in payload else payload
+
+
+@pytest.mark.django_db
+class TestFinancialScoping:
+    def test_expert_sees_only_his_structure_finances(
+        self,
+        expert_factory,
+        user_factory,
+        ctm_factory,
+    ):
+        own_structure = Structure.objects.create(
+            name='Structure Finances A', acronym='SFA', category='ADMIN',
+        )
+        other_structure = Structure.objects.create(
+            name='Structure Finances B', acronym='SFB', category='ADMIN',
+        )
+        owner = expert_factory(
+            user=user_factory(username='finance-owner'),
+            structure=own_structure,
+        )
+        other = expert_factory(
+            user=user_factory(username='finance-other'),
+            structure=other_structure,
+        )
+        own_cotisation = Cotisation.objects.create(
+            structure=own_structure, annee=2026, montant=Decimal('200.00'),
+            due_date=date.today(),
+        )
+        other_cotisation = Cotisation.objects.create(
+            structure=other_structure, annee=2026, montant=Decimal('900.00'),
+            due_date=date.today(),
+        )
+        own_payment = Paiement.objects.create(
+            cotisation=own_cotisation, montant=Decimal('75.00'),
+            methode_paiement='VIREMENT', payment_date=date.today(),
+            status='CONFIRMED', confirmed_at=timezone.now(),
+        )
+        other_payment = Paiement.objects.create(
+            cotisation=other_cotisation, montant=Decimal('400.00'),
+            methode_paiement='VIREMENT', payment_date=date.today(),
+            status='CONFIRMED', confirmed_at=timezone.now(),
+        )
+        own_jeton = _jeton(owner, _reunion(ctm_factory()))
+        other_jeton = _jeton(other, _reunion(ctm_factory()))
+
+        client = _client(owner.user)
+
+        cotisations = _rows(client.get('/api/v1/cotisations/').data)
+        assert {row['id'] for row in cotisations} == {own_cotisation.id}
+
+        dashboard = client.get('/api/v1/cotisations/dashboard/').data
+        assert dashboard['total_cotisations'] == '200.00'
+        assert dashboard['total_paye'] == '75.00'
+        assert dashboard['nombre_structures'] == 1
+
+        payments = _rows(client.get(PAIEMENTS).data)
+        assert {row['id'] for row in payments} == {own_payment.id}
+        assert client.get(f'{PAIEMENTS}{other_payment.id}/').status_code == 404
+
+        jetons = _rows(client.get(JETONS).data)
+        assert {row['id'] for row in jetons} == {own_jeton.id}
+        assert client.get(f'{JETONS}{other_jeton.id}/').status_code == 404
+
+        response = client.post(
+            PAIEMENTS,
+            {
+                'cotisation': other_cotisation.id,
+                'montant': '10.00',
+                'methode_paiement': 'VIREMENT',
+                'payment_date': date.today().isoformat(),
+            },
+            format='json',
+        )
+        assert response.status_code == 403
+
+    def test_finance_role_keeps_global_access(
+        self,
+        expert_factory,
+        user_factory,
+        ctm_factory,
+    ):
+        first = expert_factory()
+        second = expert_factory(
+            user=user_factory(username='finance-peer'),
+            structure=Structure.objects.create(
+                name='Structure Finances C', acronym='SFC', category='ADMIN',
+            ),
+        )
+        Cotisation.objects.create(
+            structure=first.structure, annee=2026, montant=Decimal('100.00'),
+            due_date=date.today(),
+        )
+        second_cotisation = Cotisation.objects.create(
+            structure=second.structure, annee=2026, montant=Decimal('300.00'),
+            due_date=date.today(),
+        )
+        staff = user_factory(username='finance-staff', is_ctc_staff=True)
+
+        cotisations = _rows(_client(staff).get('/api/v1/cotisations/').data)
+        assert second_cotisation.id in {row['id'] for row in cotisations}
+        dashboard = _client(staff).get('/api/v1/cotisations/dashboard/').data
+        assert dashboard['nombre_structures'] == 2

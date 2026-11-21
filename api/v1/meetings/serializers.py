@@ -76,7 +76,7 @@ class ProcessusVerbauxSerializer(serializers.ModelSerializer):
             'id', 'reunion', 'reunion_info', 'titre', 'contenu',
             'nombre_presents', 'nombre_absents', 'quorum_atteint',
             'redaction', 'points_discutes', 'decisions', 'actions', 'valide_par',
-            'generated_at', 'signed_by', 'signature_date'
+            'generated_at', 'signed_by', 'signature_date', 'revision'
         ]
         read_only_fields = ['id', 'generated_at']
 
@@ -117,6 +117,22 @@ class ReunionDetailSerializer(serializers.ModelSerializer):
     participants = ReunionParticipantSerializer(many=True, read_only=True)
     votes = ReunionVoteSerializer(many=True, read_only=True)
     pv = ProcessusVerbauxSerializer(read_only=True)
+    capabilities = serializers.SerializerMethodField()
+
+    def get_capabilities(self, obj):
+        from datetime import timedelta
+        from django.utils import timezone
+        from ..permissions import IsReunionManager, IsCTCCoordinator
+        request = self.context.get('request')
+        invited = bool(request and obj.participants.filter(expert__user=request.user).exists())
+        active = obj.status in ('PLANNED', 'IN_PROGRESS')
+        return {
+            'can_manage': bool(request and IsReunionManager().has_object_permission(request, None, obj)),
+            'can_validate_pv': bool(request and IsCTCCoordinator().has_permission(request, None)),
+            'can_participate': invited,
+            'can_checkin': invited and active and timezone.now() >= obj.date - timedelta(minutes=15),
+            'can_vote': bool(request and invited and active and obj.presences.filter(expert__user=request.user, status='PRESENT').exists()),
+        }
     ctm_name = serializers.CharField(source='ctm.name', read_only=True)
     wg_name = serializers.CharField(source='wg.name', read_only=True)
     organisateur_name = serializers.CharField(
@@ -133,7 +149,8 @@ class ReunionDetailSerializer(serializers.ModelSerializer):
             'cloture_salle', 'enregistrement_actif', 'consentement_enregistrement',
             'ordre_jour', 'status',
             'organisateur', 'organisateur_name', 'presences', 'participants',
-            'votes', 'pv', 'created_at', 'updated_at'
+            'votes', 'pv', 'created_at', 'updated_at', 'document_links',
+            'question_vote', 'preparation_revision', 'capabilities'
         ]
         read_only_fields = [
             'id', 'organisateur_name', 'presences', 'participants', 'votes', 'pv',

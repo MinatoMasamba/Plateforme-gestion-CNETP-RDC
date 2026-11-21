@@ -45,6 +45,9 @@ class Reunion(BaseModel):
     enregistrement_actif = models.BooleanField(default=True)
     consentement_enregistrement = models.BooleanField(default=False)
     ordre_jour = models.TextField(blank=True, null=True)
+    document_links = models.JSONField(default=list, blank=True)
+    question_vote = models.TextField(blank=True)
+    preparation_revision = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PLANNED')
     organisateur = models.ForeignKey(Expert, on_delete=models.SET_NULL, null=True, related_name='reunions_organisees')
     
@@ -86,6 +89,17 @@ class ReunionVote(BaseModel):
         return f"{self.expert.user.get_full_name()} - {self.reunion.titre} - {self.choix}"
 
 
+class MeetingReminder(models.Model):
+    """Journal dédupliqué par invitation, horaire et échéance."""
+    participant = models.ForeignKey('ReunionParticipant', on_delete=models.CASCADE)
+    scheduled_for = models.DateTimeField()
+    hours = models.PositiveSmallIntegerField()
+    notification = models.OneToOneField('mobileapp.Notification', on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['participant', 'scheduled_for', 'hours'], name='unique_meeting_reminder')]
+
+
 class Presence(BaseModel):
     """Modèle pour les présences aux réunions"""
     
@@ -124,6 +138,7 @@ class ProcessusVerbaux(BaseModel):
     reunion = models.OneToOneField(Reunion, on_delete=models.CASCADE, related_name='pv')
     titre = models.CharField(max_length=255)
     contenu = models.TextField()
+    revision = models.PositiveIntegerField(default=0)
     nombre_presents = models.IntegerField(default=0)
     nombre_absents = models.IntegerField(default=0)
     quorum_atteint = models.BooleanField(default=False)

@@ -310,6 +310,8 @@ LOGOUT_REDIRECT_URL = 'inscription-expert/'
 
 # URL publique de la plateforme — utilisée dans les liens d'activation/confirmation
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
+APPSTORE_PACKAGES_ROOT = Path(config('APPSTORE_PACKAGES_ROOT', default=str(BASE_DIR / '.appstore_packages')))
+CLIENT_DIAGNOSTICS_DIR = Path(config('CLIENT_DIAGNOSTICS_DIR', default=str(BASE_DIR / '.client_diagnostics')))
 
 
 # Mandatement bancaire pain.001 — coordonnées du compte débiteur CNETP.
@@ -333,6 +335,10 @@ CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=not bool(C
 
 # Tâches périodiques (Celery Beat). Nécessite un broker (Redis).
 CELERY_BEAT_SCHEDULE = {
+    'rappels-reunions-experts': {
+        'task': 'apps.meetings.tasks.send_meeting_reminders',
+        'schedule': 60,
+    },
     'digest-notifications-quotidien': {
         'task': 'apps.mobileapp.tasks.send_all_notification_digests',
         'schedule': 24 * 60 * 60,  # toutes les 24h

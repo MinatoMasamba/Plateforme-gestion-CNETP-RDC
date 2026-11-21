@@ -73,6 +73,40 @@ class GedDashboardPanel extends StatelessWidget {
       children: [
         _ScActivityCard(data: data, onOpenSc: onOpenSc),
         const SizedBox(height: 16),
+        if (wide)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _UpstreamCard(
+                  data: data,
+                  onOpenWork: onOpenWork,
+                  onOpenProcess: onOpenProcess,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _DownstreamCard(
+                  data: data,
+                  onOpenFollowup: onOpenFollowup,
+                ),
+              ),
+            ],
+          )
+        else ...[
+          _UpstreamCard(
+            data: data,
+            onOpenWork: onOpenWork,
+            onOpenProcess: onOpenProcess,
+          ),
+          const SizedBox(height: 16),
+          _DownstreamCard(data: data, onOpenFollowup: onOpenFollowup),
+          const SizedBox(height: 16),
+        ],
+        _AnomalySummaryCard(data: data, onOpenAnomalies: onOpenAnomalies),
+        const SizedBox(height: 16),
+        _MyActivityCard(data: data, onOpenAll: onOpenActivity),
+        const SizedBox(height: 16),
         GedCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,39 +191,6 @@ class GedDashboardPanel extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        if (wide)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _UpstreamCard(
-                  data: data,
-                  onOpenWork: onOpenWork,
-                  onOpenProcess: onOpenProcess,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _DownstreamCard(
-                  data: data,
-                  onOpenFollowup: onOpenFollowup,
-                ),
-              ),
-            ],
-          )
-        else ...[
-          _UpstreamCard(
-            data: data,
-            onOpenWork: onOpenWork,
-            onOpenProcess: onOpenProcess,
-          ),
-          const SizedBox(height: 16),
-          _DownstreamCard(data: data, onOpenFollowup: onOpenFollowup),
-          const SizedBox(height: 16),
-        ],
-        _AnomalySummaryCard(data: data, onOpenAnomalies: onOpenAnomalies),
-        const SizedBox(height: 16),
-        _MyActivityCard(data: data, onOpenAll: onOpenActivity),
       ],
     );
   }
@@ -223,7 +224,7 @@ class _ScActivityCardState extends State<_ScActivityCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const GedSectionTitle(
-            'Activité des sept sous-commissions',
+            'Activité des sous-commissions',
             Icons.insights_outlined,
           ),
           const SizedBox(height: 6),
@@ -359,81 +360,45 @@ class _ScActivityCardState extends State<_ScActivityCard> {
           if (rows.isEmpty)
             const GedEmpty('Aucune sous-commission active sur la période.')
           else
-            for (final row in rows)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: InkWell(
-                  onTap: () => setState(() {
-                    final code = '${row['code'] ?? ''}';
-                    if (!_hidden.remove(code)) _hidden.add(code);
-                    _pointer = null;
-                    _selectedPoint = null;
-                  }),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 9,
-                              height: 9,
-                              decoration: BoxDecoration(
-                                color: _hidden.contains('${row['code']}')
-                                    ? AppColors.subtle
-                                    : _chartColors[rows.indexOf(row) %
-                                          _chartColors.length],
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                '${_hidden.contains('${row['code']}') ? '○' : '●'} ${row['code'] ?? ''} · ${row['name'] ?? row['official_name'] ?? ''}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.text,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GedBadge(
-                              label: row['idle'] == true
-                                  ? 'Aucune activité'
-                                  : (_scStatusLabels[row['status']] ?? '—'),
-                              color:
-                                  _scStatusColors[row['status']] ??
-                                  AppColors.subtle,
-                            ),
-                          ],
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final row in rows)
+                  Tooltip(
+                    message:
+                        'Dossiers ${row['dossiers'] ?? 0} · votes ${row['votes'] ?? 0} · transmissions ${row['transmitted'] ?? 0} · rapports reçus ${row['reports'] ?? 0}',
+                    child: InputChip(
+                      onDeleted: () => widget.onOpenSc('${row['code'] ?? ''}'),
+                      deleteIcon: const Icon(Icons.arrow_forward, size: 14),
+                      deleteButtonTooltipMessage: 'Voir les dossiers',
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: _hidden.contains('${row['code']}')
+                            ? AppColors.subtle
+                            : _chartColors[rows.indexOf(row) %
+                                  _chartColors.length],
+                      ),
+                      label: Text(
+                        '${_hidden.contains('${row['code']}') ? '○' : '●'} ${row['code']} · ${row['name'] ?? ''} · ${_hidden.contains('${row['code']}') ? 'Masquée' : (_scStatusLabels[row['status']] ?? '—')}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              _scStatusColors[row['status']] ?? AppColors.muted,
                         ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton(
-                            onPressed: () =>
-                                widget.onOpenSc('${row['code'] ?? ''}'),
-                            child: const Text(
-                              'Voir les dossiers',
-                              style: TextStyle(fontSize: 11),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          'Dossiers ${row['dossiers'] ?? 0} · votes ${row['votes'] ?? 0} · '
-                          'transmissions ${row['transmitted'] ?? 0} · rapports reçus ${row['reports'] ?? 0}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.muted,
-                          ),
-                        ),
-                      ],
+                      ),
+                      onPressed: () => setState(() {
+                        final code = '${row['code'] ?? ''}';
+                        if (!_hidden.remove(code)) _hidden.add(code);
+                        _pointer = null;
+                        _selectedPoint = null;
+                      }),
                     ),
                   ),
-                ),
-              ),
+              ],
+            ),
         ],
       ),
     );

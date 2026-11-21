@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
+import '../diagnostics/client_diagnostics.dart';
 import 'session.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated, failure }
@@ -149,6 +150,7 @@ class AuthController extends StateNotifier<AuthState> {
         space: 'public',
       );
 
+      ClientDiagnostics.clear();
       ApiClient.accessToken = session.access;
       final boot = await _fetchBootstrap();
       final merged = _merge(session, boot);
@@ -182,6 +184,7 @@ class AuthController extends StateNotifier<AuthState> {
       // best effort
     }
     ApiClient.accessToken = null;
+    ClientDiagnostics.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prefsKey);
     state = const AuthState(status: AuthStatus.unauthenticated);

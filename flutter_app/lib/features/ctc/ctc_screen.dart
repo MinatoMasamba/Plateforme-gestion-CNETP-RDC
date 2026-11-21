@@ -15,6 +15,7 @@ import 'widgets/ctc_read_only_view.dart';
 import 'widgets/ctc_ged_view.dart';
 import 'widgets/ctc_notifications.dart';
 import 'widgets/ctc_reports.dart';
+import 'widgets/ctc_codification_view.dart';
 
 class CtcScreen extends ConsumerStatefulWidget {
   const CtcScreen({super.key});
@@ -26,12 +27,17 @@ class CtcScreen extends ConsumerStatefulWidget {
 class _CtcScreenState extends ConsumerState<CtcScreen> {
   final _notifications = CtcNotifications();
   Timer? _notificationTimer;
+  Timer? _refreshTimer;
   int? _notificationProcessId;
   bool _reportsOpened = false;
   String _activeView = 'dashboard';
   bool _sidebarVisible = true;
   bool _railCollapsed = false;
   bool _mobileMenuVisible = false;
+
+  /// Période de la boucle de rafraîchissement : le pourcentage de complétion
+  /// et les KPI convergent régulièrement vers les valeurs du web CTC.
+  static const _refreshInterval = Duration(seconds: 30);
 
   Map<String, int> _counts = const {};
   String? _poleLabel;
@@ -45,6 +51,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
   List<Map<String, dynamic>> _stageRows = [];
   List<Map<String, dynamic>> _groupNormRows = [];
   List<Map<String, dynamic>> _requests = [];
+  Map<String, dynamic>? _performance;
   bool _loading = true;
   bool _hasLoaded = false;
   String? _loadError;
@@ -58,20 +65,28 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       const Duration(seconds: 60),
       (_) => _notifications.load(),
     );
+    // Boucle de correspondance web ↔ app : rafraîchissement silencieux
+    // (sans spinner ni flash) du pourcentage de complétion et des KPI.
+    _refreshTimer = Timer.periodic(_refreshInterval, (_) {
+      if (!_loading && _hasLoaded) _load(silent: true);
+    });
   }
 
   @override
   void dispose() {
     _notificationTimer?.cancel();
+    _refreshTimer?.cancel();
     _notifications.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+  Future<void> _load({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final results = await Future.wait([
         ApiClient.dio.get('/api/v1/mobile/ctc/dashboard/'),
@@ -113,6 +128,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
         _groupNormRows = (dash['group_norm_rows'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .toList();
+        _performance = dash['performance'] as Map<String, dynamic>?;
         _loading = false;
         _hasLoaded = true;
         _loadError = null;
@@ -122,6 +138,9 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       final detail = error is DioException && error.response?.data is Map
           ? (error.response!.data as Map)['detail']?.toString()
           : null;
+      // Une boucle silencieuse qui échoue garde l'écran courant tel quel :
+      // seul un chargement initial affiche la bannière d'erreur.
+      if (silent && _hasLoaded) return;
       setState(() {
         _loading = false;
         _loadError = detail ?? 'Impossible de charger les données CTC.';
@@ -158,7 +177,9 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.page,
-      body: SafeArea(
+      body: MediaQuery.sizeOf(context).height < 96
+          ? const SizedBox.shrink()
+          : SafeArea(
         child: Column(
           children: [
             AnimatedBuilder(
@@ -348,9 +369,11 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
           stageRows: _stageRows,
           groupNormRows: _groupNormRows,
           assignations: _assignations,
+          performance: _performance,
           onOpenAssignations: () =>
               setState(() => _activeView = 'assignations'),
           onOpenDossiers: () => setState(() => _activeView = 'dossiers'),
+          onOpenStatistics: () => setState(() => _activeView = 'statistiques'),
         );
       case 'dossiers':
         return _DossiersView(dossiers: _dossiers);
@@ -372,33 +395,28 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
       case 'homologations':
       case 'archives':
         return CtcNormsView(key: ValueKey(_activeView), view: _activeView);
-      case 'ged':
-      case 'indexation':
-      case 'espace_p2':
       case 'codification':
-      case 'versions':
-      case 'ged_anomalies':
-      case 'ged_activity':
+        // Miroir `codification_view.html` : les postes ST 10 / 11 gardent
+        // l'atelier de contrôle des codes du workspace GED ; les autres rôles
+        // affichent la table des références (Pôle 2 · Codification).
+        if (_stPostCode != 'ST-V3-10' && _stPostCode != 'ST-V3-11') {
+          return const CtcCodificationView(key: ValueKey('ctc-codification'));
+        }
+        return _buildGedWorkspace('codes');
+      case 'ged':
+        return _buildGedWorkspace('library');
+      case 'indexation':
+        return _buildGedWorkspace('work');
+      case 'espace_p2':
+        return _buildGedWorkspace('dashboard');
       case 'ged_versions_todo':
-        // Poste 11 (ST-V3-11) : espace documentaire GED, miroir de
-        // `templates/ctc/app/components/ged_workspace.html`. La clé constante
-        // conserve l'état ; `didUpdateWidget` bascule le panneau au changement
-        // d'entrée de barre latérale.
-        return CtcGedWorkspace(
-          key: const ValueKey('ctc-ged'),
-          initialProcessId: _notificationProcessId,
-          showPanelTabs: false,
-          initialPanel: switch (_activeView) {
-            'indexation' => 'work',
-            'codification' => 'codes',
-            'ged_versions_todo' => 'versions_todo',
-            'versions' => 'history',
-            'ged' => 'library',
-            'ged_anomalies' => 'anomalies',
-            'ged_activity' => 'activity',
-            _ => 'dashboard',
-          },
-        );
+        return _buildGedWorkspace('versions_todo');
+      case 'versions':
+        return _buildGedWorkspace('history');
+      case 'ged_anomalies':
+        return _buildGedWorkspace('anomalies');
+      case 'ged_activity':
+        return _buildGedWorkspace('activity');
       default:
         // Vues ST v3 restantes : afficher un espace dédié à venir (miroir
         // `space_module_placeholder.html`) au lieu d'un écran vide.
@@ -421,9 +439,20 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
           dossiers: _dossiers,
           stageRows: _stageRows,
           groupNormRows: _groupNormRows,
+          performance: _performance,
         );
     }
   }
+
+  /// Presque toutes les entrées du poste 11 rendent le même workspace GED :
+  /// la clé constante conserve l'état et `didUpdateWidget` bascule le panneau
+  /// au changement d'entrée de barre latérale (miroir `stGEDActivate`).
+  Widget _buildGedWorkspace(String panel) => CtcGedWorkspace(
+        key: const ValueKey('ctc-ged'),
+        initialProcessId: _notificationProcessId,
+        showPanelTabs: false,
+        initialPanel: panel,
+      );
 }
 
 class _DossiersView extends StatelessWidget {

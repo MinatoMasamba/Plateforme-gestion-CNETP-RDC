@@ -110,7 +110,7 @@ class TestReunionAccess:
 
         client = APIClient()
         client.force_authenticate(outsider.user)
-        assert client.post(f'/api/v1/reunions/{reunion.pk}/rejoindre/').status_code == 403
+        assert client.post(f'/api/v1/reunions/{reunion.pk}/rejoindre/').status_code == 404
 
         client.force_authenticate(invite.user)
         response = client.post(f'/api/v1/reunions/{reunion.pk}/rejoindre/')
@@ -141,6 +141,7 @@ class TestPresenceEtPV:
         )
         manager, _, wg = _manager(user_factory, ctm_factory, wg_factory, structure)
         reunion = _reunion(wg, manager)
+        ReunionParticipant.objects.create(reunion=reunion, expert=manager)
         presence = Presence.objects.create(reunion=reunion, expert=manager, status='ABSENT')
         old = timezone.now() - timedelta(hours=2)
         Presence.objects.filter(pk=presence.pk).update(marked_at=old)

@@ -143,7 +143,12 @@ void main() {
     ApiClient.dio.httpClientAdapter = previous;
   });
 
-  for (final size in const [Size(1440, 900), Size(1024, 768), Size(704, 828)]) {
+  for (final size in const [
+    Size(1440, 900),
+    Size(1024, 768),
+    Size(704, 828),
+    Size(390, 844),
+  ]) {
     testWidgets('History with data renders at $size', (tester) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;

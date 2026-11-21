@@ -49,13 +49,16 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
   Map<String, dynamic>? _data;
   List<Map<String, dynamic>> _queue = [];
   int _queueTotal = 0;
+  int _queuePage = 1;
   Map<String, dynamic>? _detail;
   bool _loading = true;
   bool _busy = false;
   int _periodDays = 30;
+  DateTimeRange? _periodRange;
   String? _scFilter;
   String? _error;
 
+  final ScrollController _scroll = ScrollController();
   final Set<String> _states = {};
   final TextEditingController _search = TextEditingController();
 
@@ -69,6 +72,11 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
   @override
   void didUpdateWidget(covariant CtcGedWorkspace oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.initialProcessId != oldWidget.initialProcessId &&
+        widget.initialProcessId != null) {
+      _detail = null;
+      _reload();
+    }
     // La barre latérale relit une autre vue du poste 11 : basculer le panneau
     // sans recharger toute l'espace.
     if (widget.initialPanel != oldWidget.initialPanel &&
@@ -80,24 +88,36 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
   @override
   void dispose() {
     _search.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
-  Future<void> _reload({int? periodDays}) async {
+  Future<void> _reload({int? periodDays, DateTimeRange? range}) async {
+    final requestedRange = periodDays != null ? range : range ?? _periodRange;
     final requestedDays = periodDays ?? _periodDays;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
+      final selectedId = _detailId ?? widget.initialProcessId;
       final responses = await Future.wait([
         ApiClient.dio.get(
           '/api/v1/st/ged/',
-          queryParameters: {'days': requestedDays},
+          queryParameters: {
+            'days': requestedDays,
+            if (requestedRange != null)
+              'date_from': requestedRange.start.toIso8601String().substring(
+                0,
+                10,
+              ),
+            if (requestedRange != null)
+              'date_to': requestedRange.end.toIso8601String().substring(0, 10),
+          },
         ),
         _queueRequest(),
-        if (widget.initialProcessId != null)
-          ApiClient.dio.get('/api/v1/st/ged/${widget.initialProcessId}/'),
+        if (selectedId != null)
+          ApiClient.dio.get('/api/v1/st/ged/$selectedId/'),
       ]);
       final data = (responses[0].data as Map).cast<String, dynamic>();
       final queueBody = (responses[1].data as Map).cast<String, dynamic>();
@@ -112,8 +132,10 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
       setState(() {
         _data = data;
         _periodDays = requestedDays;
+        _periodRange = requestedRange;
         _queue = rows;
         _queueTotal = count;
+        _queuePage = 1;
         _loading = false;
         _detail = responses.length > 2
             ? (responses[2].data as Map).cast<String, dynamic>()
@@ -137,13 +159,36 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
     }
   }
 
-  Future<Response<dynamic>> _queueRequest() {
-    final query = <String, String>{'page': '1', 'page_size': '50'};
+  Future<Response<dynamic>> _queueRequest({int page = 1}) {
+    final query = <String, String>{'page': '$page', 'page_size': '50'};
     if (_scFilter != null) query['sc'] = _scFilter!;
     if (_states.isNotEmpty) query['states'] = _states.join(',');
     final text = _search.text.trim();
     if (text.isNotEmpty) query['q'] = text;
     return ApiClient.dio.get('/api/v1/st/ged/queue/', queryParameters: query);
+  }
+
+  Future<void> _loadMore() async {
+    if (_busy || _queue.length >= _queueTotal) return;
+    setState(() => _busy = true);
+    try {
+      final nextPage = _queuePage + 1;
+      final response = await _queueRequest(page: nextPage);
+      final body = (response.data as Map).cast<String, dynamic>();
+      if (!mounted) return;
+      setState(() {
+        _queue.addAll(rowsOf(body['results']));
+        _queueTotal = (body['total'] as num?)?.toInt() ?? _queue.length;
+        _queuePage = nextPage;
+      });
+    } on DioException catch (error) {
+      _flash(
+        errorDetail(error) ?? 'Impossible de charger la suite des dossiers.',
+        error: true,
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _printReport() async {
@@ -296,6 +341,9 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
     setState(() {
       _detail = row;
       _panel = 'work';
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scroll.hasClients) _scroll.jumpTo(0);
     });
   }
 
@@ -479,7 +527,7 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
                   detail: _error!,
                   onRetry: _reload,
                 )
-              : _loading || data == null
+              : data == null
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.all(48),
@@ -487,6 +535,7 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
                   ),
                 )
               : SingleChildScrollView(
+                  controller: _scroll,
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 44),
                   child: Align(
                     alignment: Alignment.topCenter,
@@ -495,6 +544,16 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          SizedBox(
+                            height: 3,
+                            child: _loading
+                                ? const LinearProgressIndicator(
+                                    minHeight: 2,
+                                    semanticsLabel:
+                                        'Actualisation du suivi documentaire',
+                                  )
+                                : null,
+                          ),
                           if (_error != null) ...[
                             GedFailed(
                               title:
@@ -509,10 +568,25 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
                             busy: _busy || _loading,
                             onRefresh: _reload,
                             onPrint: _printReport,
-                            periodDays: _periodDays,
-                            onPeriodChanged: (days) {
+                            periodDays: _periodRange == null ? _periodDays : 0,
+                            onPeriodChanged: (days) async {
                               if (days == null) return;
-                              _reload(periodDays: days);
+                              if (days != 0) {
+                                await _reload(periodDays: days);
+                                return;
+                              }
+                              final now = DateTime.now();
+                              final range = await showDateRangePicker(
+                                context: context,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(now.year + 1, 12, 31),
+                                initialDateRange: _periodRange,
+                                helpText: 'Période du suivi documentaire',
+                                saveText: 'Appliquer',
+                              );
+                              if (range != null && mounted) {
+                                await _reload(periodDays: 30, range: range);
+                              }
                             },
                           ),
                           const SizedBox(height: 14),
@@ -541,6 +615,12 @@ class _CtcGedWorkspaceState extends State<CtcGedWorkspace> {
                               queue: _queue,
                               queueTotal: _queueTotal,
                               detailId: _detailId,
+                              detail: _detail,
+                              onLoadMore: _loadMore,
+                              onBackToQueue: () {
+                                setState(() => _detail = null);
+                                if (_scroll.hasClients) _scroll.jumpTo(0);
+                              },
                               states: _states,
                               search: _search,
                               busy: _busy,
@@ -649,14 +729,41 @@ class _Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final updated = (data['updated_at'] ?? '').toString();
-    return GedCard(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 620;
           final contextLabel = data['head'] == true
               ? 'CNE-ITP · Pôle 2 · Supervision'
               : 'CNE-ITP · Pôle 2 · Poste 11';
+          final identity = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                contextLabel,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.rdcBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Espace documentaire',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Suivi et supervision documentaire',
+                style: TextStyle(fontSize: 14, color: AppColors.muted),
+              ),
+            ],
+          );
           final controls = Wrap(
             spacing: 10,
             runSpacing: 8,
@@ -676,6 +783,7 @@ class _Heading extends StatelessWidget {
                     DropdownMenuItem(value: 7, child: Text('7 jours')),
                     DropdownMenuItem(value: 30, child: Text('30 jours')),
                     DropdownMenuItem(value: 90, child: Text('90 jours')),
+                    DropdownMenuItem(value: 0, child: Text('Personnalisée')),
                   ],
                   onChanged: busy ? null : onPeriodChanged,
                 ),
@@ -700,33 +808,86 @@ class _Heading extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  contextLabel,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: .4,
-                    color: AppColors.rdcBlue,
-                  ),
+                identity,
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 44,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: periodDays,
+                            isExpanded: true,
+                            isDense: true,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 7,
+                                child: Text('7 jours'),
+                              ),
+                              DropdownMenuItem(
+                                value: 30,
+                                child: Text('30 jours'),
+                              ),
+                              DropdownMenuItem(
+                                value: 90,
+                                child: Text('90 jours'),
+                              ),
+                              DropdownMenuItem(
+                                value: 0,
+                                child: Text('Personnalisée'),
+                              ),
+                            ],
+                            onChanged: busy ? null : onPeriodChanged,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.outlined(
+                      tooltip: 'Actualiser',
+                      onPressed: busy ? null : onRefresh,
+                      icon: const Icon(Icons.refresh_outlined),
+                      constraints: const BoxConstraints(
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'Plus d’actions documentaires',
+                      onSelected: (_) => onPrint(),
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                          value: 'print',
+                          child: Text('Imprimer le suivi'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                controls,
+                if (updated.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Mise à jour · ${frDateTime(updated)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.subtle,
+                    ),
+                  ),
+                ],
               ],
             );
           }
           return Row(
             children: [
-              Expanded(
-                child: Text(
-                  contextLabel,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: .4,
-                    color: AppColors.rdcBlue,
-                  ),
-                ),
-              ),
+              Expanded(child: identity),
+              const SizedBox(width: 12),
               controls,
             ],
           );
@@ -864,7 +1025,7 @@ class _LibraryPanelState extends State<_LibraryPanel> {
                   : 'Aucun dossier ne correspond à votre recherche.',
             )
           else
-            for (final row in results.take(25))
+            for (final row in results)
               _LibraryRow(row: row, statusLabels: _statusLabels),
         ],
       ),
@@ -1836,7 +1997,7 @@ class _CodesPanelState extends State<_CodesPanel> {
           if (codes.isEmpty)
             const GedEmpty('Aucun code autorisé par le chef du pôle 2.')
           else
-            for (final code in codes.take(20))
+            for (final code in codes)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
@@ -1871,7 +2032,7 @@ class _CodesPanelState extends State<_CodesPanel> {
           if (rows.isEmpty)
             const GedEmpty('Aucun constat sur les codes documentaires.')
           else
-            for (final row in rows.take(20))
+            for (final row in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
@@ -1954,7 +2115,7 @@ class _AnomaliesPanel extends StatelessWidget {
           if (anomalies.isEmpty)
             const GedEmpty('Aucune anomalie enregistrée.')
           else
-            for (final anomaly in anomalies.take(30))
+            for (final anomaly in anomalies)
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),

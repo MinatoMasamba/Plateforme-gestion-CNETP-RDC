@@ -1,8 +1,10 @@
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
+import json
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.db import transaction
-from django.db.models import Case, Count, IntegerField, When
+from django.db.models import Case, Count, IntegerField, When, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
@@ -11,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 
 from apps.meetings.models import (
     Reunion, Presence, ProcessusVerbaux, ReunionVote,
@@ -42,6 +45,10 @@ from .serializers import (
 )
 
 
+def _pv_audit_snapshot(pv):
+    return json.loads(JSONRenderer().render(ProcessusVerbauxSerializer(pv).data))
+
+
 class ReunionViewSet(viewsets.ModelViewSet):
     """ViewSet pour les réunions"""
     queryset = Reunion.objects.select_related(
@@ -56,6 +63,16 @@ class ReunionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if not (self.request.user.is_staff or self.request.user.is_superuser or
+                getattr(self.request.user, 'is_ctc_staff', False)):
+            qs = qs.filter(
+                Q(participants__expert__user=self.request.user) |
+                Q(organisateur__user=self.request.user) |
+                Q(ctm__secretary__user=self.request.user) |
+                Q(ctm__rapporteur__user=self.request.user) |
+                Q(wg__secretary__user=self.request.user) |
+                Q(wg__rapporteur__user=self.request.user)
+            ).distinct()
         expert = Expert.objects.filter(user=self.request.user).first()
         if expert:
             from apps.governance.phoenix_runtime import active_st_mandate
@@ -82,6 +99,8 @@ class ReunionViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Permissions granulaires de la réunion."""
+        if self.action in ('preparation', 'pv_draft') and self.request.method == 'PUT':
+            return [IsAuthenticated(), IsReunionManager()]
         if self.action in (
             'create', 'update', 'partial_update', 'destroy', 'update_status',
             'generate_pv', 'close', 'ouvrir_salle', 'cloturer_salle',
@@ -111,9 +130,46 @@ class ReunionViewSet(viewsets.ModelViewSet):
             headers=headers,
         )
 
+    @action(detail=False, methods=['get'])
+    def capabilities(self, request):
+        from ..permissions import _is_staff_like, _is_reunion_officer_anywhere
+        from apps.governance.models import CTM, WG
+        from apps.governance.phoenix_runtime import active_st_mandate
+        expert = Expert.objects.filter(user=request.user).first()
+        mandate = active_st_mandate(expert) if expert else None
+        transverse = _is_staff_like(request.user) or bool(mandate and mandate.poste.code == 'ST-V3-07')
+        if not transverse and not _is_reunion_officer_anywhere(expert):
+            return Response({'can_plan': False, 'can_plan_ctm_ids': [], 'ctms': [], 'workgroups': []})
+        ctms = CTM.objects.all() if transverse else CTM.objects.filter(Q(secretary=expert) | Q(rapporteur=expert)) if expert else CTM.objects.none()
+        allowed_ctm_ids = list(ctms.values_list('pk', flat=True))
+        groups = WG.objects.all() if transverse else WG.objects.filter(Q(secretary=expert) | Q(rapporteur=expert) | Q(ctm_id__in=allowed_ctm_ids)) if expert else WG.objects.none()
+        parent_ids = set(allowed_ctm_ids) | set(groups.values_list('ctm_id', flat=True))
+        return Response({
+            'can_plan': bool(allowed_ctm_ids or groups.exists() or transverse),
+            'can_plan_ctm_ids': allowed_ctm_ids,
+            'ctms': list(CTM.objects.filter(pk__in=parent_ids).values('id', 'name')),
+            'workgroups': list(groups.values('id', 'name', 'ctm_id')),
+        })
+
     def perform_create(self, serializer):
         """Créer la réunion, sa salle et les invitations attendues."""
         expert = Expert.objects.filter(user=self.request.user).first()
+        from ..permissions import _is_reunion_officer, _is_staff_like
+        from types import SimpleNamespace
+        wg = serializer.validated_data.get('wg')
+        ctm = serializer.validated_data.get('ctm') or (wg.ctm if wg else None)
+        if wg and ctm and wg.ctm_id != ctm.pk:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError('Le groupe doit appartenir à la sous-commission choisie.')
+        target = SimpleNamespace(
+            ctm_id=getattr(ctm, 'pk', None), ctm=ctm,
+            wg_id=getattr(wg, 'pk', None), wg=wg,
+        )
+        from apps.governance.phoenix_runtime import active_st_mandate
+        mandate = active_st_mandate(expert) if expert else None
+        st_manager = mandate and mandate.poste.code == 'ST-V3-07'
+        if not (_is_staff_like(self.request.user) or st_manager or _is_reunion_officer(expert, target)):
+            raise PermissionDenied('Vous ne pouvez pas planifier une réunion pour ce groupe.')
         reunion = serializer.save(organisateur=expert)
         if reunion.mode == 'SALLE':
             ensure_room_name(reunion)
@@ -136,14 +192,120 @@ class ReunionViewSet(viewsets.ModelViewSet):
         return Response(ReunionDetailSerializer(reunion).data)
 
     @action(detail=True, methods=['get'])
+    def calendrier(self, request, pk=None):
+        """Exporter une invitation privée, sans lien public de téléchargement."""
+        reunion = self.get_object()
+        def escape(value):
+            return str(value or '').replace('\\', '\\\\').replace('\n', '\\n').replace(';', '\\;').replace(',', '\\,').replace('\r', '')
+        lines = [
+            'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CNE-ITP//Expert//FR',
+            'BEGIN:VEVENT', f'UID:reunion-{reunion.pk}@cne-itp',
+            'DTSTAMP:' + timezone.now().strftime('%Y%m%dT%H%M%SZ'),
+            'DTSTART:' + reunion.date.astimezone(datetime_timezone.utc).strftime('%Y%m%dT%H%M%SZ'),
+            'SUMMARY:' + escape(reunion.titre),
+            'DESCRIPTION:' + escape((reunion.ordre_jour or '') + '\n' + (reunion.lien_reunion_virtuelle or '')),
+            'LOCATION:' + escape(reunion.lieu or reunion.lien_reunion_virtuelle),
+            'STATUS:' + ('CANCELLED' if reunion.status == 'CANCELLED' else 'CONFIRMED'),
+            'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY',
+            'DESCRIPTION:Rappel de réunion CNE-ITP', 'END:VALARM',
+            'BEGIN:VALARM', 'TRIGGER:-PT1H', 'ACTION:DISPLAY',
+            'DESCRIPTION:Rappel de réunion CNE-ITP', 'END:VALARM',
+            'END:VEVENT', 'END:VCALENDAR', '',
+        ]
+        # RFC 5545 : lignes pliées à 75 octets, y compris les accents UTF-8.
+        folded = []
+        for line in lines:
+            part = ''
+            for char in line:
+                if len((part + char).encode('utf-8')) > 75:
+                    folded.append(part)
+                    part = ' '
+                part += char
+            folded.append(part)
+        response = HttpResponse('\r\n'.join(folded), content_type='text/calendar; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="reunion-{reunion.pk}.ics"'
+        response['Cache-Control'] = 'private, no-store'
+        return response
+
+    @action(detail=True, methods=['post'])
+    def excuser(self, request, pk=None):
+        reunion = self.get_object()
+        participant = reunion.participants.filter(expert__user=request.user).first()
+        if not participant:
+            raise PermissionDenied("Action réservée aux invités.")
+        if reunion.status not in ('PLANNED', 'IN_PROGRESS'):
+            return Response({'detail': 'La réunion est close.'}, status=400)
+        presence, _ = Presence.objects.update_or_create(
+            reunion=reunion, expert=participant.expert,
+            defaults={'status': 'EXCUSED', 'marked_by': participant.expert},
+        )
+        return Response(PresenceSerializer(presence).data)
+
+    @action(detail=True, methods=['get'])
     def details(self, request, pk=None):
         """Retourner réunion + présences + votes + PV."""
-        return Response(ReunionDetailSerializer(self.get_object()).data)
+        return Response(ReunionDetailSerializer(self.get_object(), context=self.get_serializer_context()).data)
+
+    @action(detail=True, methods=['put'])
+    def preparation(self, request, pk=None):
+        from .workflow_serializers import MeetingPreparationSerializer
+        from apps.core.models import AuditLog
+        meeting = self.get_object()
+        data = MeetingPreparationSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        values = data.validated_data
+        with transaction.atomic():
+            meeting = Reunion.objects.select_for_update().get(pk=meeting.pk)
+            if meeting.status in ('COMPLETED', 'CANCELLED'):
+                return Response({'detail': 'La préparation de cette réunion est close.'}, status=409)
+            if meeting.preparation_revision != values['revision']:
+                return Response({'detail': 'Préparation modifiée. Rechargez la réunion.'}, status=409)
+            if meeting.votes.exists() and values['question_vote'] != meeting.question_vote:
+                return Response({'detail': 'La question ne peut plus changer après un vote.'}, status=409)
+            before = {'documents': meeting.document_links, 'question_vote': meeting.question_vote, 'meet_link': meeting.lien_reunion_virtuelle, 'ordre_jour': meeting.ordre_jour}
+            meeting.document_links = values['documents']
+            meeting.question_vote = values['question_vote']
+            meeting.ordre_jour = values['ordre_jour']
+            meeting.lien_reunion_virtuelle = values['meet_link']
+            meeting.mode = 'EXTERNE' if values['meet_link'] else 'PRESENTIEL'
+            meeting.preparation_revision += 1
+            meeting.save()
+            AuditLog.objects.create(user=request.user, action='UPDATE', content_type='MeetingPreparation', object_id=meeting.pk, object_repr=meeting.titre[:200], changes={'before': before, 'after': values})
+        return Response(ReunionDetailSerializer(meeting, context=self.get_serializer_context()).data)
+
+    @action(detail=True, methods=['put'])
+    def pv_draft(self, request, pk=None):
+        from .workflow_serializers import MeetingPVDraftSerializer
+        from apps.core.models import AuditLog
+        meeting = self.get_object()
+        data = MeetingPVDraftSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        with transaction.atomic():
+            # Même verrou que la validation : une signature concurrente ne peut pas être écrasée.
+            pv = ProcessusVerbaux.objects.select_for_update().filter(reunion=meeting).first()
+            if not pv:
+                return Response({'detail': 'Clôturez la réunion pour préparer son PV.'}, status=400)
+            if pv.signature_date or pv.redaction == 'VALIDE' or pv.administrative_versions.exists():
+                return Response({'detail': 'Ce PV est validé ou relève du circuit administratif.'}, status=409)
+            values = data.validated_data
+            if pv.revision != values.pop('revision'):
+                return Response({'detail': 'Le PV a changé. Rechargez sa dernière version.'}, status=409)
+            before = _pv_audit_snapshot(pv)
+            for key, value in values.items():
+                setattr(pv, key, value)
+            pv.revision += 1
+            pv.save()
+            AuditLog.objects.create(user=request.user, action='UPDATE', content_type='MeetingPV', object_id=pv.pk, object_repr=pv.titre[:200], changes={'before': before, 'after': _pv_audit_snapshot(pv)})
+        return Response(ProcessusVerbauxSerializer(pv).data)
 
     @action(detail=True, methods=['post'])
     def checkin_presence(self, request, pk=None):
         """Enregistrer la présence"""
         reunion = self.get_object()
+        if not reunion.participants.filter(expert__user=request.user).exists():
+            raise PermissionDenied("Émargement réservé aux invités.")
+        if timezone.now() < reunion.date - timedelta(minutes=15):
+            return Response({'detail': "L'émargement ouvre 15 minutes avant la réunion."}, status=400)
 
         try:
             expert = Expert.objects.get(user=request.user)
@@ -182,8 +344,12 @@ class ReunionViewSet(viewsets.ModelViewSet):
     def vote(self, request, pk=None):
         """Créer ou modifier le vote de l'expert connecté."""
         reunion = self.get_object()
-        if reunion.status == 'COMPLETED':
+        if not reunion.participants.filter(expert__user=request.user).exists():
+            raise PermissionDenied("Vote réservé aux invités.")
+        if reunion.status not in ('PLANNED', 'IN_PROGRESS'):
             return Response({'detail': 'Le scrutin est clos.'}, status=status.HTTP_400_BAD_REQUEST)
+        if reunion.preparation_revision and not reunion.question_vote.strip():
+            return Response({'detail': 'La question soumise au vote doit être précisée.'}, status=400)
 
         expert = Expert.objects.filter(user=request.user).first()
         if not expert:
@@ -192,7 +358,7 @@ class ReunionViewSet(viewsets.ModelViewSet):
         if not reunion.presences.filter(expert=expert, status='PRESENT').exists():
             return Response({'detail': "Une présence émargée est requise pour voter."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if getattr(settings, 'MEETING_VOTE_REQUIRE_SESSION', False):
+        if reunion.mode == 'SALLE' and getattr(settings, 'MEETING_VOTE_REQUIRE_SESSION', False):
             if not reunion.sessions.filter(expert=expert, left_at__isnull=True).exists():
                 return Response(
                     {'detail': "Une session ouverte dans la salle est requise pour voter."},
@@ -223,7 +389,8 @@ class ReunionViewSet(viewsets.ModelViewSet):
             if reunion.status != 'COMPLETED':
                 reunion.status = 'COMPLETED'
             reunion.save(update_fields=['cloture_salle', 'status', 'updated_at'])
-            apply_presence_at_close(reunion)
+            if reunion.mode == 'SALLE':
+                apply_presence_at_close(reunion)
         return self.generate_pv(request, pk=pk)
 
     @action(detail=True, methods=['post'], permission_classes=[IsCTCCoordinator])
@@ -277,16 +444,7 @@ class ReunionViewSet(viewsets.ModelViewSet):
                 'quorum_atteint': quorum_atteint,
             },
         )
-        if not created:
-            pv.titre = f"Procès-Verbal - {reunion.titre}"
-            pv.contenu = contenu
-            pv.nombre_presents = presents
-            pv.nombre_absents = absents
-            pv.quorum_atteint = quorum_atteint
-            pv.save(update_fields=[
-                'titre', 'contenu', 'nombre_presents', 'nombre_absents',
-                'quorum_atteint', 'updated_at',
-            ])
+        # Une nouvelle demande renvoie le PV existant, sans effacer sa rédaction.
 
         return Response(
             ProcessusVerbauxSerializer(pv).data,
@@ -310,6 +468,7 @@ Type: {reunion.get_type_display()}
 CTM: {reunion.ctm.name if reunion.ctm else 'N/A'}
 WG: {reunion.wg.name if reunion.wg else 'N/A'}
 Document réglementaire: {reunion.document_reglementaire or 'N/A'}
+Question soumise au vote: {reunion.question_vote or '(Non renseignée dans le circuit historique)'}
 
 PARTICIPATION
 ----------------
@@ -612,7 +771,14 @@ Généré le: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
         return Response(response_data)
 
 
-class PresenceViewSet(viewsets.ModelViewSet):
+class MeetingScopedRecords:
+    def get_queryset(self):
+        view = ReunionViewSet()
+        view.request = self.request
+        return super().get_queryset().filter(reunion__in=view.get_queryset())
+
+
+class PresenceViewSet(MeetingScopedRecords, viewsets.ModelViewSet):
     """ViewSet pour les présences"""
     queryset = Presence.objects.select_related('reunion', 'expert__user')
     serializer_class = PresenceSerializer
@@ -623,22 +789,27 @@ class PresenceViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Permissions granulaires : seul l'organisateur de la réunion (ou un
         Coordinateur CTC/Admin) peut modifier l'émargement des participants."""
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsReunionManager()]
         return [IsAuthenticated()]
 
     def perform_create(self, serializer):
         """Tracer l'expert qui a créé l'émargement."""
+        reunion = serializer.validated_data['reunion']
+        if not IsReunionManager().has_object_permission(self.request, self, reunion):
+            raise PermissionDenied("Action réservée aux gestionnaires de la réunion.")
         expert = Expert.objects.filter(user=self.request.user).first()
         serializer.save(marked_by=expert)
 
     def perform_update(self, serializer):
         """Tracer l'expert qui a modifié l'émargement."""
+        if 'reunion' in serializer.validated_data and serializer.validated_data['reunion'] != serializer.instance.reunion:
+            raise PermissionDenied("Une présence ne peut pas changer de réunion.")
         expert = Expert.objects.filter(user=self.request.user).first()
         serializer.save(marked_by=expert)
 
 
-class ReunionVoteViewSet(viewsets.ReadOnlyModelViewSet):
+class ReunionVoteViewSet(MeetingScopedRecords, viewsets.ReadOnlyModelViewSet):
     """Votes de réunion en lecture globale; l'écriture passe par /reunions/{id}/vote/."""
     queryset = ReunionVote.objects.select_related('reunion', 'expert__user')
     serializer_class = ReunionVoteSerializer
@@ -647,7 +818,7 @@ class ReunionVoteViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['reunion__id', 'reunion', 'choix']
 
 
-class ProcessusVerbauxViewSet(viewsets.ReadOnlyModelViewSet):
+class ProcessusVerbauxViewSet(MeetingScopedRecords, viewsets.ReadOnlyModelViewSet):
     """ViewSet pour les procès-verbaux (lecture seule)"""
     queryset = ProcessusVerbaux.objects.select_related('reunion', 'signed_by__user')
     serializer_class = ProcessusVerbauxSerializer
@@ -659,6 +830,9 @@ class ProcessusVerbauxViewSet(viewsets.ReadOnlyModelViewSet):
     def sign(self, request, pk=None):
         """Signer un procès-verbal"""
         pv = self.get_object()
+        from .workflow_serializers import MeetingPVValidationSerializer
+        validation = MeetingPVValidationSerializer(data=request.data)
+        validation.is_valid(raise_exception=True)
 
         if pv.administrative_versions.exists():
             return Response(
@@ -668,10 +842,23 @@ class ProcessusVerbauxViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             expert = Expert.objects.get(user=request.user)
-            pv.signed_by = expert
-            pv.signature_date = timezone.now()
-            pv.save()
-
+            with transaction.atomic():
+                pv = ProcessusVerbaux.objects.select_for_update().get(pk=pv.pk)
+                if pv.signature_date or pv.redaction == 'VALIDE':
+                    return Response({'detail': 'Ce PV est déjà validé.'}, status=409)
+                if validation.validated_data.get('revision', pv.revision) != pv.revision:
+                    return Response({'detail': 'Le PV a changé. Rechargez-le avant validation.'}, status=409)
+                if pv.reunion.status != 'COMPLETED' or not all((pv.contenu.strip(), pv.points_discutes.strip(), pv.decisions.strip())):
+                    return Response({'detail': 'Réunion close, points discutés et décisions renseignés requis.'}, status=400)
+                before = _pv_audit_snapshot(pv)
+                pv.signed_by = expert
+                pv.valide_par = expert
+                pv.signature_date = timezone.now()
+                pv.redaction = 'VALIDE'
+                pv.revision += 1
+                pv.save()
+                from apps.core.models import AuditLog
+                AuditLog.objects.create(user=request.user, action='APPROVE', content_type='MeetingPV', object_id=pv.pk, object_repr=pv.titre[:200], changes={'before': before, 'after': _pv_audit_snapshot(pv)})
             return Response(ProcessusVerbauxSerializer(pv).data)
         except Expert.DoesNotExist:
             return Response(

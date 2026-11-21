@@ -23,6 +23,7 @@ from .mobile.views import (
 )
 from .mobile.ctc_views import MobileCTCViewSet
 from .mobile.pilotage_views import MobilePilotageViewSet
+from .mobile.diagnostics import ClientDiagnosticView
 from .validation.views import LegisticReviewViewSet
 from .documents.views import DocumentFileViewSet
 from .public.views import PublicAmendementViewSet
@@ -128,6 +129,10 @@ router.register(r'document-history', DocumentHistoryViewSet, basename='document-
 router.register(r'expert-actions', ExpertActionsViewSet, basename='expert-actions')
 
 # Mobile routes (v2 API)
+from .mobile.expert_views import MobileExpertMeetingsViewSet, MobileExpertResourcesViewSet, MobileExpertActivityViewSet
+router.register(r'mobile/expert/activity', MobileExpertActivityViewSet, basename='mobile-expert-activity')
+router.register(r'mobile/expert/meetings', MobileExpertMeetingsViewSet, basename='mobile-expert-meetings')
+router.register(r'mobile/expert/norms', MobileExpertResourcesViewSet, basename='mobile-expert-resources')
 router.register(r'mobile/auth', MobileAuthViewSet, basename='mobile-auth')
 router.register(r'mobile/push-tokens', PushTokenViewSet, basename='push-tokens')
 router.register(r'mobile/notification-preferences', NotificationPreferenceViewSet, basename='notification-preferences')
@@ -138,6 +143,7 @@ router.register(r'mobile/ctc', MobileCTCViewSet, basename='mobile-ctc')
 router.register(r'mobile/pilotage', MobilePilotageViewSet, basename='mobile-pilotage')
 
 urlpatterns = [
+    path('mobile/diagnostics/', ClientDiagnosticView.as_view(), name='mobile-diagnostics'),
     path('st/ged-documents/<int:pk>/', STGEDDocumentView.as_view(), name='st-ged-document'),
     # Webhook LiveKit (signature vérifiée, pas de session/CSRF)
     path('meetings/livekit/webhook/', livekit_webhook, name='livekit-webhook'),

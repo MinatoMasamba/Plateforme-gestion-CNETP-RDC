@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from apps.payments.models import Cotisation, Paiement, JetonPresence
 from apps.experts.models import Expert, Structure
@@ -35,6 +36,13 @@ class CotisationViewSet(viewsets.ModelViewSet):
     search_fields = ['structure__name']
     ordering_fields = ['due_date', 'annee']
     ordering = ['-annee']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if IsCTCCoordinator().has_permission(self.request, self):
+            return qs
+        expert = Expert.objects.filter(user=self.request.user).first()
+        return qs.filter(structure_id=expert.structure_id) if expert and expert.structure_id else qs.none()
 
     def get_serializer_class(self):
         """Retourner le serializer approprié"""
@@ -107,7 +115,7 @@ class CotisationViewSet(viewsets.ModelViewSet):
         )['total'] or Decimal('0')
 
         total_paye = Paiement.objects.filter(
-            status='CONFIRMED'
+            status='CONFIRMED', cotisation__in=cotisations,
         ).aggregate(
             total=Sum('montant', output_field=DecimalField())
         )['total'] or Decimal('0')
@@ -117,11 +125,11 @@ class CotisationViewSet(viewsets.ModelViewSet):
         percentage = (total_paye / total_cotisations * 100) if total_cotisations > 0 else Decimal('0')
 
         return Response({
-            'total_cotisations': str(total_cotisations),
-            'total_paye': str(total_paye),
-            'total_en_attente': str(total_en_attente),
+            'total_cotisations': format(total_cotisations, '.2f'),
+            'total_paye': format(total_paye, '.2f'),
+            'total_en_attente': format(total_en_attente, '.2f'),
             'percentage_paye': str(round(percentage, 2)),
-            'nombre_structures': Structure.objects.count(),
+            'nombre_structures': cotisations.values('structure_id').distinct().count(),
             'structures_payees': cotisations.filter(status='PAID').count(),
             'structures_en_retard': cotisations.filter(status__in=['PENDING', 'PARTIAL']).count()
         })
@@ -136,6 +144,21 @@ class PaiementViewSet(viewsets.ModelViewSet):
     search_fields = ['numero_transaction', 'numero_recu']
     ordering_fields = ['payment_date', 'created_at']
     ordering = ['-payment_date']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if IsCTCCoordinator().has_permission(self.request, self):
+            return qs
+        expert = Expert.objects.filter(user=self.request.user).first()
+        return qs.filter(cotisation__structure_id=expert.structure_id) if expert and expert.structure_id else qs.none()
+
+    def perform_create(self, serializer):
+        expert = Expert.objects.filter(user=self.request.user).first()
+        if not IsCTCCoordinator().has_permission(self.request, self) and (
+            not expert or serializer.validated_data['cotisation'].structure_id != expert.structure_id
+        ):
+            raise PermissionDenied('Cette cotisation ne concerne pas votre structure.')
+        serializer.save()
 
     def get_serializer_class(self):
         """Retourner le serializer approprié"""
@@ -259,6 +282,12 @@ class JetonPresenceViewSet(viewsets.ModelViewSet):
     search_fields = ['expert__user__first_name', 'expert__user__last_name']
     ordering_fields = ['payment_date', 'created_at']
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if IsCTCCoordinator().has_permission(self.request, self):
+            return qs
+        return qs.filter(expert__user=self.request.user)
 
     def get_serializer_class(self):
         """Retourner le serializer approprié"""

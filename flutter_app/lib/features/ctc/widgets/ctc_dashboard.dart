@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
+import 'ctc_completion.dart';
 
 /// Tableau de bord CTC — reproduit `dashboard_module.html` (design "premium").
 class CtcDashboardView extends StatelessWidget {
@@ -14,8 +15,10 @@ class CtcDashboardView extends StatelessWidget {
     required this.assignations,
     this.stageRows = const [],
     this.groupNormRows = const [],
+    this.performance,
     this.onOpenAssignations,
     this.onOpenDossiers,
+    this.onOpenStatistics,
   });
 
   final String poleLabel;
@@ -27,8 +30,13 @@ class CtcDashboardView extends StatelessWidget {
   final List<Map<String, dynamic>> assignations;
   final List<Map<String, dynamic>> stageRows;
   final List<Map<String, dynamic>> groupNormRows;
+
+  /// « Suivi statistique » web : `ctc_statistics.global_performance`
+  /// (`{value: double|None, color: '#hex'}`).
+  final Map<String, dynamic>? performance;
   final VoidCallback? onOpenAssignations;
   final VoidCallback? onOpenDossiers;
+  final VoidCallback? onOpenStatistics;
 
   int _c(String k) => counts[k] ?? 0;
 
@@ -268,6 +276,15 @@ class CtcDashboardView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
+                // Miroir de la carte « Suivi statistique » + donut global
+                // (dashboard_module.html:52) — boucle d'animation continue.
+                CtcCompletionCard(
+                  performance: performance,
+                  subtitle:
+                      '${_c('sous_commissions')} sous-commissions et CTM · ${_c('groupes')} groupes suivis.',
+                  onOpenStatistics: onOpenStatistics,
+                ),
+                const SizedBox(height: 18),
                 if (compact) ...[
                   _Card(
                     child: Column(
@@ -474,6 +491,18 @@ class _BreakdownCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                // Miroir du <meter> web : les répartitions ST v3 exposent le
+                // pourcentage numérique réel (`row.percent`).
+                if (row['percent'] is num) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    '${(row['percent'] as num).toInt()} %',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 5),

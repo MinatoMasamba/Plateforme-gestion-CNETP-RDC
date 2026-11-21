@@ -9,6 +9,7 @@ from apps.experts.models import Expert
 from apps.norms.models import Norme
 from apps.governance.models import CTCProcessus, CTCOperationalRequest, PlatformFreeze, CTM, Demande
 from apps.mobileapp.signals import create_notification_for_user
+from web.ctc_statistics import _performance_color
 from web.ctc_views import get_ctc_context
 
 
@@ -70,12 +71,18 @@ class MobileCTCViewSet(viewsets.ViewSet):
         if ctx.get('st_matrix_v3'):
             dossiers = ctx['active_processus']
             metrics = ctx['st_space_dashboard']
+            # Même formule pondérée que le web (Σ poids × progression ÷ Σ poids)
+            # appliquée au périmètre de mandat du poste.
+            from apps.governance.st_permissions import visible_tasks
+            from web.ctc_statistics import _performance as weighted_progress
+            completion = weighted_progress(visible_tasks(self._expert(request), ctx))
             stats = {
                 'norm_count': metrics['kpis']['dossiers'], 'task_count': metrics['kpis']['tasks'],
                 'overdue_count': metrics['kpis']['overdue'],
                 'sc_count': dossiers.exclude(norme__ctm=None).values('norme__ctm').distinct().count(),
                 'group_count': dossiers.exclude(norme__wg=None).values('norme__wg').distinct().count(),
-                'stage_rows': [dict(label=row['label'], count=row['count'], width=row['percent'])
+                'stage_rows': [dict(label=row['label'], count=row['count'],
+                                    width=row['percent'], percent=row['percent'])
                                for row in metrics['distribution']],
                 'group_norm_rows': [],
             }
@@ -85,6 +92,7 @@ class MobileCTCViewSet(viewsets.ViewSet):
             # viennent déjà du périmètre de mandat ci-dessus.
             from web.ctc_statistics import build_ctc_statistics
             stats = build_ctc_statistics()
+            completion = stats.get('global_performance')
 
 
         assignation_tasks = []
@@ -106,6 +114,12 @@ class MobileCTCViewSet(viewsets.ViewSet):
             'sidebar_nav_config': ctx.get('sidebar_nav_config', {}),
             'can_admin_system': ctx.get('can_admin_system', False),
             'blocked_political': ctx.get('blocked_political', False),
+            # Miroir du donut « Suivi statistique » du web
+            # (ctc_statistics.global_performance / global_color).
+            'performance': {
+                'value': completion,
+                'color': _performance_color(completion),
+            },
             'counts': {
                 'dossiers': dossiers.count(),
                 'assignations': len(assignation_tasks),
@@ -258,6 +272,40 @@ class MobileCTCViewSet(viewsets.ViewSet):
         if error:
             return error
         return Response(self._norme_results(['HOMOLOGATED', 'PUBLISHED']))
+
+    @action(detail=False, methods=['get'])
+    def codification(self, request):
+        """Vue « Pôle 2 · Codification » (miroir `codification_view.html`).
+
+        Références existantes et rattachements ; aucun code n'est attribué
+        automatiquement. Les postes ST-V3-10/11 passent par l'atelier de
+        contrôle des codes du workspace GED.
+        """
+        ctx, error = self._context_or_error(request)
+        if error:
+            return error
+        norms = (
+            Norme.all_objects
+            .select_related('ctm', 'wg')
+            .order_by('reference_number')[:150]
+        )
+        return Response({
+            'count': len(norms),
+            'results': [
+                {
+                    'id': norme.pk,
+                    'reference': norme.reference_number,
+                    'title': norme.title,
+                    'type': norme.norm_type,
+                    'type_label': norme.get_norm_type_display(),
+                    'status': norme.status,
+                    'status_label': norme.get_status_display(),
+                    'ctm': norme.ctm.name if norme.ctm else None,
+                    'wg': norme.wg.name if norme.wg else None,
+                }
+                for norme in norms
+            ],
+        })
 
     @action(detail=False, methods=['get'])
     def archives(self, request):

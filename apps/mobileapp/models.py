@@ -11,6 +11,25 @@ from apps.experts.models import Expert
 User = get_user_model()
 
 
+class ClientDiagnostic(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    event_id = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=20)
+    app_version = models.CharField(max_length=64)
+    platform = models.CharField(max_length=20)
+    message = models.TextField()
+    details = models.JSONField(default=dict)
+    journal_written = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Diagnostic de l’application'
+        verbose_name_plural = 'Diagnostics de l’application'
+        constraints = [models.UniqueConstraint(fields=['user', 'event_id'], name='unique_client_diagnostic_event')]
+
+
 class ActivationToken(BaseModel):
     """Token d'activation pour les experts"""
     
@@ -171,6 +190,8 @@ class Notification(BaseModel):
         ('EXPERT_INVITE', 'Invitation expert'),
         ('EXPERT_ADDED_TO_WG', 'Ajouté à un groupe de travail'),
         ('REUNION_INVITE', 'Invitation à réunion'),
+        ('REUNION_UPDATE', 'Réunion modifiée'),
+        ('REUNION_CANCELLED', 'Réunion annulée'),
         ('MEETING_REMINDER', 'Rappel de réunion'),
         ('VOTE_OPEN', 'Vote ouvert'),
         ('VOTE_REMINDER', 'Rappel de vote'),

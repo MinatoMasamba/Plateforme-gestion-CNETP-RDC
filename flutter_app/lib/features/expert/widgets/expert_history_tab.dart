@@ -68,7 +68,10 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
       _diffError = null;
     });
     try {
-      final resp = await ApiClient.dio.get('/api/v1/norms/$id/versions/');
+      final resp = await ApiClient.dio.get(
+        '/api/v1/norms/$id/versions/',
+        queryParameters: {'per_page': 100},
+      );
       final data = resp.data;
       final raw = data is List
           ? data
