@@ -5,7 +5,8 @@ def appstore_private_storage():
     from django.conf import settings
     from django.core.files.storage import FileSystemStorage
 
-    root = settings.BASE_DIR / '.appstore_packages'
+    from pathlib import Path
+    root = Path(getattr(settings, 'APPSTORE_PACKAGES_ROOT', settings.BASE_DIR / '.appstore_packages'))
     root.mkdir(parents=True, exist_ok=True)
     return FileSystemStorage(
         location=root,

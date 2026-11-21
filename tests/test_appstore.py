@@ -226,6 +226,52 @@ def test_catalog_click_does_not_create_download_event(user_factory, tmp_path):
 
 
 @pytest.mark.django_db
+def test_admin_download_counters_include_history_and_distinct_accounts(user_factory, tmp_path):
+    from django.contrib import admin as django_admin
+    from django.test import RequestFactory
+
+    with override_settings(MEDIA_ROOT=tmp_path / 'media'):
+        admin = _admin(user_factory)
+        admin.is_superuser = True
+        admin.save(update_fields=['is_superuser'])
+        first = _user(user_factory, 'first-downloader')
+        second = _user(user_factory, 'second-downloader')
+        app, latest, older, apk, old_apk, *_ = _published_app_with_two_versions(admin)
+        client = Client()
+        for user, file in ((first, apk), (first, apk), (second, apk), (first, old_apk)):
+            client.force_login(user)
+            response = client.get(reverse('web:appstore_download', args=[file.pk]))
+            assert response.status_code == 200
+            b''.join(response.streaming_content)
+            response.close()
+
+        # Refused requests and catalogue visits never increase the counters.
+        client.logout()
+        assert client.get(reverse('web:appstore_download', args=[apk.pk])).status_code == 302
+        client.get(reverse('web:appstore_detail', args=[app.slug]))
+        request = RequestFactory().get('/admin/')
+        request.user = admin
+        for obj, total, distinct in ((app, 4, 2), (latest, 3, 2), (older, 1, 1), (apk, 3, 2), (old_apk, 1, 1)):
+            model_admin = django_admin.site._registry[type(obj)]
+            annotated = model_admin.get_queryset(request).get(pk=obj.pk)
+            assert model_admin.download_count(annotated) == total
+            assert model_admin.downloader_count(annotated) == distinct
+            assert model_admin.download_count(obj) == total
+            assert model_admin.downloader_count(obj) == distinct
+            assert 'download_count' in model_admin.get_readonly_fields(request, obj)
+
+        client.force_login(admin)
+        for model in (SoftwareApp, AppVersion, AppReleaseFile):
+            response = client.get(reverse(f'admin:appstore_{model._meta.model_name}_changelist') + '?o=-1')
+            assert response.status_code == 200
+            assert 'Téléchargements démarrés' in response.content.decode()
+            assert 'Comptes distincts' in response.content.decode()
+        response = client.get(reverse('admin:appstore_appreleasefile_change', args=[apk.pk]))
+        assert response.status_code == 200
+        assert 'Téléchargements démarrés' in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_admin_can_create_app_via_web(user_factory):
     admin = _admin(user_factory)
     client = Client()

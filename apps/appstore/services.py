@@ -24,7 +24,7 @@ from .models import (
 )
 
 _VERSION_CORE_RE = re.compile(
-    r'^(?P<core>\d+(?:\.\d+){0,3})(?P<suffix>(?:[-_+][0-9A-Za-z.-]+)?)$'
+    r'^(?P<core>\d+(?:\.\d+){0,3})(?P<suffix>(?:[-_+][0-9A-Za-z.+-]+)?)$'
 )
 
 

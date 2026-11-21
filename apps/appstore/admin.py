@@ -1,4 +1,9 @@
 from django.contrib import admin
+from django import forms
+from django.db.models import Count
+from django.urls import reverse
+from django.utils.html import format_html
+from .services import compute_sha256, sanitize_upload_name
 
 from .models import (
     AppAnnouncement,
@@ -11,15 +16,56 @@ from .models import (
 )
 
 
+class ReleaseAdminForm(forms.ModelForm):
+    class Meta:
+        model = AppReleaseFile
+        fields = '__all__'
+
+    def clean_file(self):
+        upload = self.cleaned_data.get('file')
+        if upload and 'file' in self.changed_data:
+            upload.name = sanitize_upload_name(upload.name)
+            digest, size = compute_sha256(upload)
+            self.instance.sha256 = digest
+            self.instance.size_bytes = size
+            self.instance.original_name = upload.name
+        return upload
+
+
 class AppScreenshotInline(admin.TabularInline):
     model = AppScreenshot
     extra = 0
 
 
-class AppReleaseFileInline(admin.TabularInline):
+class DownloadCountersMixin:
+    """Statistiques historiques des transferts démarrés, pas des installations."""
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            _download_count=Count('download_events', distinct=True),
+            _downloader_count=Count('download_events__user', distinct=True),
+        )
+
+    @admin.display(description='Téléchargements démarrés', ordering='_download_count')
+    def download_count(self, obj):
+        if not obj.pk:
+            return 0
+        count = getattr(obj, '_download_count', None)
+        return count if count is not None else obj.download_events.count()
+
+    @admin.display(description='Comptes distincts', ordering='_downloader_count')
+    def downloader_count(self, obj):
+        if not obj.pk:
+            return 0
+        count = getattr(obj, '_downloader_count', None)
+        return count if count is not None else obj.download_events.exclude(user=None).values('user').distinct().count()
+
+
+class AppReleaseFileInline(DownloadCountersMixin, admin.TabularInline):
     model = AppReleaseFile
+    form = ReleaseAdminForm
     extra = 0
-    readonly_fields = ('size_bytes', 'sha256', 'original_name')
+    readonly_fields = ('size_bytes', 'sha256', 'original_name', 'download_count', 'downloader_count')
 
 
 class AppVersionInline(admin.TabularInline):
@@ -37,8 +83,9 @@ class AppCategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(SoftwareApp)
-class SoftwareAppAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_featured', 'is_published', 'publisher')
+class SoftwareAppAdmin(DownloadCountersMixin, admin.ModelAdmin):
+    list_display = ('name', 'category', 'is_featured', 'is_published', 'publisher', 'download_count', 'downloader_count')
+    readonly_fields = ('download_count', 'downloader_count')
     list_filter = ('is_published', 'is_featured', 'category')
     search_fields = ('name', 'slug', 'publisher')
     prepopulated_fields = {'slug': ('name',)}
@@ -47,8 +94,9 @@ class SoftwareAppAdmin(admin.ModelAdmin):
 
 
 @admin.register(AppVersion)
-class AppVersionAdmin(admin.ModelAdmin):
-    list_display = ('application', 'version_number', 'channel', 'status', 'published_at')
+class AppVersionAdmin(DownloadCountersMixin, admin.ModelAdmin):
+    list_display = ('application', 'version_number', 'channel', 'status', 'published_at', 'download_count', 'downloader_count')
+    readonly_fields = ('download_count', 'downloader_count')
     list_filter = ('channel', 'status')
     search_fields = ('version_number', 'application__name')
     inlines = [AppReleaseFileInline]
@@ -56,13 +104,21 @@ class AppVersionAdmin(admin.ModelAdmin):
 
 
 @admin.register(AppReleaseFile)
-class AppReleaseFileAdmin(admin.ModelAdmin):
+class AppReleaseFileAdmin(DownloadCountersMixin, admin.ModelAdmin):
+    form = ReleaseAdminForm
     list_display = (
         'version', 'platform', 'architecture', 'quarantine_status',
-        'size_bytes', 'sha256',
+        'size_bytes', 'sha256', 'download_link', 'download_count', 'downloader_count',
     )
     list_filter = ('platform', 'quarantine_status')
-    readonly_fields = ('size_bytes', 'sha256', 'original_name')
+    readonly_fields = ('size_bytes', 'sha256', 'original_name', 'download_link', 'download_count', 'downloader_count')
+
+    @admin.display(description='Lien direct à envoyer')
+    def download_link(self, obj):
+        if not obj.pk or not obj.has_downloadable_blob:
+            return 'Disponible après ajout du fichier.'
+        url = reverse('web:appstore_download', args=[obj.pk])
+        return format_html('<a href="{}">{}</a>', url, url)
 
 
 @admin.register(AppAnnouncement)
