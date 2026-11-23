@@ -31,7 +31,6 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
   int? _notificationProcessId;
   bool _reportsOpened = false;
   String _activeView = 'dashboard';
-  bool _sidebarVisible = true;
   bool _railCollapsed = false;
   bool _mobileMenuVisible = false;
 
@@ -200,7 +199,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                   if (MediaQuery.sizeOf(context).width < 768) {
                     _mobileMenuVisible = !_mobileMenuVisible;
                   } else {
-                    _sidebarVisible = !_sidebarVisible;
+                    _railCollapsed = !_railCollapsed;
                   }
                 }),
                 onLogout: () =>
@@ -211,10 +210,9 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
               child: LayoutBuilder(
                 builder: (context, box) {
                   final compact = box.maxWidth < 768;
-                  // Miroir `sidebar_module.html` : les postes ST 10 / 11
-                  // réduisent leur barre en « rail » ; les autres la ferment
-                  // entièrement avec un bouton flottant de réouverture.
-                  final railEnabled = ctcSpaceRailEnabled(_stPostCode);
+                  // Miroir `sidebar_module.html` : sur desktop, la barre se
+                  // réduit en rail d'icônes (68 px) pour tous les rôles ; elle
+                  // ne disparaît jamais entièrement.
                   final sidebar = CtcSidebar(
                     activeView: _activeView,
                     onSelect: (view) => setState(() {
@@ -227,15 +225,13 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                     userName: userName,
                     sections: _navSections,
                     stPostCode: _stPostCode,
-                    railEnabled: railEnabled,
-                    isRail: _railCollapsed,
+                    railEnabled: !compact,
+                    isRail: !compact && _railCollapsed,
                     onRailToggle: () => setState(() {
                       if (compact) {
                         _mobileMenuVisible = false;
-                      } else if (railEnabled) {
-                        _railCollapsed = !_railCollapsed;
                       } else {
-                        _sidebarVisible = false;
+                        _railCollapsed = !_railCollapsed;
                       }
                     }),
                     onLogout: () =>
@@ -245,7 +241,7 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                     children: [
                       Row(
                         children: [
-                          if (!compact && _sidebarVisible) sidebar,
+                          if (!compact) sidebar,
                           Expanded(
                             child: ColoredBox(
                               color: AppColors.page,
@@ -266,37 +262,6 @@ class _CtcScreenState extends ConsumerState<CtcScreen> {
                                       Expanded(child: _buildView()),
                                     ],
                                   ),
-                                  // Miroir du `sidebar-reopen-btn` web : bouton
-                                  // flottant en haut à gauche quand la barre est
-                                  // fermée sur une session desktop.
-                                  if (!compact && !_sidebarVisible)
-                                    Positioned(
-                                      left: 12,
-                                      top: 12,
-                                      child: Material(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Tooltip(
-                                          message: 'Ouvrir le menu',
-                                          child: InkWell(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            onTap: () => setState(
-                                              () => _sidebarVisible = true,
-                                            ),
-                                            child: const Padding(
-                                              padding: EdgeInsets.all(8),
-                                              child: Icon(
-                                                Icons.view_sidebar,
-                                                size: 18,
-                                                color: AppColors.muted,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),

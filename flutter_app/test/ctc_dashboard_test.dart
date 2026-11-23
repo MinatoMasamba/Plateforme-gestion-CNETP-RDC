@@ -259,6 +259,35 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('CTC desktop sidebar collapses to an icon rail for every role', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final previous = ApiClient.dio.httpClientAdapter;
+    ApiClient.dio.httpClientAdapter = _CtcAdapter();
+    addTearDown(() => ApiClient.dio.httpClientAdapter = previous);
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: CtcScreen())),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final sidebar = find.byKey(const ValueKey('ctc-desktop-sidebar'));
+    expect(tester.getSize(sidebar).width, 256);
+    await tester.tap(find.byTooltip('Réduire le menu'));
+    await tester.pump();
+    expect(tester.getSize(sidebar).width, 68);
+    expect(
+      find.descendant(of: sidebar, matching: find.text('Dossiers normatifs')),
+      findsNothing,
+    );
+    await tester.tap(find.byTooltip('Ouvrir le menu'));
+    await tester.pump();
+    expect(tester.getSize(sidebar).width, 256);
+    expect(tester.takeException(), isNull);
+  });
+
   test('CTC navigation follows the server role configuration', () {
     final sections = ctcSectionsFromConfig({
       'principal': [

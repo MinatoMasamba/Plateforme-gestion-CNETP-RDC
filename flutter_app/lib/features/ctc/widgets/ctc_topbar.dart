@@ -97,7 +97,8 @@ class CtcTopbar extends StatelessWidget {
                 if (!compact) const SizedBox(width: 8),
                 if (!compact) const _VerticalTricolor(),
                 SizedBox(width: compact ? 4 : 12),
-                Expanded(
+                Flexible(
+                  fit: compact ? FlexFit.tight : FlexFit.loose,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,6 +120,11 @@ class CtcTopbar extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (!compact) ...[
+                  const SizedBox(width: 8),
+                  _notificationButton(size: 36),
+                  const Spacer(),
+                ],
                 const SizedBox(width: 10),
                 if (showTools)
                   _TopAction(
@@ -140,50 +146,7 @@ class CtcTopbar extends StatelessWidget {
                     color: AppColors.success,
                   ),
                 if (showTools) const SizedBox(width: 10),
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    IconButton(
-                      key: const ValueKey('ctc-notifications-button'),
-                      onPressed: onNotifications,
-                      tooltip: unreadNotifications == null
-                          ? 'Notifications'
-                          : 'Notifications · $unreadNotifications non lue(s)',
-                      icon: const Icon(
-                        Icons.notifications_none,
-                        size: 20,
-                        color: AppColors.muted,
-                      ),
-                    ),
-                    if ((unreadNotifications ?? 0) > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IgnorePointer(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.danger,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              unreadNotifications! > 99
-                                  ? '99+'
-                                  : '$unreadNotifications',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                if (compact) _notificationButton(),
                 if (!compact) const SizedBox(width: 6),
                 if (!compact && onLogout != null) ...[
                   InkWell(
@@ -244,6 +207,53 @@ class CtcTopbar extends StatelessWidget {
       ),
     );
   }
+
+  Widget _notificationButton({double? size}) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      IconButton(
+        key: const ValueKey('ctc-notifications-button'),
+        onPressed: onNotifications,
+        tooltip: unreadNotifications == null
+            ? 'Notifications'
+            : 'Notifications · $unreadNotifications non lue(s)',
+        constraints: size == null
+            ? null
+            : BoxConstraints.tightFor(width: size, height: size),
+        padding: size == null ? null : EdgeInsets.zero,
+        style: IconButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        icon: Icon(
+          Icons.notifications_none,
+          size: size == null ? 20 : 18,
+          color: AppColors.muted,
+        ),
+      ),
+      if ((unreadNotifications ?? 0) > 0)
+        Positioned(
+          right: size == null ? 0 : -4,
+          top: size == null ? 0 : -4,
+          child: IgnorePointer(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.danger,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                unreadNotifications! > 99 ? '99+' : '$unreadNotifications',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+    ],
+  );
 
   static String _initials(String name) {
     final trimmed = name.trim();

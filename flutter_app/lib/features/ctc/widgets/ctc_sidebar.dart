@@ -305,10 +305,11 @@ class CtcSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spaceSections = railEnabled && stPostCode != null
+    final spaceSections = ctcSpaceRailEnabled(stPostCode)
         ? ctcSpaceSections(stPostCode!)
         : sections;
     return Container(
+      key: const ValueKey('ctc-desktop-sidebar'),
       width: _rail ? 68 : 256,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -320,7 +321,7 @@ class CtcSidebar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Align(
-              alignment: Alignment.centerRight,
+              alignment: _rail ? Alignment.center : Alignment.centerRight,
               child: IconButton(
                 tooltip: _rail ? 'Ouvrir le menu' : 'Réduire le menu',
                 padding: const EdgeInsets.all(6),
