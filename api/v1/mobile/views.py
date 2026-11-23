@@ -147,6 +147,7 @@ class MobileAuthViewSet(viewsets.ViewSet):
         ctc ou expert.
         """
         from apps.governance.models import CTCMembership, PilotageMembreship
+        from apps.governance.phoenix_runtime import active_st_mandate
 
         user = request.user
         space = 'public'
@@ -154,9 +155,15 @@ class MobileAuthViewSet(viewsets.ViewSet):
         is_pilotage = False
         ctc_role = None
         pilotage_role = None
+        can_access_coordination = False
 
         expert = Expert.objects.filter(user=user).first()
         if expert:
+            ctc_membership = CTCMembership.objects.filter(expert=expert).first()
+            is_ctc = ctc_membership is not None
+            ctc_role = ctc_membership.role if ctc_membership else None
+            # Même condition que get_ctc_context, utilisée par les API CTC.
+            can_access_coordination = is_ctc or active_st_mandate(expert) is not None
             membership = PilotageMembreship.objects.filter(expert=expert).first()
             if membership:
                 is_pilotage = True
@@ -170,10 +177,7 @@ class MobileAuthViewSet(viewsets.ViewSet):
                     space = 'pilotage_atf'
                 else:
                     space = 'pilotage'
-            elif CTCMembership.objects.filter(expert=expert).exists():
-                ctc_membership = CTCMembership.objects.filter(expert=expert).first()
-                is_ctc = True
-                ctc_role = ctc_membership.role
+            elif can_access_coordination:
                 space = 'ctc'
             else:
                 space = 'expert'
@@ -182,6 +186,7 @@ class MobileAuthViewSet(viewsets.ViewSet):
             'user': MobileUserDetailSerializer(user).data,
             'space': space,
             'is_ctc': is_ctc,
+            'can_access_coordination': can_access_coordination,
             'is_pilotage': is_pilotage,
             'ctc_role': ctc_role,
             'pilotage_role': pilotage_role,

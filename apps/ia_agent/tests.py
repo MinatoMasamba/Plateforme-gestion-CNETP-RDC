@@ -57,6 +57,31 @@ class RegulatoryAdviceServiceTests(SimpleTestCase):
         self.assertFalse(result['success'])
         self.assertIn('Aucun texte', result['error'])
 
+    @patch('apps.ia_agent.services.regulatory_advice.get_llm_client')
+    def test_generate_regulatory_advice_revalidates_markdown_edits(
+        self, mock_get_llm_client
+    ):
+        class DummyLLM:
+            def complete(self, system, messages, tools_spec, force_tool=False):
+                self.system = system
+                return LLMResponse(
+                    stop_reason='end_turn',
+                    text=(
+                        '{"summary":"Correction", "edits":['
+                        '{"find":"**gras**","replace":"**gras",'
+                        '"reason":"Test"}]}'
+                    ),
+                )
+
+        llm = DummyLLM()
+        mock_get_llm_client.return_value = llm
+
+        result = generate_regulatory_advice('Texte **gras**.', 'md')
+
+        self.assertFalse(result['success'])
+        self.assertIn('format CNE-ITP', result['error'])
+        self.assertIn('Markdown CNE-ITP', llm.system)
+
 
 class DeepSeekClientTests(SimpleTestCase):
 

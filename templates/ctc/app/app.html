@@ -139,7 +139,7 @@
                 <div id="view-notifications" class="view-container hidden">{% include "ctc/app/components/notifications_view.html" %}</div>
                 {% if st_matrix_v3 %}<div id="view-travaux" class="view-container hidden">{% include "ctc/app/components/space_records.html" %}</div>{% endif %}
 
-                {% if not st_matrix_v3 or "rapports" in st_allowed_views %}
+                {% if st_matrix_v3 and "rapports" in st_allowed_views %}
 <div id="view-rapports" class="view-container hidden">{% include "ctc/app/components/reports_module.html" %}</div>
 {% endif %}
                 {% if not st_matrix_v3 or "matrice_st" in st_allowed_views %}
@@ -406,7 +406,11 @@
             const spaceHomeViews = new Set(['coordination', 'espace_p1', 'espace_p2', 'espace_p3', 'espace_p4']);
             const visibleId = spaceHomeViews.has(viewId) ? 'coordination' : viewId;
             const target = document.getElementById('view-' + visibleId);
-            if (!target) return;
+            if (!target) {
+                const fallback = window.CTC_CTX?.st_space_home || 'dashboard';
+                if (fallback !== viewId) window.switchView(fallback);
+                return;
+            }
             if (window.stGEDActivate) window.stGEDActivate(viewId, target);
             const current = document.querySelector('.view-container:not(.hidden)');
             document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));

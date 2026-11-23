@@ -506,8 +506,7 @@ def get_ctc_context(expert: Expert) -> dict | None:
             ],
         }
         ctx['sidebar_nav_config'] = sidebar_nav_config
-    if not ctx.get('st_matrix_v3'):
-        ctx['sidebar_nav_config'].setdefault('outils', []).append({'view': 'rapports', 'label': 'Rapports', 'icon': 'file-chart-column'})
+
     return ctx
 
 

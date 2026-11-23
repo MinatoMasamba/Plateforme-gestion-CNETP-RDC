@@ -150,8 +150,8 @@ class AuthController extends StateNotifier<AuthState> {
         space: 'public',
       );
 
-      ClientDiagnostics.clear();
       ApiClient.accessToken = session.access;
+      unawaited(ClientDiagnostics.flush());
       final boot = await _fetchBootstrap();
       final merged = _merge(session, boot);
       await _persist(merged);
@@ -226,6 +226,7 @@ class AuthController extends StateNotifier<AuthState> {
         userType: session.userType,
         space: session.space,
         isCtc: session.isCtc,
+        canAccessCoordination: session.canAccessCoordination,
         isPilotage: session.isPilotage,
         ctcRole: session.ctcRole,
         pilotageRole: session.pilotageRole,
@@ -266,7 +267,13 @@ class AuthController extends StateNotifier<AuthState> {
               error.response?.statusCode == 403) &&
           body is Map &&
           body['code'] == 'token_not_valid';
-      if (_refreshRejected) ApiClient.accessToken = null;
+      if (_refreshRejected) {
+        ApiClient.accessToken = null;
+        ClientDiagnostics.clear();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_prefsKey);
+        if (mounted) state = const AuthState(status: AuthStatus.unauthenticated);
+      }
       return false;
     } catch (_) {
       return false;
@@ -283,6 +290,10 @@ class AuthController extends StateNotifier<AuthState> {
       userType: session.userType,
       space: bootstrap['space'] as String? ?? session.space,
       isCtc: bootstrap['is_ctc'] as bool? ?? session.isCtc,
+      canAccessCoordination:
+          bootstrap['can_access_coordination'] as bool? ??
+          bootstrap['is_ctc'] as bool? ??
+          session.canAccessCoordination,
       isPilotage: bootstrap['is_pilotage'] as bool? ?? session.isPilotage,
       ctcRole: bootstrap['ctc_role'] as String?,
       pilotageRole: bootstrap['pilotage_role'] as String?,

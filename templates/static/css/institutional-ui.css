@@ -68,7 +68,7 @@ body.cnetp-premium main { background: var(--ui-page); }
 .premium-kpi strong.premium-kpi-empty { font-size: 1.1rem; line-height: 1.35; letter-spacing: 0; color: var(--ui-muted); }
 .premium-kpi span { display: block; margin-top: .55rem; font-size: .75rem; color: var(--ui-muted); }
 .premium-chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-.premium-chart-card { min-width: 0; padding: 1.45rem; border: 1px solid var(--ui-border); border-radius: 22px; background: var(--ui-card); box-shadow: var(--ui-shadow); }
+.premium-chart-card { min-width: 0; max-width: 100%; overflow: hidden; padding: 1.45rem; border: 1px solid var(--ui-border); border-radius: 22px; background: var(--ui-card); box-shadow: var(--ui-shadow); }
 .premium-chart-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1.3rem; }
 .premium-chart-heading h3 { margin-top: .15rem; font-size: 1.18rem; line-height: 1.25; font-weight: 700; }
 .premium-chart-total { flex: none; color: var(--ui-muted); font-size: .75rem; }
@@ -91,7 +91,7 @@ body.cnetp-premium main { background: var(--ui-page); }
 .premium-chart-note { margin-top: 1.35rem; color: var(--ui-muted); font-size: .75rem; }
 .premium-chart-empty { min-height: 185px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--ui-border); border-radius: 15px; color: var(--ui-muted); text-align: center; padding: 1.5rem; font-size: .85rem; }
 @media (max-width: 900px) { .premium-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.3rem; } .premium-kpi:nth-child(3) { border-left: 0; padding-left: 0; } }
-@media (max-width: 700px) { .premium-chart-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .premium-chart-grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .premium-kpi-grid { grid-template-columns: 1fr 1fr; } .premium-kpi { padding: .45rem .75rem; } .premium-kpi:nth-child(odd) { padding-left: 0; } .premium-kpi strong { font-size: 1.55rem; } .premium-chart-card { padding: 1rem; } }
 @media (max-width: 767px) { body.cnetp-premium #main-viewport-content .premium-page-title { font-size: 1.75rem !important; line-height: 1.15 !important; } body.cnetp-premium #main-viewport-content .premium-section-title { font-size: 1.3rem !important; } body.cnetp-premium #main-viewport-content .premium-chart-heading h3 { font-size: 1.08rem !important; } }
 @media (prefers-reduced-motion: reduce) { .institutional-primary, .premium-chart-fill { transition: none; } }
@@ -190,7 +190,8 @@ body.cnetp-premium main { background: var(--ui-page); }
 .premium-donut-legend__name > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .premium-donut-legend__dot { width: .62rem; height: .62rem; border-radius: 999px; flex: none; }
 .premium-donut-legend__value { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ui-muted); }
-.premium-mix { display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center; }
+.premium-mix { display: grid; grid-template-columns: minmax(132px, 168px) minmax(0, 1fr); gap: clamp(1rem, 2vw, 1.5rem); align-items: center; min-width: 0; }
+.premium-mix .premium-donut { width: min(168px, 100%); height: auto; aspect-ratio: 1; }
 @media (max-width: 540px) { .premium-mix { grid-template-columns: 1fr; justify-items: center; gap: 1.1rem; } .premium-donut-legend { width: 100%; } }
 
 /* ── Graphique à barres (type "Monthly cash flow") ───────────────────────── */

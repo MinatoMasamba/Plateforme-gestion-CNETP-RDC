@@ -22,6 +22,7 @@ class _Adapter implements HttpClientAdapter {
       meetingClosed = false,
       meetingNotification = false,
       contested = false;
+  int messageUnread = 0;
   String? choice, jetonDecision;
   @override
   Future<ResponseBody> fetch(
@@ -84,6 +85,43 @@ class _Adapter implements HttpClientAdapter {
           {'id': 11, 'ctm_id': 1, 'name': 'WG Qualité'},
         ],
       };
+    } else if (path.endsWith('/experts/7/')) {
+      data = {
+        'id': 7,
+        'status': 'ACTIVE',
+        'user': {
+          'id': 12,
+          'first_name': 'Amina',
+          'last_name': 'Expert',
+          'email': 'amina.expert@example.test',
+          'phone': '+243 900 000 000',
+          'province': 'Kinshasa',
+        },
+        'structure': {
+          'id': 4,
+          'name': 'Structure nationale de normalisation',
+          'acronym': 'SNN',
+          'category': 'Établissement public',
+          'contact_person': 'Direction scientifique',
+          'email': 'contact@snn.test',
+          'phone': '+243 810 000 000',
+        },
+        'specialties': 'Qualité, normalisation et maquette BIM',
+        'inscription_date': '2026-10-12T08:15:00Z',
+        'affectations': [
+          {
+            'ctm_name': 'CTM Qualité',
+            'wg_name': 'WG Structures',
+            'role': 'Membre CTM / Rapporteur WG',
+          },
+        ],
+        'ctm_name': 'CTM Qualité',
+        'appointment_decree_number': 'Arrêté 004/2026',
+        'appointment_date': '2026-10-20',
+        'profile_update_status': 'COMPLETE',
+        'profile_update_submitted_at': '2026-11-01T12:00:00Z',
+        'cv': '/media/cv/amina.pdf',
+      };
     } else if (path.endsWith('/experts/')) {
       data = [
         {
@@ -94,6 +132,8 @@ class _Adapter implements HttpClientAdapter {
           'specialties': 'Qualité',
         },
       ];
+    } else if (path.endsWith('/messages/unread_count/')) {
+      data = {'unread_count': messageUnread};
     } else if (path.endsWith('/messages/contacts/')) {
       data = [];
     } else if (path.endsWith('/meetings/capabilities/')) {
@@ -343,6 +383,100 @@ void main() {
   );
 
   testWidgets(
+    'navigation PC se replie en rail icônes sans changer les actions',
+    (tester) async {
+      tester.view.physicalSize = const Size(1440, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        const ProviderScope(child: MaterialApp(home: ExpertScreen())),
+      );
+      await _flush(tester);
+      expect(tester.takeException(), isNull, reason: 'Avant réduction');
+
+      expect(
+        find.byKey(const ValueKey('expert-desktop-sidebar')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('expert-desktop-sidebar')))
+            .width,
+        280,
+      );
+      expect(find.text('Historique'), findsOneWidget);
+      await tester.tap(find.byTooltip('Réduire le menu'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('expert-desktop-sidebar')))
+            .width,
+        68,
+      );
+      expect(find.text('Historique'), findsNothing);
+      expect(find.byTooltip('Historique'), findsOneWidget);
+      expect(find.byTooltip('Ouvrir le menu'), findsOneWidget);
+      expect(find.byTooltip('Thème'), findsWidgets);
+      expect(find.byTooltip('Notifications'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('messagerie flottante affiche le badge non lu sur mobile', (
+    tester,
+  ) async {
+    adapter.messageUnread = 123;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: ExpertScreen())),
+    );
+    await _flush(tester);
+
+    expect(find.text('MESSAGERIE CNE-ITP'), findsNothing);
+    expect(find.byTooltip('Messagerie CNE-ITP, 123 non lus'), findsOneWidget);
+    expect(find.text('99+'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Messagerie CNE-ITP, 123 non lus' &&
+            widget.properties.button == true &&
+            widget.excludeSemantics,
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('Messagerie CNE-ITP, 123 non lus'));
+    await _flush(tester);
+    expect(find.text('Centre de communication'), findsOneWidget);
+    expect(find.byTooltip('Retour'), findsOneWidget);
+    await tester.tap(find.byTooltip('Retour'));
+    await _flush(tester);
+    expect(find.byTooltip('Messagerie CNE-ITP, 123 non lus'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('création de norme masquée dans le menu mobile', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: ExpertScreen())),
+    );
+    await _flush(tester);
+    await tester.tap(find.byTooltip('Documents'));
+    await _flush(tester);
+
+    expect(find.text('+ Nouveau'), findsNothing);
+    expect(find.text('Normes'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
     'adhésion : choix WG obligatoire, échec conservé, acceptation et rafraîchissement',
     (tester) async {
       var updates = 0;
@@ -408,6 +542,70 @@ void main() {
     await _flush(tester);
     expect(find.text('Amina Expert'), findsOneWidget);
     expect(find.text('Qualité'), findsOneWidget);
+    expect(find.text('Actif'), findsOneWidget);
+    expect(find.text('Désactiver'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('annuaire : fiche experte complète et navigation retour', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_wrap(const ExpertExpertsTab()));
+    await _flush(tester);
+    await _tap(tester, find.text('Voir la fiche'));
+    await _flush(tester);
+
+    expect(find.text('Fiche expert'), findsOneWidget);
+    expect(find.text('Amina Expert'), findsOneWidget);
+    expect(find.text('amina.expert@example.test'), findsOneWidget);
+    expect(find.text('Structure nationale de normalisation'), findsWidgets);
+    expect(find.text('Qualité, normalisation et maquette BIM'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('WG Structures'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('WG Structures'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Arrêté 004/2026'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Arrêté 004/2026'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Curriculum vitæ'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Conforme et vérifié'), findsOneWidget);
+    expect(find.text('Curriculum vitæ'), findsOneWidget);
+    expect(find.byKey(const ValueKey('expert-profile-back')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('expert-profile-back')));
+    await _flush(tester);
+    expect(find.text('Experts & Groupes'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('annuaire : désactivation confirmée avant envoi', (tester) async {
+    adapter.staff = true;
+    await tester.pumpWidget(_wrap(const ExpertExpertsTab()));
+    await _flush(tester);
+    await _tap(tester, find.text('Désactiver'));
+    expect(find.text('Désactiver Amina Expert ?'), findsOneWidget);
+    await _tap(tester, find.text('Annuler'));
+    expect(
+      adapter.requests.any((r) => r.path.endsWith('/deactivate/')),
+      isFalse,
+    );
+    await _tap(tester, find.text('Désactiver'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Désactiver'));
+    expect(
+      adapter.requests.any((r) => r.path.endsWith('/deactivate/')),
+      isTrue,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -476,7 +674,10 @@ void main() {
     await _flush(tester);
     expect(find.text('Cette semaine'), findsOneWidget);
     expect(find.text('Aujourd’hui'), findsOneWidget);
+    expect(find.text('Aucune séance'), findsOneWidget);
+    expect(find.text('Aucune réunion prévue cette semaine.'), findsOneWidget);
     await _tap(tester, find.text('Toutes'));
+    expect(find.text('1 séance'), findsOneWidget);
     expect(find.text('Session qualité'), findsOneWidget);
     expect(find.byTooltip('Ajouter à mon agenda'), findsOneWidget);
     expect(find.text('2027'), findsOneWidget);

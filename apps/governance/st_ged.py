@@ -224,6 +224,7 @@ def index(user, process_id, code_id, source_id, base_version_id, verified, obser
     info = inspect_stored(source.file, source.sha256)
     restored = None
     content = info['text']
+    content_format = 'plain'
     if restore_id:
         if not observation.strip():
             raise ValidationError('Motif de restauration obligatoire.')
@@ -231,11 +232,13 @@ def index(user, process_id, code_id, source_id, base_version_id, verified, obser
         if restored.source_id != source.pk or restored.code_id != code.pk:
             raise ValidationError('Restaurer le fichier et le code de la version sélectionnée.')
         content = restored.version.content
+        content_format = restored.version.content_format
         if metadata is None and restored.metadata:
             defaults = dict(restored.metadata)
     number = (latest.version_number if latest else 0) + 1
     version = NormeVersion.all_objects.create(norme=norm, version_number=number, title=defaults['title'],
-        content=content, summary=observation, version_author=user, is_draft=True)
+        content=content, content_format=content_format, summary=observation,
+        version_author=user, is_draft=True)
     entry = STGEDIndexation.objects.create(process=process, version=version, code=code,
         sc=receipt.sc, group=receipt.group, source=source, report=report,
         observation=observation, metadata=defaults, author=user, restored_from=restored)

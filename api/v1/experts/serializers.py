@@ -100,24 +100,30 @@ class ExpertDetailSerializer(serializers.ModelSerializer):
 
 
 class ExpertListSerializer(serializers.ModelSerializer):
-    """Serializer d'annuaire : identité + rattachement, sans données bancaires.
+    """Serializer d'annuaire : identité et dossier professionnel, sans données bancaires.
 
     Utilisé pour les listes afin de ne pas exposer ``bank_account``,
     ``bank_name`` ou ``mobile_money_number`` à l'ensemble des experts.
     """
     user            = serializers.SerializerMethodField()
     user_name       = serializers.CharField(source='user.get_full_name', read_only=True)
+    structure       = StructureSerializer(read_only=True)
     structure_name  = serializers.CharField(source='structure.name', read_only=True)
     affectations    = serializers.SerializerMethodField()
     ctm_name        = serializers.SerializerMethodField()
+    profile_update_status = serializers.SerializerMethodField()
+    profile_update_submitted_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Expert
         fields = [
             'id', 'user', 'user_name', 'structure', 'structure_name', 'status',
-            'specialties', 'ctm', 'ctm_name', 'affectations', 'inscription_date',
+            'specialties', 'ctm', 'ctm_name', 'affectations',
+            'appointment_decree_number', 'appointment_date', 'cv',
+            'inscription_date', 'activation_date', 'profile_update_status',
+            'profile_update_submitted_at',
         ]
-        read_only_fields = ['id', 'inscription_date']
+        read_only_fields = ['id', 'inscription_date', 'activation_date']
 
     def get_user(self, obj):
         return {
@@ -126,7 +132,17 @@ class ExpertListSerializer(serializers.ModelSerializer):
             'email':      obj.user.email,
             'first_name': obj.user.first_name,
             'last_name':  obj.user.last_name,
+            'phone':      getattr(obj.user, 'phone', ''),
+            'province':   getattr(obj.user, 'province', ''),
         }
+
+    def get_profile_update_status(self, obj):
+        state = getattr(obj, 'profile_update', None)
+        return state.status if state else 'NOT_STARTED'
+
+    def get_profile_update_submitted_at(self, obj):
+        state = getattr(obj, 'profile_update', None)
+        return state.submitted_at if state else None
 
     def get_affectations(self, obj):
         from ..governance.serializers import AffectationSerializer

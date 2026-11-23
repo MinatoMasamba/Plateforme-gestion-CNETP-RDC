@@ -3,32 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import 'workspace_access.dart';
+export 'workspace_access.dart' show spacePath;
 import '../../features/home/home_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/password_reset_screen.dart';
 import '../../features/auth/registration_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/expert/expert_screen.dart';
-
-String spacePath(String space) {
-  if (space == 'ctc' || space.startsWith('pilotage')) return '/acces-restreint';
-  switch (space) {
-    case 'pilotage_directoire':
-      return '/pilotage/directoire';
-    case 'pilotage_conseillers':
-      return '/pilotage/conseillers';
-    case 'pilotage_atf':
-      return '/pilotage/atf';
-    case 'pilotage':
-      return '/pilotage';
-    case 'ctc':
-      return '/ctc';
-    case 'expert':
-      return '/expert';
-    default:
-      return '/';
-  }
-}
+import '../../features/ctc/ctc_screen.dart';
+import '../../features/auth/application_choice_screen.dart';
 
 const _protected = <String>{
   '/pilotage',
@@ -38,6 +22,8 @@ const _protected = <String>{
   '/pilotage/organisation',
   '/ctc',
   '/expert',
+  '/choisir-application',
+  '/acces-restreint',
 };
 
 class _AuthRefresh extends ChangeNotifier {
@@ -58,13 +44,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loc = state.matchedLocation;
       final loggedIn = auth.status == AuthStatus.authenticated;
 
-      // Bêta Expert : aucune route de supervision n'est accessible,
-      // même par lien direct ou depuis une session mémorisée.
-      if (loc == '/ctc' ||
-          loc.startsWith('/ctc/') ||
-          loc == '/pilotage' ||
-          loc.startsWith('/pilotage/')) {
-        return '/acces-restreint';
+      // Les anciens liens Pilotage passent par le sélecteur d'application.
+      // Les API de chaque espace continuent à vérifier les habilitations.
+      if (loc == '/pilotage' || loc.startsWith('/pilotage/')) {
+        return loggedIn ? '/choisir-application' : '/login';
       }
 
       // 1) Session en cours de restauration : on attend avant d'appliquer
@@ -79,12 +62,14 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 2) Authentifié : /splash et /login redirigent vers l'espace.
       if (loggedIn) {
+        final accessRedirect = coordinationAccessRedirect(auth.session, loc);
+        if (accessRedirect != null) return accessRedirect;
         if (loc == '/splash') {
           final to = state.uri.queryParameters['to'];
           if (to != null && to.isNotEmpty) return to;
           return spacePath(auth.session?.space ?? 'public');
         }
-        if (loc == '/login') {
+        if (loc == '/login' || loc == '/') {
           return spacePath(auth.session?.space ?? 'public');
         }
         return null;
@@ -97,7 +82,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/acces-restreint',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        redirect: (_, _) => '/choisir-application',
+      ),
+      GoRoute(
+        path: '/choisir-application',
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
       GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
@@ -112,25 +101,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(
         path: '/pilotage',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
       GoRoute(
         path: '/pilotage/organisation',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
       GoRoute(
         path: '/pilotage/directoire',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
       GoRoute(
         path: '/pilotage/conseillers',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
       GoRoute(
         path: '/pilotage/atf',
-        builder: (_, _) => const _BetaRestrictedScreen(),
+        builder: (_, _) => const ApplicationChoiceScreen(),
       ),
-      GoRoute(path: '/ctc', builder: (_, _) => const _BetaRestrictedScreen()),
+      GoRoute(path: '/ctc', builder: (_, _) => const CtcScreen()),
       GoRoute(
         path: '/expert',
         builder: (context, state) {
@@ -141,37 +130,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-class _BetaRestrictedScreen extends StatelessWidget {
-  const _BetaRestrictedScreen();
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline, size: 40),
-            const SizedBox(height: 16),
-            const Text(
-              'Bêta Expert',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Les espaces CTC et Pilotage ne sont pas accessibles dans cette version.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: () => context.go('/'),
-              child: const Text('Retour à l’accueil'),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}

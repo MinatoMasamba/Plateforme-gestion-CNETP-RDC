@@ -2,6 +2,13 @@ from typing import Tuple
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.norms.rich_text import (
+    FORMAT_MARKDOWN,
+    FORMAT_PLAIN,
+    RichTextValidationError,
+    validate,
+)
+
 from .llm_client import LLMResponse, api_error_message, get_llm_client, unavailable_message
 from .targeted_edits import apply_edits, build_edits_from_proposal, parse_targeted_json
 
@@ -137,11 +144,22 @@ def _build_fallback_advice(text: str) -> tuple[str, str]:
     return explanation, proposal
 
 
-def generate_regulatory_advice(text: str) -> dict:
+def generate_regulatory_advice(
+    text: str,
+    content_format: str = FORMAT_PLAIN,
+) -> dict:
     if not text or not text.strip():
         return {
             'success': False,
             'error': _('Aucun texte fourni pour l’analyse réglementaire.'),
+        }
+
+    try:
+        validate(text, content_format)
+    except RichTextValidationError as exc:
+        return {
+            'success': False,
+            'error': _(f'Le texte ne respecte pas le format CNE-ITP : {exc}'),
         }
 
     provider = 'deepseek'
@@ -160,12 +178,24 @@ def generate_regulatory_advice(text: str) -> dict:
             'fallback': True,
         }
 
+    system_instruction = TARGETED_SYSTEM_INSTRUCTION
+    if content_format == FORMAT_MARKDOWN:
+        system_instruction += (
+            " Le texte d'entrée est en Markdown CNE-ITP. "
+            "Copie les fragments 'find' avec leur mise en forme et conserve tous "
+            "les marqueurs valides dans 'replace'."
+        )
+
     messages = [
         {'role': 'user', 'content': TARGETED_USER_TEMPLATE.format(text=text)},
     ]
 
     try:
-        response: LLMResponse = llm.complete(TARGETED_SYSTEM_INSTRUCTION, messages, tools_spec=None)
+        response: LLMResponse = llm.complete(
+            system_instruction,
+            messages,
+            tools_spec=None,
+        )
     except Exception as exc:
         explanation, proposal = _build_fallback_advice(text)
         return {
@@ -212,6 +242,17 @@ def generate_regulatory_advice(text: str) -> dict:
     applied_text, annotated_edits = apply_edits(text, edits)
     if proposal_out is None:
         proposal_out = applied_text
+
+    try:
+        validate(applied_text, content_format)
+    except RichTextValidationError as exc:
+        return {
+            'success': False,
+            'error': _(
+                'La proposition IA ne respecte pas le format CNE-ITP : '
+                f'{exc}'
+            ),
+        }
 
     return {
         'success': True,

@@ -9,6 +9,7 @@ import 'package:cnetp_app/features/expert/widgets/expert_resources.dart';
 import 'package:cnetp_app/features/expert/widgets/expert_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -123,11 +124,36 @@ Map<String, dynamic> _doc(int id) => {
 };
 
 Widget _wrap(Widget child) => MaterialApp(
+  localizationsDelegates: const [quill.FlutterQuillLocalizations.delegate],
   home: ExpertTheme(
     palette: ExpertPalette.dark,
     child: Scaffold(body: child),
   ),
 );
+
+quill.QuillController _editor(WidgetTester tester) => tester
+    .widget<quill.QuillEditor>(find.byKey(const ValueKey('norm-editor-text')))
+    .controller;
+
+String _editorText(WidgetTester tester) {
+  final value = _editor(tester).document.toPlainText();
+  return value.substring(0, value.length - 1);
+}
+
+Future<void> _type(WidgetTester tester, String value) async {
+  final finder = find.byKey(const ValueKey('norm-editor-text'));
+  await tester.ensureVisible(finder);
+  await tester.tap(finder);
+  await tester.pump();
+  final controller = _editor(tester);
+  controller.replaceText(
+    0,
+    controller.document.length - 1,
+    value,
+    TextSelection.collapsed(offset: value.length),
+  );
+  await tester.pump();
+}
 
 Future<void> _flush(WidgetTester tester) async {
   for (var i = 0; i < 8; i++) {
@@ -183,19 +209,23 @@ void main() {
     await _flush(tester);
   }
 
-  for (final width in [390.0, 704.0, 1400.0]) {
+  for (final width in [704.0, 1400.0]) {
     testWidgets(
       'focus élargit le texte et permet de rouvrir les panneaux à $width',
       (tester) async {
         await start(tester, size: Size(width, 1000));
         expect(tester.takeException(), isNull);
+        expect(
+          find.byKey(const ValueKey('norm-desktop-scrollbar')),
+          findsOneWidget,
+        );
         await tester.tap(text);
         await tester.pumpAndSettle();
         expect(find.text('CONSEIL RÉGLEMENTAIRE IA'), findsNothing);
         expect(find.text('SCRUTIN & ÉVALUATION THÉMATIQUE'), findsNothing);
-        await _tap(tester, find.text('Afficher IA / partage'));
+        await _tap(tester, find.byKey(const ValueKey('editor-ai-toggle')));
         expect(find.text('CONSEIL RÉGLEMENTAIRE IA'), findsOneWidget);
-        await _tap(tester, find.text('Afficher le scrutin'));
+        await _tap(tester, find.byKey(const ValueKey('editor-vote-toggle')));
         expect(find.text('SCRUTIN & ÉVALUATION THÉMATIQUE'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
@@ -208,16 +238,13 @@ void main() {
       var saved = 0;
       final drafts = <String, ExpertDraft>{};
       await start(tester, drafts: drafts, saved: () => saved++);
-      await tester.enterText(text, 'Nouvelle clause');
+      await _type(tester, 'Nouvelle clause');
       await tester.pumpAndSettle();
       await tester.enterText(comment, 'Précision de la clause');
       adapter.failSave = true;
       await _tap(tester, find.text('Sauvegarder la version'));
       expect(saved, 0);
-      expect(
-        tester.widget<TextField>(text).controller!.text,
-        'Nouvelle clause',
-      );
+      expect(_editorText(tester), 'Nouvelle clause');
       expect(drafts['1']!.comment, 'Précision de la clause');
       adapter.failSave = false;
       await _tap(tester, find.text('Sauvegarder la version'));
@@ -227,6 +254,7 @@ void main() {
       expect(request.data, {
         'title': 'Norme 1',
         'content': 'Nouvelle clause',
+        'content_format': 'md',
         'comment': 'Précision de la clause',
       });
       expect(saved, 1);
@@ -235,12 +263,39 @@ void main() {
     },
   );
 
+  for (final width in [320.0, 390.0]) {
+    testWidgets('éditeur mobile en lecture seule à $width', (tester) async {
+      await start(tester, size: Size(width, 1000));
+      final editor = tester.widget<quill.QuillEditor>(text);
+      expect(find.text('TEXTE DE LA NORME'), findsOneWidget);
+      expect(find.text('LECTURE SEULE SUR MOBILE'), findsOneWidget);
+      expect(editor.config.scrollable, isFalse);
+      expect(editor.controller.readOnly, isTrue);
+      expect(find.byKey(const ValueKey('norm-editor-comment')), findsNothing);
+      expect(find.byKey(const ValueKey('norm-save-version')), findsNothing);
+      expect(find.byKey(const ValueKey('norm-reset-version')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('norm-desktop-scrollbar')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('editor-ai-toggle')), findsNothing);
+      expect(find.byKey(const ValueKey('editor-vote-toggle')), findsNothing);
+      expect(find.byType(ExpertResources), findsNothing);
+      expect(tester.testTextInput.isVisible, isFalse);
+      expect(
+        adapter.requests.where((r) => r.path.endsWith('/create_version/')),
+        isEmpty,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('brouillons indépendants et persistants après démontage', (
     tester,
   ) async {
     final drafts = <String, ExpertDraft>{};
     await start(tester, drafts: drafts);
-    await tester.enterText(text, 'Brouillon A');
+    await _type(tester, 'Brouillon A');
     await tester.pumpAndSettle();
     await tester.enterText(comment, 'Commentaire A');
     await tester.pumpWidget(
@@ -255,11 +310,11 @@ void main() {
       ),
     );
     await _flush(tester);
-    expect(tester.widget<TextField>(text).controller!.text, 'Texte initial');
-    await tester.enterText(text, 'Brouillon B');
+    expect(_editorText(tester), 'Texte initial');
+    await _type(tester, 'Brouillon B');
     await tester.pumpWidget(const SizedBox());
     await start(tester, drafts: drafts);
-    expect(tester.widget<TextField>(text).controller!.text, 'Brouillon A');
+    expect(_editorText(tester), 'Brouillon A');
     expect(tester.widget<TextField>(comment).controller!.text, 'Commentaire A');
     expect(drafts['2']!.text, 'Brouillon B');
   });
@@ -280,7 +335,7 @@ void main() {
     await start(tester);
     await _tap(tester, find.text('Analyser & optimiser le texte'));
     await _tap(tester, find.text('Appliquer'));
-    expect(tester.widget<TextField>(text).controller!.text, 'Texte corrigé');
+    expect(_editorText(tester), 'Texte corrigé');
     expect(
       tester.widget<TextField>(comment).controller!.text,
       contains('Assistant IA'),
@@ -294,18 +349,15 @@ void main() {
     await start(tester);
     await tester.tap(find.text('Analyser & optimiser le texte'));
     await _flush(tester);
-    await tester.enterText(text, 'Saisie plus récente');
+    await _type(tester, 'Saisie plus récente');
     adapter.aiGate!.complete();
     await _flush(tester);
-    await _tap(tester, find.text('Afficher IA / partage'));
+    await _tap(tester, find.byKey(const ValueKey('editor-ai-toggle')));
     final apply = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Appliquer'),
     );
     expect(apply.onPressed, isNull);
-    expect(
-      tester.widget<TextField>(text).controller!.text,
-      'Saisie plus récente',
-    );
+    expect(_editorText(tester), 'Saisie plus récente');
   });
 
   testWidgets('réponse IA ignorée après changement de document', (
@@ -328,7 +380,7 @@ void main() {
     adapter.aiGate!.complete();
     await _flush(tester);
     expect(find.text('Une correction'), findsNothing);
-    expect(tester.widget<TextField>(text).controller!.text, 'Texte initial');
+    expect(_editorText(tester), 'Texte initial');
   });
 
   testWidgets('groupes CTM chargés depuis le serveur', (tester) async {
@@ -401,8 +453,10 @@ void main() {
     'sélection partagée avec user_id puis ouverture et réponse dans le chat',
     (tester) async {
       await start(tester);
-      tester.widget<TextField>(text).controller!.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      _editor(tester).updateSelection(
+        const TextSelection(baseOffset: 0, extentOffset: 5),
+        quill.ChangeSource.local,
+      );
       await tester.pump();
       final excerpt = find.byKey(const ValueKey('norm-share-excerpt'));
       expect(tester.widget<TextField>(excerpt).controller!.text, 'Texte');
@@ -426,15 +480,121 @@ void main() {
       );
       final input = find.descendant(
         of: find.byType(ExpertMessaging),
-        matching: find.byType(TextField),
+        matching: find.byKey(const ValueKey('expert-message-composer')),
       );
       await tester.enterText(input, 'Merci pour cette clause');
-      await tester.tap(find.byTooltip('Envoyer'));
+      await tester.testTextInput.receiveAction(TextInputAction.send);
       await _flush(tester);
       expect(adapter.messages.last['content'], 'Merci pour cette clause');
-      await tester.tap(find.byTooltip('Fermer'));
+      await tester.tap(find.byTooltip('Retour'));
       await _flush(tester);
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('la barre d’outils produit du Markdown CNE-ITP invisible', (
+    tester,
+  ) async {
+    await start(tester);
+    final controller = _editor(tester);
+    controller.updateSelection(
+      const TextSelection(baseOffset: 0, extentOffset: 5),
+      quill.ChangeSource.local,
+    );
+    await tester.pump();
+    await _tap(tester, find.byKey(const ValueKey('rich-bold')));
+    await _tap(tester, find.byKey(const ValueKey('rich-style')));
+    await _tap(tester, find.text('Titre 2').last);
+    // Aucun marqueur n’apparaît dans le texte affiché.
+    expect(_editorText(tester), 'Texte initial');
+    await tester.enterText(comment, 'Mise en forme');
+    await _tap(tester, find.text('Sauvegarder la version'));
+    final request = adapter.requests.lastWhere(
+      (r) => r.path.endsWith('/create_version/'),
+    );
+    expect(request.data['content'], '## **Texte** initial');
+    expect(request.data['content_format'], 'md');
+  });
+
+  testWidgets('les liens non sûrs sont refusés par le dialogue', (
+    tester,
+  ) async {
+    await start(tester);
+    _editor(tester).updateSelection(
+      const TextSelection(baseOffset: 0, extentOffset: 5),
+      quill.ChangeSource.local,
+    );
+    await tester.pump();
+    await _tap(tester, find.byKey(const ValueKey('rich-link')));
+    final url = find.byKey(const ValueKey('rich-link-url'));
+    await tester.enterText(url, 'javascript:alert(1)');
+    await _tap(tester, find.byKey(const ValueKey('rich-link-apply')));
+    expect(find.textContaining('Adresse invalide'), findsOneWidget);
+    await tester.enterText(url, 'https://cnetp.cd');
+    await _tap(tester, find.byKey(const ValueKey('rich-link-apply')));
+    expect(_editor(tester).document.toDelta().toJson().first['attributes'], {
+      'link': 'https://cnetp.cd',
+    });
+  });
+
+  testWidgets('lecture mobile : mise en forme rendue et sommaire', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _wrap(
+        ExpertEditorTab(
+          doc: {
+            ..._doc(1),
+            'latest_version': {
+              'content':
+                  '# Domaine\n\nTexte **clé**\n\n## Exigences\n\n- Point',
+              'content_format': 'md',
+            },
+          },
+          loading: false,
+          onSave: () {},
+          onOpenProfile: () {},
+        ),
+      ),
+    );
+    await _flush(tester);
+    expect(_editorText(tester), 'Domaine\n\nTexte clé\n\nExigences\n\nPoint');
+    expect(_editor(tester).readOnly, isTrue);
+    await _tap(tester, find.text('Sommaire (2)'));
+    expect(find.text('Exigences'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('le texte brut historique n’est pas transformé en liste', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        ExpertEditorTab(
+          doc: {
+            ..._doc(1),
+            'latest_version': {
+              'content': '1. Domaine\n**pas gras**',
+              'content_format': 'plain',
+            },
+          },
+          loading: false,
+          onSave: () {},
+          onOpenProfile: () {},
+        ),
+      ),
+    );
+    await _flush(tester);
+    expect(_editorText(tester), '1. Domaine\n**pas gras**');
+    expect(find.byKey(const ValueKey('norm-save-version')), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const ValueKey('norm-save-version')))
+          .onPressed,
+      isNull,
+    );
+  });
 }

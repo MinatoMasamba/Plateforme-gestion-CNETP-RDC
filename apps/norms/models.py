@@ -4,10 +4,18 @@ import unicodedata
 
 from django.db import models
 from django.utils import timezone
+
 from apps.core.models import BaseModel, User
 from apps.governance.models import CTM, WG
 from apps.experts.models import Expert
 from .managers import LegacyNormeManager, LegacyVersionManager
+from .rich_text import (
+    CONTENT_FORMAT_CHOICES,
+    FORMAT_MARKDOWN,
+    FORMAT_PLAIN,
+    parse_blocks,
+    to_plain,
+)
 
 
 class ExpertResource(models.Model):
@@ -218,6 +226,11 @@ class NormeVersion(BaseModel):
     
     title = models.CharField(max_length=500)
     content = models.TextField()  # Stockage du texte intégral
+    content_format = models.CharField(
+        max_length=8,
+        choices=CONTENT_FORMAT_CHOICES,
+        default=FORMAT_PLAIN,
+    )
     document = models.FileField(upload_to='norms/versions/', null=True, blank=True)
     
     # Metadata
@@ -243,7 +256,11 @@ class NormeVersion(BaseModel):
 
     def get_structured_content(self):
         """Retourner une représentation structurée compatible avec le texte brut."""
-        return parse_norme_structure(self.content)
+        return parse_norme_structure(self.content, self.content_format)
+
+    @property
+    def content_plain(self):
+        return to_plain(self.content, self.content_format)
 
 
 class NormeComment(BaseModel):
@@ -472,7 +489,7 @@ class NormeDocumentImport(BaseModel):
         return norme
 
 
-def parse_norme_structure(content):
+def parse_norme_structure(content, content_format=FORMAT_PLAIN):
     """
     Découpage léger du texte en sections, articles et annexes.
     Compatible avec le contenu brut actuel.
@@ -486,6 +503,30 @@ def parse_norme_structure(content):
             current['content'] = '\n\n'.join(current['content']).strip()
             blocks.append(current)
             current = None
+
+    if content_format == FORMAT_MARKDOWN:
+        for rich_block in parse_blocks(content, content_format):
+            if rich_block.kind == 'heading':
+                flush()
+                current = {
+                    'type': (
+                        'annexe'
+                        if rich_block.plain.lower().startswith('annexe ')
+                        else 'section'
+                    ),
+                    'title': rich_block.plain,
+                    'content': [],
+                }
+                continue
+            if current is None:
+                current = {
+                    'type': 'section',
+                    'title': 'Introduction',
+                    'content': [],
+                }
+            current['content'].append(rich_block.plain)
+        flush()
+        return blocks
 
     for raw_line in (content or '').splitlines():
         line = raw_line.rstrip()
@@ -519,7 +560,9 @@ def build_content_blocks(version):
     Le parsing reste compatible avec les normes déjà rédigées en texte libre.
     """
     blocks = []
-    for index, block in enumerate(parse_norme_structure(version.content), start=1):
+    for index, block in enumerate(
+        parse_norme_structure(version.content, version.content_format), start=1
+    ):
         title = block.get('title', '')
         kind = 'ANNEXE' if block.get('type') == 'annexe' else 'SECTION'
         blocks.append(
@@ -535,9 +578,9 @@ def build_content_blocks(version):
     return blocks
 
 
-def structured_content_summary(content):
+def structured_content_summary(content, content_format=FORMAT_PLAIN):
     """Résumé lisible des blocs structurés du texte brut."""
-    blocks = parse_norme_structure(content)
+    blocks = parse_norme_structure(content, content_format)
     return [
         {
             'type': block['type'],

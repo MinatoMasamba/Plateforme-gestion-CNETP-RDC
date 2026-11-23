@@ -1,0 +1,262 @@
+/* Éditeur riche de la norme (/app/) — palette CNE-ITP : #0095c9, #fff24b, #db3832. */
+.cnetp-rt {
+    position: relative;
+}
+
+.cnetp-rt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.cnetp-rt-sep {
+    width: 1px;
+    height: 22px;
+    margin: 0 4px;
+    background: #cbd5e1;
+}
+
+.cnetp-rt-btn,
+.cnetp-rt-select {
+    min-height: 32px;
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: #1e293b;
+    font: 600 12px/1.2 inherit;
+    cursor: pointer;
+}
+
+.cnetp-rt-select {
+    border-color: #cbd5e1;
+    background: #fff;
+}
+
+.cnetp-rt-btn:hover,
+.cnetp-rt-select:hover {
+    background: #e0f2fe;
+}
+
+.cnetp-rt-btn:focus-visible,
+.cnetp-rt-select:focus-visible {
+    outline: 2px solid #0095c9;
+    outline-offset: 1px;
+}
+
+.cnetp-rt-btn.is-active {
+    border-color: #0095c9;
+    background: rgba(0, 149, 201, 0.14);
+    color: #007aa6;
+}
+
+.cnetp-rt-mark {
+    padding: 0 3px;
+    background: #fff24b;
+    color: #0a2540;
+}
+
+.cnetp-rt-primary {
+    background: #0095c9;
+    color: #fff;
+}
+
+.cnetp-rt-primary:hover {
+    background: #007aa6;
+}
+
+.cnetp-rt-editor {
+    height: 24rem;
+    border: 0;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.cnetp-rt-editor .ql-editor {
+    padding: 20px;
+    line-height: 1.7;
+    color: #0f172a;
+}
+
+.cnetp-rt-editor .ql-editor.ql-blank::before {
+    left: 20px;
+    color: #94a3b8;
+}
+
+.cnetp-rt-editor .ql-editor h1 {
+    margin: 14px 0 6px;
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #0a2540;
+}
+
+.cnetp-rt-editor .ql-editor h2 {
+    margin: 12px 0 4px;
+    font-size: 1.3em;
+    font-weight: 800;
+    color: #0a2540;
+}
+
+.cnetp-rt-editor .ql-editor h3 {
+    margin: 10px 0 4px;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #0a2540;
+}
+
+.cnetp-rt-editor .ql-editor blockquote {
+    margin: 6px 0;
+    padding-left: 12px;
+    border-left: 4px solid #0095c9;
+    color: #475569;
+    font-style: italic;
+}
+
+.cnetp-rt-editor .ql-editor a {
+    color: #0095c9;
+    text-decoration: underline;
+}
+
+.cnetp-rt-editor .ql-editor .ql-size-small { font-size: 0.85em; }
+.cnetp-rt-editor .ql-editor .ql-size-large { font-size: 1.3em; }
+.cnetp-rt-editor .ql-editor .ql-size-huge { font-size: 1.6em; }
+
+.cnetp-rt-mini {
+    position: absolute;
+    z-index: 30;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.cnetp-rt-link {
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    z-index: 40;
+    width: min(420px, calc(100% - 24px));
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #1e293b;
+}
+
+.cnetp-rt-link label {
+    display: block;
+    font-weight: 700;
+}
+
+.cnetp-rt-link input {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.cnetp-rt-error {
+    margin-top: 6px;
+    color: #db3832;
+    font-weight: 600;
+}
+
+.cnetp-rt-link-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.cnetp-rt .hidden {
+    display: none !important;
+}
+
+/* Lecture seule (mobile) : pas de barre, texte mis en forme uniquement. */
+.cnetp-rt.is-readonly .cnetp-rt-toolbar,
+.cnetp-rt.is-readonly .cnetp-rt-mini {
+    display: none !important;
+}
+
+.cnetp-rt.is-readonly .cnetp-rt-editor {
+    height: auto;
+    max-height: none;
+}
+
+.dark .cnetp-rt-toolbar {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dark .cnetp-rt-btn,
+.dark .cnetp-rt-select {
+    color: #e2e8f0;
+}
+
+.dark .cnetp-rt-select {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: #0f172a;
+}
+
+.dark .cnetp-rt-btn:hover,
+.dark .cnetp-rt-select:hover {
+    background: rgba(0, 149, 201, 0.2);
+}
+
+.dark .cnetp-rt-btn.is-active {
+    color: #7dd3fc;
+}
+
+.dark .cnetp-rt-sep {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .cnetp-rt-editor .ql-editor {
+    color: #e2e8f0;
+}
+
+.dark .cnetp-rt-editor .ql-editor h1,
+.dark .cnetp-rt-editor .ql-editor h2,
+.dark .cnetp-rt-editor .ql-editor h3 {
+    color: #f8fafc;
+}
+
+.dark .cnetp-rt-editor .ql-editor blockquote {
+    color: #94a3b8;
+}
+
+/* Bleu nuit illisible sur fond sombre : rendu clair, le stockage reste « nuit ». */
+.dark .cnetp-rt-editor .ql-editor [style*="color: rgb(10, 37, 64)"] {
+    color: #f8fafc !important;
+}
+
+/* Le surlignage jaune impose un texte foncé pour rester lisible. */
+.cnetp-rt-editor .ql-editor [style*="background-color: rgb(255, 242, 75)"] {
+    color: #0a2540 !important;
+}
+
+.dark .cnetp-rt-mini,
+.dark .cnetp-rt-link {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.dark .cnetp-rt-link input {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: #020617;
+    color: #e2e8f0;
+}

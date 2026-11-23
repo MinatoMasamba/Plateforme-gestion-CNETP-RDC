@@ -96,7 +96,15 @@ class TestExpertPII:
         _, _ = _make_expert(user_factory, ctm1, wg1, 'viewer2')
         _, target = _make_expert(user_factory, ctm2, wg2, 'target2')
         target.bank_account = 'SECRET-IBAN'
-        target.save(update_fields=['bank_account'])
+        target.appointment_decree_number = 'Arrêté 2026-042'
+        target.specialties = 'Qualité, normalisation'
+        target.save(
+            update_fields=[
+                'bank_account',
+                'appointment_decree_number',
+                'specialties',
+            ]
+        )
 
         viewer = Expert.objects.get(user__username='viewer2').user
         client = APIClient()
@@ -105,6 +113,10 @@ class TestExpertPII:
         resp = client.get(f'/api/v1/experts/{target.id}/')
         assert resp.status_code == 200
         assert 'bank_account' not in resp.data
+        assert resp.data['appointment_decree_number'] == 'Arrêté 2026-042'
+        assert resp.data['user']['phone'] == getattr(target.user, 'phone', '')
+        assert isinstance(resp.data['structure'], dict)
+        assert resp.data['profile_update_status'] == 'NOT_STARTED'
 
 
 @pytest.mark.django_db

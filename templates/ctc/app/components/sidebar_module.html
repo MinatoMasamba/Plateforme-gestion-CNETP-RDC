@@ -1,5 +1,24 @@
 {{ sidebar_nav_config|json_script:"sidebar-nav-config" }}
-<aside id="main-sidebar-aside" class="cnetp-sidebar hidden md:flex fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex-col overflow-y-auto scrollbar-none" style="width: var(--ctc-sidebar-w, 16rem)" data-sidebar-rail="{% if st_post_code == 'ST-V3-11' or st_post_code == 'ST-V3-10' %}true{% else %}false{% endif %}">
+<style>
+@media (min-width: 768px) {
+  .cnetp-sidebar.is-rail { width: 4.25rem !important; min-width: 4.25rem !important; max-width: 4.25rem !important; overflow: hidden; }
+  .cnetp-sidebar.is-rail .sidebar-brand-text,
+  .cnetp-sidebar.is-rail .cnetp-sidebar__heading,
+  .cnetp-sidebar.is-rail .sidebar-nav-btn > span,
+  .cnetp-sidebar.is-rail .sidebar-nav-badge { display: none !important; }
+  .cnetp-sidebar.is-rail nav { padding-left: .65rem; padding-right: .65rem; }
+  .cnetp-sidebar.is-rail .sidebar-nav-btn { justify-content: center; padding-left: .5rem; padding-right: .5rem; position: relative; }
+  .cnetp-sidebar.is-rail .sidebar-brand { padding: .85rem .55rem; }
+  .cnetp-sidebar.is-rail .sidebar-brand > div { flex-direction: column; align-items: center; gap: .45rem; }
+  .cnetp-sidebar.is-rail #sidebar-toggle-btn { margin-left: 0; }
+  .cnetp-sidebar.is-rail .cnetp-sidebar-resize { display: none; }
+  .cnetp-sidebar.is-rail > a { justify-content: center; padding-left: .5rem; padding-right: .5rem; }
+  .cnetp-sidebar.is-rail .sidebar-nav-btn::after { content: attr(title); position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); padding: .35rem .55rem; border-radius: .5rem; background: #142848; color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .16s ease; z-index: 60; }
+  .cnetp-sidebar.is-rail .sidebar-nav-btn:hover::after,
+  .cnetp-sidebar.is-rail .sidebar-nav-btn:focus-visible::after { opacity: 1; }
+}
+</style>
+<aside id="main-sidebar-aside" class="cnetp-sidebar hidden md:flex fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex-col overflow-y-auto scrollbar-none" style="width: var(--ctc-sidebar-w, 16rem)" data-sidebar-rail="true">
   <div class="border-b border-[color:var(--ui-border)] p-4 sidebar-brand">
     <div class="flex items-center gap-2.5">
       <button type="button" id="sidebar-toggle-btn" class="ml-auto p-1.5 rounded-lg text-slate-500 hover:bg-white/70 hover:text-slate-900 shrink-0" title="Réduire le menu" aria-label="Réduire ou ouvrir le menu" aria-expanded="true">

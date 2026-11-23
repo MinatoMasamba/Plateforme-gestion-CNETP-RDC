@@ -1,7 +1,9 @@
 import 'package:cnetp_app/core/diagnostics/client_diagnostics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     ClientDiagnostics.clear();
     ClientDiagnostics.sender = null;
@@ -17,14 +19,20 @@ void main() {
     final sent = <Map<String, dynamic>>[];
     ClientDiagnostics.authenticated = () => false;
     ClientDiagnostics.sender = (data) async => sent.add(data);
-    final message = 'password=private_value Bearer private_bearer me@example.test https://example.org/?token=private_token';
+    final message =
+        'password=private_value Bearer private_bearer me@example.test https://example.org/?token=private_token';
     ClientDiagnostics.report('flutter', message);
     ClientDiagnostics.report('flutter', message);
     expect(sent, isEmpty);
     ClientDiagnostics.authenticated = () => true;
     await ClientDiagnostics.flush();
     expect(sent, hasLength(1));
-    for (final secret in ['private_value', 'private_bearer', 'private_token', 'me@example.test']) {
+    for (final secret in [
+      'private_value',
+      'private_bearer',
+      'private_token',
+      'me@example.test',
+    ]) {
       expect(sent.single['message'], isNot(contains(secret)));
     }
     ClientDiagnostics.clear();
@@ -54,4 +62,27 @@ void main() {
     await ClientDiagnostics.flush();
     expect(sent, isEmpty);
   });
+
+  test(
+    'les incidents survivent au redémarrage et sont retirés après envoi',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      await ClientDiagnostics.initialize();
+      ClientDiagnostics.authenticated = () => false;
+      ClientDiagnostics.report('flutter', 'Incident avant connexion');
+      await ClientDiagnostics.persist();
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('cnetp_pending_diagnostics')!;
+      ClientDiagnostics.clear();
+      await ClientDiagnostics.persist();
+      await prefs.setString('cnetp_pending_diagnostics', saved);
+      await ClientDiagnostics.initialize();
+      final sent = <Map<String, dynamic>>[];
+      ClientDiagnostics.sender = (data) async => sent.add(data);
+      ClientDiagnostics.authenticated = () => true;
+      await ClientDiagnostics.flush();
+      expect(sent.single['message'], 'Incident avant connexion');
+      expect(prefs.getString('cnetp_pending_diagnostics'), '[]');
+    },
+  );
 }

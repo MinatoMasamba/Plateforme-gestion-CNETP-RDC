@@ -1,224 +1,297 @@
 {% load l10n %}
-<section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8" aria-labelledby="ctc-dashboard-title">
-  <div class="flex flex-wrap items-end justify-between gap-4">
-    <div><p class="premium-eyebrow">Secrétariat technique · {{ pole_label }}</p><h2 id="ctc-dashboard-title" class="premium-page-title">Tableau de bord</h2><p class="mt-1 text-sm institutional-muted">Dossiers, assignations et suivi de votre poste.</p></div>
-    <button type="button" onclick="window.switchView('assignations')" class="institutional-primary rounded-lg px-4 py-2 text-sm font-semibold">Mes assignations</button>
-  </div>
-
-  <div class="ctc-card">
-    <div class="ctc-card__head"><h3>Mon rôle et mes droits</h3><span class="ctc-badge ctc-badge--info">{{ pole_label }}</span></div>
-    <p class="ctc-subtitle">{% if poste %}{{ poste.title }}{% else %}{{ pole_label }}{% endif %} · Sous-rôle « {{ ctc_sub_role }} »</p>
-    <div class="ctc-sc-card__meta" style="margin-top:.75rem;">
-      {% if is_direction %}<span class="ctc-badge ctc-badge--success">Acheminement documentaire</span>{% endif %}
-      {% if can_transmit_directoire %}<span class="ctc-badge ctc-badge--success">Transmission au Pilotage</span>{% endif %}
-      {% if can_approve_ctc_requests %}<span class="ctc-badge ctc-badge--success">Demandes à traiter</span>{% endif %}
-      {% if can_legistique_ctc %}<span class="ctc-badge ctc-badge--success">Examen légistique</span>{% endif %}
-      {% if can_translate_iso %}<span class="ctc-badge ctc-badge--success">Conformité ISO</span>{% endif %}
-      {% if can_eco_env_matrix %}<span class="ctc-badge ctc-badge--success">Matrice éco-environnementale</span>{% endif %}
-      {% if can_methodologie_chronogramme %}<span class="ctc-badge ctc-badge--success">Méthodologie & chronogramme</span>{% endif %}
-      {% if can_enquete_publique %}<span class="ctc-badge ctc-badge--success">Enquête publique</span>{% endif %}
-      {% if can_cadrage_industriel %}<span class="ctc-badge ctc-badge--success">Consultation industrielle</span>{% endif %}
-      {% if can_grand_livre %}<span class="ctc-badge ctc-badge--success">Grand livre comptable</span>{% endif %}
-      {% if can_upload_maps %}<span class="ctc-badge ctc-badge--success">Serveur SIG</span>{% endif %}
-      {% if can_admin_system %}<span class="ctc-badge ctc-badge--success">Administration système</span>{% endif %}
-      {% if can_fast_entry %}<span class="ctc-badge ctc-badge--success">Saisie massive</span>{% endif %}
-      {% if readonly_logistique %}<span class="ctc-badge ctc-badge--neutral">Lecture seule logistique</span>{% endif %}
-      {% if must_use_amendment %}<span class="ctc-badge ctc-badge--neutral">Amendement obligatoire</span>{% endif %}
-      {% if blocked_political %}<span class="ctc-badge ctc-badge--neutral">Validations politiques bloquées</span>{% endif %}
-      {% if blocked_scientific_write %}<span class="ctc-badge ctc-badge--neutral">Rédaction technique bloquée</span>{% endif %}
+<section class="institutional-page premium-page premium-canvas mx-auto max-w-7xl space-y-5 p-4 sm:p-6 lg:p-8" aria-labelledby="ctc-dashboard-title">
+  <header class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/40 lg:flex-row lg:items-end lg:justify-between">
+    <div class="min-w-0">
+      <p class="premium-eyebrow">Centre de commande · {{ pole_label }}</p>
+      <h2 id="ctc-dashboard-title" class="premium-page-title">Mon poste, maintenant</h2>
+      <p class="mt-1 text-sm institutional-muted">
+        {% if poste %}{{ poste.title }}{% else %}{{ ctc_sub_role }}{% endif %}
+        {% if st_workday %}· Actualisé le {{ st_workday.generated_at|date:"d/m/Y à H:i" }}{% endif %}
+      </p>
     </div>
-  </div>
-
-  <div class="institutional-card premium-hero p-5 sm:p-7">
-    <p class="premium-eyebrow">Votre activité</p><h3 class="premium-section-title">Vue d'ensemble</h3>
-    <div class="premium-kpi-grid mt-5">
-      <div class="premium-kpi"><p>Dossiers du Secrétariat technique</p><strong>{{ dashboard_dossiers_count }}</strong><span>Enregistrés dans le circuit</span></div>
-      <div class="premium-kpi"><p>Mes assignations</p><strong>{{ dashboard_assignations_count }}</strong><span>Attribuées à votre poste</span></div>
-      <div class="premium-kpi"><p>Normes enregistrées</p><strong>{{ ctc_statistics.catalogue_count }}</strong><span>{{ ctc_statistics.norm_count }} dans les groupes de travail</span></div>
-      <div class="premium-kpi"><p>Tâches en retard</p><strong>{{ ctc_statistics.overdue_count }}</strong><span>Selon leur échéance</span></div>
+    <div class="flex flex-wrap gap-2">
+      {% if assignation_tasks %}
+      <button type="button" onclick="window.switchView('assignations')" class="institutional-primary rounded-lg px-4 py-2 text-sm font-semibold">Traiter mes assignations</button>
+      {% endif %}
+      {% if can_approve_ctc_requests and pending_ctc_requests_count %}
+      <button type="button" onclick="window.switchView('ctc_requests')" class="institutional-secondary rounded-lg px-4 py-2 text-sm font-semibold">Décider les demandes</button>
+      {% endif %}
+      <button type="button" onclick="window.switchView('dossiers')" class="institutional-secondary rounded-lg px-4 py-2 text-sm font-semibold">Ouvrir le circuit</button>
     </div>
+  </header>
+
+  {% if st_workday.alerts or pending_ctc_requests_count or ctc_statistics.overdue_count %}
+  <section aria-labelledby="ctc-dashboard-alerts" class="rounded-2xl border border-amber-300/60 bg-amber-50/90 p-4 dark:border-amber-400/20 dark:bg-amber-400/10">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">Points d'attention</p>
+        <h3 id="ctc-dashboard-alerts" class="mt-1 font-bold text-slate-900 dark:text-white">Ce qui nécessite un arbitrage rapide</h3>
+      </div>
+      {% if pending_ctc_requests_count %}
+      <button type="button" onclick="window.switchView('ctc_requests')" class="text-sm font-bold text-[#007ea8] underline underline-offset-4">Voir {{ pending_ctc_requests_count }} demande{{ pending_ctc_requests_count|pluralize }}</button>
+      {% endif %}
+    </div>
+    <div class="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+      {% for alert in st_workday.alerts|slice:":6" %}
+      <a href="{{ alert.url }}" class="rounded-xl border border-white/70 bg-white/80 p-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="flex items-center justify-between gap-2">
+          <strong class="min-w-0 text-slate-800 dark:text-slate-100">{{ alert.reference }} · {{ alert.title }}</strong>
+          <span class="ctc-badge {% if alert.severity == 'danger' %}ctc-badge--danger{% else %}ctc-badge--warning{% endif %}">{% if alert.severity == 'danger' %}Urgent{% else %}À surveiller{% endif %}</span>
+        </div>
+        <p class="mt-1 text-xs institutional-muted">{{ alert.status }}</p>
+      </a>
+      {% empty %}
+      {% if ctc_statistics.overdue_count %}
+      <button type="button" onclick="window.switchView('assignations')" class="rounded-xl border border-white/70 bg-white/80 p-3 text-left text-sm shadow-sm dark:border-white/10 dark:bg-white/5">
+        <strong class="text-slate-800 dark:text-slate-100">{{ ctc_statistics.overdue_count }} tâche{{ ctc_statistics.overdue_count|pluralize }} en retard</strong>
+        <p class="mt-1 text-xs institutional-muted">Ouvrir les assignations pour arbitrer les échéances.</p>
+      </button>
+      {% endif %}
+      {% if pending_ctc_requests_count %}
+      <button type="button" onclick="window.switchView('ctc_requests')" class="rounded-xl border border-white/70 bg-white/80 p-3 text-left text-sm shadow-sm dark:border-white/10 dark:bg-white/5">
+        <strong class="text-slate-800 dark:text-slate-100">{{ pending_ctc_requests_count }} demande{{ pending_ctc_requests_count|pluralize }} en attente</strong>
+        <p class="mt-1 text-xs institutional-muted">Examiner, approuver ou refuser.</p>
+      </button>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section aria-label="Indicateurs du poste" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <button type="button" onclick="window.switchView('assignations')" class="institutional-card p-4 text-left transition hover:border-[#0095c9]/50">
+      <p class="text-xs font-bold uppercase tracking-wider institutional-muted">À traiter</p>
+      <strong class="mt-2 block text-3xl font-black text-slate-900 dark:text-white">{% if st_workday %}{{ st_workday.counts.todo }}{% else %}{{ dashboard_assignations_count }}{% endif %}</strong>
+      <span class="mt-1 block text-xs institutional-muted">Éléments attribués à votre poste</span>
+    </button>
+    <button type="button" onclick="window.switchView('assignations')" class="institutional-card p-4 text-left transition hover:border-[#db3832]/50">
+      <p class="text-xs font-bold uppercase tracking-wider institutional-muted">Bloqué ou en retard</p>
+      <strong class="mt-2 block text-3xl font-black text-[#db3832]">
+        {% if st_space_dashboard %}{{ st_space_dashboard.kpis.blocked }} / {{ st_space_dashboard.kpis.overdue }}{% else %}{{ ctc_statistics.overdue_count }}{% endif %}
+      </strong>
+      <span class="mt-1 block text-xs institutional-muted">{% if st_space_dashboard %}Bloquées / échéances dépassées{% else %}Échéances dépassées{% endif %}</span>
+    </button>
+    <button type="button" onclick="window.switchView('dossiers')" class="institutional-card p-4 text-left transition hover:border-[#0095c9]/50">
+      <p class="text-xs font-bold uppercase tracking-wider institutional-muted">En attente d'un tiers</p>
+      <strong class="mt-2 block text-3xl font-black text-slate-900 dark:text-white">{% if st_workday %}{{ st_workday.counts.waiting }}{% else %}{{ pending_ctc_requests_count }}{% endif %}</strong>
+      <span class="mt-1 block text-xs institutional-muted">Suivi sans action immédiate de votre part</span>
+    </button>
+    <button type="button" onclick="window.switchView('assignations')" class="institutional-card p-4 text-left transition hover:border-[#fff24b]/70">
+      <p class="text-xs font-bold uppercase tracking-wider institutional-muted">Échéances à 7 jours</p>
+      <strong class="mt-2 block text-3xl font-black text-slate-900 dark:text-white">{% if st_workday %}{{ st_workday.counts.deadlines }}{% else %}{{ ctc_statistics.upcoming_tasks_count|default:"0" }}{% endif %}</strong>
+      <span class="mt-1 block text-xs institutional-muted">Travaux et réunions à anticiper</span>
+    </button>
+  </section>
+
+  <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+    <main class="min-w-0 space-y-5">
+      <section class="institutional-card overflow-hidden" aria-labelledby="ctc-todo-title">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-white/10">
+          <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.16em] text-[#0095c9]">Priorité opérationnelle</p>
+            <h3 id="ctc-todo-title" class="mt-1 text-lg font-bold">À traiter maintenant</h3>
+          </div>
+          <button type="button" onclick="window.switchView('assignations')" class="text-sm font-bold text-[#007ea8] underline underline-offset-4">Toutes les assignations</button>
+        </div>
+        <div class="divide-y divide-slate-200 dark:divide-white/10">
+          {% if st_workday %}
+            {% for item in st_workday.blocks.todo %}
+            <a href="{{ item.url }}" class="grid gap-3 p-4 transition hover:bg-slate-50 dark:hover:bg-white/5 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center">
+              <div>
+                <p class="font-mono text-xs font-bold text-slate-500">{{ item.reference }}</p>
+                <span class="ctc-badge ctc-badge--{{ item.tone }} mt-2">{{ item.status }}</span>
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
+                <p class="mt-1 text-xs institutional-muted">{{ item.kind }}{% if item.due %} · Échéance {{ item.due|date:"d/m/Y" }}{% endif %}</p>
+              </div>
+              <span class="institutional-secondary justify-self-start rounded-lg px-3 py-2 text-xs font-bold sm:justify-self-end">{{ item.action|default:"Ouvrir" }}</span>
+            </a>
+            {% empty %}
+            <div class="p-6">
+              <p class="font-bold">Aucun élément ne vous attend.</p>
+              <p class="mt-1 text-sm institutional-muted">Votre file opérationnelle est à jour.</p>
+            </div>
+            {% endfor %}
+          {% else %}
+            {% for task in assignation_tasks|slice:":8" %}
+            <div class="grid gap-3 p-4 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center">
+              <div>
+                <p class="font-mono text-xs font-bold text-slate-500">{{ task.reference|default:"Sans référence" }}</p>
+                <span class="ctc-badge ctc-badge--info mt-2">{{ task.type_label }}</span>
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-slate-900 dark:text-white">{{ task.title }}</p>
+                <p class="mt-1 text-xs institutional-muted">{{ task.status_display }}{% if task.source_label %} · {{ task.source_label }}{% endif %}</p>
+              </div>
+              {% if task.detail_url %}<a href="{{ task.detail_url }}" class="institutional-primary justify-self-start rounded-lg px-3 py-2 text-xs font-bold sm:justify-self-end">Ouvrir le dossier</a>{% else %}<button type="button" onclick="window.switchView('{{ task.view_target|default:'assignations' }}')" class="institutional-primary justify-self-start rounded-lg px-3 py-2 text-xs font-bold sm:justify-self-end">Traiter</button>{% endif %}
+            </div>
+            {% empty %}
+            <div class="p-6">
+              <p class="font-bold">Aucune assignation active.</p>
+              <p class="mt-1 text-sm institutional-muted">Consultez les dossiers du circuit ou attendez une nouvelle affectation.</p>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="grid gap-5 md:grid-cols-2" aria-label="Attentes et échéances">
+        <article class="institutional-card overflow-hidden">
+          <div class="border-b border-slate-200 p-4 dark:border-white/10">
+            <h3 class="font-bold">En attente d'autres personnes</h3>
+            <p class="mt-1 text-xs institutional-muted">Suivre sans dupliquer le travail.</p>
+          </div>
+          <div class="divide-y divide-slate-200 dark:divide-white/10">
+            {% if st_workday %}
+              {% for item in st_workday.blocks.waiting|slice:":5" %}
+              <a href="{{ item.url }}" class="block p-4 hover:bg-slate-50 dark:hover:bg-white/5">
+                <p class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</p>
+                <p class="mt-1 text-sm font-semibold">{{ item.title }}</p>
+                <p class="mt-1 text-xs institutional-muted">{{ item.status }}</p>
+              </a>
+              {% empty %}
+              <p class="p-4 text-sm institutional-muted">Aucun dossier en attente.</p>
+              {% endfor %}
+            {% else %}
+              {% for req in pending_ctc_requests|slice:":5" %}
+              <button type="button" onclick="window.switchView('ctc_requests')" class="block w-full p-4 text-left hover:bg-slate-50 dark:hover:bg-white/5">
+                <p class="font-mono text-[11px] font-bold text-slate-500">Demande #{{ req.pk }}</p>
+                <p class="mt-1 text-sm font-semibold">{{ req.restricted_resource }}</p>
+                <p class="mt-1 text-xs institutional-muted">{{ req.requester.full_name|default:req.requester.user.email }} · {{ req.get_status_display }}</p>
+              </button>
+              {% empty %}
+              <p class="p-4 text-sm institutional-muted">Aucune demande attribuée à ce poste.</p>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="institutional-card overflow-hidden">
+          <div class="border-b border-slate-200 p-4 dark:border-white/10">
+            <h3 class="font-bold">Échéances de la semaine</h3>
+            <p class="mt-1 text-xs institutional-muted">Travaux et réunions à venir.</p>
+          </div>
+          <div class="divide-y divide-slate-200 dark:divide-white/10">
+            {% if st_workday %}
+              {% for item in st_workday.blocks.deadlines|slice:":5" %}
+              <a href="{{ item.url }}" class="block p-4 hover:bg-slate-50 dark:hover:bg-white/5">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</p>
+                  <span class="text-xs font-bold text-[#db3832]">{% if item.due %}{{ item.due|date:"d/m/Y" }}{% endif %}</span>
+                </div>
+                <p class="mt-1 text-sm font-semibold">{{ item.title }}</p>
+                <p class="mt-1 text-xs institutional-muted">{{ item.status }}</p>
+              </a>
+              {% empty %}
+              <p class="p-4 text-sm institutional-muted">Aucune échéance cette semaine.</p>
+              {% endfor %}
+            {% else %}
+              <p class="p-4 text-sm institutional-muted">Les échéances détaillées sont disponibles dans Mes assignations.</p>
+            {% endif %}
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <aside class="min-w-0 space-y-5" aria-label="Activité récente et supervision">
+      <section class="institutional-card overflow-hidden">
+        <div class="border-b border-slate-200 p-4 dark:border-white/10">
+          <h3 class="font-bold">Activité récente</h3>
+        </div>
+        <div class="divide-y divide-slate-200 dark:divide-white/10">
+          {% if st_workday %}
+            {% for item in st_workday.blocks.recent|slice:":5" %}
+            <a href="{{ item.url }}" class="block p-4 hover:bg-slate-50 dark:hover:bg-white/5">
+              <p class="font-mono text-[11px] font-bold text-slate-500">{{ item.reference }}</p>
+              <p class="mt-1 text-sm font-semibold">{{ item.title }}</p>
+              <p class="mt-1 text-xs institutional-muted">{{ item.status }}</p>
+            </a>
+            {% empty %}<p class="p-4 text-sm institutional-muted">Aucune action récente.</p>{% endfor %}
+          {% else %}
+            {% for dossier in dossiers|slice:":5" %}
+            <a href="{% url 'web:ctc_norme_read' dossier.norme_id %}" class="block p-4 hover:bg-slate-50 dark:hover:bg-white/5">
+              <p class="font-mono text-[11px] font-bold text-slate-500">{{ dossier.norme.reference_number }}</p>
+              <p class="mt-1 text-sm font-semibold">{{ dossier.norme.title }}</p>
+              <p class="mt-1 text-xs institutional-muted">{{ dossier.get_current_stage_display }}</p>
+            </a>
+            {% empty %}<p class="p-4 text-sm institutional-muted">Aucun dossier récent.</p>{% endfor %}
+          {% endif %}
+        </div>
+      </section>
+
+      {% if st_space_dashboard.members %}
+      <section class="institutional-card p-4">
+        <h3 class="font-bold">Charge du pôle</h3>
+        <div class="mt-3 space-y-3">
+          {% for member in st_space_dashboard.members|slice:":6" %}
+          <div class="flex items-center justify-between gap-3 text-sm">
+            <div class="min-w-0">
+              <p class="truncate font-semibold">{{ member.name }}</p>
+              <p class="truncate text-xs institutional-muted">{{ member.title }}</p>
+            </div>
+            <span class="ctc-badge ctc-badge--neutral">{{ member.tasks }} tâche{{ member.tasks|pluralize }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </aside>
   </div>
-  {% include "ctc/app/components/statistics_charts.html" with chart_prefix="dashboard" %}
-  <div class="grid gap-5 xl:grid-cols-2">
-    <section class="institutional-card min-w-0 overflow-hidden" aria-labelledby="ctc-dashboard-assign-title">
-      <div class="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700"><h3 id="ctc-dashboard-assign-title" class="font-bold">Travail attribué</h3><button type="button" onclick="window.switchView('assignations')" aria-label="Voir toutes mes assignations" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Tout voir</button></div>
-      <div class="divide-y divide-slate-200 dark:divide-slate-700">{% for task in assignation_tasks|slice:':5' %}<div class="p-4"><p class="text-xs institutional-muted">{{ task.type_label }} · {{ task.status_display }}</p><p class="mt-1 text-sm font-semibold">{{ task.title }}</p>{% if task.detail_url %}<a href="{{ task.detail_url }}" class="mt-2 inline-block text-sm font-semibold text-blue-700 underline dark:text-blue-300">Ouvrir le dossier</a>{% endif %}</div>{% empty %}<div class="p-4"><p class="text-sm font-semibold">Aucun dossier à réceptionner</p><p class="mt-1 text-sm institutional-muted">Aucune assignation explicite n'attend ce poste.</p></div>{% endfor %}</div>
-    </section>
-    <section class="institutional-card min-w-0 overflow-hidden" aria-labelledby="ctc-dashboard-dossier-title">
-      <div class="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700"><h3 id="ctc-dashboard-dossier-title" class="font-bold">Dossiers normatifs</h3><button type="button" onclick="window.switchView('dossiers')" aria-label="Voir tous les dossiers normatifs" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Tout voir</button></div>
-      <div class="divide-y divide-slate-200 dark:divide-slate-700">{% for dossier in dossiers|slice:':5' %}<div class="grid gap-2 p-4 sm:grid-cols-[1fr_auto] sm:items-center"><div class="min-w-0"><p class="text-xs institutional-muted">{{ dossier.norme.reference_number }} · {{ dossier.get_current_stage_display }}</p><p class="mt-1 text-sm font-semibold">{{ dossier.norme.title }}</p></div><a href="{% url 'web:ctc_norme_read' dossier.norme_id %}" class="text-sm font-semibold text-blue-700 underline dark:text-blue-300">Lire</a></div>{% empty %}<p class="p-4 text-sm institutional-muted">Aucun dossier dans le circuit CTC.</p>{% endfor %}</div>
-    </section>
-  </div>
-  <div class="institutional-card flex flex-wrap items-center justify-between gap-3 p-4"><div class="flex items-center gap-4"><div><h3 class="font-bold">Suivi statistique</h3><p class="mt-1 text-sm institutional-muted">{{ ctc_statistics.sc_count }} sous-commissions et CTM · {{ ctc_statistics.group_count }} groupes suivis.</p></div>{% if ctc_statistics.global_performance is not None %}<div class="premium-donut premium-donut--value premium-donut--sm" style="--donut-value: {{ ctc_statistics.global_performance|unlocalize }}; --donut-color: {{ ctc_statistics.global_color }}" aria-label="Performance globale {{ ctc_statistics.global_performance }} pour cent"><div class="premium-donut__ring"></div><div class="premium-donut__center"><span class="premium-donut__value">{{ ctc_statistics.global_performance }}%</span></div></div>{% endif %}</div><button type="button" onclick="window.switchView('statistiques')" class="text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">Consulter dans la CTC</button></div>
-  {% if is_direction %}<details class="institutional-card p-4"><summary class="cursor-pointer font-bold">Acheminement documentaire</summary><div class="mt-4">{% include "ctc/composants/hub_routage_documentaire.html" %}</div></details>{% endif %}
-  <h3 class="border-b border-slate-200 pb-2 text-lg font-bold dark:border-slate-700">Outils de votre poste</h3>
-  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {% if can_translate_iso or can_legistique_ctc or can_eco_env_matrix or can_methodologie_chronogramme %}
-        <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
-                <div class="bg-amber-100 text-amber-700 p-1.5 rounded dark:bg-amber-500/10 dark:text-amber-400"><i data-lucide="scale" class="w-4 h-4"></i></div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white leading-tight">Pôle Analyse</h3>
-            </div>
-        </div>
-        {% endif %}
 
-        {% if can_translate_iso %}
-        <div id="widget-traduction-iso" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="globe" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Conformité Internationale & Traduction</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/widget_traduction_iso.html" %}</div>
+  <section class="institutional-card p-4 sm:p-5" aria-labelledby="ctc-dashboard-insights">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="premium-eyebrow">Lecture du circuit</p>
+        <h3 id="ctc-dashboard-insights" class="mt-1 text-lg font-bold">Statistiques et tendances du poste</h3>
+        <p class="mt-1 text-sm institutional-muted">Les graphiques restent visibles pour suivre la production après le traitement des priorités.</p>
+      </div>
+      <button type="button" onclick="window.switchView('statistiques')" class="institutional-secondary rounded-lg px-4 py-2 text-sm font-semibold">Analyse détaillée</button>
+    </div>
+    <style>
+      .ctc-dashboard-charts { min-width: 0; max-width: 100%; }
+      .ctc-dashboard-charts .premium-chart-grid { min-width: 0; }
+      .ctc-dashboard-charts .premium-chart-card,
+      .ctc-dashboard-charts .premium-mix,
+      .ctc-dashboard-charts .premium-donut-legend { min-width: 0; max-width: 100%; }
+      .ctc-dashboard-charts .premium-chart-card { overflow: hidden; }
+      .ctc-dashboard-charts .premium-donut { width: min(168px, 100%); height: auto; aspect-ratio: 1; }
+      @media (max-width: 1100px) {
+        .ctc-dashboard-charts .premium-chart-grid { grid-template-columns: minmax(0, 1fr); }
+      }
+      @media (max-width: 540px) {
+        .ctc-dashboard-charts .premium-mix { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+        .ctc-dashboard-charts .premium-donut-legend { width: 100%; }
+      }
+    </style>
+    <div class="ctc-dashboard-charts mt-5">
+      {% include "ctc/app/components/statistics_charts.html" with chart_prefix="dashboard" %}
+      <div class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,auto)_minmax(12rem,auto)]">
+        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/10 dark:bg-white/5">
+          <p class="text-xs font-black uppercase tracking-wider institutional-muted">Synthèse</p>
+          <p class="mt-2 text-sm font-semibold">{{ ctc_statistics.sc_count }} sous-commissions/CTM · {{ ctc_statistics.group_count }} groupes suivis</p>
+          {% if ctc_statistics.global_performance is not None %}
+          <p class="mt-2 text-sm institutional-muted">Performance globale : <strong class="text-slate-900 dark:text-white">{{ ctc_statistics.global_performance }} %</strong></p>
+          {% endif %}
         </div>
-        {% endif %}
-
-        {% if can_legistique_ctc %}
-        <div id="widget-legistique" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="scale" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Contrôle de Légistique</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_legistique_ctc.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_eco_env_matrix %}
-        <div id="widget-eco-env" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="leaf" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Sauvegardes Éco-Environnementales</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/matrice_impacts_eco_env.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_methodologie_chronogramme %}
-        <div id="widget-methodologie" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-1 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="calendar-days" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-tight">Méthodologie & Chronogramme</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/methodologie_chronogramme.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_enquete_publique or can_cadrage_industriel or ctc_sub_role == 'communicateur' or can_grand_livre %}
-        <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
-                <div class="bg-teal-100 text-teal-700 p-1.5 rounded dark:bg-teal-500/10 dark:text-teal-400"><i data-lucide="users" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Pôle Logistique</h3>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if can_enquete_publique %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="users" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Modération de l'Enquête Publique (Art. 12)</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_enquete_publique.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_cadrage_industriel %}
-        <div id="widget-cadrage-industriel" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="briefcase" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Liaison Industrielle (FEC)</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/livre_cadrage_industriel.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if ctc_sub_role == 'communicateur' %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-1 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="megaphone" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Communication & Vulgarisation</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">
-                <div class="h-full min-h-[220px] flex flex-col items-center justify-center p-4 text-center">
-                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 mb-3 dark:bg-white/5">
-                        <i data-lucide="construction" class="w-5 h-5"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Module en développement</h4>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">L'éditeur de communiqués et de campagnes de vulgarisation sera disponible prochainement.</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if can_grand_livre %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Finances & Comptabilité (GAF)</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/grand_livre_comptable.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_fast_entry or can_upload_maps or can_admin_system %}
-        <div class="col-span-full border-t border-slate-200 pt-5 mt-4 mb-1 dark:border-white/5">
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-white/5">
-                <div class="bg-slate-100 text-slate-700 p-1.5 rounded dark:bg-white/5 dark:text-slate-400"><i data-lucide="server" class="w-4 h-4"></i></div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-white">Bureau d'Appui (Pôle Technique)</h3>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if can_fast_entry %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="type" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Saisie Massive & Indexation Documentaire</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/interface_saisie_massive.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_upload_maps %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="map" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Serveur Géospatial / SIG (Amarrage)</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/serveur_sig.html" %}</div>
-        </div>
-        {% endif %}
-
-        {% if can_admin_system %}
-        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-3 dark:bg-black/30 dark:border-white/10 dark:shadow-none animate-fadeIn">
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 dark:bg-black/40 dark:border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="server" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Administration Système & Dépôt (IT)</h3>
-                </div>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto">{% include "ctc/composants/console_admin_systeme.html" %}</div>
-        </div>
-        {% endif %}
-
-  </div>
+        <button type="button" onclick="window.switchView('experts')" class="institutional-secondary w-full rounded-lg px-4 py-3 text-left text-sm font-semibold">Consulter les experts<br><span class="text-xs font-normal institutional-muted">Annuaire et affectations</span></button>
+        <button type="button" onclick="window.switchView('tracabilite')" class="institutional-secondary w-full rounded-lg px-4 py-3 text-left text-sm font-semibold">Ouvrir la traçabilité<br><span class="text-xs font-normal institutional-muted">Historique des décisions</span></button>
+      </div>
+    </div>
+  </section>
 </section>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const switchView = window.switchView;
+    if (typeof switchView !== 'function') return;
+    window.switchView = function(viewId) {
+      const spaceHomes = new Set(['coordination', 'espace_p1', 'espace_p2', 'espace_p3', 'espace_p4']);
+      const visibleId = spaceHomes.has(viewId) ? 'coordination' : viewId;
+      const fallback = window.CTC_CTX?.st_space_home || 'dashboard';
+      return switchView.call(window, document.getElementById('view-' + visibleId) ? viewId : fallback);
+    };
+    if (!document.getElementById('view-' + window.location.hash.slice(1))) {
+      window.switchView(window.CTC_CTX?.st_space_home || 'dashboard');
+    }
+  }, { once: true });
+</script>

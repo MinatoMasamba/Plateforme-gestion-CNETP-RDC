@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cnetp_app/core/api/api_client.dart';
 import 'package:cnetp_app/core/auth/auth_controller.dart';
 import 'package:cnetp_app/core/auth/session.dart';
+import 'package:cnetp_app/core/diagnostics/client_diagnostics.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,8 @@ class _AuthAdapter implements HttpClientAdapter {
   bool offline = false;
   bool failBootstrapAfterRefresh = false;
   bool invalidRefresh = false;
+  bool ctcMembership = true;
+  bool? coordinationAccess;
   final refreshFinished = Completer<void>();
 
   ResponseBody json(Map<String, dynamic> body, [int status = 200]) =>
@@ -57,6 +60,13 @@ class _AuthAdapter implements HttpClientAdapter {
           : json({'access': 'fresh', 'refresh': 'refresh-rotated'});
     }
     if (options.path.endsWith('/logout/')) return json({});
+    if (options.path.endsWith('/login/')) {
+      return json({
+        'access': 'fresh',
+        'refresh': 'refresh-new',
+        'user': {'id': 1, 'email': 'ctc@example.test', 'user_type': 'CTC'},
+      });
+    }
     if (options.headers['Authorization'] == 'Bearer old') {
       return json({'code': 'token_not_valid'}, 403);
     }
@@ -64,7 +74,12 @@ class _AuthAdapter implements HttpClientAdapter {
       if (failBootstrapAfterRefresh) {
         return json({'detail': 'Indisponible'}, 503);
       }
-      return json({'space': 'ctc', 'is_ctc': true});
+      return json({
+        'space': 'ctc',
+        'is_ctc': ctcMembership,
+        if (coordinationAccess != null)
+          'can_access_coordination': coordinationAccess,
+      });
     }
     return json({'ok': true});
   }
@@ -130,6 +145,48 @@ void main() {
     controller.dispose();
   });
 
+  for (final allowed in [false, true]) {
+    test('le bootstrap fournit la capacité Coordination $allowed', () async {
+      adapter.ctcMembership = !allowed;
+      adapter.coordinationAccess = allowed;
+      final controller = AuthController(
+        initialState: await AuthController.loadInitialState(),
+      );
+      addTearDown(controller.dispose);
+      await ApiClient.dio.get('/api/v1/st/ged/');
+      expect(controller.state.session?.canAccessCoordination, allowed);
+      expect(
+        (await AuthController.loadInitialState())
+            .session
+            ?.canAccessCoordination,
+        allowed,
+      );
+    });
+  }
+
+  test('Login sends diagnostics queued before authentication', () async {
+    ClientDiagnostics.clear();
+    ApiClient.accessToken = null;
+    final sent = <Map<String, dynamic>>[];
+    ClientDiagnostics.authenticated = () => ApiClient.accessToken != null;
+    ClientDiagnostics.sender = (event) async => sent.add(event);
+    addTearDown(() {
+      ClientDiagnostics.clear();
+      ClientDiagnostics.authenticated = null;
+      ClientDiagnostics.sender = null;
+    });
+    ClientDiagnostics.report('flutter', 'Incident avant connexion');
+    expect(sent, isEmpty);
+    final controller = AuthController(
+      initialState: const AuthState(status: AuthStatus.unauthenticated),
+    );
+    addTearDown(controller.dispose);
+    await controller.login('ctc@example.test', 'test-password');
+    await ClientDiagnostics.flush();
+    expect(controller.state.status, AuthStatus.authenticated);
+    expect(sent.single['message'], 'Incident avant connexion');
+  });
+
   test('Rotated refresh survives a temporary bootstrap failure', () async {
     adapter.failBootstrapAfterRefresh = true;
     final controller = AuthController(
@@ -151,7 +208,8 @@ void main() {
     );
     final signedOut = Completer<void>();
     controller.addListener((state) {
-      if (state.status == AuthStatus.unauthenticated && !signedOut.isCompleted) {
+      if (state.status == AuthStatus.unauthenticated &&
+          !signedOut.isCompleted) {
         signedOut.complete();
       }
     });
@@ -162,5 +220,27 @@ void main() {
       AuthStatus.unauthenticated,
     );
     controller.dispose();
+  });
+
+  test('Rejected refresh during an authenticated request signs out', () async {
+    final controller = AuthController(
+      initialState: await AuthController.loadInitialState(),
+    );
+    addTearDown(controller.dispose);
+    await ApiClient.dio.get('/api/v1/st/ged/');
+    expect(controller.state.status, AuthStatus.authenticated);
+
+    adapter.invalidRefresh = true;
+    ApiClient.accessToken = 'old';
+    await expectLater(
+      ApiClient.dio.get('/api/v1/st/ged/queue/'),
+      throwsA(isA<DioException>()),
+    );
+
+    expect(controller.state.status, AuthStatus.unauthenticated);
+    expect(
+      (await AuthController.loadInitialState()).status,
+      AuthStatus.unauthenticated,
+    );
   });
 }

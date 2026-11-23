@@ -279,7 +279,12 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
     return SingleChildScrollView(
-      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 16 : 24),
+      padding: EdgeInsets.fromLTRB(
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        expertFabClearance,
+      ),
       child: Align(
         alignment: Alignment.topLeft,
         child: ConstrainedBox(
@@ -311,7 +316,10 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                   if ('${_expert['cv'] ?? ''}'.isNotEmpty)
                     Text(
                       'CV enregistré',
-                      style: TextStyle(fontSize: 13, color: p.green),
+                      style: TextStyle(
+                        fontSize: ExpertType.meta,
+                        color: p.green,
+                      ),
                     ),
                 ],
               ),
@@ -387,7 +395,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                       label: const Text(
                         'SAUVEGARDER',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: ExpertType.meta,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
                         ),
@@ -424,7 +432,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               Text(
                 'MON PROFIL EXPERT',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: ExpertType.body,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
                   color: p.title,
@@ -433,7 +441,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               const SizedBox(height: 3),
               Text(
                 'Mettez à jour vos informations personnelles et professionnelles.',
-                style: TextStyle(fontSize: 12, color: p.muted),
+                style: TextStyle(fontSize: ExpertType.meta, color: p.muted),
               ),
             ],
           ),
@@ -505,7 +513,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                 child: Text(
                   'Choisir ma sous-commission et mon groupe de travail',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ExpertType.body,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     decoration: TextDecoration.underline,
@@ -516,7 +524,10 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               const SizedBox(width: 8),
               const Text(
                 '→',
-                style: TextStyle(fontSize: 12, color: Colors.white),
+                style: TextStyle(
+                  fontSize: ExpertType.meta,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -601,7 +612,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               dense: true,
               title: Text(
                 '${wg['name']}',
-                style: TextStyle(color: p.text, fontSize: 14),
+                style: TextStyle(color: p.text, fontSize: ExpertType.body),
               ),
               value: _selectedWgs.contains('${wg['id']}'),
               onChanged: _saving
@@ -705,8 +716,8 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           child: Text(
             "Le rôle réglementaire est attribué par l'administrateur du CNE-ITP et ne peut être modifié depuis cette interface.",
             style: TextStyle(
-              fontSize: 13,
-              height: 1.6,
+              fontSize: ExpertType.body,
+              height: ExpertType.bodyHeight,
               color: p.isDark ? p.amber : const Color(0xFF92400E),
             ),
           ),
@@ -796,7 +807,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                     child: Text(
                       "Installer l'application",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: ExpertType.body,
                         fontWeight: FontWeight.w600,
                         color: p.text,
                       ),
@@ -807,7 +818,11 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               const SizedBox(height: 8),
               Text(
                 "Ajoutez CNE-ITP à votre écran d’accueil. La consultation des données et les contributions nécessitent une connexion.",
-                style: TextStyle(fontSize: 12, height: 1.6, color: p.muted),
+                style: TextStyle(
+                  fontSize: ExpertType.body,
+                  height: ExpertType.bodyHeight,
+                  color: p.muted,
+                ),
               ),
               const SizedBox(height: 10),
               SizedBox(
@@ -840,7 +855,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                   label: const Text(
                     "COMMENT INSTALLER",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: ExpertType.meta,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
@@ -879,7 +894,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                 child: Text(
                   number,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: ExpertType.label,
                     fontWeight: FontWeight.w900,
                     color: color,
                   ),
@@ -887,13 +902,15 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
               ),
             ),
             const SizedBox(width: 7),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.1,
-                color: color,
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: ExpertType.label,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
+                  color: color,
+                ),
               ),
             ),
           ],
@@ -923,7 +940,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              fontSize: 9,
+              fontSize: ExpertType.label,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.4,
               color: p.muted,
@@ -948,7 +965,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                           controller: controller,
                           onChanged: onChanged,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: ExpertType.body,
                             fontFamily: monospace ? 'monospace' : null,
                             fontWeight: FontWeight.w600,
                             color: p.text,
@@ -957,7 +974,10 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                             isDense: true,
                             border: InputBorder.none,
                             hintText: hint,
-                            hintStyle: TextStyle(fontSize: 13, color: p.subtle),
+                            hintStyle: TextStyle(
+                              fontSize: ExpertType.meta,
+                              color: p.subtle,
+                            ),
                             contentPadding: const EdgeInsets.symmetric(
                               vertical: 9,
                             ),
@@ -970,7 +990,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: ExpertType.body,
                             fontWeight: FontWeight.w600,
                             color: p.subtle,
                           ),
@@ -981,7 +1001,10 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           ),
           if (helper != null) ...[
             const SizedBox(height: 4),
-            Text(helper, style: TextStyle(fontSize: 9, color: p.subtle)),
+            Text(
+              helper,
+              style: TextStyle(fontSize: ExpertType.label, color: p.subtle),
+            ),
           ],
         ],
       ),
@@ -1001,7 +1024,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              fontSize: 9,
+              fontSize: ExpertType.label,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.4,
               color: p.muted,
@@ -1023,7 +1046,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: ExpertType.body,
                 fontWeight: FontWeight.w600,
                 color: p.muted,
               ),
@@ -1055,7 +1078,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              fontSize: 9,
+              fontSize: ExpertType.label,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.4,
               color: p.muted,
@@ -1083,13 +1106,16 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
                       dropdownColor: p.card,
                       icon: Icon(Icons.expand_more, size: 16, color: p.subtle),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: ExpertType.body,
                         fontWeight: FontWeight.w600,
                         color: enabled ? p.text : p.muted,
                       ),
                       hint: Text(
                         'Sélectionnez',
-                        style: TextStyle(fontSize: 13, color: p.subtle),
+                        style: TextStyle(
+                          fontSize: ExpertType.meta,
+                          color: p.subtle,
+                        ),
                       ),
                       items: [
                         for (final item in cleaned)
@@ -1111,7 +1137,10 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
           ),
           if (helper != null) ...[
             const SizedBox(height: 4),
-            Text(helper, style: TextStyle(fontSize: 9, color: p.subtle)),
+            Text(
+              helper,
+              style: TextStyle(fontSize: ExpertType.label, color: p.subtle),
+            ),
           ],
         ],
       ),
@@ -1139,7 +1168,7 @@ class _ExpertProfileTabState extends State<ExpertProfileTab> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: ExpertType.body,
                 fontWeight: FontWeight.w600,
                 color: p.text,
               ),

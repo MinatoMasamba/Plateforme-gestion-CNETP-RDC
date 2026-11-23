@@ -77,6 +77,8 @@ def test_api_version_creation_records_the_authenticated_user_and_redacts_content
     )
 
     assert response.status_code == 201
+    assert response.json()['content_format'] == 'plain'
+    assert response.json()['content_plain'] == confidential_text
     log = AuditLog.objects.get(content_type='norms.NormeVersion')
     assert log.user_id == ctc_actor.user_id
     assert log.changes['channel'] == 'API'
@@ -85,6 +87,47 @@ def test_api_version_creation_records_the_authenticated_user_and_redacts_content
     supervision = build_ctc_supervision(RequestFactory().get('/pilotage/'))['ctc_supervision']
     assert supervision['document_count'] == 1
     assert sum(event['document_event'] for event in supervision['page']) == 1
+
+
+@pytest.mark.django_db
+def test_api_version_creation_validates_cnetp_markdown(client, ctc_actor, norme_factory):
+    norme = norme_factory()
+    CTCProcessus.objects.create(norme=norme)
+    client.force_login(ctc_actor.user)
+    content = (
+        '# Domaine\n\n'
+        'La présente norme **s’applique** aux '
+        '[travaux](https://example.cd/travaux).'
+    )
+
+    response = client.post(
+        f'/api/v1/norms/{norme.pk}/create_version/',
+        {
+            'title': 'Version enrichie',
+            'content': content,
+            'content_format': 'md',
+        },
+        content_type='application/json',
+    )
+
+    assert response.status_code == 201
+    assert response.json()['content_format'] == 'md'
+    assert response.json()['content_plain'] == (
+        'Domaine\n\nLa présente norme s’applique aux travaux.'
+    )
+
+    rejected = client.post(
+        f'/api/v1/norms/{norme.pk}/create_version/',
+        {
+            'title': 'Version invalide',
+            'content': '[Ouvrir](javascript:alert(1))',
+            'content_format': 'md',
+        },
+        content_type='application/json',
+    )
+
+    assert rejected.status_code == 400
+    assert 'content' in rejected.json()
 
 
 @pytest.mark.django_db

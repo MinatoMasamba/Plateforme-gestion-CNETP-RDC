@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/api/api_client.dart';
@@ -12,6 +14,7 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ClientDiagnostics.initialize();
   ClientDiagnostics.authenticated = () =>
       ApiClient.accessToken?.isNotEmpty == true;
   ClientDiagnostics.sender = (report) async {
@@ -60,6 +63,8 @@ class _CnetpAppState extends ConsumerState<CnetpApp> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(
+      onResume: () => unawaited(ClientDiagnostics.flush()),
+      onHide: () => unawaited(ClientDiagnostics.persist()),
       onDetach: () => unawaited(ApiClient.dispose()),
     );
   }
@@ -77,6 +82,18 @@ class _CnetpAppState extends ConsumerState<CnetpApp> {
       title: 'CNE-ITP',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        quill.FlutterQuillLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('fr'), Locale('en')],
+      locale: const Locale('fr'),
+      builder: (context, child) => ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(bottom: false, child: child ?? const SizedBox.shrink()),
+      ),
       routerConfig: router,
     );
   }

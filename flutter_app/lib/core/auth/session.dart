@@ -9,10 +9,11 @@ class Session {
     required this.userType,
     required this.space,
     this.isCtc = false,
+    bool? canAccessCoordination,
     this.isPilotage = false,
     this.ctcRole,
     this.pilotageRole,
-  });
+  }) : canAccessCoordination = canAccessCoordination ?? isCtc;
 
   final String access;
   final String refresh;
@@ -26,35 +27,40 @@ class Session {
   final String space;
 
   final bool isCtc;
+
+  /// Capacité issue du bootstrap serveur ; le rôle administrateur ne suffit pas.
+  final bool canAccessCoordination;
   final bool isPilotage;
   final String? ctcRole;
   final String? pilotageRole;
 
   Map<String, dynamic> toJson() => {
-        'access': access,
-        'refresh': refresh,
-        'userId': userId,
-        'email': email,
-        'fullName': fullName,
-        'userType': userType,
-        'space': space,
-        'isCtc': isCtc,
-        'isPilotage': isPilotage,
-        'ctcRole': ctcRole,
-        'pilotageRole': pilotageRole,
-      };
+    'access': access,
+    'refresh': refresh,
+    'userId': userId,
+    'email': email,
+    'fullName': fullName,
+    'userType': userType,
+    'space': space,
+    'isCtc': isCtc,
+    'canAccessCoordination': canAccessCoordination,
+    'isPilotage': isPilotage,
+    'ctcRole': ctcRole,
+    'pilotageRole': pilotageRole,
+  };
 
   factory Session.fromJson(Map<String, dynamic> json) => Session(
-        access: json['access'] as String? ?? '',
-        refresh: json['refresh'] as String? ?? '',
-        userId: json['userId'] as int? ?? 0,
-        email: json['email'] as String? ?? '',
-        fullName: json['fullName'] as String? ?? '',
-        userType: json['userType'] as String? ?? 'public',
-        space: json['space'] as String? ?? 'public',
-        isCtc: json['isCtc'] as bool? ?? false,
-        isPilotage: json['isPilotage'] as bool? ?? false,
-        ctcRole: json['ctcRole'] as String?,
-        pilotageRole: json['pilotageRole'] as String?,
-      );
+    access: json['access'] as String? ?? '',
+    refresh: json['refresh'] as String? ?? '',
+    userId: json['userId'] as int? ?? 0,
+    email: json['email'] as String? ?? '',
+    fullName: json['fullName'] as String? ?? '',
+    userType: json['userType'] as String? ?? 'public',
+    space: json['space'] as String? ?? 'public',
+    isCtc: json['isCtc'] as bool? ?? false,
+    canAccessCoordination: json['canAccessCoordination'] as bool?,
+    isPilotage: json['isPilotage'] as bool? ?? false,
+    ctcRole: json['ctcRole'] as String?,
+    pilotageRole: json['pilotageRole'] as String?,
+  );
 }

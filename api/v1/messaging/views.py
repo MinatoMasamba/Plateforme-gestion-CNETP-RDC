@@ -1,11 +1,12 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .serializers import MessageSerializer
+from .serializers import ConversationSerializer, MessageSerializer
 from apps.messaging.models import Message
 from apps.experts.models import Expert
 from ..permissions import IsMemberOfAnySharedCTM
@@ -129,6 +130,62 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def conversations(self, request):
+        """Contacts avec leur dernier échange et leur nombre de non-lus."""
+        user = request.user
+        if not hasattr(user, 'expert_profile'):
+            return Response([], status=status.HTTP_200_OK)
+
+        current_ctm_ids = self._expert_ctm_ids(user.expert_profile)
+        if not current_ctm_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        last_messages = Message.objects.filter(
+            Q(sender=user, recipient_id=OuterRef('user_id')) |
+            Q(sender_id=OuterRef('user_id'), recipient=user)
+        ).order_by('-timestamp', '-id')
+        unread_messages = Message.objects.filter(
+            sender_id=OuterRef('user_id'),
+            recipient=user,
+            is_read=False,
+        ).values('sender_id').annotate(total=Count('id')).values('total')
+
+        conversations = Expert.objects.filter(
+            Q(ctm_id__in=current_ctm_ids) |
+            Q(governance_affectations__ctm_id__in=current_ctm_ids)
+        ).exclude(user=user).distinct().select_related('user', 'structure', 'ctm').annotate(
+            last_message_id=Subquery(last_messages.values('id')[:1]),
+            last_message_content=Subquery(last_messages.values('content')[:1]),
+            last_message_sender_id=Subquery(last_messages.values('sender_id')[:1]),
+            last_message_timestamp=Subquery(last_messages.values('timestamp')[:1]),
+            last_message_is_read=Subquery(last_messages.values('is_read')[:1]),
+            last_message_is_clause_share=Subquery(
+                last_messages.values('is_clause_share')[:1]
+            ),
+            last_message_clause_code=Subquery(
+                last_messages.values('clause_code')[:1]
+            ),
+            last_message_clause_excerpt=Subquery(
+                last_messages.values('clause_excerpt')[:1]
+            ),
+            unread_count=Coalesce(
+                Subquery(unread_messages[:1], output_field=IntegerField()),
+                Value(0),
+            ),
+        ).order_by(
+            F('last_message_timestamp').desc(nulls_last=True),
+            'user__last_name',
+            'user__first_name',
+        )
+
+        serializer = ConversationSerializer(
+            conversations,
+            many=True,
+            context={'request': request},
+        )
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def unread_count(self, request):
         """Nombre exact de messages directs non lus."""
         count = Message.objects.filter(recipient=request.user, is_read=False).count()
@@ -144,7 +201,11 @@ class MessageViewSet(viewsets.ModelViewSet):
             sender_id=participant_id,
             recipient=request.user,
             is_read=False
-        ).update(is_read=True, updated_at=timezone.now())
+        ).update(
+            is_read=True,
+            status=Message.STATUS_READ,
+            updated_at=timezone.now(),
+        )
         return Response({'marked_read': updated})
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsMemberOfAnySharedCTM])

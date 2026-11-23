@@ -568,7 +568,10 @@ class NormeViewSet(viewsets.ModelViewSet):
         changes = version2.changes.filter(
             previous_version=version1
         )
-        diff_segments = build_inline_diff_segments(version1.content or '', version2.content or '')
+        diff_segments = build_inline_diff_segments(
+            version1.content_plain,
+            version2.content_plain,
+        )
 
         return Response({
             'v1': NormeVersionSerializer(version1).data,
@@ -597,6 +600,7 @@ class NormeViewSet(viewsets.ModelViewSet):
         create_serializer = NormeVersionCreateSerializer(
             data={
                 'content': version_to_restore.content,
+                'content_format': version_to_restore.content_format,
                 'comment': new_version_comment,
                 'title': f"Rollback to v{version_to_restore.version_number}"
             },

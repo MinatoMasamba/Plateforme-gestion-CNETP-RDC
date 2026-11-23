@@ -404,9 +404,12 @@ class STGEDViewSet(AdminBase):
             raise ValidationError('Sélectionnez deux versions documentaires.') from exc
         left=STGEDIndexation.objects.select_related('version','source','code').get(pk=left_id,process=process)
         right=STGEDIndexation.objects.select_related('version','source','code').get(pk=right_id,process=process)
-        diff='\n'.join(difflib.unified_diff(left.version.content.splitlines(),right.version.content.splitlines(),
+        diff='\n'.join(difflib.unified_diff(left.version.content_plain.splitlines(),right.version.content_plain.splitlines(),
             fromfile=f'v{left.version.version_number}',tofile=f'v{right.version.version_number}',lineterm=''))
-        segments=build_inline_diff_segments(left.version.content or '', right.version.content or '')
+        segments=build_inline_diff_segments(
+            left.version.content_plain,
+            right.version.content_plain,
+        )
         if len(segments) > 4000:
             segments=segments[:4000]
         return Response({'left':{'number':left.version.version_number,'code':left.code.code,'sha256':left.source.sha256},
@@ -443,7 +446,9 @@ class STGEDViewSet(AdminBase):
         versions = NormeVersion.all_objects.filter(norme_id=process.norme_id)
         left = get_object_or_404(versions, pk=ids['left'])
         right = get_object_or_404(versions, pk=ids['right'])
-        return Response({'diff_segments': build_inline_diff_segments(left.content or '', right.content or ''),
+        return Response({'diff_segments': build_inline_diff_segments(
+            left.content_plain, right.content_plain
+        ),
                          'note': 'Comparaison du texte enregistré ; les documents scannés restent à contrôler visuellement.'})
 
     @action(detail=False,methods=['get'])

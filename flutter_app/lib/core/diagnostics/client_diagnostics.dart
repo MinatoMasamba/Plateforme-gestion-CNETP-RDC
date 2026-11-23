@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ClientDiagnostics {
   ClientDiagnostics._();
@@ -16,11 +18,49 @@ class ClientDiagnostics {
   static final _recent = <String, DateTime>{};
   static bool _sending = false;
   static DateTime? _retryAfter;
+  static SharedPreferences? _preferences;
+  static const _storageKey = 'cnetp_pending_diagnostics';
+  static Future<void> _storageWrite = Future.value();
+
+  static Future<void> initialize() async {
+    try {
+      _preferences = await SharedPreferences.getInstance();
+      final saved = _preferences!.getString(_storageKey);
+      if (saved == null) return;
+      final items = jsonDecode(saved) as List<dynamic>;
+      for (final item in items.take(20)) {
+        final incident = Map<String, dynamic>.from(item as Map);
+        if (!_queue.any((entry) => entry['event_id'] == incident['event_id'])) {
+          _queue.add(incident);
+        }
+      }
+      while (_queue.length > 20) {
+        _queue.removeAt(0);
+      }
+    } catch (_) {
+      // Le stockage du diagnostic ne doit pas bloquer le démarrage.
+    }
+  }
+
+  static Future<void> persist() {
+    final preferences = _preferences;
+    if (preferences == null) return Future.value();
+    final snapshot = jsonEncode(_queue);
+    _storageWrite = _storageWrite.then((_) async {
+      try {
+        await preferences.setString(_storageKey, snapshot);
+      } catch (_) {
+        // Ne pas générer un diagnostic sur sa propre panne de stockage.
+      }
+    });
+    return _storageWrite;
+  }
 
   static void clear() {
     _queue.clear();
     _recent.clear();
     _retryAfter = null;
+    unawaited(persist());
   }
 
   static String sanitize(String value, int limit) {
@@ -72,6 +112,7 @@ class ClientDiagnostics {
       if (stack != null) 'stack': sanitize('$stack', 12000),
       ...details,
     });
+    unawaited(persist());
     unawaited(flush());
   }
 
@@ -88,6 +129,7 @@ class ClientDiagnostics {
         final incident = _queue.first;
         await sender!(Map.of(incident));
         _queue.remove(incident);
+        await persist();
       }
       _retryAfter = null;
     } catch (_) {

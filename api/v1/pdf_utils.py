@@ -1,5 +1,6 @@
 import io
 import os
+import re
 from datetime import datetime
 from xml.sax.saxutils import escape as _xml_escape
 
@@ -14,6 +15,8 @@ from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
     HRFlowable, Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 )
+
+from apps.norms.rich_text import FORMAT_MARKDOWN, pdf_blocks
 
 
 # ─── Palette officielle — Charte graphique du Gouvernement RDC ──────────────
@@ -271,6 +274,37 @@ def _make_norm_footer(norme, qr_bytes):
 
 # ─── Génération PDF d'une norme (fidèle à la page de lecture CTC) ────────────
 
+def _rich_pdf_elements(block, styles):
+    if block.kind == 'heading':
+        style = styles["DocH1"] if block.level == 1 else styles["DocH2"]
+        return [
+            Paragraph(block.pdf_html(), style),
+            Spacer(1, 0.1 * cm),
+        ]
+
+    if block.kind in {'ordered_list', 'unordered_list'}:
+        items = re.findall(r'<li>(.*?)</li>', block.html, flags=re.DOTALL)
+        elements = []
+        for index, item in enumerate(items, start=1):
+            marker = f'{index}.' if block.kind == 'ordered_list' else '•'
+            elements.append(Paragraph(f'{marker} {item}', styles["DocBody"]))
+        return elements + [Spacer(1, 0.12 * cm)]
+
+    if block.kind == 'quote':
+        body = block.html.removeprefix('<blockquote>').removesuffix(
+            '</blockquote>'
+        )
+        return [
+            Paragraph(f'<i>{body}</i>', styles["DocBody"]),
+            Spacer(1, 0.12 * cm),
+        ]
+
+    return [
+        Paragraph(block.pdf_html(), styles["DocBody"]),
+        Spacer(1, 0.12 * cm),
+    ]
+
+
 def generate_norm_pdf(norme, version=None):
     """
     Génère un PDF A4 pour une norme, calqué sur la page de lecture CTC
@@ -318,7 +352,14 @@ def generate_norm_pdf(norme, version=None):
         elements.append(Spacer(1, 0.25 * cm))
 
     # Corps : sections issues du contenu structuré de la version
-    if version and version.content:
+    if (
+        version
+        and version.content
+        and version.content_format == FORMAT_MARKDOWN
+    ):
+        for block in pdf_blocks(version.content, version.content_format):
+            elements.extend(_rich_pdf_elements(block, styles))
+    elif version and version.content:
         for block in version.get_structured_content():
             title = (block.get("title") or "").strip()
             content = (block.get("content") or "").strip()

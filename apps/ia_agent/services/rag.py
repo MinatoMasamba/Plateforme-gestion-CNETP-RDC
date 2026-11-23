@@ -242,7 +242,10 @@ def index_norme(norme):
 
 @transaction.atomic
 def index_norme_version(version):
-    chunks = _split_text(version.content, section=f'Version {version.version_number}')
+    chunks = _split_text(
+        version.content_plain,
+        section=f'Version {version.version_number}',
+    )
     return _upsert_source(
         f'norme-version:{version.id}',
         'NORME_VERSION',

@@ -6,6 +6,13 @@ from apps.norms.models import (
     NormeContentBlock, parse_norme_structure, structured_content_summary,
     build_content_blocks
 )
+from apps.norms.rich_text import (
+    CONTENT_FORMAT_CHOICES,
+    FORMAT_PLAIN,
+    RichTextValidationError,
+    content_metrics,
+    validate,
+)
 from ..experts.serializers import ExpertBasicSerializer
 
 
@@ -57,11 +64,15 @@ class NormeVersionSerializer(serializers.ModelSerializer):
     changes = ChangementVersionSerializer(many=True, read_only=True)
     structured_content = serializers.SerializerMethodField()
     content_blocks = NormeContentBlockSerializer(many=True, read_only=True)
+    content_plain = serializers.SerializerMethodField()
+    content_metrics = serializers.SerializerMethodField()
 
     class Meta:
         model = NormeVersion
         fields = [
             'id', 'norme', 'version_number', 'title', 'content',
+            'content_format', 'content_plain',
+            'content_metrics',
             'document', 'summary', 'is_draft', 'version_author',
             'author_name', 'author_email', 'created_at', 'changes',
             'structured_content', 'content_blocks'
@@ -75,7 +86,13 @@ class NormeVersionSerializer(serializers.ModelSerializer):
         return "Inconnu"
 
     def get_structured_content(self, obj):
-        return parse_norme_structure(obj.content)
+        return parse_norme_structure(obj.content, obj.content_format)
+
+    def get_content_plain(self, obj):
+        return obj.content_plain
+
+    def get_content_metrics(self, obj):
+        return content_metrics(obj.content, obj.content_format)
 
 
 class NormeBasicSerializer(serializers.ModelSerializer):
@@ -153,7 +170,10 @@ class NormeDetailSerializer(serializers.ModelSerializer):
 
     def get_structured_summary(self, obj):
         latest = obj.get_latest_version()
-        return structured_content_summary(latest.content if latest else obj.description)
+        return structured_content_summary(
+            latest.content if latest else obj.description,
+            latest.content_format if latest else FORMAT_PLAIN,
+        )
 
 
 class NormeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -224,8 +244,19 @@ class NormeVersionCreateSerializer(serializers.Serializer):
     """Serializer pour créer une nouvelle version de norme (simplifié pour éviter les erreurs de validation)"""
     title = serializers.CharField(max_length=500)
     content = serializers.CharField()
+    content_format = serializers.ChoiceField(
+        choices=CONTENT_FORMAT_CHOICES,
+        default=FORMAT_PLAIN,
+    )
     comment = serializers.CharField(required=False, allow_blank=True)
     document = serializers.FileField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        try:
+            validate(attrs['content'], attrs['content_format'])
+        except RichTextValidationError as exc:
+            raise serializers.ValidationError({'content': str(exc)}) from exc
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data):
@@ -257,8 +288,25 @@ class NormeVersionCreateSerializer(serializers.Serializer):
 
         # 2. Détecter les changements si une version précédente existe
         if latest:
-            old_paragraphs = [block['content'] for block in parse_norme_structure(latest.content)] or latest.content.split('\n\n')
-            new_paragraphs = [block['content'] for block in parse_norme_structure(new_version.content)] or new_version.content.split('\n\n')
+            old_paragraphs = (
+                [
+                    block['content']
+                    for block in parse_norme_structure(
+                        latest.content, latest.content_format
+                    )
+                ]
+                or latest.content_plain.split('\n\n')
+            )
+            new_paragraphs = (
+                [
+                    block['content']
+                    for block in parse_norme_structure(
+                        new_version.content,
+                        new_version.content_format,
+                    )
+                ]
+                or new_version.content_plain.split('\n\n')
+            )
 
             matcher = difflib.SequenceMatcher(None, old_paragraphs, new_paragraphs)
 

@@ -48,8 +48,8 @@ class PilotageNormeHistoryView(View):
                 previous = get_object_or_404(NormeVersion, norme=norme, version_number=number) if number else None
             except ValueError:
                 return HttpResponseBadRequest('Numéro de version invalide.')
-        old = previous.content if previous else ''
-        new = selected.content if selected else ''
+        old = previous.content_plain if previous else ''
+        new = selected.content_plain if selected else ''
         context.update({
             'norme': norme, 'versions': versions, 'selected': selected, 'previous': previous,
             'history_title': 'Historique des versions', 'old_text': old, 'new_text': new,

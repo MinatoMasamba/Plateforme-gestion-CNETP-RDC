@@ -385,4 +385,40 @@ void main() {
     expect(expert['bank_account'], '00019-992381');
     expect(expert.containsKey('user_phone'), isFalse);
   });
+
+  test('diff : sections touchées et passages inchangés repliés', () {
+    final segments = <Map<String, dynamic>>[
+      {
+        'type': 'equal',
+        'text':
+            'AVANT-PROPOS\nTexte a.\nTexte b.\nTexte c.\nTexte d.\n10. Annexes\nFeuille de route ',
+      },
+      {'type': 'delete', 'text': 'et'},
+      {'type': 'insert', 'text': 'de déploiement'},
+      {
+        'type': 'equal',
+        'text': '.\nLigne 1.\nLigne 2.\nLigne 3.\nLigne 4.\nLigne 5.\n',
+      },
+      {'type': 'insert', 'text': '11. Bibliographie'},
+      {'type': 'equal', 'text': '\nFin.'},
+    ];
+
+    final summary = summarizeNormDiff(segments);
+    expect(summary.insertions, 2);
+    expect(summary.deletions, 1);
+    expect(summary.sections, ['10. Annexes']);
+
+    final folded = foldUnchangedDiff(segments);
+    final markers = folded.where((s) => s['type'] == 'folded').toList();
+    expect(markers.map((s) => s['text']), [
+      '⋯ 5 lignes inchangées ⋯\n',
+      '⋯ 3 lignes inchangées ⋯\n',
+    ]);
+    expect(
+      folded.where((s) => s['type'] != 'equal' && s['type'] != 'folded'),
+      hasLength(3),
+    );
+    expect(folded.first['type'], 'folded');
+    expect(folded[1]['text'], '10. Annexes\nFeuille de route ');
+  });
 }

@@ -221,7 +221,7 @@ class _ExpertResourcesState extends State<ExpertResources> {
           ),
           subtitle: Text(
             'Vos liens personnels synchronisés entre vos appareils',
-            style: TextStyle(color: p.muted, fontSize: 11),
+            style: TextStyle(color: p.muted, fontSize: ExpertType.label),
           ),
           childrenPadding: const EdgeInsets.all(16),
           children: [

@@ -18,6 +18,10 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{% static 'css/norm-version-history.css' %}?v=20261106-1">
     <script src="{% static 'js/norm-version-history.js' %}?v=20261106-3"></script>
+    <link rel="stylesheet" href="{% static 'vendor/quill/quill.core.css' %}?v=2.0.3">
+    <link rel="stylesheet" href="{% static 'css/cnetp-rich-text.css' %}?v=20261122-1">
+    <script src="{% static 'vendor/quill/quill.js' %}?v=2.0.3"></script>
+    <script src="{% static 'js/components/cnetp-rich-text.js' %}?v=20261122-1"></script>
 
     <script>
         // --- Implémentations RÉELLES (utilisées dès que mock-api.js est absent, ex: déploiement Django) ---
@@ -162,7 +166,36 @@
             user-select: none;
         }
 
-        /* =========================
+                /* Navigation PC identique à la CTC : groupe, sélection et rail d’icônes. */
+        @media (min-width: 768px) {
+            #sidebar-container { transition: width .22s ease, min-width .22s ease, max-width .22s ease; }
+            #nav-tabs > .tab-btn { display: none !important; }
+            #theme-toggle-desktop, #notif-btn-desktop { order: -10; width: 40px; height: 40px; padding: 0; border-radius: 10px; justify-content: center; font-size: 0; }
+            #notif-btn-desktop { margin-right: 10px; }
+            #expert-web-nav { display: block; padding: 12px; overflow-y: auto; scrollbar-width: none; }
+            .expert-nav-heading { padding: 9px 10px 5px; font-size: 10px; font-weight: 800; letter-spacing: .13em; color: #64748b; text-transform: uppercase; }
+            .expert-nav-button { width: 100%; min-height: 42px; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; color: #94a3b8; font-size: 13px; font-weight: 550; position: relative; text-align: left; transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
+            .expert-nav-button:hover { background: rgba(0,149,201,.10); color: #f8fafc; }
+            .expert-nav-button.is-active { background: rgba(30,41,59,.95); color: #fff; font-weight: 700; box-shadow: 0 5px 16px rgba(0,0,0,.14); }
+            .expert-nav-button.is-active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 99px; background: #0095c9; }
+            .expert-nav-button.is-active svg { color: #38bdf8; }
+            .expert-nav-button svg { flex: 0 0 18px; }
+            .expert-nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #expert-sidebar-toggle { margin-left: auto; }
+            #sidebar-container.is-rail { width: 68px !important; min-width: 68px !important; max-width: 68px !important; }
+            #sidebar-container.is-rail .expert-brand-text,
+            #sidebar-container.is-rail .expert-brand-tricolor,
+            #sidebar-container.is-rail .expert-nav-heading,
+            #sidebar-container.is-rail .expert-nav-label,
+            #sidebar-container.is-rail #sidebar-resize-handle,
+            #sidebar-container.is-rail #sidebar-top-section,
+            #sidebar-container.is-rail #sidebar-bottom-section,
+            #sidebar-container.is-rail .expert-sidebar-footer { display: none !important; }
+            #sidebar-container.is-rail #expert-web-nav { padding: 10px; }
+            #sidebar-container.is-rail .expert-nav-button { justify-content: center; padding: 10px 0; }
+            #sidebar-container.is-rail #expert-sidebar-toggle { position: absolute; right: 4px; top: 24px; margin: 0; padding: 3px; }
+        }
+/* =========================
            Navigation mobile : sidebar <-> contenu
            Sous 768px, la sidebar devient un panneau plein écran masqué par défaut,
            ouvert via le bouton menu et refermé automatiquement après une sélection.
@@ -392,7 +425,7 @@
                 <div class="w-[46px] h-[46px] rounded-full overflow-hidden shrink-0 border border-[#d4af37] bg-white dark:bg-[#171717] drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.2)]">
                     <img src="/static/img/logo-cnetp.png" alt="République Démocratique du Congo" class="w-full h-full object-cover">
                 </div>
-                <div class="w-[4px] h-[34px] flex flex-col rounded-sm overflow-hidden shrink-0">
+                <div class="expert-brand-tricolor w-[4px] h-[34px] flex flex-col rounded-sm overflow-hidden shrink-0">
                     <div class="flex-1 bg-[#0095c9]"></div>
                     <div class="h-[25%] bg-[#fff24b]"></div>
                     <div class="flex-1 bg-[#db3832]"></div>
@@ -402,8 +435,24 @@
                 <h1 class="text-xs uppercase tracking-wider leading-none font-bold text-slate-500 dark:text-slate-400 dark:font-normal">CNE-ITP</h1>
                 <h2 class="text-[12px] font-black tracking-tight leading-tight mt-1 uppercase text-blue-600 dark:text-blue-500">Espace de travail</h2>
             </div>
-        </div>
+            <button id="expert-sidebar-toggle" type="button" class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white" title="Réduire le menu" aria-label="Réduire ou ouvrir le menu" aria-expanded="true">
+                <i data-lucide="panel-left-close" class="h-4 w-4"></i>
+            </button>        </div>
 
+        <nav id="expert-web-nav" class="hidden md:block shrink-0" aria-label="Navigation de l’espace Expert">
+            <div class="expert-nav-heading">Travail</div>
+            <button class="expert-nav-button" data-expert-nav="editor" title="Éditeur de Normes" onclick="loadModule('editor')"><i data-lucide="file-text"></i><span class="expert-nav-label">Éditeur de Normes</span></button>
+            <button class="expert-nav-button" data-expert-nav="history" title="Historique" onclick="loadModule('history')"><i data-lucide="history"></i><span class="expert-nav-label">Historique</span></button>
+            <button class="expert-nav-button" data-expert-nav="experts" title="Experts et Groupes" onclick="loadModule('experts')"><i data-lucide="users"></i><span class="expert-nav-label">Experts &amp; Groupes</span></button>
+            <div class="expert-nav-heading">Supervision</div>
+            <button class="expert-nav-button" data-expert-nav="meetings" title="Réunions et Votes" onclick="loadModule('meetings')"><i data-lucide="vote"></i><span class="expert-nav-label">Réunions &amp; Votes</span></button>
+            <button class="expert-nav-button" data-expert-nav="financial" title="Cotisations et Indemnités" onclick="loadModule('financial')"><i data-lucide="landmark"></i><span class="expert-nav-label">Cotisations &amp; Indemnités</span></button>
+            <button class="expert-nav-button" data-expert-nav="validation" title="Processus ISO" onclick="loadModule('validation')"><i data-lucide="badge-check"></i><span class="expert-nav-label">Processus ISO</span></button>
+            <button class="expert-nav-button" data-expert-nav="legistique" title="Bureau Légistique" onclick="loadModule('legistique')"><i data-lucide="briefcase-business"></i><span class="expert-nav-label">Bureau Légistique</span></button>
+            <div class="expert-nav-heading">Système</div>
+            <button class="expert-nav-button" data-expert-nav="notifications" title="Notifications" onclick="loadModule('notifications')"><i data-lucide="bell"></i><span class="expert-nav-label">Notifications</span></button>
+            <button class="expert-nav-button" data-expert-nav="profil" title="Mon profil" onclick="loadModule('profil')"><i data-lucide="user"></i><span class="expert-nav-label">Mon profil</span></button>
+        </nav>
         <div class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 space-y-6">
             {% if sc_bureau_access %}<a href="{% url 'web:president_sc' %}" class="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200" aria-label="Ouvrir le suivi des normes de ma sous-commission"><i data-lucide="chart-pie" class="h-4 w-4"></i><span>Suivi des normes de ma SC</span></a>{% endif %}
             <div id="sidebar-top-section">
@@ -412,7 +461,7 @@
             <div id="sidebar-bottom-section"></div>
         </div>
 
-        <div class="p-3.5 border-t text-[10px] font-semibold flex flex-col gap-2.5 tracking-wide transition-colors border-slate-200 bg-slate-100 text-slate-600 dark:border-white/5 dark:bg-black/95 dark:text-slate-500">
+        <div class="expert-sidebar-footer p-3.5 border-t text-[10px] font-semibold flex flex-col gap-2.5 tracking-wide transition-colors border-slate-200 bg-slate-100 text-slate-600 dark:border-white/5 dark:bg-black/95 dark:text-slate-500">
             <div class="flex items-center justify-between uppercase">
                 <span class="font-mono text-[9px] text-slate-500">ISO Compliance Mode</span>
                 <span class="flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-400">
@@ -459,7 +508,10 @@
         <nav class="h-14 md:h-14 px-4 md:px-6 flex items-center justify-between shrink-0 z-10 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-slate-200 dark:border-white/10 bg-white/5 dark:bg-black/40 backdrop-blur-md">
 
             <div class="flex items-center gap-1 flex-row flex-nowrap shrink-0 min-w-0 flex-1" id="nav-tabs">
-                <div class="md:hidden mr-1 shrink-0 h-8 w-8 rounded-full overflow-hidden border border-white/10 bg-black/30">
+                                <div class="hidden md:flex flex-col justify-center min-w-0 px-2 mr-3">
+                    <span class="text-[9px] font-extrabold tracking-[.14em] uppercase text-slate-500">Espace Expert</span>
+                    <span id="expert-web-current-view" class="text-[15px] font-bold text-slate-200">Éditeur de Normes</span>
+                </div><div class="md:hidden mr-1 shrink-0 h-8 w-8 rounded-full overflow-hidden border border-white/10 bg-black/30">
                     <img src="/static/img/logo-cnetp.png" alt="République Démocratique du Congo" class="w-full h-full object-cover">
                 </div>
                 <button id="workspace-title-mobile" class="md:hidden flex-1 min-w-0 text-left text-[11px] font-extrabold tracking-wide uppercase text-slate-200 truncate px-2">CNE-ITP</button>
@@ -490,10 +542,10 @@
                     <i data-lucide="briefcase" class="h-4 w-4"></i> BUREAU LEGISTIQUE
                 </button>
                 <button id="theme-toggle-desktop" onclick="toggleThemePreference()" class="hidden md:flex shrink-0 h-14 px-3.5 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-                    <i data-lucide="sun-moon" class="h-4 w-4"></i> Thème
+                    <i data-lucide="sun-moon" class="h-4 w-4"></i>
                 </button>
                 <button id="notif-btn-desktop" onclick="loadModule('notifications')" class="hidden md:flex shrink-0 h-14 px-3.5 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all relative">
-                    <span class="relative"><i data-lucide="bell" class="h-4 w-4"></i><span id="notif-badge-desktop" class="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-red-500 text-white text-[8px] font-black flex items-center justify-center"></span></span> Notifications
+                    <span class="relative"><i data-lucide="bell" class="h-4 w-4"></i><span id="notif-badge-desktop" class="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-red-500 text-white text-[8px] font-black flex items-center justify-center"></span></span>
                 </button>
             </div>
 
@@ -576,7 +628,7 @@
             <div class="border rounded-xl overflow-hidden transition-all shadow-md focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/50 border-slate-200 bg-white dark:border-white/10 dark:bg-black/40 dark:shadow-[0_0_20px_rgba(0,0,0,0.3)]">
                 <div class="border-b px-4 py-2.5 flex items-center justify-center gap-3 flex-wrap text-xs bg-slate-50 border-slate-200 text-slate-500 dark:bg-black/30 dark:border-white/10">
                     <span class="font-bold text-[10.5px] uppercase tracking-wider text-slate-700 dark:text-slate-400">
-                        FORMAT : TEXTE BRUT / CLAUSES ISO
+                        TEXTE DE LA NORME
                     </span>
                     <span id="ed-char-count" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">
                         0 caractères • 0 mots
@@ -989,9 +1041,11 @@
     }
 
     async function initEditor() {
+        mountRichEditor();
         if (editorState.document) {
             editorState.text = getDocumentContent(editorState.document);
             document.getElementById('ed-main-textarea').value = editorState.text;
+            editorState.text = document.getElementById('ed-main-textarea').value;
         }
 
         await Promise.all([loadShareContacts(), loadCurrentExpert(), loadNormeVotes()]);
@@ -1011,6 +1065,50 @@
 
     function getDocumentContent(doc) {
         return doc?.latest_version?.content || doc?.content || "";
+    }
+
+    function getDocumentFormat(doc) {
+        return doc?.latest_version?.content_format || 'plain';
+    }
+
+    // Référence de comparaison : Markdown normalisé (le texte brut historique
+    // est converti une fois, sans que l'expert ait rien modifié).
+    function getDocumentBase(doc) {
+        const content = getDocumentContent(doc);
+        return window.CnetpRichText
+            ? window.CnetpRichText.normalize(content, getDocumentFormat(doc))
+            : content;
+    }
+
+    // Format d'une valeur écrite dans la source : celui de la version stockée
+    // si c'est elle, sinon Markdown CNE-ITP s'il est valide, texte brut sinon.
+    function detectContentFormat(value) {
+        const doc = editorState.document;
+        if (doc?.latest_version && value === doc.latest_version.content) return getDocumentFormat(doc);
+        try {
+            window.CnetpRichText.validate(value, 'md');
+            return 'md';
+        } catch (error) {
+            return 'plain';
+        }
+    }
+
+    function mountRichEditor() {
+        const textarea = document.getElementById('ed-main-textarea');
+        if (!textarea || !window.CnetpRichText || textarea.__cnetpRich) return;
+        const editor = window.CnetpRichText.mount(textarea, {
+            formatFor: detectContentFormat,
+            onChange: () => handleTextChange(textarea),
+            onSelect: showSelectedExcerpt,
+            onShare: showSelectedExcerpt,
+            onFocus: closeRightNavAndVote,
+        });
+        if (!editor) return;
+        // Édition réservée à la version ordinateur ; le mobile lit le texte mis en forme.
+        const mobile = window.matchMedia('(max-width: 699px)');
+        const syncReadOnly = () => editor.setReadOnly(mobile.matches);
+        syncReadOnly();
+        mobile.addEventListener('change', syncReadOnly);
     }
 
     async function loadCurrentExpert() {
@@ -1047,7 +1145,10 @@
     }
 
     function handleTextSelect(el) {
-        const sel = el.value.substring(el.selectionStart, el.selectionEnd);
+        showSelectedExcerpt(el.value.substring(el.selectionStart, el.selectionEnd));
+    }
+
+    function showSelectedExcerpt(sel) {
         if (!sel) return;
         editorState.selectedExcerpt = sel;
         document.getElementById('ed-share-excerpt').value = sel;
@@ -1061,15 +1162,17 @@
     }
 
     function updateCounts() {
-        const len = editorState.text ? editorState.text.length : 0;
-        const words = editorState.text ? editorState.text.split(/\s+/).filter(Boolean).length : 0;
+        const editor = document.getElementById('ed-main-textarea')?.__cnetpEditor;
+        const text = editor ? editor.plainText() : (editorState.text || "");
+        const len = text.length;
+        const words = text.split(/\s+/).filter(Boolean).length;
         const charCountEl = document.getElementById('ed-char-count');
         if (charCountEl) charCountEl.textContent = `${len} caractères • ${words} mots`;
     }
 
     function validateSaveBtn() {
         const hasContent = editorState.text && editorState.text.trim().length > 0;
-        const isModified = editorState.document && editorState.text !== getDocumentContent(editorState.document);
+        const isModified = editorState.document && editorState.text !== getDocumentBase(editorState.document);
         const commentEl = document.getElementById('ed-edit-comment');
         const comment = commentEl ? commentEl.value.trim() : "";
         const saveBtn = document.getElementById('ed-save-btn');
@@ -1083,6 +1186,7 @@
         if (!editorState.document) return;
         editorState.text = getDocumentContent(editorState.document);
         document.getElementById('ed-main-textarea').value = editorState.text;
+        editorState.text = document.getElementById('ed-main-textarea').value;
         document.getElementById('ed-edit-comment').value = "";
         updateCounts();
         validateSaveBtn();
@@ -1114,6 +1218,7 @@
         const payload = {
             title: editorState.document.title,
             content: editorState.text,
+            content_format: window.CnetpRichText ? 'md' : getDocumentFormat(editorState.document),
             comment: comment,
         };
 
@@ -1171,6 +1276,8 @@
                     validateSaveBtn();
                 }
             });
+            // withButtonLoading restaure l'état initial du bouton : recalculer.
+            validateSaveBtn();
         } catch (error) {
             // withButtonLoading already showed the error toast; nothing else to do.
         }
@@ -1458,6 +1565,7 @@
                 },
                 body: JSON.stringify({
                     text: editorState.text,
+                    content_format: window.CnetpRichText ? 'md' : getDocumentFormat(editorState.document),
                     standard_family: editorState.document?.standard_family,
                     norm_type: editorState.document?.norm_type,
                     title: editorState.document?.title,
@@ -1572,6 +1680,7 @@
 
         editorState.text = aiAppliedText;
         document.getElementById('ed-main-textarea').value = aiAppliedText;
+        editorState.text = document.getElementById('ed-main-textarea').value;
         document.getElementById('ed-edit-comment').value =
             `${appliedCount} correction${appliedCount > 1 ? 's' : ''} réglementaire${appliedCount > 1 ? 's' : ''} injectée${appliedCount > 1 ? 's' : ''} par l'Assistant IA`;
         dismissAiAdvice();
@@ -1718,6 +1827,7 @@
     window.updateEditorContent = function(content) {
         editorState.text = content;
         document.getElementById('ed-main-textarea').value = content;
+        editorState.text = document.getElementById('ed-main-textarea').value;
         // On marque le document comme potentiellement modifié, pour pouvoir le sauvegarder
         editorState.document.content = ""; // Force la détection de modification
         document.getElementById('ed-edit-comment').value = "Contenu restauré depuis l'historique.";
@@ -7485,6 +7595,22 @@
             safeCreateIcons();
         }
 
+        function initExpertSidebarRail() {
+            const sidebar = document.getElementById('sidebar-container');
+            const toggle = document.getElementById('expert-sidebar-toggle');
+            if (!sidebar || !toggle) return;
+            const key = 'cnetp-expert-sidebar-rail';
+            const apply = (rail) => {
+                sidebar.classList.toggle('is-rail', rail);
+                toggle.setAttribute('aria-expanded', String(!rail));
+                toggle.title = rail ? 'Ouvrir le menu' : 'Réduire le menu';
+                toggle.innerHTML = '<i data-lucide="' + (rail ? 'panel-left-open' : 'panel-left-close') + '" class="h-4 w-4"></i>';
+                localStorage.setItem(key, rail ? '1' : '0');
+                safeCreateIcons();
+            };
+            apply(localStorage.getItem(key) === '1');
+            toggle.addEventListener('click', () => apply(!sidebar.classList.contains('is-rail')));
+        }
         function initResizableSidebar() {
             const sidebar = document.getElementById('sidebar-container');
             const handle = document.getElementById('sidebar-resize-handle');
@@ -7725,6 +7851,14 @@
             }
 
             sidebarState.activeTab = moduleId;
+            document.querySelectorAll('[data-expert-nav]').forEach(button => {
+                const active = button.dataset.expertNav === moduleId;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-current', active ? 'page' : 'false');
+            });
+            const currentView = document.getElementById('expert-web-current-view');
+            const currentButton = document.querySelector('[data-expert-nav="' + moduleId + '"] .expert-nav-label');
+            if (currentView && currentButton) currentView.textContent = currentButton.textContent;
             if (isMobileViewport()) {
                 const dock = document.getElementById('mobile-dock');
                 if (dock) dock.classList.add('hidden');
@@ -7870,7 +8004,11 @@
             try {
                 safeCreateIcons();
                 initResizableSidebar();
-                const userDisplay = document.getElementById('user-display-name');
+                initExpertSidebarRail();
+                const headerTheme = document.getElementById('theme-toggle-desktop');
+                const headerNotifications = document.getElementById('notif-btn-desktop');
+                if (headerTheme) { headerTheme.title = 'Changer le thème'; headerTheme.setAttribute('aria-label', 'Changer le thème'); }
+                if (headerNotifications) { headerNotifications.title = 'Notifications'; headerNotifications.setAttribute('aria-label', 'Notifications'); }                const userDisplay = document.getElementById('user-display-name');
                 if (userDisplay) userDisplay.textContent = "Expert Connecté";
                 fetchSidebarData();
                 refreshActivityCounter();

@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -60,6 +61,14 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Permet la recette USB sans remplacer une version bêta signée.
+            applicationIdSuffix = ".diagnostic"
+        }
+        getByName("profile") {
+            // Appliquer aussi le suffixe au diagnostic compilé en AOT.
+            applicationIdSuffix = ".diagnostic"
+        }
         release {
             if (signingFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")

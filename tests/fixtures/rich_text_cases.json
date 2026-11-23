@@ -1,0 +1,62 @@
+[
+  {
+    "name": "structure_and_inline",
+    "content_format": "md",
+    "source": "# Domaine d’application\n\nTexte **important**, *nuancé*, ++souligné++ et [coloré]{couleur=bleu}.\n\n- Premier point\n- Deuxième point\n\n> Référence normative",
+    "plain": "Domaine d’application\n\nTexte important, nuancé, souligné et coloré.\n\n- Premier point\n- Deuxième point\n\nRéférence normative"
+  },
+  {
+    "name": "ordered_and_sizes",
+    "content_format": "md",
+    "source": "## Exigences\n\n1. [Petit]{taille=petit}\n2. [Grand]{taille=grand}\n3. [Très grand]{taille=tres-grand|surlignage=jaune|couleur=nuit}",
+    "plain": "Exigences\n\n1. Petit\n2. Grand\n3. Très grand"
+  },
+  {
+    "name": "safe_link",
+    "content_format": "md",
+    "source": "Consulter [le portail](https://example.cd/normes) ou [écrire](mailto:support@example.cd).",
+    "plain": "Consulter le portail ou écrire."
+  },
+  {
+    "name": "plain_legacy",
+    "content_format": "plain",
+    "source": "1. Domaine d’application\n**Ces étoiles restent du texte brut.**",
+    "plain": "1. Domaine d’application\n**Ces étoiles restent du texte brut.**"
+  },
+  {
+    "name": "escaped_literals",
+    "content_format": "md",
+    "source": "\\# Pas un titre\n1\\. Pas une liste\nTexte \\*étoiles\\* \\[x\\]\\{y\\} \\<b> a\\+b \\\\ fin\n\n[a\\]b]{couleur=rouge}",
+    "plain": "# Pas un titre\n1. Pas une liste\nTexte *étoiles* [x]{y} <b> a+b \\ fin\n\na]b"
+  },
+  {
+    "name": "nested_link_style",
+    "content_format": "md",
+    "source": "> [[**Norme**]{couleur=bleu|surlignage=jaune}](https://example.cd/a_(b))",
+    "plain": "Norme"
+  },
+  {
+    "name": "unsafe_url",
+    "content_format": "md",
+    "source": "[Action](javascript:alert(1))",
+    "error": true
+  },
+  {
+    "name": "raw_html",
+    "content_format": "md",
+    "source": "<script>alert(1)</script>",
+    "error": true
+  },
+  {
+    "name": "unclosed_emphasis",
+    "content_format": "md",
+    "source": "Texte **non fermé",
+    "error": true
+  },
+  {
+    "name": "unknown_attribute",
+    "content_format": "md",
+    "source": "[Texte]{couleur=verte}",
+    "error": true
+  }
+]

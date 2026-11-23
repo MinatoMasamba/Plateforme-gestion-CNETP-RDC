@@ -50,7 +50,13 @@ class ClientDiagnosticView(APIView):
     throttle_classes = [DiagnosticThrottle, DiagnosticDailyThrottle]
 
     def post(self, request):
-        if len(request.body) > 20000:
+        # L'authentification/CSRF peut avoir déjà consommé le flux DRF.
+        # Ne pas relire request.body après request.data.
+        try:
+            content_length = int(request.META.get('CONTENT_LENGTH') or 0)
+        except (TypeError, ValueError):
+            return Response({'detail': 'Taille du diagnostic invalide.'}, status=400)
+        if content_length > 20000:
             return Response({'detail': 'Diagnostic trop volumineux.'}, status=413)
         data = DiagnosticSerializer(data=request.data)
         data.is_valid(raise_exception=True)

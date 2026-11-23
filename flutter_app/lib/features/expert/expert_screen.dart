@@ -30,11 +30,12 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
   DateTime _lastInteraction = DateTime.now();
   final String _deviceId = 'flutter-${DateTime.now().microsecondsSinceEpoch}';
   bool _visible = true;
+  bool _sidebarCollapsed = false;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _visible = state == AppLifecycleState.resumed;
-    if (_visible) _loadUnread();
+    if (_visible) unawaited(_refreshUnreadCounts());
   }
 
   Future<void> _heartbeat() async {
@@ -70,6 +71,7 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
   int _documentRequest = 0;
   int? _pendingCount;
   int? _unreadCount;
+  int? _unreadMessagesCount;
   String? _meetingToOpen;
   String? _documentsError;
 
@@ -243,15 +245,12 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
     _loadDocuments();
     _loadActivity();
     _loadPending();
-    _loadUnread();
+    unawaited(_refreshUnreadCounts());
     WidgetsBinding.instance.addObserver(this);
-    _activityTimer = Timer.periodic(
-      const Duration(seconds: 60),
-      (_) {
-        _heartbeat();
-        if (_visible) _loadUnread();
-      },
-    );
+    _activityTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _heartbeat();
+      if (_visible) unawaited(_refreshUnreadCounts());
+    });
     _heartbeat();
   }
 
@@ -347,6 +346,28 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
     } catch (_) {
       if (mounted) setState(() => _unreadCount = null);
     }
+  }
+
+  Future<void> _loadUnreadMessages() async {
+    try {
+      final response = await ApiClient.dio.get(
+        '/api/v1/messages/unread_count/',
+      );
+      if (!mounted) return;
+      final raw = response.data;
+      final count = raw is Map ? raw['unread_count'] : raw;
+      setState(
+        () => _unreadMessagesCount = count is num
+            ? count.toInt()
+            : int.tryParse('${count ?? ''}'),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _unreadMessagesCount = null);
+    }
+  }
+
+  Future<void> _refreshUnreadCounts() async {
+    await Future.wait([_loadUnread(), _loadUnreadMessages()]);
   }
 
   void _openNorm(Map<String, dynamic> norm) {
@@ -479,6 +500,7 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
                 setState(() => _tab = 8);
               },
               onCreate: _createNorm,
+              showNavigation: false,
               userName: userName,
               activity: _activity,
             ),
@@ -490,9 +512,7 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final mobile = constraints.maxWidth < 700;
-                  final sidebarWidth = constraints.maxWidth < 900
-                      ? 248.0
-                      : 280.0;
+                  final sidebarWidth = _sidebarCollapsed ? 68.0 : 280.0;
                   return Stack(
                     children: [
                       Row(
@@ -512,6 +532,12 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
                               },
                               onProfile: () => setState(() => _tab = 8),
                               onCreate: _createNorm,
+                              showNavigation: true,
+                              collapsed: _sidebarCollapsed,
+                              onToggle: () => setState(
+                                () => _sidebarCollapsed = !_sidebarCollapsed,
+                              ),
+                              onTab: (value) => setState(() => _tab = value),
                               userName: userName,
                               activity: _activity,
                             ),
@@ -563,24 +589,22 @@ class _ExpertScreenState extends ConsumerState<ExpertScreen>
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  height: 58,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  alignment: Alignment.centerRight,
-                                  decoration: BoxDecoration(
-                                    color: palette.nav,
-                                    border: Border(
-                                      top: BorderSide(color: palette.border),
-                                    ),
-                                  ),
-                                  child: _MessagingButton(palette: palette),
-                                ),
                               ],
                             ),
                           ),
                         ],
+                      ),
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: _MessagingButton(
+                          palette: palette,
+                          unreadCount: _unreadMessagesCount,
+                          onPressed: () async {
+                            await openExpertCommunication(context, norm: _doc);
+                            await _refreshUnreadCounts();
+                          },
+                        ),
                       ),
                     ],
                   );
@@ -639,7 +663,7 @@ class _ExpertTopbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
-    final compactNavigation = mobile || MediaQuery.sizeOf(context).width < 1700;
+    final compactNavigation = mobile;
     return Container(
       height: 72,
       decoration: BoxDecoration(
@@ -675,7 +699,9 @@ class _ExpertTopbar extends StatelessWidget {
                             DropdownMenuItem(
                               value: i,
                               child: Text(
-                                _ExpertScreenState._tabs[i].$2,
+                                mobile && i == 0
+                                    ? 'Consultation des normes'
+                                    : _ExpertScreenState._tabs[i].$2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -697,7 +723,7 @@ class _ExpertTopbar extends StatelessWidget {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                _compactLabels[i],
+                                mobile && i == 0 ? 'Normes' : _compactLabels[i],
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -709,29 +735,33 @@ class _ExpertTopbar extends StatelessWidget {
                       ),
                     ),
                   )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (
-                          int i = 0;
-                          i < _ExpertScreenState._tabs.length;
-                          i++
-                        )
-                          _NavTab(
-                            icon: _ExpertScreenState._tabs[i].$1,
-                            label: _ExpertScreenState._tabs[i].$2,
-                            active: tab == i,
-                            onTap: () => onTab(i),
+                        Text(
+                          'ESPACE EXPERT',
+                          style: TextStyle(
+                            color: p.subtle,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
                           ),
-                        _NavTab(
-                          icon: Icons.person_add_alt,
-                          label: pendingCount == null
-                              ? 'Adhésions'
-                              : 'Adhésions ($pendingCount)',
-                          active: tab == 9,
-                          onTap: () => onTab(9),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          tab < _ExpertScreenState._tabs.length
+                              ? _ExpertScreenState._tabs[tab].$2
+                              : _compactLabels[tab.clamp(0, 9)],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: p.title,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
@@ -806,63 +836,6 @@ class _ExpertTopbar extends StatelessWidget {
   }
 }
 
-class _NavTab extends StatelessWidget {
-  const _NavTab({
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = ExpertTheme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Material(
-        color: active ? p.blueSoft : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: active
-                    ? p.blue.withValues(alpha: 0.28)
-                    : Colors.transparent,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 16, color: active ? p.blue : p.subtle),
-                const SizedBox(width: 7),
-                Text(
-                  label.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.35,
-                    color: active ? p.blue : p.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _TopbarAction extends StatelessWidget {
   const _TopbarAction({
     required this.icon,
@@ -926,6 +899,10 @@ class _ExpertSidebar extends StatelessWidget {
     required this.onCreate,
     required this.userName,
     required this.activity,
+    this.showNavigation = false,
+    this.collapsed = false,
+    this.onToggle,
+    this.onTab,
   });
 
   final double width;
@@ -939,12 +916,28 @@ class _ExpertSidebar extends StatelessWidget {
   final VoidCallback onCreate;
   final String userName;
   final Map<String, dynamic> activity;
+  final bool showNavigation;
+  final bool collapsed;
+  final VoidCallback? onToggle;
+  final ValueChanged<int>? onTab;
+
+  static const _navGroups = <String, List<int>>{
+    'TRAVAIL': [0, 1, 2],
+    'SUPERVISION': [3, 4, 5, 6],
+    'SYSTÈME': [7, 8, 9],
+  };
 
   @override
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
     final collaborators = _collaborators();
-    return Container(
+    final rail = showNavigation && collapsed;
+    return AnimatedContainer(
+      key: ValueKey(
+        showNavigation ? 'expert-desktop-sidebar' : 'expert-drawer-sidebar',
+      ),
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
       width: width,
       decoration: BoxDecoration(
         color: p.sidebar,
@@ -953,18 +946,100 @@ class _ExpertSidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _SidebarBrand(palette: p),
+          _SidebarBrand(
+            palette: p,
+            collapsed: rail,
+            onToggle: showNavigation ? onToggle : null,
+          ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+              padding: EdgeInsets.fromLTRB(
+                rail ? 10 : 12,
+                12,
+                rail ? 10 : 12,
+                16,
+              ),
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.folder_outlined, size: 16, color: p.subtle),
-                    const SizedBox(width: 7),
-                    Expanded(
+                if (showNavigation) ...[
+                  for (final group in _navGroups.entries) ...[
+                    if (!rail)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                        child: Text(
+                          group.key,
+                          style: TextStyle(
+                            color: p.subtle,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.3,
+                          ),
+                        ),
+                      ),
+                    for (final index in group.value)
+                      _ExpertSidebarNavButton(
+                        icon: _navIcon(index),
+                        label: _navLabel(index),
+                        active: tab == index,
+                        collapsed: rail,
+                        onTap: () => onTab?.call(index),
+                      ),
+                    const SizedBox(height: 8),
+                  ],
+                ],
+                if (!rail) ...[
+                  if (showNavigation) Divider(height: 28, color: p.border),
+                  Row(
+                    children: [
+                      Icon(Icons.folder_outlined, size: 16, color: p.subtle),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          'DOCUMENTS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.1,
+                            color: p.muted,
+                          ),
+                        ),
+                      ),
+                      if (MediaQuery.sizeOf(context).width >= 700)
+                        _MiniButton(
+                          label: '+ Nouveau',
+                          palette: p,
+                          onTap: onCreate,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _SidebarSearch(
+                    controller: searchController,
+                    palette: p,
+                    onChanged: onSearch,
+                  ),
+                  const SizedBox(height: 12),
+                  for (final doc in documents)
+                    _DocItem(
+                      doc: doc,
+                      active: selectedId == doc['id']?.toString(),
+                      palette: p,
+                      onTap: () => onSelect(doc),
+                    ),
+                  if (documents.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(12),
                       child: Text(
-                        'DOCUMENTS',
+                        'Aucun document',
+                        style: TextStyle(fontSize: 12, color: p.subtle),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Icon(Icons.people_outline, size: 16, color: p.subtle),
+                      const SizedBox(width: 7),
+                      Text(
+                        'COLLABORATEURS',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -972,77 +1047,79 @@ class _ExpertSidebar extends StatelessWidget {
                           color: p.muted,
                         ),
                       ),
-                    ),
-                    _MiniButton(
-                      label: '+ Nouveau',
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  for (final collaborator in collaborators)
+                    _Collaborator(
+                      name: collaborator.$1,
+                      role: collaborator.$2,
                       palette: p,
-                      onTap: onCreate,
                     ),
-                  ],
-                ),
-                ...[
-                  const SizedBox(height: 12),
-                  _SidebarSearch(
-                    controller: searchController,
-                    palette: p,
-                    onChanged: onSearch,
-                  ),
                 ],
-                const SizedBox(height: 12),
-                for (final doc in documents)
-                  _DocItem(
-                    doc: doc,
-                    active: selectedId == doc['id']?.toString(),
-                    palette: p,
-                    onTap: () => onSelect(doc),
-                  ),
-                if (documents.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Aucun document',
-                      style: TextStyle(fontSize: 12, color: p.subtle),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Icon(Icons.people_outline, size: 16, color: p.subtle),
-                    const SizedBox(width: 7),
-                    Text(
-                      'COLLABORATEURS',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.1,
-                        color: p.muted,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                for (final collaborator in collaborators)
-                  _Collaborator(
-                    name: collaborator.$1,
-                    role: collaborator.$2,
-                    palette: p,
-                  ),
               ],
             ),
           ),
-          _SidebarFooter(palette: p, activity: activity, onProfile: onProfile),
+          if (rail)
+            Tooltip(
+              message: 'Mon profil',
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: p.border)),
+                ),
+                child: IconButton(
+                  onPressed: onProfile,
+                  tooltip: 'Mon profil',
+                  icon: const Icon(Icons.settings_outlined),
+                ),
+              ),
+            )
+          else
+            _SidebarFooter(
+              palette: p,
+              activity: activity,
+              onProfile: onProfile,
+            ),
         ],
       ),
     );
   }
 
+  String _navLabel(int index) => switch (index) {
+    0 => 'Éditeur de Normes',
+    1 => 'Historique',
+    2 => 'Experts & Groupes',
+    3 => 'Réunions & Votes',
+    4 => 'Cotisations & Indemnités',
+    5 => 'Processus ISO',
+    6 => 'Bureau Légistique',
+    7 => 'Notifications',
+    8 => 'Mon profil',
+    9 => 'Adhésions',
+    _ => 'Navigation',
+  };
+
+  IconData _navIcon(int index) => switch (index) {
+    0 => Icons.description_outlined,
+    1 => Icons.history,
+    2 => Icons.groups_outlined,
+    3 => Icons.how_to_vote_outlined,
+    4 => Icons.account_balance_outlined,
+    5 => Icons.verified_outlined,
+    6 => Icons.gavel_outlined,
+    7 => Icons.notifications_none,
+    8 => Icons.person_outline,
+    9 => Icons.person_add_alt,
+    _ => Icons.circle_outlined,
+  };
+
   List<(String, String)> _collaborators() {
     final names = <String>[];
     for (final doc in documents) {
       final name = doc['updatedBy'] as String?;
-      if (name != null && name.trim().isNotEmpty && !names.contains(name)) {
+      if (name != null && name.trim().isNotEmpty && !names.contains(name))
         names.add(name);
-      }
     }
     return [
       (userName, 'Compte connecté'),
@@ -1052,76 +1129,190 @@ class _ExpertSidebar extends StatelessWidget {
   }
 }
 
+class _ExpertSidebarNavButton extends StatelessWidget {
+  const _ExpertSidebarNavButton({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.collapsed,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final bool collapsed;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = ExpertTheme.of(context);
+    final button = Semantics(
+      button: true,
+      selected: active,
+      label: label,
+      child: Material(
+        color: active ? p.surface : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        elevation: active ? 1 : 0,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            height: 42,
+            child: Row(
+              mainAxisAlignment: collapsed
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: collapsed ? 0 : 3,
+                  color: active ? p.blue : Colors.transparent,
+                ),
+                SizedBox(width: collapsed ? 0 : 10),
+                Icon(icon, size: 18, color: active ? p.blue : p.subtle),
+                if (!collapsed) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: active ? p.title : p.muted,
+                        fontSize: 13,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: collapsed ? Tooltip(message: label, child: button) : button,
+    );
+  }
+}
+
 class _SidebarBrand extends StatelessWidget {
-  const _SidebarBrand({required this.palette});
+  const _SidebarBrand({
+    required this.palette,
+    this.collapsed = false,
+    this.onToggle,
+  });
 
   final ExpertPalette palette;
+  final bool collapsed;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 14),
       decoration: BoxDecoration(
         color: palette.sidebarHeader,
         border: Border(bottom: BorderSide(color: palette.border)),
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFD4AF37)),
-              color: Colors.white,
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset('assets/img/logo-cnetp.png', fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 4,
-            height: 32,
-            child: Column(
-              children: const [
-                Expanded(child: ColoredBox(color: Color(0xFF0095C9))),
+          Row(
+            children: [
+              Container(
+                width: collapsed ? 28 : 44,
+                height: collapsed ? 28 : 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFD4AF37)),
+                  color: Colors.white,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(
+                  'assets/img/logo-cnetp.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+              if (!collapsed) ...[
+                const SizedBox(width: 8),
                 SizedBox(
-                  height: 8,
-                  child: ColoredBox(color: Color(0xFFFFF24B)),
-                ),
-                Expanded(child: ColoredBox(color: Color(0xFFDB3832))),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CNE-ITP',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: palette.muted,
+                  width: 4,
+                  height: 32,
+                  child: const Column(
+                    children: [
+                      Expanded(child: ColoredBox(color: Color(0xFF0095C9))),
+                      SizedBox(
+                        height: 8,
+                        child: ColoredBox(color: Color(0xFFFFF24B)),
+                      ),
+                      Expanded(child: ColoredBox(color: Color(0xFFDB3832))),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'EXPERT · BÊTA',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.3,
-                    color: palette.blue,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: onToggle == null ? 0 : 42),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CNE-ITP',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1,
+                            color: palette.muted,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'EXPERT · BÊTA',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                            color: palette.blue,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
+          if (onToggle != null)
+            Positioned(
+              right: 0,
+              child: Tooltip(
+                message: collapsed ? 'Ouvrir le menu' : 'Réduire le menu',
+                child: InkWell(
+                  onTap: onToggle,
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: collapsed ? 20 : 34,
+                    height: 40,
+                    child: Center(
+                      child: Icon(
+                        collapsed ? Icons.chevron_right : Icons.chevron_left,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1595,52 +1786,74 @@ class _MiniButton extends StatelessWidget {
 }
 
 class _MessagingButton extends StatelessWidget {
-  const _MessagingButton({required this.palette});
+  const _MessagingButton({
+    required this.palette,
+    required this.onPressed,
+    this.unreadCount,
+  });
 
   final ExpertPalette palette;
+  final VoidCallback onPressed;
+  final int? unreadCount;
 
   @override
   Widget build(BuildContext context) {
-    final p = palette;
-    return Material(
-      color: p.card,
-      elevation: 0,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: () => openExpertMessaging(context),
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: p.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.chat_bubble_outline, size: 20, color: p.blue),
-              const SizedBox(width: 10),
-              Text(
-                'MESSAGERIE CNE-ITP',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                  color: p.title,
+    final count = unreadCount ?? 0;
+    final label = 'Messagerie CNE-ITP, $count non lu${count > 1 ? 's' : ''}';
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Material(
+              color: palette.blue,
+              elevation: 4,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: onPressed,
+                customBorder: const CircleBorder(),
+                child: const SizedBox.square(
+                  dimension: 56,
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    color: Colors.white,
+                    size: 25,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: p.blue,
-                  shape: BoxShape.circle,
+            ),
+            if (count > 0)
+              Positioned(
+                top: -3,
+                right: -5,
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minWidth: 22,
+                    minHeight: 22,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDB3832),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: palette.bg, width: 2),
+                  ),
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

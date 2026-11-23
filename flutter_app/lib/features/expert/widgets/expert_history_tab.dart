@@ -18,6 +18,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
   List<Map<String, dynamic>> _segments = [];
   bool _loading = true;
   bool _loadingDiff = false;
+  bool _fullText = false;
   int? _source;
   int? _target;
   String? _error;
@@ -213,7 +214,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         ),
         content: Text(
           'Cette action créera une nouvelle version copiée de la v$versionNumber.',
-          style: TextStyle(color: p.muted, fontSize: 12),
+          style: TextStyle(color: p.muted, fontSize: ExpertType.meta),
         ),
         actions: [
           TextButton(
@@ -260,15 +261,22 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final stacked = constraints.maxWidth < 900;
-        final padding = EdgeInsets.all(constraints.maxWidth < 560 ? 16 : 24);
+        final side = constraints.maxWidth < 560 ? 16.0 : 24.0;
+        final padding = EdgeInsets.fromLTRB(
+          side,
+          side,
+          side,
+          expertFabClearance,
+        );
         if (stacked) {
           return SingleChildScrollView(
             padding: padding,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: 460, child: _timelineCard(p)),
+                _timelineCard(p, fill: false),
                 const SizedBox(height: 24),
-                SizedBox(height: 560, child: _diffCard(p)),
+                _diffCard(p, fill: false),
               ],
             ),
           );
@@ -304,7 +312,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
               'Sélectionnez un document pour afficher son historique.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: ExpertType.meta,
                 fontWeight: FontWeight.w600,
                 color: p.muted,
               ),
@@ -339,7 +347,8 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
     );
   }
 
-  Widget _timelineCard(ExpertPalette p) {
+  Widget _timelineCard(ExpertPalette p, {bool fill = true}) {
+    final body = _timelineBody(p, scroll: fill);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _panelDecoration(p, timeline: true),
@@ -353,13 +362,18 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
             iconColor: p.blue,
           ),
           const SizedBox(height: 16),
-          Expanded(child: _timelineBody(p)),
+          fill
+              ? Expanded(child: body)
+              : ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 120),
+                  child: body,
+                ),
         ],
       ),
     );
   }
 
-  Widget _timelineBody(ExpertPalette p) {
+  Widget _timelineBody(ExpertPalette p, {bool scroll = true}) {
     if (_loading) {
       return Center(
         child: CircularProgressIndicator(color: p.blue, strokeWidth: 2),
@@ -370,7 +384,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         child: Text(
           _error!,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11.5, color: p.red),
+          style: TextStyle(fontSize: ExpertType.label, color: p.red),
         ),
       );
     }
@@ -384,34 +398,36 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
             Text(
               "Aucun historique d'édition enregistré.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11.5, color: p.muted),
+              style: TextStyle(fontSize: ExpertType.label, color: p.muted),
             ),
           ],
         ),
       );
     }
+    final timeline = Stack(
+      children: [
+        Positioned(
+          left: 17,
+          top: 10,
+          bottom: 10,
+          child: Container(
+            width: 2,
+            color: p.isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : p.borderStrong,
+          ),
+        ),
+        Column(
+          children: [
+            for (final version in _versions) _timelineEntry(p, version),
+          ],
+        ),
+      ],
+    );
+    if (!scroll) return timeline;
     return SingleChildScrollView(
       padding: const EdgeInsets.only(right: 4),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 17,
-            top: 10,
-            bottom: 10,
-            child: Container(
-              width: 2,
-              color: p.isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : p.borderStrong,
-            ),
-          ),
-          Column(
-            children: [
-              for (final version in _versions) _timelineEntry(p, version),
-            ],
-          ),
-        ],
-      ),
+      child: timeline,
     );
   }
 
@@ -461,7 +477,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                         child: Text(
                           'v$number',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: ExpertType.label,
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.w700,
                             color: p.isDark ? p.text : p.muted,
@@ -472,7 +488,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                       Text(
                         _date(version['created_at'] as String?),
                         style: TextStyle(
-                          fontSize: 9.5,
+                          fontSize: ExpertType.label,
                           fontFamily: 'monospace',
                           color: p.muted,
                         ),
@@ -485,8 +501,8 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11.5,
-                      height: 1.45,
+                      fontSize: ExpertType.body,
+                      height: ExpertType.bodyHeight,
                       fontWeight: FontWeight.w600,
                       color: p.text,
                     ),
@@ -502,7 +518,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: ExpertType.label,
                             fontWeight: FontWeight.w600,
                             color: p.muted,
                           ),
@@ -532,7 +548,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                         child: Text(
                           'Comparer',
                           style: TextStyle(
-                            fontSize: 10.5,
+                            fontSize: ExpertType.label,
                             fontWeight: FontWeight.w700,
                             color: p.blue,
                           ),
@@ -548,7 +564,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
                             Text(
                               'Restaurer',
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: ExpertType.label,
                                 fontWeight: FontWeight.w700,
                                 color: p.amber,
                               ),
@@ -615,7 +631,17 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
     );
   }
 
-  Widget _diffCard(ExpertPalette p) {
+  Widget _diffCard(ExpertPalette p, {bool fill = true}) {
+    final box = Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: p.isDark ? const Color(0xFF050507) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: p.border),
+      ),
+      child: _diffBody(p, scroll: fill),
+    );
+    final overview = _diffOverview(p);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _panelDecoration(p),
@@ -626,19 +652,79 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
           const SizedBox(height: 16),
           _legend(p),
           const SizedBox(height: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: p.isDark ? const Color(0xFF050507) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: p.border),
-              ),
-              child: _diffBody(p),
-            ),
-          ),
+          if (overview != null) ...[overview, const SizedBox(height: 12)],
+          fill ? Expanded(child: box) : box,
         ],
       ),
+    );
+  }
+
+  Widget? _diffOverview(ExpertPalette p) {
+    if (_loadingDiff || _diffError != null || _segments.isEmpty) return null;
+    final summary = summarizeNormDiff(_segments);
+    if (summary.insertions == 0 && summary.deletions == 0) return null;
+    String plural(int n, String word) => '$n $word${n > 1 ? 's' : ''}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${plural(summary.insertions, 'ajout')} · ${plural(summary.deletions, 'suppression')}',
+          style: TextStyle(
+            color: p.title,
+            fontWeight: FontWeight.w700,
+            fontSize: ExpertType.body,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          summary.sections.length > 1
+              ? 'Sections modifiées :'
+              : 'Section modifiée :',
+          style: TextStyle(color: p.muted, fontSize: ExpertType.meta),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final section in summary.sections)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: p.blueSoft,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  section,
+                  style: TextStyle(
+                    color: p.isDark ? p.text : p.blueDeep,
+                    fontWeight: FontWeight.w600,
+                    fontSize: ExpertType.label,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const ValueKey('history-diff-full-text'),
+            onPressed: () => setState(() => _fullText = !_fullText),
+            icon: Icon(
+              _fullText ? Icons.unfold_less : Icons.unfold_more,
+              size: 18,
+            ),
+            label: Text(
+              _fullText
+                  ? 'Masquer les passages inchangés'
+                  : 'Afficher le texte complet',
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -655,18 +741,20 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
             children: [
               Icon(Icons.compare_arrows, size: 18, color: p.muted),
               const SizedBox(width: 8),
-              SizedBox(
-                width: 120,
-                child: Text(
-                  'ANALYSE DES DIFFÉRENCES',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.25,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    color: p.title,
+              Flexible(
+                child: SizedBox(
+                  width: 120,
+                  child: Text(
+                    'ANALYSE DES DIFFÉRENCES',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: ExpertType.meta,
+                      height: 1.25,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: p.title,
+                    ),
                   ),
                 ),
               ),
@@ -705,7 +793,10 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         _versionControl(p, 'SOURCE', true),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text('→', style: TextStyle(fontSize: 12, color: p.subtle)),
+          child: Text(
+            '→',
+            style: TextStyle(fontSize: ExpertType.meta, color: p.subtle),
+          ),
         ),
         _versionControl(p, 'CIBLE', false),
       ],
@@ -719,7 +810,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         Text(
           '$label :',
           style: TextStyle(
-            fontSize: 10,
+            fontSize: ExpertType.label,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
             color: p.muted,
@@ -756,7 +847,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
           focusColor: Colors.transparent,
           icon: Icon(Icons.expand_more, size: 14, color: p.subtle),
           style: TextStyle(
-            fontSize: 10.5,
+            fontSize: ExpertType.label,
             fontFamily: 'monospace',
             color: p.text,
           ),
@@ -816,7 +907,11 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
           Expanded(
             child: Text.rich(
               TextSpan(
-                style: TextStyle(fontSize: 11, height: 1.55, color: p.muted),
+                style: TextStyle(
+                  fontSize: ExpertType.body,
+                  height: ExpertType.bodyHeight,
+                  color: p.muted,
+                ),
                 children: [
                   TextSpan(
                     text: 'Légende : ',
@@ -855,7 +950,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
     );
   }
 
-  Widget _diffBody(ExpertPalette p) {
+  Widget _diffBody(ExpertPalette p, {bool scroll = true}) {
     if (_loading) {
       return Center(
         child: CircularProgressIndicator(color: p.blue, strokeWidth: 2),
@@ -892,7 +987,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
               child: Text(
                 'v$_source',
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: ExpertType.label,
                   fontFamily: 'monospace',
                   fontWeight: FontWeight.w700,
                   color: p.muted,
@@ -904,7 +999,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
               'Vous comparez la version v$_source avec elle-même.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: ExpertType.meta,
                 fontWeight: FontWeight.w700,
                 color: p.title,
               ),
@@ -923,7 +1018,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         child: Text(
           _diffError!,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11.5, color: p.red),
+          style: TextStyle(fontSize: ExpertType.label, color: p.red),
         ),
       );
     }
@@ -932,16 +1027,28 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         child: Text(
           'Aucune différence significative détectée.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11.5, color: p.subtle),
+          style: TextStyle(fontSize: ExpertType.label, color: p.subtle),
         ),
       );
     }
     final spans = <TextSpan>[];
-    for (final segment in _segments) {
+    final segments = _fullText ? _segments : foldUnchangedDiff(_segments);
+    for (final segment in segments) {
       final type = segment['type'] as String? ?? 'equal';
       final text = segment['text'] as String? ?? '';
       if (text.isEmpty) continue;
-      if (RegExp(r'^\s+$').hasMatch(text)) {
+      if (type == 'folded') {
+        spans.add(
+          TextSpan(
+            text: text,
+            style: TextStyle(
+              color: p.subtle,
+              fontStyle: FontStyle.italic,
+              fontSize: ExpertType.meta,
+            ),
+          ),
+        );
+      } else if (RegExp(r'^\s+$').hasMatch(text)) {
         spans.add(TextSpan(text: text));
       } else if (type == 'delete') {
         spans.add(
@@ -975,14 +1082,17 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
         );
       }
     }
-    return SingleChildScrollView(
-      child: SelectableText.rich(
-        TextSpan(
-          style: TextStyle(fontSize: 12.5, height: 1.7, color: p.text),
-          children: spans,
+    final text = SelectableText.rich(
+      TextSpan(
+        style: TextStyle(
+          fontSize: ExpertType.body,
+          height: ExpertType.bodyHeight,
+          color: p.text,
         ),
+        children: spans,
       ),
     );
+    return scroll ? SingleChildScrollView(child: text) : text;
   }
 
   Widget _emptyState(
@@ -1000,7 +1110,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
             message,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: ExpertType.meta,
               fontWeight: FontWeight.w700,
               color: p.muted,
             ),
@@ -1029,7 +1139,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: ExpertType.meta,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.55,
                 color: p.title,
@@ -1057,7 +1167,7 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 9.5,
+          fontSize: ExpertType.label,
           fontWeight: FontWeight.w700,
           color: color,
           decoration: lineThrough ? TextDecoration.lineThrough : null,
@@ -1065,4 +1175,113 @@ class _ExpertHistoryTabState extends State<ExpertHistoryTab> {
       ),
     );
   }
+}
+
+class NormDiffSummary {
+  const NormDiffSummary({
+    required this.insertions,
+    required this.deletions,
+    required this.sections,
+  });
+
+  final int insertions;
+  final int deletions;
+  final List<String> sections;
+}
+
+final _normHeading = RegExp(
+  r"^\s*(\d+(\.\d+)*\.?\s+\S.*|[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ0-9' \-]{3,})\s*$",
+);
+
+bool _isNormHeading(String line) =>
+    line.trim().length <= 90 && _normHeading.hasMatch(line);
+
+/// Compte les modifications et retrouve les sections (titres de la version cible) qu'elles touchent.
+NormDiffSummary summarizeNormDiff(List<Map<String, dynamic>> segments) {
+  var heading = 'Début du document';
+  var line = StringBuffer();
+  var insertions = 0, deletions = 0;
+  final sections = <String>[];
+  for (final segment in segments) {
+    final type = segment['type'] as String? ?? 'equal';
+    final text = segment['text'] as String? ?? '';
+    if (type != 'equal' && text.trim().isNotEmpty) {
+      if (type == 'insert') insertions++;
+      if (type == 'delete') deletions++;
+      if (!sections.contains(heading)) sections.add(heading);
+    }
+    if (type == 'delete') continue;
+    final parts = text.split('\n');
+    for (var i = 0; i < parts.length; i++) {
+      line.write(parts[i]);
+      if (i < parts.length - 1) {
+        final completed = line.toString();
+        if (_isNormHeading(completed)) {
+          final label = completed.trim();
+          heading = label.length > 48 ? '${label.substring(0, 47)}…' : label;
+        }
+        line = StringBuffer();
+      }
+    }
+  }
+  return NormDiffSummary(
+    insertions: insertions,
+    deletions: deletions,
+    sections: sections,
+  );
+}
+
+/// Replie les longs passages inchangés en gardant [context] lignes autour des modifications.
+List<Map<String, dynamic>> foldUnchangedDiff(
+  List<Map<String, dynamic>> segments, {
+  int context = 2,
+}) {
+  if (!segments.any((s) => (s['type'] ?? 'equal') != 'equal')) {
+    return segments;
+  }
+  String marker(int hidden) =>
+      hidden > 1 ? '⋯ $hidden lignes inchangées ⋯' : '⋯ 1 ligne inchangée ⋯';
+  final result = <Map<String, dynamic>>[];
+  for (var index = 0; index < segments.length; index++) {
+    final segment = segments[index];
+    final text = segment['text'] as String? ?? '';
+    if ((segment['type'] ?? 'equal') != 'equal') {
+      result.add(segment);
+      continue;
+    }
+    final lines = text.split('\n');
+    final first = index == 0, last = index == segments.length - 1;
+    final keepHead = first ? 0 : context;
+    final keepTail = last ? 0 : context;
+    final hiddenLines = lines.length - keepHead - keepTail;
+    if (hiddenLines <= 0) {
+      result.add(segment);
+      continue;
+    }
+    final hidden = lines
+        .sublist(keepHead, keepHead + hiddenLines)
+        .where((l) => l.trim().isNotEmpty)
+        .length;
+    if (hidden < 3) {
+      result.add(segment);
+      continue;
+    }
+    if (keepHead > 0) {
+      result.add({
+        'type': 'equal',
+        'text': '${lines.take(keepHead).join('\n')}\n',
+      });
+    }
+    result.add({
+      'type': 'folded',
+      'text': keepTail > 0 ? '${marker(hidden)}\n' : marker(hidden),
+    });
+    if (keepTail > 0) {
+      result.add({
+        'type': 'equal',
+        'text': lines.skip(lines.length - keepTail).join('\n'),
+      });
+    }
+  }
+  return result;
 }

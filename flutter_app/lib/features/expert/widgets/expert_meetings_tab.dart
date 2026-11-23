@@ -87,7 +87,7 @@ class ExpertMeetingsTab extends StatelessWidget {
                           option.$2,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: ExpertType.meta,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -110,21 +110,22 @@ class ExpertMeetingsTab extends StatelessWidget {
                   style: TextStyle(
                     color: s.p.title,
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: ExpertType.body,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${meetings.length} séance${meetings.length > 1 ? 's' : ''}',
-                style: TextStyle(color: s.p.muted, fontSize: 13),
-              ),
+              Text(switch (meetings.length) {
+                0 => 'Aucune séance',
+                1 => '1 séance',
+                final n => '$n séances',
+              }, style: TextStyle(color: s.p.muted, fontSize: ExpertType.meta)),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             'Horaires locaux de votre appareil',
-            style: TextStyle(color: s.p.muted, fontSize: 12),
+            style: TextStyle(color: s.p.muted, fontSize: ExpertType.meta),
           ),
           const SizedBox(height: 16),
           if (canPlan)
@@ -218,8 +219,19 @@ class ExpertMeetingsTab extends StatelessWidget {
               ),
               icon: Icons.event_available,
             ),
+          if (canPlan) const SizedBox(height: 16),
           if (meetings.isEmpty && !s.errors.containsKey('Réunions'))
-            s.card('Réunions', [const Text('Aucune réunion disponible.')]),
+            _MeetingsEmptyState(
+              palette: s.p,
+              message: switch (period) {
+                'week' => 'Aucune réunion prévue cette semaine.',
+                'today' => 'Aucune réunion prévue aujourd’hui.',
+                _ => 'Aucune réunion enregistrée pour le moment.',
+              },
+              hint: period == 'all'
+                  ? null
+                  : 'Consultez l’onglet « Toutes » pour retrouver les séances passées et à venir.',
+            ),
           for (final meeting in meetings)
             _MeetingAgendaCard(
               meeting: meeting,
@@ -307,7 +319,7 @@ class _MeetingAgendaCard extends StatelessWidget {
         _meetingStatus(meeting['status']),
         style: TextStyle(
           color: p.muted,
-          fontSize: 12,
+          fontSize: ExpertType.meta,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -336,14 +348,14 @@ class _MeetingAgendaCard extends StatelessWidget {
             date == null ? '' : _agendaDay(date).split(' ').last.toUpperCase(),
             style: TextStyle(
               color: p.isDark ? p.text : p.blueDeep,
-              fontSize: 11,
+              fontSize: ExpertType.label,
               fontWeight: FontWeight.w600,
             ),
           ),
           if (date != null)
             Text(
               '${date.year}',
-              style: TextStyle(color: p.muted, fontSize: 11),
+              style: TextStyle(color: p.muted, fontSize: ExpertType.label),
             ),
         ],
       ),
@@ -412,7 +424,7 @@ class _MeetingAgendaCard extends StatelessWidget {
                               : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
                           style: TextStyle(
                             color: p.muted,
-                            fontSize: 14,
+                            fontSize: ExpertType.body,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -435,8 +447,8 @@ class _MeetingAgendaCard extends StatelessWidget {
                         scope,
                         style: TextStyle(
                           color: p.muted,
-                          fontSize: 13,
-                          height: 1.5,
+                          fontSize: ExpertType.body,
+                          height: ExpertType.bodyHeight,
                         ),
                       ),
                     ),
@@ -448,7 +460,11 @@ class _MeetingAgendaCard extends StatelessWidget {
                   agenda.replaceAll('\n', ' · '),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: p.text, fontSize: 14, height: 1.5),
+                  style: TextStyle(
+                    color: p.text,
+                    fontSize: ExpertType.body,
+                    height: ExpertType.bodyHeight,
+                  ),
                 ),
               ],
               const SizedBox(height: 18),
@@ -715,50 +731,43 @@ class _MeetingDetails extends StatelessWidget {
                 ),
             ]),
           ]),
-          s.card(
-            'Émargement',
-            [
-              Text(
-                presences.isEmpty
-                    ? 'Aucune présence déclarée pour le moment.'
-                    : '${presences.where((p) => p['status'] == 'PRESENT').length} présence(s) confirmée(s)',
-              ),
-              for (final presence in presences)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '${presence['expert_name']}',
-                    style: TextStyle(color: s.p.text),
-                  ),
-                  subtitle: Text(
-                    _presenceLabel(presence['status']),
-                    style: TextStyle(color: s.p.muted),
-                  ),
-                  trailing: canManage && active
-                      ? PopupMenuButton<String>(
-                          tooltip: 'Modifier la présence',
-                          itemBuilder: (_) => [
-                            for (final status in [
-                              'PRESENT',
-                              'ABSENT',
-                              'EXCUSED',
-                            ])
-                              PopupMenuItem(
-                                value: status,
-                                child: Text(_presenceLabel(status)),
-                              ),
-                          ],
-                          onSelected: (status) => s.run(() async {
-                            await ApiClient.dio.patch(
-                              '/api/v1/presences/${presence['id']}/',
-                              data: {'status': status},
-                            );
-                          }),
-                        )
-                      : null,
+          s.card('Émargement', [
+            Text(
+              presences.isEmpty
+                  ? 'Aucune présence déclarée pour le moment.'
+                  : '${presences.where((p) => p['status'] == 'PRESENT').length} présence(s) confirmée(s)',
+            ),
+            for (final presence in presences)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  '${presence['expert_name']}',
+                  style: TextStyle(color: s.p.text),
                 ),
-            ],
-          ),
+                subtitle: Text(
+                  _presenceLabel(presence['status']),
+                  style: TextStyle(color: s.p.muted),
+                ),
+                trailing: canManage && active
+                    ? PopupMenuButton<String>(
+                        tooltip: 'Modifier la présence',
+                        itemBuilder: (_) => [
+                          for (final status in ['PRESENT', 'ABSENT', 'EXCUSED'])
+                            PopupMenuItem(
+                              value: status,
+                              child: Text(_presenceLabel(status)),
+                            ),
+                        ],
+                        onSelected: (status) => s.run(() async {
+                          await ApiClient.dio.patch(
+                            '/api/v1/presences/${presence['id']}/',
+                            data: {'status': status},
+                          );
+                        }),
+                      )
+                    : null,
+              ),
+          ]),
           s.card('Votes (${votes.length})', [
             if (votes.isEmpty) const Text('Aucun vote enregistré.'),
             for (final vote in votes)
@@ -826,3 +835,60 @@ String _meetingStatus(dynamic value) =>
       'CANCELLED': 'Annulée',
     }[value] ??
     '$value';
+
+class _MeetingsEmptyState extends StatelessWidget {
+  const _MeetingsEmptyState({
+    required this.palette,
+    required this.message,
+    this.hint,
+  });
+
+  final ExpertPalette palette;
+  final String message;
+  final String? hint;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      decoration: BoxDecoration(
+        color: p.card,
+        border: Border.all(color: p.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: p.blueSoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.event_busy_outlined, color: p.blue, size: 24),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: p.title,
+              fontWeight: FontWeight.w600,
+              fontSize: ExpertType.body,
+            ),
+          ),
+          if (hint != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              hint!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: p.muted, fontSize: ExpertType.meta),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

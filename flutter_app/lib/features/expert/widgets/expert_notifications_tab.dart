@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'expert_theme.dart';
+
 import 'expert_module.dart';
 
 String _notificationDate(dynamic value) {
@@ -82,7 +84,7 @@ class ExpertNotificationsTab extends StatelessWidget {
               Text('${n['body'] ?? ''}'),
               Text(
                 _notificationDate(n['created_at']),
-                style: TextStyle(color: s.p.muted, fontSize: 12),
+                style: TextStyle(color: s.p.muted, fontSize: ExpertType.meta),
               ),
               s.actions([
                 if (onOpenMeeting != null &&

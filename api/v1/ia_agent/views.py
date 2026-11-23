@@ -10,6 +10,11 @@ from apps.ia_agent.models import AgentArtifact, AgentSession
 from apps.ia_agent.services.agent_runner import AgentRunner
 from apps.ia_agent.services.permissions import user_can_access_scope
 from apps.ia_agent.services.regulatory_advice import generate_regulatory_advice
+from apps.norms.rich_text import (
+    FORMAT_PLAIN,
+    RichTextValidationError,
+    validate,
+)
 
 from .serializers import AgentArtifactSerializer, AgentMessageSerializer, AgentSessionSerializer
 
@@ -59,17 +64,41 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='regulatory-advice')
     def regulatory_advice(self, request):
         text = (request.data.get('text') or '').strip()
+        content_format = request.data.get('content_format', FORMAT_PLAIN)
         if not text:
             return Response(
                 {"error": "Aucun texte n’a été fourni pour l’analyse réglementaire."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        result = generate_regulatory_advice(text)
+        try:
+            validate(text, content_format)
+        except RichTextValidationError as exc:
+            return Response(
+                {"error": str(exc), "content_format": content_format},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        result = generate_regulatory_advice(text, content_format)
         if not result.get('success'):
             return Response(
                 {"error": result.get('error', 'Erreur IA.')},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        applied_text = result.get('applied_text', text)
+        try:
+            validate(applied_text, content_format)
+        except RichTextValidationError as exc:
+            return Response(
+                {
+                    "error": (
+                        "La proposition IA produite ne respecte pas le format "
+                        f"CNE-ITP : {exc}"
+                    ),
+                    "content_format": content_format,
+                },
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
         return Response({
@@ -77,7 +106,8 @@ class AgentSessionViewSet(viewsets.ModelViewSet):
             'proposal': result['proposal'],
             'summary': result.get('summary', result['explanation']),
             'edits': result.get('edits', []),
-            'applied_text': result.get('applied_text', text),
+            'applied_text': applied_text,
+            'content_format': content_format,
             'fallback': result.get('fallback', False),
             'raw': result['raw'],
             'provider': result['provider'],

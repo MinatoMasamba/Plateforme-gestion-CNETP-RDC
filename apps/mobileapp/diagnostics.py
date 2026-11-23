@@ -2,10 +2,38 @@
 import json
 import os
 import re
-import fcntl
+from contextlib import contextmanager
 from pathlib import Path
 
 from django.conf import settings
+
+if os.name == 'nt':
+    import msvcrt
+else:
+    import fcntl
+
+
+@contextmanager
+def _exclusive_lock(stream):
+    if os.name == 'nt':
+        stream.seek(0)
+        if not stream.read(1):
+            stream.write(b'\0')
+            stream.flush()
+        stream.seek(0)
+        msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+        try:
+            yield
+        finally:
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+
+    fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+    try:
+        yield
+    finally:
+        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def redact(value):
@@ -28,9 +56,8 @@ def write_diagnostic(incident):
     line = json.dumps(payload, ensure_ascii=False) + '\n'
     # Verrou interprocessus : rotation et écriture restent cohérentes avec
     # plusieurs workers Django Linux. 5 fichiers de 5 Mo maximum environ.
-    lock_fd = os.open(root / '.journal.lock', os.O_WRONLY | os.O_CREAT, 0o600)
-    with os.fdopen(lock_fd, 'w') as lock:
-        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+    lock_fd = os.open(root / '.journal.lock', os.O_RDWR | os.O_CREAT, 0o600)
+    with os.fdopen(lock_fd, 'a+b') as lock, _exclusive_lock(lock):
         if path.exists() and path.stat().st_size >= 5 * 1024 * 1024:
             for number in range(4, 0, -1):
                 source = path if number == 1 else root / f'flutter_errors.{number - 1}.txt'

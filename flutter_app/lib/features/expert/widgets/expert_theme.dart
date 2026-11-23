@@ -1,5 +1,39 @@
 import 'package:flutter/material.dart';
 
+/// Échelle typographique des sections Expert, calée sur le texte de l'éditeur de normes.
+abstract final class ExpertType {
+  static const double body = 15;
+  static const double bodyHeight = 1.6;
+  static const double meta = 13;
+  static const double label = 12;
+  static const double section = 16;
+  static const double pageTitle = 20;
+}
+
+/// Espace laissé sous le contenu défilant pour dégager le bouton Message flottant.
+const double expertFabClearance = 96;
+
+abstract final class ExpertCommunicationLayout {
+  static const double maxWidth = 1280;
+  static const double readingWidth = 760;
+  static const double bubbleWidth = 640;
+  static const double segmentedTabsWidth = 440;
+  static const double compactInboxWidth = 300;
+  static const double wideInboxWidth = 360;
+  static const double compactHistoryWidth = 260;
+  static const double wideHistoryWidth = 300;
+  static const double desktopHeaderHeight = 72;
+
+  static double contentWidth(double available) =>
+      available > maxWidth ? maxWidth : available;
+
+  static double inboxWidth(double available) =>
+      available >= 1200 ? wideInboxWidth : compactInboxWidth;
+
+  static double historyWidth(double available) =>
+      available >= 1200 ? wideHistoryWidth : compactHistoryWidth;
+}
+
 class ExpertPalette {
   const ExpertPalette({
     required this.isDark,
@@ -177,15 +211,21 @@ ThemeData expertMaterialTheme(BuildContext context, ExpertPalette p) {
     textTheme: base.textTheme
         .apply(fontFamily: 'Inter', bodyColor: p.text, displayColor: p.title)
         .copyWith(
+          bodyLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: ExpertType.body,
+            height: ExpertType.bodyHeight,
+            color: p.text,
+          ),
           bodyMedium: TextStyle(
             fontFamily: 'Inter',
-            fontSize: 14,
-            height: 1.5,
+            fontSize: ExpertType.body,
+            height: ExpertType.bodyHeight,
             color: p.text,
           ),
           bodySmall: TextStyle(
             fontFamily: 'Inter',
-            fontSize: 13,
+            fontSize: ExpertType.meta,
             height: 1.45,
             color: p.muted,
           ),

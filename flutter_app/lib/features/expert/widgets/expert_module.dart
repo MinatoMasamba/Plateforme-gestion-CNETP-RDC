@@ -1,14 +1,12 @@
-import 'package:dio/dio.dart';
-import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
-import '../../../core/files/android_file_save.dart';
+import 'expert_download.dart';
 import 'expert_messaging.dart';
 import 'expert_theme.dart';
 
+export 'expert_download.dart' show expertDownload;
 export 'expert_messaging.dart' show expertRows, expertError;
 
 Map<String, dynamic> expertMap(dynamic data) =>
@@ -24,26 +22,6 @@ Future<List<Map<String, dynamic>>> expertList(String path) async {
     next = value is String && value.isNotEmpty ? value : null;
   }
   return result;
-}
-
-Future<void> expertDownload(String path, String name) async {
-  final response = await ApiClient.dio.get<List<int>>(
-    path,
-    options: Options(responseType: ResponseType.bytes),
-  );
-  final bytes = Uint8List.fromList(response.data ?? []);
-  if (kIsWeb) {
-    await XFile.fromData(bytes, name: name).saveTo(name);
-  } else if (defaultTargetPlatform == TargetPlatform.android) {
-    if (!await saveAndroidFile(bytes, name)) {
-      throw StateError('Enregistrement annulé.');
-    }
-  } else {
-    final location = await getSaveLocation(suggestedName: name);
-    if (location != null) {
-      await XFile.fromData(bytes, name: name).saveTo(location.path);
-    }
-  }
 }
 
 class ExpertModule extends StatefulWidget {
@@ -125,7 +103,7 @@ class ExpertModuleState extends State<ExpertModule> {
     try {
       await action();
       if (!mounted) return false;
-      notify(success);
+      if (success.isNotEmpty) notify(success);
       if (reload) await load();
       return true;
     } catch (error) {
@@ -140,6 +118,35 @@ class ExpertModuleState extends State<ExpertModule> {
       run(() async {
         await ApiClient.dio.post(path, data: payload ?? {});
       });
+
+  Future<bool> confirm(
+    String title,
+    String message, {
+    required String action,
+    bool destructive = false,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            style: destructive
+                ? FilledButton.styleFrom(backgroundColor: p.red)
+                : null,
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
 
   Future<void> details(String title, Widget child) => showDialog<void>(
     context: context,
@@ -221,9 +228,18 @@ class ExpertModuleState extends State<ExpertModule> {
 
   @override
   Widget build(BuildContext context) => DefaultTextStyle(
-    style: TextStyle(color: p.text, fontSize: 14, height: 1.5),
+    style: TextStyle(
+      color: p.text,
+      fontSize: ExpertType.body,
+      height: ExpertType.bodyHeight,
+    ),
     child: SingleChildScrollView(
-      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 16 : 24),
+      padding: EdgeInsets.fromLTRB(
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
+        expertFabClearance,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

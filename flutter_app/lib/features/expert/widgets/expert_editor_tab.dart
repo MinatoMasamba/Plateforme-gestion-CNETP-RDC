@@ -1,7 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/rich_text/cnetp_markdown.dart';
+import 'cnetp_rich_toolbar.dart';
 import 'expert_messaging.dart';
 import 'expert_module.dart' show expertDownload;
 import 'expert_resources.dart';
@@ -40,15 +44,26 @@ class ExpertEditorTab extends StatefulWidget {
 }
 
 class _ExpertEditorTabState extends State<ExpertEditorTab> {
-  final _text = TextEditingController();
   final _comment = TextEditingController();
   final _excerpt = TextEditingController();
   final _focus = FocusNode();
+  final _documentController = quill.QuillController.basic();
+  late final _formatter = CnetpFormatter(_documentController);
+  final _documentScroll = ScrollController();
+  final _pageScroll = ScrollController();
+  final _quillEditorKey = GlobalKey<quill.EditorState>();
+  bool _loadingDocument = false;
   final _shareKey = GlobalKey();
   final _editorKey = GlobalKey();
+  final _journalKey = GlobalKey();
   bool _right = true, _voteOpen = true, _saving = false, _voting = false;
   bool _analyzing = false, _sharing = false, _downloading = false;
+  bool _layoutInitialized = false, _outlineOpen = false;
   int _generation = 0, _aiRequest = 0;
+
+  /// Source Markdown CNE-ITP courante, dérivée du document Quill.
+  String _source = '';
+  String _plain = '';
   String _base = '';
   String? _recipient, _voteError, _contactsError;
   dynamic _expertId;
@@ -59,12 +74,15 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
 
   String? get _id => widget.doc?['id']?.toString();
   Map<String, ExpertDraft> get _drafts => widget.drafts ?? _localDrafts;
-  bool get _dirty => _text.text != _base || _comment.text.isNotEmpty;
+  bool get _dirty => _source != _base || _comment.text.isNotEmpty;
   bool get _closed => ['PUBLISHED', 'ARCHIVED'].contains(widget.doc?['status']);
+  bool get _compact => MediaQuery.sizeOf(context).width < 700;
 
   @override
   void initState() {
     super.initState();
+    _documentController.addListener(_onDocument);
+    _comment.addListener(_onComment);
     _restore();
     _focus.addListener(() {
       if (_focus.hasFocus && mounted) {
@@ -74,6 +92,75 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
         });
       }
     });
+  }
+
+  void _readDocument() {
+    final document = _documentController.document;
+    _source = cnetpFromDelta(document.toDelta().toJson());
+    final plain = document.toPlainText();
+    _plain = plain.endsWith('\n')
+        ? plain.substring(0, plain.length - 1)
+        : plain;
+  }
+
+  /// Charge [source] dans l’éditeur sans déclencher l’enregistrement du brouillon.
+  void _load(String source, [String format = cnetpFormatMarkdown]) {
+    _loadingDocument = true;
+    try {
+      _documentController.document = quill.Document.fromJson(
+        cnetpToDelta(source, format),
+      );
+      _readDocument();
+    } finally {
+      _loadingDocument = false;
+    }
+  }
+
+  void _recordDraft() {
+    if (_id != null) {
+      _drafts[_id!] = ExpertDraft(_source, _comment.text, _base);
+    }
+  }
+
+  void _onDocument() {
+    if (_loadingDocument) return;
+    final previous = _source;
+    _readDocument();
+    if (_source != previous) _recordDraft();
+    final selection = _documentController.selection;
+    if (selection.isValid && !selection.isCollapsed) {
+      final selected = _documentController.document
+          .getPlainText(selection.start, selection.end - selection.start)
+          .trim();
+      if (selected.isNotEmpty && _excerpt.text != selected) {
+        _excerpt.text = selected;
+        if (!_compact) _right = true;
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _onComment() {
+    _recordDraft();
+    if (mounted) setState(() {});
+  }
+
+  void _setText(String source) {
+    _load(source);
+    _recordDraft();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_layoutInitialized) {
+      _layoutInitialized = true;
+      if (_compact) {
+        _right = false;
+        _voteOpen = false;
+      }
+    }
   }
 
   @override
@@ -95,39 +182,30 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     _recipient = null;
     final version = widget.doc?['latest_version'];
     final content = version is Map ? version['content'] : null;
-    _base = content as String? ?? widget.doc?['content'] as String? ?? '';
+    final format = version is Map && version['content_format'] is String
+        ? version['content_format'] as String
+        : cnetpFormatPlain;
+    // Le texte brut historique est converti une fois : la référence de
+    // comparaison est donc le Markdown normalisé, pas le contenu stocké.
+    _load(
+      content as String? ?? widget.doc?['content'] as String? ?? '',
+      format,
+    );
+    _base = _source;
     final stored = _drafts[_id];
     final draft =
         stored != null &&
             (stored.text != stored.base || stored.comment.isNotEmpty)
         ? stored
         : null;
-    // Affecter les trois valeurs avant de notifier les listeners.
-    _text.removeListener(_changed);
-    _comment.removeListener(_changed);
-    _text.text = draft?.text ?? _base;
+    if (draft != null) {
+      _load(draft.text);
+      _base = draft.base;
+    }
+    _comment.removeListener(_onComment);
     _comment.text = draft?.comment ?? '';
-    _base = draft?.base ?? _base;
-    _text.addListener(_changed);
-    _comment.addListener(_changed);
+    _comment.addListener(_onComment);
     if (_id != null) _loadData(_generation);
-  }
-
-  void _changed() {
-    if (_id != null) {
-      _drafts[_id!] = ExpertDraft(_text.text, _comment.text, _base);
-    }
-    final selection = _text.selection;
-    if (selection.isValid &&
-        !selection.isCollapsed &&
-        selection.end <= _text.text.length) {
-      final selected = selection.textInside(_text.text);
-      if (_excerpt.text != selected) {
-        _excerpt.text = selected;
-        _right = true;
-      }
-    }
-    if (mounted) setState(() {});
   }
 
   Future<void> _loadData(int generation) async {
@@ -188,14 +266,16 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   Future<void> _save() async {
     final id = _id;
     if (id == null || _saving) return;
-    if (_closed) {
+    if (_closed || _compact) {
       _notify(
-        'Cette norme est publiée ou archivée : elle est en lecture seule.',
+        _closed
+            ? 'Cette norme est publiée ou archivée : elle est en lecture seule.'
+            : 'La rédaction est disponible uniquement sur la version ordinateur.',
       );
       return;
     }
-    final text = _text.text, comment = _comment.text.trim();
-    if (text.trim().isEmpty || comment.isEmpty) {
+    final text = _source, comment = _comment.text.trim();
+    if (_plain.trim().isEmpty || comment.isEmpty) {
       _notify('Le contenu et le commentaire de version sont obligatoires.');
       return;
     }
@@ -207,6 +287,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
         data: {
           'title': widget.doc?['title'],
           'content': text,
+          'content_format': cnetpFormatMarkdown,
           'comment': comment,
         },
       );
@@ -218,7 +299,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
       if (!mounted || generation != _generation) return;
       _base = text;
       if (_comment.text.trim() == comment) _comment.clear();
-      _changed();
+      setState(() {});
       widget.onSave();
       _notify('Nouvelle version sauvegardée.');
     } catch (error) {
@@ -269,12 +350,12 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   }
 
   Future<void> _analyze() async {
-    if (_text.text.trim().isEmpty) {
+    if (_plain.trim().isEmpty) {
       _notify('Saisissez du texte à analyser.');
       return;
     }
     final request = ++_aiRequest, generation = _generation;
-    final text = _text.text;
+    final text = _source;
     setState(() {
       _analyzing = true;
       _advice = null;
@@ -284,6 +365,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
         '/api/v1/ia-agent/sessions/regulatory-advice/',
         data: {
           'text': text,
+          'content_format': cnetpFormatMarkdown,
           for (final key in [
             'standard_family',
             'norm_type',
@@ -314,13 +396,15 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   }
 
   void _applyAdvice() {
-    if (_closed) {
+    if (_closed || _compact) {
       _notify(
-        'Cette norme est publiée ou archivée : elle est en lecture seule.',
+        _closed
+            ? 'Cette norme est publiée ou archivée : elle est en lecture seule.'
+            : 'La rédaction est disponible uniquement sur la version ordinateur.',
       );
       return;
     }
-    if (_text.text != _analyzedText) {
+    if (_source != _analyzedText) {
       _notify('Le texte a changé. Relancez l’analyse avant d’appliquer.');
       return;
     }
@@ -331,7 +415,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     if (edits == 0 || applied is! String || _advice?['fallback'] == true) {
       return;
     }
-    _text.text = applied;
+    _setText(applied);
     _comment.text =
         '$edits correction(s) réglementaire(s) proposée(s) par l’Assistant IA';
     setState(() => _advice = null);
@@ -416,18 +500,151 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
   void dispose() {
     _generation++;
     _aiRequest++;
-    _text.dispose();
+    _documentController.removeListener(_onDocument);
+    _documentController.dispose();
+    _documentScroll.dispose();
+    _pageScroll.dispose();
     _comment.dispose();
     _excerpt.dispose();
     _focus.dispose();
     super.dispose();
   }
 
+  void _revealShare() {
+    setState(() => _right = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _shareKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _shareKey.currentContext!,
+          duration: const Duration(milliseconds: 250),
+        );
+      }
+    });
+  }
+
+  Future<void> _openLink(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !cnetpIsSafeUrl(url)) {
+      _notify('Lien non autorisé.');
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ouvrir le lien ?'),
+        content: SelectableText(
+          'Vous allez quitter l’espace CNE-ITP pour :\n$url',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ouvrir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        _notify('Impossible d’ouvrir ce lien.');
+      }
+    } catch (_) {
+      _notify('Impossible d’ouvrir ce lien.');
+    }
+  }
+
+  void _scrollToHeading(CnetpHeading heading) {
+    final renderEditor = _quillEditorKey.currentState?.renderEditor;
+    if (renderEditor == null) return;
+    final rect = renderEditor.getLocalRectForCaret(
+      TextPosition(offset: heading.offset),
+    );
+    renderEditor.showOnScreen(
+      rect: rect.inflate(24),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Widget _outline(List<CnetpHeading> headings) {
+    final p = ExpertTheme.of(context);
+    return Container(
+      key: const ValueKey('norm-outline'),
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: p.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => setState(() => _outlineOpen = !_outlineOpen),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Icon(Icons.toc, size: 18, color: p.blue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Sommaire (${headings.length})',
+                      style: TextStyle(
+                        color: p.title,
+                        fontWeight: FontWeight.w700,
+                        fontSize: ExpertType.meta,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _outlineOpen ? Icons.expand_less : Icons.expand_more,
+                    color: p.muted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_outlineOpen)
+            for (final heading in headings)
+              InkWell(
+                onTap: () => _scrollToHeading(heading),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    12.0 + (heading.level - 1) * 14,
+                    8,
+                    12,
+                    8,
+                  ),
+                  child: Text(
+                    heading.text,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: heading.level == 1 ? p.title : p.text,
+                      fontSize: ExpertType.meta,
+                      fontWeight: heading.level == 1
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
   Widget _panel(String title, Widget child, {VoidCallback? close}) {
     final p = ExpertTheme.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(_compact ? 12 : 16),
       decoration: BoxDecoration(
         color: p.card,
         borderRadius: BorderRadius.circular(12),
@@ -444,7 +661,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                   style: TextStyle(
                     color: p.title,
                     fontWeight: FontWeight.w800,
-                    fontSize: 14,
+                    fontSize: _compact ? ExpertType.meta : ExpertType.body,
                   ),
                 ),
               ),
@@ -456,7 +673,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: _compact ? 8 : 12),
           child,
         ],
       ),
@@ -467,17 +684,113 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     final p = ExpertTheme.of(context);
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: p.muted),
+      labelStyle: TextStyle(
+        color: p.muted,
+        fontSize: _compact ? ExpertType.meta : ExpertType.body,
+      ),
+      isDense: _compact,
       filled: true,
       fillColor: p.field,
       border: const OutlineInputBorder(),
-      contentPadding: const EdgeInsets.all(12),
+      contentPadding: EdgeInsets.all(_compact ? 10 : 12),
+    );
+  }
+
+  Widget _versionActions() {
+    final canSave =
+        !_saving &&
+        !widget.loading &&
+        _dirty &&
+        _plain.trim().isNotEmpty &&
+        _comment.text.trim().isNotEmpty;
+    void reset() {
+      _setText(_base);
+      _comment.clear();
+      setState(() => _advice = null);
+    }
+
+    final save = FilledButton.icon(
+      key: const ValueKey('norm-save-version'),
+      onPressed: canSave ? _save : null,
+      icon: const Icon(Icons.save_outlined, size: 18),
+      label: Text(
+        _saving
+            ? 'Sauvegarde…'
+            : (_compact ? 'Enregistrer' : 'Sauvegarder la version'),
+      ),
+    );
+    if (_compact) {
+      return Row(
+        children: [
+          IconButton.outlined(
+            key: const ValueKey('norm-reset-version'),
+            onPressed: !_dirty || _saving ? null : reset,
+            tooltip: 'Réinitialiser les modifications',
+            icon: const Icon(Icons.rotate_left, size: 18),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: save),
+        ],
+      );
+    }
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      alignment: WrapAlignment.spaceBetween,
+      children: [
+        TextButton.icon(
+          onPressed: !_dirty || _saving ? null : reset,
+          icon: const Icon(Icons.rotate_left),
+          label: const Text('Réinitialiser'),
+        ),
+        save,
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final p = ExpertTheme.of(context);
+    final compact = _compact;
+    _documentController.readOnly = widget.loading || _closed || compact;
+    final baseTheme = Theme.of(context);
+    final controls = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(40, 40)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      textStyle: const WidgetStatePropertyAll(
+        TextStyle(fontSize: ExpertType.meta, fontWeight: FontWeight.w600),
+      ),
+      iconSize: const WidgetStatePropertyAll(16),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+    final editorTheme = compact
+        ? baseTheme.copyWith(
+            filledButtonTheme: FilledButtonThemeData(
+              style:
+                  baseTheme.filledButtonTheme.style?.merge(controls) ??
+                  controls,
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style:
+                  baseTheme.outlinedButtonTheme.style?.merge(controls) ??
+                  controls,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style:
+                  baseTheme.textButtonTheme.style?.merge(controls) ?? controls,
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: const ButtonStyle(
+                minimumSize: WidgetStatePropertyAll(Size(40, 40)),
+                iconSize: WidgetStatePropertyAll(18),
+              ),
+            ),
+          )
+        : baseTheme;
     if (widget.doc == null) {
       return Center(
         child: widget.loading
@@ -488,9 +801,9 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
               ),
       );
     }
-    final words = _text.text.trim().isEmpty
+    final words = _plain.trim().isEmpty
         ? 0
-        : _text.text.trim().split(RegExp(r'\s+')).length;
+        : _plain.trim().split(RegExp(r'\s+')).length;
     final latestVersion = widget.doc?['latest_version'];
     final latestComment = latestVersion is Map
         ? '${latestVersion['comment'] ?? ''}'.trim()
@@ -498,83 +811,126 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     final updated = DateTime.tryParse(
       '${widget.doc?['updated_at']}',
     )?.toLocal();
+    final quillConfig = quill.QuillEditorConfig(
+      editorKey: _quillEditorKey,
+      scrollable: !compact,
+      expands: !compact,
+      padding: compact ? EdgeInsets.zero : const EdgeInsets.all(16),
+      placeholder: compact ? 'Aucun contenu' : 'Écrivez le standard ici…',
+      customStyles: cnetpQuillStyles(p, compact: compact),
+      customStyleBuilder: cnetpStyleBuilder(p),
+      onLaunchUrl: _openLink,
+      customShortcuts: cnetpShortcuts(),
+      customActions: cnetpActions(context, _formatter),
+      contextMenuBuilder: (context, state) => cnetpContextMenu(
+        context,
+        state,
+        _formatter,
+        onShare: compact ? null : _revealShare,
+      ),
+    );
+    final outline = compact
+        ? cnetpOutline(_documentController.document.toDelta().toJson())
+        : const <CnetpHeading>[];
     final editor = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _panel(
-          'FORMAT : TEXTE BRUT / CLAUSES ISO',
+          'TEXTE DE LA NORME',
           Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '${_text.text.length} caractères • $words mots',
-                style: TextStyle(color: p.subtle),
-              ),
-              SizedBox(
-                key: _editorKey,
-                height: _right ? 384 : 520,
-                child: TextField(
-                  key: const ValueKey('norm-editor-text'),
-                  controller: _text,
-                  focusNode: _focus,
-                  readOnly: widget.loading || _closed,
-                  expands: true,
-                  maxLines: null,
-                  minLines: null,
-                  textAlignVertical: TextAlignVertical.top,
-                  style: TextStyle(color: p.text, fontSize: 14, height: 1.7),
-                  onTap: () => setState(() {
-                    _right = false;
-                    _voteOpen = false;
-                  }),
-                  decoration: const InputDecoration(
-                    hintText: 'Écrivez le standard ici…',
-                    border: InputBorder.none,
-                  ),
+                '${_plain.length} caractères • $words mots',
+                style: TextStyle(
+                  color: p.subtle,
+                  fontSize: compact ? ExpertType.label : ExpertType.body,
                 ),
               ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => setState(() {
-                      _right = !_right;
-                      _focus.unfocus();
-                    }),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: Text(
-                      _right ? 'Masquer IA / partage' : 'Afficher IA / partage',
+              if (compact && outline.isNotEmpty) _outline(outline),
+              if (compact)
+                Padding(
+                  key: _editorKey,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: quill.QuillEditor(
+                    key: const ValueKey('norm-editor-text'),
+                    controller: _documentController,
+                    focusNode: _focus,
+                    scrollController: _documentScroll,
+                    config: quillConfig,
+                  ),
+                )
+              else
+                Container(
+                  key: _editorKey,
+                  margin: const EdgeInsets.only(top: 12),
+                  height: _right ? 360 : 500,
+                  decoration: BoxDecoration(
+                    color: p.field,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _focus.hasFocus ? p.blue : p.border,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => setState(() => _voteOpen = !_voteOpen),
-                    icon: const Icon(Icons.how_to_vote_outlined),
-                    label: Text(
-                      _voteOpen ? 'Masquer le scrutin' : 'Afficher le scrutin',
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CnetpRichToolbar(formatter: _formatter),
+                      Expanded(
+                        child: quill.QuillEditor(
+                          key: const ValueKey('norm-editor-text'),
+                          controller: _documentController,
+                          focusNode: _focus,
+                          scrollController: _documentScroll,
+                          config: quillConfig,
+                        ),
+                      ),
+                    ],
                   ),
-                  if (_excerpt.text.isNotEmpty)
+                ),
+              if (!compact)
+                Wrap(
+                  spacing: 8,
+                  children: [
                     TextButton.icon(
-                      onPressed: () {
-                        setState(() => _right = true);
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted && _shareKey.currentContext != null) {
-                            Scrollable.ensureVisible(
-                              _shareKey.currentContext!,
-                              duration: const Duration(milliseconds: 250),
-                            );
-                          }
-                        });
-                      },
-                      icon: const Icon(Icons.share),
-                      label: const Text('Partager la sélection'),
+                      key: const ValueKey('editor-ai-toggle'),
+                      onPressed: () => setState(() {
+                        _right = !_right;
+                        _focus.unfocus();
+                      }),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: Text(
+                        _right
+                            ? 'Masquer IA / partage'
+                            : 'Afficher IA / partage',
+                      ),
                     ),
-                ],
-              ),
+                    TextButton.icon(
+                      key: const ValueKey('editor-vote-toggle'),
+                      onPressed: () => setState(() => _voteOpen = !_voteOpen),
+                      icon: const Icon(Icons.how_to_vote_outlined),
+                      label: Text(
+                        _voteOpen
+                            ? 'Masquer le scrutin'
+                            : 'Afficher le scrutin',
+                      ),
+                    ),
+                    if (_excerpt.text.isNotEmpty)
+                      TextButton.icon(
+                        onPressed: _revealShare,
+                        icon: const Icon(Icons.share),
+                        label: const Text('Partager la sélection'),
+                      ),
+                  ],
+                ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        if (_voteOpen) ...[_votePanel(), const SizedBox(height: 16)],
+        SizedBox(height: compact ? 12 : 16),
+        if (!compact && _voteOpen) ...[
+          _votePanel(),
+          SizedBox(height: compact ? 12 : 16),
+        ],
         if (_closed)
           _panel(
             'VERSION PUBLIÉE — LECTURE SEULE',
@@ -591,50 +947,29 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
               ],
             ),
           )
+        else if (compact)
+          _panel(
+            'LECTURE SEULE SUR MOBILE',
+            const Text(
+              'La modification et la création de versions sont disponibles uniquement sur la version ordinateur.',
+            ),
+          )
         else
           _panel(
             'JOURNAL DES VERSIONS / COMMENTAIRE',
             Column(
+              key: _journalKey,
               children: [
                 TextField(
                   key: const ValueKey('norm-editor-comment'),
                   controller: _comment,
-                  style: TextStyle(color: p.text),
+                  style: TextStyle(color: p.text, fontSize: ExpertType.body),
+                  minLines: compact ? 2 : 1,
+                  maxLines: compact ? 3 : 1,
                   decoration: _input('Commentaire obligatoire'),
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: !_dirty || _saving
-                          ? null
-                          : () {
-                              _text.text = _base;
-                              _comment.clear();
-                              setState(() => _advice = null);
-                            },
-                      icon: const Icon(Icons.rotate_left),
-                      label: const Text('Réinitialiser'),
-                    ),
-                    FilledButton.icon(
-                      onPressed:
-                          _saving ||
-                              widget.loading ||
-                              !_dirty ||
-                              _text.text.trim().isEmpty ||
-                              _comment.text.trim().isEmpty
-                          ? null
-                          : _save,
-                      icon: const Icon(Icons.save_outlined),
-                      label: Text(
-                        _saving ? 'Sauvegarde…' : 'Sauvegarder la version',
-                      ),
-                    ),
-                  ],
-                ),
+                _versionActions(),
               ],
             ),
           ),
@@ -643,112 +978,151 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
     final right = Column(
       children: [_aiPanel(), const SizedBox(height: 16), _sharePanel()],
     );
-    return DefaultTextStyle(
-      style: TextStyle(color: p.text, fontSize: 14, height: 1.5),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(
-          MediaQuery.sizeOf(context).width < 700 ? 16 : 24,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${widget.doc?['reference_number'] ?? '—'} • ${widget.doc?['standard_family'] ?? ''}',
-              style: TextStyle(color: p.blue, fontWeight: FontWeight.bold),
+    final page = SingleChildScrollView(
+      controller: _pageScroll,
+      padding: compact
+          ? const EdgeInsets.fromLTRB(12, 12, 12, expertFabClearance)
+          : const EdgeInsets.fromLTRB(24, 24, 24, expertFabClearance),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${widget.doc?['reference_number'] ?? '—'} • ${widget.doc?['standard_family'] ?? ''}',
+            style: TextStyle(
+              color: p.blue,
+              fontWeight: FontWeight.bold,
+              fontSize: compact ? 11 : 14,
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${widget.doc?['title'] ?? ''}',
-              style: TextStyle(
-                color: p.title,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${widget.doc?['title'] ?? ''}',
+            style: TextStyle(
+              color: p.title,
+              fontSize: compact ? 18 : 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if ('${widget.doc?['description'] ?? ''}'.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: SelectableText('${widget.doc?['description']}'),
+            ),
+          if (_closed)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 4, bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: p.amber.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: p.amber.withValues(alpha: .45)),
+              ),
+              child: Text(
+                '${widget.doc?['status'] == 'ARCHIVED' ? 'Norme archivée' : 'Norme publiée'} : consultation en lecture seule.',
+                style: TextStyle(color: p.amber, fontWeight: FontWeight.w600),
               ),
             ),
-            if ('${widget.doc?['description'] ?? ''}'.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: SelectableText('${widget.doc?['description']}'),
+          Wrap(
+            spacing: compact ? 8 : 16,
+            runSpacing: compact ? 0 : 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                updated == null
+                    ? 'Date de modification indisponible'
+                    : compact
+                    ? 'Modifié le ${updated.day.toString().padLeft(2, '0')}/${updated.month.toString().padLeft(2, '0')}/${updated.year} à ${updated.hour.toString().padLeft(2, '0')}:${updated.minute.toString().padLeft(2, '0')}'
+                    : 'Dernière modification : $updated',
+                style: TextStyle(color: p.muted, fontSize: compact ? 11 : 14),
               ),
-            if (_closed)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: 4, bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: p.amber.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: p.amber.withValues(alpha: .45)),
-                ),
+              TextButton(
+                onPressed: widget.doc?['ctm'] == null ? null : _groups,
                 child: Text(
-                  '${widget.doc?['status'] == 'ARCHIVED' ? 'Norme archivée' : 'Norme publiée'} : consultation en lecture seule.',
-                  style: TextStyle(color: p.amber, fontWeight: FontWeight.w600),
+                  compact
+                      ? 'Voir groupes'
+                      : '${widget.doc?['ctm_name'] ?? 'CTM non assignée'} — Voir groupes',
                 ),
               ),
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  updated == null
-                      ? 'Date de modification indisponible'
-                      : 'Dernière modification : $updated',
+              TextButton(
+                onPressed: widget.onOpenProfile,
+                child: Text(
+                  compact
+                      ? 'Consultation : ${widget.userName}'
+                      : 'Éditeur : ${widget.userName}',
+                  maxLines: compact ? 1 : null,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                TextButton(
-                  onPressed: widget.doc?['ctm'] == null ? null : _groups,
-                  child: Text(
-                    '${widget.doc?['ctm_name'] ?? 'CTM non assignée'} — Voir groupes',
+              ),
+              OutlinedButton.icon(
+                onPressed: _id == null || _downloading ? null : _downloadPdf,
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                label: Text(
+                  _downloading
+                      ? 'PDF…'
+                      : (compact ? 'PDF' : 'Télécharger le PDF'),
+                ),
+              ),
+            ],
+          ),
+          if (widget.loading) const LinearProgressIndicator(),
+          SizedBox(height: compact ? 12 : 16),
+          // Le champ reste au même emplacement dans l’arbre lorsque les panneaux changent.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 900;
+              return Wrap(
+                spacing: 20,
+                runSpacing: 16,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: [
+                  SizedBox(
+                    width: wide && !compact && _right
+                        ? (constraints.maxWidth - 20) * .64
+                        : constraints.maxWidth,
+                    child: editor,
                   ),
-                ),
-                TextButton(
-                  onPressed: widget.onOpenProfile,
-                  child: Text('Éditeur : ${widget.userName}'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _id == null || _downloading ? null : _downloadPdf,
-                  icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                  label: Text(_downloading ? 'PDF…' : 'Télécharger le PDF'),
-                ),
-              ],
-            ),
-            if (widget.loading) const LinearProgressIndicator(),
-            const SizedBox(height: 16),
-            // Le champ reste au même emplacement dans l’arbre lorsque les panneaux changent.
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 900;
-                return Wrap(
-                  spacing: 20,
-                  runSpacing: 16,
-                  crossAxisAlignment: WrapCrossAlignment.start,
-                  children: [
+                  if (!compact && _right)
                     SizedBox(
-                      width: wide && _right
-                          ? (constraints.maxWidth - 20) * .64
+                      width: wide
+                          ? (constraints.maxWidth - 20) * .36
                           : constraints.maxWidth,
-                      child: editor,
+                      child: right,
                     ),
-                    if (_right)
-                      SizedBox(
-                        width: wide
-                            ? (constraints.maxWidth - 20) * .36
-                            : constraints.maxWidth,
-                        child: right,
-                      ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
+          ),
+          if (!compact) ...[
             const SizedBox(height: 16),
             ExpertResources(
               key: ValueKey('resources-$_id'),
               documentId: _id!,
               userScope: widget.userScope,
             ),
-            const SizedBox(height: 24),
           ],
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+    return Theme(
+      data: editorTheme,
+      child: DefaultTextStyle(
+        style: TextStyle(
+          color: p.text,
+          fontSize: ExpertType.body,
+          height: ExpertType.bodyHeight,
         ),
+        child: compact
+            ? page
+            : Scrollbar(
+                key: const ValueKey('norm-desktop-scrollbar'),
+                controller: _pageScroll,
+                thumbVisibility: true,
+                thickness: 7,
+                radius: const Radius.circular(999),
+                child: page,
+              ),
       ),
     );
   }
@@ -889,7 +1263,9 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
             label: Text(
               _analyzing
                   ? 'Analyse en cours…'
-                  : 'Analyser & optimiser le texte',
+                  : (_compact
+                        ? 'Analyser le texte'
+                        : 'Analyser & optimiser le texte'),
             ),
           ),
           if (_advice != null) ...[
@@ -936,7 +1312,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                 ],
               ),
             ),
-            if (_analyzedText != _text.text)
+            if (_analyzedText != _source)
               Text(
                 'Texte modifié depuis l’analyse : relancez-la.',
                 style: TextStyle(color: p.amber),
@@ -944,16 +1320,17 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
             Wrap(
               spacing: 8,
               children: [
-                FilledButton(
-                  onPressed:
-                      _closed ||
-                          _advice!['fallback'] == true ||
-                          _analyzedText != _text.text ||
-                          !edits.any((e) => e['applied'] == true)
-                      ? null
-                      : _applyAdvice,
-                  child: const Text('Appliquer'),
-                ),
+                if (!_compact)
+                  FilledButton(
+                    onPressed:
+                        _closed ||
+                            _advice!['fallback'] == true ||
+                            _analyzedText != _source ||
+                            !edits.any((e) => e['applied'] == true)
+                        ? null
+                        : _applyAdvice,
+                    child: const Text('Appliquer'),
+                  ),
                 TextButton(
                   onPressed: () => setState(() {
                     _aiRequest++;
@@ -983,17 +1360,17 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
             const Text(
               'Surlignez du texte dans l’éditeur pour préremplir l’extrait.',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextField(
               key: const ValueKey('norm-share-excerpt'),
               controller: _excerpt,
-              minLines: 3,
-              maxLines: 6,
+              minLines: 2,
+              maxLines: 4,
               onChanged: (_) => setState(() {}),
               style: TextStyle(color: p.text),
               decoration: _input('Extrait de clause sélectionné'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             if (_contactsError != null) ...[
               Text(_contactsError!, style: TextStyle(color: p.red)),
               TextButton(
@@ -1022,7 +1399,7 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
             ),
             if (_contacts.isEmpty && _contactsError == null)
               const Text('Aucun destinataire dans vos CTM.'),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             FilledButton.icon(
               onPressed:
                   _sharing || _recipient == null || _excerpt.text.trim().isEmpty
@@ -1030,7 +1407,11 @@ class _ExpertEditorTabState extends State<ExpertEditorTab> {
                   : _share,
               icon: const Icon(Icons.chat_bubble_outline),
               label: Text(
-                _sharing ? 'Envoi…' : 'Partager à l’expert & Ouvrir le Chat',
+                _sharing
+                    ? 'Envoi…'
+                    : (_compact
+                          ? 'Partager et ouvrir le chat'
+                          : 'Partager à l’expert & Ouvrir le Chat'),
               ),
             ),
           ],
