@@ -27,14 +27,17 @@
             <h2>Détails de la réunion</h2>
             <ul>
                 <li><strong>Titre:</strong> {{ data.meeting_title }}</li>
+                {% if data.meeting_type %}<li><strong>Type:</strong> {{ data.meeting_type }}</li>{% endif %}
                 {% if data.scheduled_date %}
                 <li><strong>Date et heure:</strong> {{ data.scheduled_date }}</li>
                 {% endif %}
+                {% if data.meeting_mode %}<li><strong>Mode:</strong> {{ data.meeting_mode }}</li>{% endif %}
+                {% if data.meeting_lieu %}<li><strong>Lieu:</strong> {{ data.meeting_lieu }}</li>{% endif %}
             </ul>
             {% endif %}
             
             <p style="text-align: center; margin: 20px 0;">
-                <a href="{{ site_url }}/app/salle/{{ data.reunion_id }}/" class="button">Rejoindre la réunion</a>
+                <a href="{{ site_url }}/meeting/{{ data.reunion_id }}/" class="button">Voir les détails de la réunion</a>
             </p>
             
             <p>Veuillez confirmer votre présence sur la plateforme.</p>

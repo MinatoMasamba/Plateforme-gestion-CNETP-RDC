@@ -106,8 +106,8 @@ def cmd_create(session, args):
         raise SystemExit(f"Type invalide « {args.type} ». Choix : {', '.join(TYPES)}.")
     if args.mode not in MODES:
         raise SystemExit(f"Mode invalide « {args.mode} ». Choix : {', '.join(MODES)}.")
-    if not args.ctm and not args.wg:
-        raise SystemExit("Indiquer au moins --ctm ou --wg.")
+    if args.type != "ASSEMBLEE" and not args.ctm and not args.wg:
+        raise SystemExit("Indiquer au moins --ctm ou --wg (sauf pour ASSEMBLEE).")
 
     payload = {
         "type": args.type,

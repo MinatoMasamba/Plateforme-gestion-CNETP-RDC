@@ -29,6 +29,9 @@ def notify_participant(participant, event):
         data={'reunion_id': str(meeting.pk), 'event': event,
               'date': meeting.date.isoformat(), 'route': '/expert?tab=3',
               'meeting_id': str(meeting.pk), 'meeting_title': meeting.titre,
+              'meeting_type': meeting.get_type_display(),
+              'meeting_mode': meeting.get_mode_display(),
+              'meeting_lieu': meeting.lieu or '',
               'scheduled_date': date},
     )
 

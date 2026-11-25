@@ -347,3 +347,83 @@ class TestMeetingRoomPage:
         client.force_login(outsider.user)
         response = client.get(f'/app/salle/{reunion.pk}/')
         assert response.status_code == 302
+
+
+@pytest.mark.django_db
+class TestMeetingDetailsPage:
+    def _setup(self, user_factory, ctm_factory, wg_factory):
+        from apps.experts.models import Structure
+
+        structure, _ = Structure.objects.get_or_create(
+            name='Structure test', defaults={'acronym': 'TST', 'category': 'ADMIN'}
+        )
+        manager, _, wg = _manager(user_factory, ctm_factory, wg_factory, structure)
+        invite = _expert(user_factory, 'details-invite', structure)
+        outsider = _expert(user_factory, 'details-outsider', structure)
+        reunion = _reunion(
+            wg, manager,
+            ordre_jour='Examiner le projet\nValider le calendrier',
+            document_links=[{'title': 'Projet de norme', 'url': 'https://example.org/projet.pdf'}],
+        )
+        ReunionParticipant.objects.create(reunion=reunion, expert=invite, role='MEMBRE')
+        return reunion, invite, outsider
+
+    def test_details_accessibles_aux_invites(
+        self, user_factory, ctm_factory, wg_factory,
+    ):
+        from django.test import Client
+
+        reunion, invite, _ = self._setup(user_factory, ctm_factory, wg_factory)
+        client = Client()
+        client.force_login(invite.user)
+
+        response = client.get(f'/meeting/{reunion.pk}/')
+        assert response.status_code == 200
+        assert b'Ordre du jour' in response.content
+        assert b'Participants' in response.content
+        assert b'Projet de norme' in response.content
+        assert b'Rejoindre la salle' in response.content
+
+    def test_ancien_lien_meetings_fonctionne(
+        self, user_factory, ctm_factory, wg_factory,
+    ):
+        from django.test import Client
+
+        reunion, invite, _ = self._setup(user_factory, ctm_factory, wg_factory)
+        client = Client()
+        client.force_login(invite.user)
+
+        response = client.get(f'/meetings/{reunion.pk}/')
+        assert response.status_code == 200
+
+    def test_details_refusees_aux_non_invites(
+        self, user_factory, ctm_factory, wg_factory,
+    ):
+        from django.test import Client
+
+        reunion, _, outsider = self._setup(user_factory, ctm_factory, wg_factory)
+        client = Client()
+        client.force_login(outsider.user)
+
+        response = client.get(f'/meeting/{reunion.pk}/')
+        assert response.status_code == 302
+
+    def test_liste_redirige_les_visiteurs_vers_connexion(self):
+        from django.test import Client
+
+        response = Client().get('/meeting/')
+        assert response.status_code == 302
+        assert '/se-connecter/' in response.url
+
+    def test_liste_des_reunions_de_l_expert(
+        self, user_factory, ctm_factory, wg_factory,
+    ):
+        from django.test import Client
+
+        reunion, invite, _ = self._setup(user_factory, ctm_factory, wg_factory)
+        client = Client()
+        client.force_login(invite.user)
+
+        response = client.get('/meeting/')
+        assert response.status_code == 200
+        assert reunion.titre.encode() in response.content

@@ -407,9 +407,9 @@
             <i data-lucide="users" class="h-5 w-5"></i>
             <span class="text-[9.5px] font-bold uppercase tracking-wide">Groupes</span>
         </button>
-        <button onclick="loadModule('legistique')" data-bottom-tab="legistique" class="bottom-tab flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-slate-400">
-            <i data-lucide="briefcase" class="h-5 w-5"></i>
-            <span class="text-[9.5px] font-bold uppercase tracking-wide">Légistique</span>
+        <button onclick="loadModule('meetings')" data-bottom-tab="meetings" class="bottom-tab flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-slate-400">
+            <i data-lucide="video" class="h-5 w-5"></i>
+            <span class="text-[9.5px] font-bold uppercase tracking-wide">Réunion web</span>
         </button>
         <button onclick="loadModule('profil')" data-bottom-tab="profil" class="bottom-tab flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-slate-400">
             <i data-lucide="user" class="h-5 w-5"></i>
@@ -7815,7 +7815,7 @@
         // =========================================================================
         const loadedModules = new Set(['editor','history','experts','meetings','financial','validation','legistique','profil','notifications','manage-experts','pending-experts','norm-reader','meeting-reader','norm-vote']);
 
-        const primaryModules = new Set(['editor','history','experts','legistique','profil']);
+        const primaryModules = new Set(['editor','history','experts','meetings','profil']);
         const moduleHistoryStack = [];
 
         function goBackModule() {

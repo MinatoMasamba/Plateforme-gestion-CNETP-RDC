@@ -299,7 +299,7 @@ class _MeetingAgendaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = s.p;
     final date = DateTime.tryParse('${meeting['date']}')?.toLocal();
-    final link = '${meeting['lien_reunion_virtuelle'] ?? ''}'.trim();
+    final link = _meetingJoinUrl(meeting) ?? '';
     final join =
         link.isNotEmpty &&
         !['CANCELLED', 'COMPLETED'].contains(meeting['status']);
@@ -663,11 +663,12 @@ class _MeetingDetails extends StatelessWidget {
         children: [
           s.card('Préparation et visioconférence', [
             s.actions([
-              if (active &&
-                  '${meeting['lien_reunion_virtuelle'] ?? ''}'.isNotEmpty)
+              if (active && _meetingJoinUrl(meeting) != null)
                 s.button(
-                  'Rejoindre Meet',
-                  () => s.open('${meeting['lien_reunion_virtuelle']}'),
+                  '${meeting['mode']}' == 'SALLE'
+                      ? 'Rejoindre la salle web'
+                      : 'Rejoindre Meet',
+                  () => s.open(_meetingJoinUrl(meeting)!),
                   icon: Icons.videocam_outlined,
                 ),
               if (canManage && active)
@@ -835,6 +836,18 @@ String _meetingStatus(dynamic value) =>
       'CANCELLED': 'Annulée',
     }[value] ??
     '$value';
+
+/// Lien de participation : lien externe fourni, sinon la salle web LiveKit
+/// de la plateforme pour les réunions en mode SALLE.
+String? _meetingJoinUrl(Map<String, dynamic> meeting) {
+  final link = '${meeting['lien_reunion_virtuelle'] ?? ''}'.trim();
+  if (link.isNotEmpty) return link;
+  if ('${meeting['mode'] ?? ''}' == 'SALLE' && meeting['id'] != null) {
+    final base = ApiClient.baseUrl.replaceFirst(RegExp(r'/+$'), '');
+    return '$base/app/salle/${meeting['id']}/';
+  }
+  return null;
+}
 
 class _MeetingsEmptyState extends StatelessWidget {
   const _MeetingsEmptyState({

@@ -64,7 +64,7 @@ from .activity_views import (
     activity_tasks_bulk_configure, review_activity_declaration, review_activity_dispute,
 )
 from .production_views import InstructionDashboardView, instruction_create, demande_transition
-from .meeting_room_views import salle_reunion
+from .meeting_room_views import meeting_details, meeting_list, salle_reunion
 from .pilotage_profile_views import pilotage_profile
 from .president_sc_views import president_sc_page, president_sc_data
 from .conseiller_views import conseiller_dashboard, ctc_observation
@@ -131,6 +131,12 @@ urlpatterns = [
     path('sw.js', service_worker_view, name='service_worker'),
     path('app/', App.as_view(), name='app'),
     path('app/salle/<int:pk>/', salle_reunion, name='meeting_room'),
+    # Liens de convocation envoyés par email aux experts.
+    path('meeting/', meeting_list, name='meeting_list'),
+    path('meeting/<int:pk>/', meeting_details, name='meeting_details'),
+    # Alias des anciens liens « /meetings/<id>/ » déjà envoyés.
+    path('meetings/', meeting_list, name='meeting_list_legacy'),
+    path('meetings/<int:pk>/', meeting_details, name='meeting_details_legacy'),
     path('app/manifest.json', app_manifest_view, name='app_manifest'),
     path('app/sw.js', app_service_worker_view, name='app_service_worker'),
     path('about/', AboutView.as_view(), name='about'),
