@@ -27,7 +27,9 @@ def notify_participant(participant, event):
         user=participant.expert.user, notification_type=kind,
         title=f'{title} : {meeting.titre}'[:255], body=body, priority='HIGH',
         data={'reunion_id': str(meeting.pk), 'event': event,
-              'date': meeting.date.isoformat(), 'route': '/expert?tab=3'},
+              'date': meeting.date.isoformat(), 'route': '/expert?tab=3',
+              'meeting_id': str(meeting.pk), 'meeting_title': meeting.titre,
+              'scheduled_date': date},
     )
 
     def dispatch():
