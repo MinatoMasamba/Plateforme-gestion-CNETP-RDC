@@ -191,7 +191,7 @@ class ReunionStatusUpdateSerializer(serializers.ModelSerializer):
             valid_transitions = {
                 'PLANNED': ['IN_PROGRESS', 'CANCELLED'],
                 'IN_PROGRESS': ['COMPLETED', 'CANCELLED'],
-                'COMPLETED': [],
+                'COMPLETED': ['IN_PROGRESS'],
                 'CANCELLED': [],
             }
 

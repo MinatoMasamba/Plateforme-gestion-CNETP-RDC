@@ -85,6 +85,29 @@ class TestReunionAccess:
         assert ReunionParticipant.objects.filter(reunion=reunion, expert=manager).exists()
         assert Presence.objects.filter(reunion=reunion, expert=manager).exists()
 
+    def test_ouvrir_salle_reouvre_une_reunion_completee(
+        self, user_factory, ctm_factory, wg_factory,
+    ):
+        from apps.experts.models import Structure
+
+        structure, _ = Structure.objects.get_or_create(
+            name='Structure test', defaults={'acronym': 'TST', 'category': 'ADMIN'}
+        )
+        manager, _, wg = _manager(user_factory, ctm_factory, wg_factory, structure)
+        reunion = _reunion(
+            wg, manager, status='COMPLETED',
+            cloture_salle=timezone.now() - timedelta(minutes=1),
+        )
+
+        client = APIClient()
+        client.force_authenticate(manager.user)
+        response = client.post(f'/api/v1/reunions/{reunion.pk}/ouvrir_salle/')
+
+        assert response.status_code == 200, response.data
+        reunion.refresh_from_db()
+        assert reunion.status == 'IN_PROGRESS'
+        assert reunion.cloture_salle is None
+
     def test_rejoindre_exige_invitation_et_fenetre_horaire(
         self, monkeypatch, user_factory, ctm_factory, wg_factory,
     ):
@@ -319,6 +342,46 @@ class TestLiveKitWebhook:
             HTTP_AUTHORIZATION='invalide',
         )
         assert response.status_code == 401
+
+    def test_room_finished_ne_cloture_pas_la_reunion(
+        self, settings, user_factory, ctm_factory, wg_factory,
+    ):
+        import json
+
+        from livekit import api
+        from apps.experts.models import Structure
+
+        settings.LIVEKIT_URL = 'wss://livekit.test'
+        settings.LIVEKIT_API_KEY = 'test-key'
+        settings.LIVEKIT_API_SECRET = 'test-secret'
+
+        structure, _ = Structure.objects.get_or_create(
+            name='Structure test', defaults={'acronym': 'TST', 'category': 'ADMIN'}
+        )
+        manager, _, wg = _manager(user_factory, ctm_factory, wg_factory, structure)
+        reunion = _reunion(wg, manager, status='IN_PROGRESS')
+        body = json.dumps({
+            'event': 'room_finished',
+            'id': 'EV_test_finished',
+            'created_at': int(timezone.now().timestamp()),
+            'room': {'name': reunion.room_name, 'sid': 'RM_test'},
+        })
+        token = api.AccessToken(settings.LIVEKIT_API_KEY, settings.LIVEKIT_API_SECRET)
+        token.with_sha256(
+            base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
+        )
+        token.with_ttl(timedelta(minutes=5))
+
+        response = APIClient().post(
+            '/api/v1/meetings/livekit/webhook/',
+            data=body,
+            content_type='application/webhook+json',
+            HTTP_AUTHORIZATION=token.to_jwt(),
+        )
+        assert response.status_code == 200, response.content
+        reunion.refresh_from_db()
+        assert reunion.status == 'IN_PROGRESS'
+        assert reunion.cloture_salle is None
 
 
 @pytest.mark.django_db

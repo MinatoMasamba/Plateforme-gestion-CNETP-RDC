@@ -189,6 +189,12 @@ class ReunionViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        if (
+            serializer.validated_data.get('status') in ('IN_PROGRESS', 'PLANNED')
+            and reunion.cloture_salle
+        ):
+            reunion.cloture_salle = None
+            reunion.save(update_fields=['cloture_salle', 'updated_at'])
         return Response(ReunionDetailSerializer(reunion).data)
 
     @action(detail=True, methods=['get'])
@@ -647,7 +653,10 @@ Généré le: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
         if reunion.ouverture_salle is None:
             reunion.ouverture_salle = timezone.now()
             update_fields.append('ouverture_salle')
-        if reunion.status == 'PLANNED':
+        if reunion.cloture_salle is not None:
+            reunion.cloture_salle = None
+            update_fields.append('cloture_salle')
+        if reunion.status in ('PLANNED', 'COMPLETED'):
             reunion.status = 'IN_PROGRESS'
             update_fields.append('status')
         reunion.save(update_fields=update_fields)

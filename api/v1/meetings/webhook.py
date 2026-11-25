@@ -15,7 +15,7 @@ from apps.meetings.models import (
     Reunion, ReunionParticipant,
 )
 from apps.meetings.services.livekit import is_configured
-from apps.meetings.services.presence import apply_presence_at_close, close_open_sessions
+from apps.meetings.services.presence import close_open_sessions
 
 logger = logging.getLogger(__name__)
 
@@ -61,15 +61,10 @@ def _handle_room_started(reunion):
 def _handle_room_finished(reunion):
     if reunion is None:
         return
-    update_fields = ['updated_at']
-    if reunion.cloture_salle is None:
-        reunion.cloture_salle = timezone.now()
-        update_fields.append('cloture_salle')
-    if reunion.status != 'COMPLETED':
-        reunion.status = 'COMPLETED'
-        update_fields.append('status')
-    reunion.save(update_fields=update_fields)
-    apply_presence_at_close(reunion)
+    # Une salle LiveKit est éphémère : sa fermeture (dernier participant parti
+    # ou expiration du délai) ne clôt pas la réunion. La clôture officielle
+    # passe par ``cloturer_salle``/``close`` (calcul de présence + PV).
+    close_open_sessions(reunion)
 
 
 def _handle_participant_joined(reunion, event):
