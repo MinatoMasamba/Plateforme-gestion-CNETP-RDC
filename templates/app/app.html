@@ -368,7 +368,7 @@
         html:not(.dark) :focus { outline: 2px solid var(--blue-primary); outline-offset: 2px; }
 
     </style>
-    <link rel="stylesheet" href="{% static 'css/expert-workspace.css' %}?v=20261127-1">
+    <link rel="stylesheet" href="{% static 'css/expert-workspace.css' %}?v=20261127-2">
 </head>
 <body class="bg-[#020204] text-slate-300 h-screen w-screen overflow-hidden flex font-sans transition-colors duration-300">
     <div id="pwa-install-banner" class="fixed bottom-4 left-4 right-4 z-[60] hidden">
@@ -441,6 +441,7 @@
                 <i data-lucide="panel-left-close" class="h-4 w-4"></i>
             </button>        </div>
 
+        <div id="expert-sidebar-scroll" tabindex="0" role="region" aria-label="Menu et documents de l’espace Expert">
         <nav id="expert-web-nav" class="hidden md:block shrink-0" aria-label="Navigation de l’espace Expert">
             <div class="expert-nav-heading">Travail</div>
             <button class="expert-nav-button" data-expert-nav="editor" title="Éditeur de Normes" onclick="loadModule('editor')"><i data-lucide="file-text"></i><span class="expert-nav-label">Éditeur de Normes</span></button>
@@ -455,7 +456,7 @@
             <button class="expert-nav-button" data-expert-nav="notifications" title="Notifications" onclick="loadModule('notifications')"><i data-lucide="bell"></i><span class="expert-nav-label">Notifications</span></button>
             <button class="expert-nav-button" data-expert-nav="profil" title="Mon profil" onclick="loadModule('profil')"><i data-lucide="user"></i><span class="expert-nav-label">Mon profil</span></button>
         </nav>
-        <div class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 space-y-6">
+        <div class="min-w-0 p-4 space-y-6">
             {% if sc_bureau_access %}<a href="{% url 'web:president_sc' %}" class="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200" aria-label="Ouvrir le suivi des normes de ma sous-commission"><i data-lucide="chart-pie" class="h-4 w-4"></i><span>Suivi des normes de ma SC</span></a>{% endif %}
             <div id="sidebar-top-section">
                 <div class="flex justify-center py-4"><i data-lucide="loader-2" class="w-5 h-5 text-blue-500 animate-spin"></i></div>
@@ -500,6 +501,7 @@
                     <span class="text-blue-500 dark:text-amber-300">&rarr;</span>
                 </button>
             </div>
+        </div>
         </div>
     </aside>
 

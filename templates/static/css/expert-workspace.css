@@ -65,3 +65,14 @@ html:not(.dark) #expert-topbar { background: #fff; }
 html:not(.dark) #expert-web-nav .expert-nav-button { color: #475569; }
 html:not(.dark) #expert-web-nav .expert-nav-button:hover { color: #006a91; background: #e6f4fa; }
 html:not(.dark) #expert-web-nav .expert-nav-button.is-active { color: #fff; background: #1e293b; }
+
+/* Un seul défilement pour le menu, les documents et le profil. */
+#sidebar-container { overflow: hidden; }
+.expert-brand-header { flex-shrink: 0; }
+#expert-sidebar-scroll {
+    flex: 1 1 0%; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    overscroll-behavior-y: contain; scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+}
+#expert-sidebar-scroll:focus-visible { outline: 2px solid #0095c9; outline-offset: -2px; }
+#expert-web-nav { overflow: visible; }
